@@ -4,6 +4,7 @@ import nbformat as nbf
 from myst_parser.docutils_renderer import SphinxRenderer
 from myst_parser.block_tokens import Document
 from myst_parser.sphinx_parser import MystParser
+from jupyter_sphinx.execute import get_widgets, contains_widgets, JupyterWidgetStateNode
 
 
 class NotebookParser(MystParser):
@@ -55,6 +56,9 @@ class NotebookParser(MystParser):
 
                 outputs = CellOutputBundleNode(cell["outputs"])
                 cell_output += outputs
+
+        if contains_widgets(ntbk):
+            document.append(JupyterWidgetStateNode(state=get_widgets(ntbk)))
 
 
 class CellNode(container):
