@@ -32,8 +32,6 @@ extensions = [
     "myst_parser",
     "sphinx_notebook",
     "jupyter_sphinx",
-    "sphinxcontrib.bibtex",
-    "sphinx_tabs.tabs",
 ]
 
 # Add any paths that contain templates here, relative to this directory.

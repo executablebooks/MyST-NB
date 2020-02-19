@@ -88,5 +88,6 @@ class CellOutputBundleNode(container):
 
 class CellImageNode(image):
     """An inline image that will output to an inline HTML image."""
+
     def __init__(self, rawsource="", *children, **attributes):
         super().__init__("", **attributes)

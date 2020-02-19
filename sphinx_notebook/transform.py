@@ -106,7 +106,15 @@ def cell_output_to_nodes(outputs, data_priority):
             data = output["data"][mime_type]
             if mime_type.startswith("image"):
                 image_data = output["data"]["image/png"]
-                to_add.append(CellImageNode(uri=image_data, alt="", candidates={"?": ""}, classes=["output", "image_png"]))
+                # We are manually adding some things docutils expects (like 'candidates')
+                # We are also over-riding the URI in order to pass the base64 data
+                img_node = CellImageNode(
+                    uri=image_data,
+                    alt="",
+                    candidates={"?": ""},
+                    classes=["output", "image_png"],
+                )
+                to_add.append(img_node)
             elif mime_type == "text/html":
                 to_add.append(
                     nodes.raw(text=data, format="html", classes=["output", "text_html"])
