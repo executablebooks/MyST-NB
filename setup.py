@@ -34,13 +34,18 @@ setup(
     keywords="markdown lexer parser development docutils sphinx",
     python_requires=">=3.5",
     install_requires=[
+        "docutils",
+        "jupyter_sphinx",
+        "nbformat",
+        "nbconvert",
+        "pyyaml",
         (
             "mistletoe @ "
             "https://github.com/ExecutableBookProject/mistletoe/archive/myst.zip"
         ),
         (
-            "sphinx_notebook @ "
-            "https://github.com/ExecutableBookProject/sphinx_notebook/archive/master.zip"
+            "myst_parser @ "
+            "https://github.com/ExecutableBookProject/myst_parser/archive/master.zip"
         ),
     ],
     extras_require={
@@ -54,6 +59,9 @@ setup(
             ),
             "nbformat",
             "ipywidgets",
+            "pandas",
+            "numpy",
+            "altair",
         ],
         "code_style": ["flake8<3.8.0,>=3.7.0", "black", "pre-commit==1.17.0"],
         "testing": [
