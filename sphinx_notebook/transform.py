@@ -2,9 +2,8 @@
 from docutils import nodes
 from sphinx.transforms import SphinxTransform
 from sphinx.util import logging
-from jupyter_sphinx.execute import JupyterWidgetViewNode
 import nbconvert
-from jupyter_sphinx.execute import strip_latex_delimiters
+from jupyter_sphinx.execute import JupyterWidgetViewNode, strip_latex_delimiters
 
 from .parser import CellOutputBundleNode, CellImageNode
 

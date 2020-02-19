@@ -1,7 +1,8 @@
 __version__ = "0.1.0"
 
-import docutils
+from docutils import nodes
 from jupyter_sphinx.execute import JupyterWidgetStateNode, JupyterWidgetViewNode
+
 from .parser import (
     NotebookParser,
     CellNode,
@@ -21,12 +22,12 @@ def setup(app):
 
     # Helper functions for the registry, pulled from jupyter-sphinx
     def skip(self, node):
-        raise docutils.nodes.SkipNode
+        raise nodes.SkipNode
 
     # Used to render an element node as HTML
     def visit_element_html(self, node):
         self.body.append(node.html())
-        raise docutils.nodes.SkipNode
+        raise nodes.SkipNode
 
     # Shortcut for registering our container nodes
     render_container = (
