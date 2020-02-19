@@ -1,4 +1,4 @@
-from docutils.nodes import container, literal_block
+from docutils.nodes import container, literal_block, image
 import nbformat as nbf
 
 from myst_parser.docutils_renderer import SphinxRenderer
@@ -83,4 +83,10 @@ class CellOutputBundleNode(container):
 
     def __init__(self, outputs, rawsource="", *children, **attributes):
         self.outputs = outputs
+        super().__init__("", **attributes)
+
+
+class CellImageNode(image):
+    """An inline image that will output to an inline HTML image."""
+    def __init__(self, rawsource="", *children, **attributes):
         super().__init__("", **attributes)

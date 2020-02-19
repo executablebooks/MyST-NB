@@ -1,12 +1,14 @@
 __version__ = "0.1.0"
 
 import docutils
+from jupyter_sphinx.execute import JupyterWidgetStateNode, JupyterWidgetViewNode
 from .parser import (
     NotebookParser,
     CellNode,
     CellInputNode,
     CellOutputNode,
     CellOutputBundleNode,
+    CellImageNode
 )
 from .transform import CellOutputsToNodes
 
@@ -50,6 +52,40 @@ def setup(app):
         CellOutputBundleNode,
         override=True,
         html=(skip, None),
+        latex=(skip, None),
+        textinfo=(skip, None),
+        text=(skip, None),
+        man=(skip, None),
+    )
+
+    # So that we can in-line images in HTML outputs
+    def visit_cell_image(self, node):
+        atts = {
+            "src": f"data:image/png;base64, {node['uri']}",
+            "alt": f"{node['alt']}"
+        }
+        self.body.append(self.emptytag(node, 'img', "\n", **atts))
+    app.add_node(
+        CellImageNode,
+        override=True,
+        html=(visit_cell_image, lambda self, node: ''),
+    )
+
+    # JupyterWidgetViewNode holds widget view JSON,
+    # but is only rendered properly in HTML documents.
+    app.add_node(
+        JupyterWidgetViewNode,
+        html=(visit_element_html, None),
+        latex=(skip, None),
+        textinfo=(skip, None),
+        text=(skip, None),
+        man=(skip, None),
+    )
+    # JupyterWidgetStateNode holds the widget state JSON,
+    # but is only rendered in HTML documents.
+    app.add_node(
+        JupyterWidgetStateNode,
+        html=(visit_element_html, None),
         latex=(skip, None),
         textinfo=(skip, None),
         text=(skip, None),

@@ -6,7 +6,7 @@ from jupyter_sphinx.execute import JupyterWidgetViewNode
 import nbconvert
 from jupyter_sphinx.execute import strip_latex_delimiters
 
-from .parser import CellOutputBundleNode
+from .parser import CellOutputBundleNode, CellImageNode
 
 
 logger = logging.getLogger(__name__)
@@ -96,6 +96,7 @@ def cell_output_to_nodes(outputs, data_priority):
                     classes=["output", "traceback"],
                 )
             )
+
         elif output_type in ("display_data", "execute_result"):
             try:
                 # First mime_type by priority that occurs in output.
@@ -104,8 +105,8 @@ def cell_output_to_nodes(outputs, data_priority):
                 continue
             data = output["data"][mime_type]
             if mime_type.startswith("image"):
-                img_data = output["data"]["image/png"]
-                to_add.append(nodes.image(uri=img_data))
+                image_data = output["data"]["image/png"]
+                to_add.append(CellImageNode(uri=image_data, alt="", candidates={"?": ""}, classes=["output", "image_png"]))
             elif mime_type == "text/html":
                 to_add.append(
                     nodes.raw(text=data, format="html", classes=["output", "text_html"])

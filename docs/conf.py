@@ -31,6 +31,7 @@ master_doc = "index"
 extensions = [
     "myst_parser",
     "sphinx_notebook",
+    "jupyter_sphinx",
     "sphinxcontrib.bibtex",
     "sphinx_tabs.tabs",
 ]
