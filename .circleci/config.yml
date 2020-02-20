@@ -12,7 +12,6 @@ jobs:
           keys:
             - cache-pip
 
-      - run: pip install --user -r requirements.txt
       - run: pip install --user -e .[sphinx,rtd]
       - save_cache:
           key: cache-pip

@@ -2,6 +2,7 @@ __version__ = "0.1.0"
 
 from docutils import nodes
 from jupyter_sphinx.execute import JupyterWidgetStateNode, JupyterWidgetViewNode
+from ipywidgets import embed
 
 from .parser import (
     NotebookParser,
@@ -12,6 +13,22 @@ from .parser import (
     CellImageNode,
 )
 from .transform import CellOutputsToNodes
+
+
+def builder_inited(app):
+    """
+    2 cases
+    case 1: ipywidgets 7, with require
+    case 2: ipywidgets 7, no require
+    """
+    require_url = app.config.jupyter_sphinx_require_url
+    if require_url:
+        app.add_js_file(require_url)
+        embed_url = app.config.jupyter_sphinx_embed_url or embed.DEFAULT_EMBED_REQUIREJS_URL
+    else:
+        embed_url = app.config.jupyter_sphinx_embed_url or embed.DEFAULT_EMBED_SCRIPT_URL
+    if embed_url:
+        app.add_js_file(embed_url)
 
 
 def setup(app):
@@ -91,5 +108,11 @@ def setup(app):
 
     # Register our post-transform which will convert output bundles to nodes
     app.add_post_transform(CellOutputsToNodes)
+
+    # Attach the `builder_inited` function to load the JS libraries for ipywidgets
+    REQUIRE_URL_DEFAULT = 'https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js'
+    app.connect('builder-inited', builder_inited)
+    app.add_config_value('jupyter_sphinx_require_url', REQUIRE_URL_DEFAULT, 'html')
+    app.add_config_value('jupyter_sphinx_embed_url', None, 'html')
 
     return {"version": __version__, "parallel_read_safe": True}
