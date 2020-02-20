@@ -66,6 +66,9 @@ class NotebookParser(MystParser):
                 outputs = CellOutputBundleNode(cell["outputs"])
                 cell_output += outputs
 
+        if contains_widgets(ntbk):
+            document.append(JupyterWidgetStateNode(state=get_widgets(ntbk)))
+
 
 class CellNode(container):
     """Represent a cell in the Sphinx AST."""
