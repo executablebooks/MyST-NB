@@ -1,4 +1,4 @@
-# Sphinx Notebook
+# Sphinx Jupyter Notebook
 
 A collection of tools for working with Jupyter Notebooks in Sphinx.
 
@@ -8,10 +8,42 @@ It relies heavily on the [`MyST` parser](https://github.com/ExecutableBookProjec
 
 ```{warn}
 This project is in an alpha state. It may evolve rapidly and/or make breaking changes!
+It currently depends on a fork of the Mistletoe library, so keep that in mind as you
+use it!
 ```
 
-To see an example of reading in notebooks directly into Sphinx, see the page below.
+## Installation
 
+To install `sphinx-jupyter-notebook`, do the following:
+
+* Ensure that `myst_parser` and `sphinx-notebook` are installed with the following
+  commands:
+
+  `myst_parser`:
+  ```
+  pip install -e "git+https://github.com/ExecutableBookProject/myst_parser.git#egg=myst_parser[sphinx]
+  ```
+
+  `sphinx-notebook`:
+  ```
+  pip install -e "git+https://github.com/executablebookproject/sphinx-notebook.git#egg=sphinx-notebook[sphinx]
+  ```
+* Enable both the `myst_parser` and `sphinx-notebook` in your Sphinx repository's
+  extensions:
+
+  ```python
+  extensions = [
+      ...,
+      "myst_parser",
+      "sphinx_notebook"
+  ]
+  ```
+* Include Jupyter Notebooks with your built documentation, and remember to include them
+  in your `toctree`, and that's it!
+
+## An example
+
+To see an example of reading in notebooks directly into Sphinx, see the page below.
 
 ```{toctree}
 notebooks.ipynb
