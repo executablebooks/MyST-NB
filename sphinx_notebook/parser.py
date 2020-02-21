@@ -54,6 +54,7 @@ class NotebookParser(MystParser):
                     myst_ast = tokenize(cell["source"].splitlines(keepends=True))
                     for child in myst_ast:
                         renderer.render(child)
+
                 # If a code cell, convert the code + outputs
                 elif cell["cell_type"] == "code":
                     # Input block
