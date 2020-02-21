@@ -48,3 +48,9 @@ To see an example of reading in notebooks directly into Sphinx, see the page bel
 ```{toctree}
 notebooks.ipynb
 ```
+
+And here is a reference Jupyter Sphinx demo page to see how things look in raw text
+
+```{toctree}
+jupyter_sphinx.md
+```
