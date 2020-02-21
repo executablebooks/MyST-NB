@@ -32,42 +32,47 @@ class NotebookParser(MystParser):
         if contains_widgets(ntbk):
             document.append(JupyterWidgetStateNode(state=get_widgets(ntbk)))
 
-        for cell in ntbk.cells:
-            # Skip empty cells
-            if len(cell['source']) == 0:
-                continue
+        renderer = SphinxRenderer(document=document, current_node=None)
+        with renderer:
+            for cell in ntbk.cells:
+                # Skip empty cells
+                if len(cell['source']) == 0:
+                    continue
 
-            # Cell container will wrap whatever is in the cell
-            sphinx_cell = CellNode(classes=["cell"], cell_type=cell["cell_type"])
-            # Give *all* cells an input container just to make it more consistent
-            cell_input = CellInputNode(classes=["cell_input"])
-            sphinx_cell += cell_input
-            document += sphinx_cell
+                # Cell container will wrap whatever is in the cell
+                sphinx_cell = CellNode(classes=["cell"], cell_type=cell["cell_type"])
 
-            # If a markdown cell, simply call the Myst parser and append children
-            if cell["cell_type"] == "markdown":
-                # Initialize the render so that it'll append things to our current cell
-                renderer = SphinxRenderer(document=document, current_node=cell_input)
-                with renderer:
+                # Give *all* cells an input container just to make it more consistent
+                cell_input = CellInputNode(classes=["cell_input"])
+                sphinx_cell += cell_input
+                document += sphinx_cell
+
+                # If a markdown cell, simply call the Myst parser and append children
+                if cell["cell_type"] == "markdown":
+                    # Initialize the render so that it'll append things to our current cell
+                    renderer.current_node = cell_input
+                    # TODO: This shouldn't be `Document` because it'll look for yaml frontmatter
+                    #       Should be something else but need to see how myst parser does it.
                     myst_ast = Document(cell["source"])
                     renderer.render(myst_ast)
-            # If a code cell, convert the code + outputs
-            elif cell["cell_type"] == "code":
-                # Input block
-                code_block = literal_block(text=cell["source"])
-                cell_input += code_block
+                # If a code cell, convert the code + outputs
+                elif cell["cell_type"] == "code":
+                    # Input block
+                    code_block = literal_block(text=cell["source"])
+                    cell_input += code_block
 
-                # ==================
-                # Cell output
-                # ==================
-                cell_output = CellOutputNode(classes=["cell_output"])
-                sphinx_cell += cell_output
+                    # ==================
+                    # Cell output
+                    # ==================
+                    cell_output = CellOutputNode(classes=["cell_output"])
+                    sphinx_cell += cell_output
 
-                outputs = CellOutputBundleNode(cell["outputs"])
-                cell_output += outputs
+                    outputs = CellOutputBundleNode(cell["outputs"])
+                    cell_output += outputs
 
-        if contains_widgets(ntbk):
-            document.append(JupyterWidgetStateNode(state=get_widgets(ntbk)))
+            # A global state for all widgets
+            if contains_widgets(ntbk):
+                document.append(JupyterWidgetStateNode(state=get_widgets(ntbk)))
 
 
 class CellNode(container):
