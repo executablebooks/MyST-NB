@@ -2,7 +2,7 @@ from docutils.nodes import container, literal_block, image
 import nbformat as nbf
 
 from myst_parser.docutils_renderer import SphinxRenderer
-from myst_parser.block_tokens import Document
+from myst_parser.block_tokens import tokenize
 from myst_parser.sphinx_parser import MystParser
 from jupyter_sphinx.execute import get_widgets, contains_widgets, JupyterWidgetStateNode
 
@@ -51,10 +51,9 @@ class NotebookParser(MystParser):
                 if cell["cell_type"] == "markdown":
                     # Initialize the render so that it'll append things to our current cell
                     renderer.current_node = cell_input
-                    # TODO: This shouldn't be `Document` because it'll look for yaml frontmatter
-                    #       Should be something else but need to see how myst parser does it.
-                    myst_ast = Document(cell["source"])
-                    renderer.render(myst_ast)
+                    myst_ast = tokenize(cell["source"].splitlines(keepends=True))
+                    for child in myst_ast:
+                        renderer.render(child)
                 # If a code cell, convert the code + outputs
                 elif cell["cell_type"] == "code":
                     # Input block
@@ -69,10 +68,6 @@ class NotebookParser(MystParser):
 
                     outputs = CellOutputBundleNode(cell["outputs"])
                     cell_output += outputs
-
-            # A global state for all widgets
-            if contains_widgets(ntbk):
-                document.append(JupyterWidgetStateNode(state=get_widgets(ntbk)))
 
 
 class CellNode(container):
