@@ -1,11 +1,17 @@
 """sphinx_notebook package setup."""
-from importlib import import_module
-
+from pathlib import Path
 from setuptools import find_packages, setup
+
+# Manually finding the version so we don't need to import our module
+text = path = Path("./sphinx_notebook/__init__.py").read_text()
+for line in text.split('\n'):
+    if '__version__' in line:
+        break
+version = line.split('= ')[-1].strip('"')
 
 setup(
     name="sphinx_notebook",
-    version=import_module("sphinx_notebook").__version__,
+    version=version,
     description=(
         "An extended commonmark compliant parser, " "with bridges to docutils & sphinx."
     ),
@@ -34,7 +40,6 @@ setup(
     keywords="markdown lexer parser development docutils sphinx",
     python_requires=">=3.5",
     install_requires=[
-        "docutils",
         "jupyter_sphinx",
         "nbformat",
         "nbconvert",
@@ -45,7 +50,7 @@ setup(
         ),
         (
             "myst_parser @ "
-            "https://github.com/ExecutableBookProject/myst_parser/archive/master.zip"
+            "https://github.com/ExecutableBookProject/myst_parser/archive/develop.zip"
         ),
     ],
     extras_require={
