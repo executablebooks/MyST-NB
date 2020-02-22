@@ -114,5 +114,4 @@ def setup(app):
     app.connect('builder-inited', builder_inited)
     app.add_config_value('sphinx_notebook_require_url', REQUIRE_URL_DEFAULT, 'html')
     app.add_config_value('sphinx_notebook_embed_url', None, 'html')
-
     return {"version": __version__, "parallel_read_safe": True}
