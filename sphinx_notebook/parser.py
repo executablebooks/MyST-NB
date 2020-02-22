@@ -1,8 +1,10 @@
 from docutils.nodes import container, literal_block, image
 import nbformat as nbf
+import yaml
+import json
 
 from myst_parser.docutils_renderer import SphinxRenderer
-from myst_parser.block_tokens import tokenize
+from myst_parser.block_tokens import tokenize, FrontMatter
 from myst_parser.sphinx_parser import MystParser
 from jupyter_sphinx.execute import get_widgets, contains_widgets, JupyterWidgetStateNode
 
@@ -27,6 +29,13 @@ class NotebookParser(MystParser):
             pass
 
         ntbk = nbf.reads(inputstring, nbf.NO_CONVERT)
+
+        # Parse notebook-level metadata as front-matter
+        # The json round-trip converts nested NotebookNodes to dicts
+        metadata_yaml = yaml.dump(json.loads(json.dumps(ntbk.metadata)))
+        metadata_yaml = f"---\n{metadata_yaml}\n---\n"
+        front_matter = FrontMatter(metadata_yaml.splitlines(keepends=True))
+        document.children.append(front_matter)
 
         # If there are widgets, this will embed the state of all widgets in a script
         if contains_widgets(ntbk):
