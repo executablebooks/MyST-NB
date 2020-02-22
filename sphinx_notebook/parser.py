@@ -1,10 +1,8 @@
 from docutils import nodes
 import nbformat as nbf
-import yaml
-import json
 
 from myst_parser.docutils_renderer import SphinxRenderer, dict_to_docinfo
-from myst_parser.block_tokens import tokenize, FrontMatter
+from myst_parser.block_tokens import tokenize
 from myst_parser.sphinx_parser import MystParser
 from jupyter_sphinx.execute import get_widgets, contains_widgets, JupyterWidgetStateNode
 
@@ -44,12 +42,12 @@ class NotebookParser(MystParser):
         with renderer:
             for cell in ntbk.cells:
                 # Skip empty cells
-                if len(cell['source']) == 0:
+                if len(cell["source"]) == 0:
                     continue
 
                 # Cell container will wrap whatever is in the cell
                 classes = ["cell"]
-                for tag in cell.metadata.get('tags', []):
+                for tag in cell.metadata.get("tags", []):
                     classes.append(f"tag_{tag}")
 
                 sphinx_cell = CellNode(classes=classes, cell_type=cell["cell_type"])
@@ -61,7 +59,7 @@ class NotebookParser(MystParser):
 
                 # If a markdown cell, simply call the Myst parser and append children
                 if cell["cell_type"] == "markdown":
-                    # Initialize the render so that it'll append things to our current cell
+                    # Initialize the render to append things to our current cell
                     renderer.current_node = cell_input
                     myst_ast = tokenize(cell["source"].splitlines(keepends=True))
                     for child in myst_ast:
