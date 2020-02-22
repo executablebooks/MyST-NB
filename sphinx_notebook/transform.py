@@ -24,7 +24,7 @@ RENDER_PRIORITY = {
     ],
     "latex": ["text/latex", "text/plain"],
 }
-RENDER_PRIORITY['readthedocs'] = RENDER_PRIORITY['html']
+RENDER_PRIORITY["readthedocs"] = RENDER_PRIORITY["html"]
 
 
 class CellOutputsToNodes(SphinxTransform):
@@ -106,7 +106,7 @@ def cell_output_to_nodes(outputs, data_priority):
             data = output["data"][mime_type]
             if mime_type.startswith("image"):
                 image_data = output["data"]["image/png"]
-                # We are manually adding some things docutils expects (like 'candidates')
+                # Manually adding some things docutils expects (like 'candidates')
                 # We are also over-riding the URI in order to pass the base64 data
                 img_node = CellImageNode(
                     uri=image_data,

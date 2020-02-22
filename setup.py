@@ -4,10 +4,10 @@ from setuptools import find_packages, setup
 
 # Manually finding the version so we don't need to import our module
 text = path = Path("./sphinx_notebook/__init__.py").read_text()
-for line in text.split('\n'):
-    if '__version__' in line:
+for line in text.split("\n"):
+    if "__version__" in line:
         break
-version = line.split('= ')[-1].strip('"')
+version = line.split("= ")[-1].strip('"')
 
 setup(
     name="sphinx_notebook",
@@ -68,7 +68,7 @@ setup(
             "numpy",
             "altair",
             "alabaster",
-            "matplotlib"
+            "matplotlib",
         ],
         "code_style": ["flake8<3.8.0,>=3.7.0", "black", "pre-commit==1.17.0"],
         "testing": [
