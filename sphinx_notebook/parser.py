@@ -21,7 +21,7 @@ class NotebookParser(MystParser):
     def parse(self, inputstring, document):
         self.config = self.default_config.copy()
         try:
-            new_cfg = self.document.settings.env.config.myst_config
+            new_cfg = document.settings.env.config.myst_config
             self.config.update(new_cfg)
         except AttributeError:
             pass
@@ -40,7 +40,11 @@ class NotebookParser(MystParser):
                     continue
 
                 # Cell container will wrap whatever is in the cell
-                sphinx_cell = CellNode(classes=["cell"], cell_type=cell["cell_type"])
+                classes = ["cell"]
+                for tag in cell.metadata.get('tags', []):
+                    classes.append(f"tag_{tag}")
+
+                sphinx_cell = CellNode(classes=classes, cell_type=cell["cell_type"])
 
                 # Give *all* cells an input container just to make it more consistent
                 cell_input = CellInputNode(classes=["cell_input"])
