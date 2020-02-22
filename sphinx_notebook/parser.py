@@ -1,9 +1,9 @@
-from docutils.nodes import container, literal_block, image
+from docutils import nodes
 import nbformat as nbf
 import yaml
 import json
 
-from myst_parser.docutils_renderer import SphinxRenderer
+from myst_parser.docutils_renderer import SphinxRenderer, dict_to_docinfo
 from myst_parser.block_tokens import tokenize, FrontMatter
 from myst_parser.sphinx_parser import MystParser
 from jupyter_sphinx.execute import get_widgets, contains_widgets, JupyterWidgetStateNode
@@ -31,11 +31,10 @@ class NotebookParser(MystParser):
         ntbk = nbf.reads(inputstring, nbf.NO_CONVERT)
 
         # Parse notebook-level metadata as front-matter
-        # The json round-trip converts nested NotebookNodes to dicts
-        metadata_yaml = yaml.dump(json.loads(json.dumps(ntbk.metadata)))
-        metadata_yaml = f"---\n{metadata_yaml}\n---\n"
-        front_matter = FrontMatter(metadata_yaml.splitlines(keepends=True))
-        document.children.append(front_matter)
+        # For now, only keep key/val pairs that point to int/float/string
+        metadata = ntbk.metadata
+        docinfo = dict_to_docinfo(metadata)
+        document += docinfo
 
         # If there are widgets, this will embed the state of all widgets in a script
         if contains_widgets(ntbk):
@@ -71,7 +70,7 @@ class NotebookParser(MystParser):
                 # If a code cell, convert the code + outputs
                 elif cell["cell_type"] == "code":
                     # Input block
-                    code_block = literal_block(text=cell["source"])
+                    code_block = nodes.literal_block(text=cell["source"])
                     cell_input += code_block
 
                     # ==================
@@ -84,28 +83,28 @@ class NotebookParser(MystParser):
                     cell_output += outputs
 
 
-class CellNode(container):
+class CellNode(nodes.container):
     """Represent a cell in the Sphinx AST."""
 
     def __init__(self, rawsource="", *children, **attributes):
         super().__init__("", **attributes)
 
 
-class CellInputNode(container):
+class CellInputNode(nodes.container):
     """Represent an input cell in the Sphinx AST."""
 
     def __init__(self, rawsource="", *children, **attributes):
         super().__init__("", **attributes)
 
 
-class CellOutputNode(container):
+class CellOutputNode(nodes.container):
     """Represent an output cell in the Sphinx AST."""
 
     def __init__(self, rawsource="", *children, **attributes):
         super().__init__("", **attributes)
 
 
-class CellOutputBundleNode(container):
+class CellOutputBundleNode(nodes.container):
     """Represent a MimeBundle in the Sphinx AST, to be transformed later."""
 
     def __init__(self, outputs, rawsource="", *children, **attributes):
@@ -113,7 +112,7 @@ class CellOutputBundleNode(container):
         super().__init__("", **attributes)
 
 
-class CellImageNode(image):
+class CellImageNode(nodes.image):
     """An inline image that will output to an inline HTML image."""
 
     def __init__(self, rawsource="", *children, **attributes):
