@@ -12,7 +12,7 @@ it allows to enable [thebelab](https://thebelab.readthedocs.io/) for live
 code execution with minimal effort.
 
 
-# Basic Usage
+## Basic Usage
 
 You can use the `jupyter-execute` directive to embed code into the document
 

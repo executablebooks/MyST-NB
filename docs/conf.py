@@ -17,7 +17,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = "Sphinx Notebook"
+project = "MyST-NB"
 copyright = "2020, Executable Book Project"
 author = "Executable Book Project"
 
@@ -45,6 +45,12 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # a list of builtin themes.
 #
 html_theme = "alabaster"
+
+html_theme_options = {
+    'logo': 'logo.png',
+    'github_user': 'ExecutableBookProject',
+    'github_repo': 'myst-nb',
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

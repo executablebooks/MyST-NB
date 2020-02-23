@@ -10,7 +10,7 @@ for line in text.split("\n"):
 version = line.split("= ")[-1].strip('"')
 
 setup(
-    name="myst_nb",
+    name="MyST-NB",
     version=version,
     description=(
         "An extended commonmark compliant parser, " "with bridges to docutils & sphinx."

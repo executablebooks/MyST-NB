@@ -1,4 +1,4 @@
-# Sphinx Jupyter Notebook
+# MyST-NB
 
 A collection of tools for working with Jupyter Notebooks in Sphinx.
 
@@ -14,9 +14,9 @@ use it!
 
 ## Installation
 
-To install `sphinx-jupyter-notebook`, do the following:
+To install `myst-nb`, do the following:
 
-* Ensure that `myst_parser` and `sphinx-notebook` are installed with the following
+* Ensure that `myst_parser` and `myst-nb` are installed with the following
   commands:
 
   `myst_parser`:
@@ -24,7 +24,7 @@ To install `sphinx-jupyter-notebook`, do the following:
   pip install -e "git+https://github.com/ExecutableBookProject/myst_parser.git#egg=myst_parser[sphinx]
   ```
 
-  `sphinx-notebook`:
+  `myst-nb`:
   ```
   pip install -e "git+https://github.com/executablebookproject/sphinx-notebook.git#egg=sphinx-notebook[sphinx]
   ```
