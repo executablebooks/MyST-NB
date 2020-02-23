@@ -21,15 +21,15 @@ def builder_inited(app):
     case 1: ipywidgets 7, with require
     case 2: ipywidgets 7, no require
     """
-    require_url = app.config.sphinx_notebook_require_url
+    require_url = app.config.myst_nb_require_url
     if require_url:
         app.add_js_file(require_url)
         embed_url = (
-            app.config.sphinx_notebook_embed_url or embed.DEFAULT_EMBED_REQUIREJS_URL
+            app.config.myst_nb_embed_url or embed.DEFAULT_EMBED_REQUIREJS_URL
         )
     else:
         embed_url = (
-            app.config.sphinx_notebook_embed_url or embed.DEFAULT_EMBED_SCRIPT_URL
+            app.config.myst_nb_embed_url or embed.DEFAULT_EMBED_SCRIPT_URL
         )
     if embed_url:
         app.add_js_file(embed_url)
@@ -118,6 +118,6 @@ def setup(app):
         "https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"
     )
     app.connect("builder-inited", builder_inited)
-    app.add_config_value("sphinx_notebook_require_url", REQUIRE_URL_DEFAULT, "html")
-    app.add_config_value("sphinx_notebook_embed_url", None, "html")
+    app.add_config_value("myst_nb_require_url", REQUIRE_URL_DEFAULT, "html")
+    app.add_config_value("myst_nb_embed_url", None, "html")
     return {"version": __version__, "parallel_read_safe": True}

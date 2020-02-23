@@ -1,23 +1,23 @@
-"""sphinx_notebook package setup."""
+"""MyST-NB package setup."""
 from pathlib import Path
 from setuptools import find_packages, setup
 
 # Manually finding the version so we don't need to import our module
-text = path = Path("./sphinx_notebook/__init__.py").read_text()
+text = path = Path("./myst_nb/__init__.py").read_text()
 for line in text.split("\n"):
     if "__version__" in line:
         break
 version = line.split("= ")[-1].strip('"')
 
 setup(
-    name="sphinx_notebook",
+    name="myst_nb",
     version=version,
     description=(
         "An extended commonmark compliant parser, " "with bridges to docutils & sphinx."
     ),
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    url="https://github.com/ExecutableBookProject/sphinx_notebook",
+    url="https://github.com/ExecutableBookProject/myst_nb",
     author="Chris Sewell",
     author_email="chrisj_sewell@hotmail.com",
     license="MIT",
