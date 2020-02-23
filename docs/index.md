@@ -35,7 +35,7 @@ To install `sphinx-jupyter-notebook`, do the following:
   extensions = [
       ...,
       "myst_parser",
-      "sphinx_notebook"
+      "myst_nb"
   ]
   ```
 * Include Jupyter Notebooks with your built documentation, and remember to include them
