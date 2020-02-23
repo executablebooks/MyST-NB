@@ -1,6 +1,6 @@
-# Sphinx Jupyter Notebook
+# MyST-NB
 
-[![Documentation Status](https://readthedocs.org/projects/sphinx-jupyter-notebook/badge/?version=latest)](https://sphinx-jupyter-notebook.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/myst-nb/badge/?version=latest)](https://myst-nb.readthedocs.io/en/latest/?badge=latest)
 
 A collection of tools for working with Jupyter Notebooks in Sphinx.
 
@@ -13,4 +13,4 @@ It relies heavily on the [`MyST` parser](https://github.com/ExecutableBookProjec
 > It currently depends on a fork of the Mistletoe library, so keep that in mind as you
 > use it!
 
-For more information, [see the Sphinx Jupyter Notebook documentation](https://sphinx-jupyter-notebook.readthedocs.io/en/latest/)
+For more information, [see the MyST-NB documentation](https://myst-nb.readthedocs.io/en/latest/)
