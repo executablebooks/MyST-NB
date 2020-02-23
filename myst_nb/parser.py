@@ -65,6 +65,11 @@ class NotebookParser(MystParser):
                     for child in myst_ast:
                         renderer.render(child)
 
+                    # Hack to make sure that new sections are inserted into the cell
+                    insert_nodes_at = len(cell_input.children)
+                    while not isinstance(document.children[-1], CellNode):
+                        cell_input.children.insert(insert_nodes_at, document.children.pop(-1))
+
                 # If a code cell, convert the code + outputs
                 elif cell["cell_type"] == "code":
                     # Input block
