@@ -24,13 +24,9 @@ def builder_inited(app):
     require_url = app.config.myst_nb_require_url
     if require_url:
         app.add_js_file(require_url)
-        embed_url = (
-            app.config.myst_nb_embed_url or embed.DEFAULT_EMBED_REQUIREJS_URL
-        )
+        embed_url = app.config.myst_nb_embed_url or embed.DEFAULT_EMBED_REQUIREJS_URL
     else:
-        embed_url = (
-            app.config.myst_nb_embed_url or embed.DEFAULT_EMBED_SCRIPT_URL
-        )
+        embed_url = app.config.myst_nb_embed_url or embed.DEFAULT_EMBED_SCRIPT_URL
     if embed_url:
         app.add_js_file(embed_url)
 

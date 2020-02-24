@@ -28,7 +28,7 @@ master_doc = "index"
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ["myst_parser", "myst_nb", "jupyter_sphinx.execute"]
+extensions = ["myst_parser", "myst_nb", "jupyter_sphinx.execute", "sphinx_togglebutton"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -47,9 +47,9 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 html_theme = "alabaster"
 
 html_theme_options = {
-    'logo': 'logo.png',
-    'github_user': 'ExecutableBookProject',
-    'github_repo': 'myst-nb',
+    "logo": "logo.png",
+    "github_user": "ExecutableBookProject",
+    "github_repo": "myst-nb",
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,

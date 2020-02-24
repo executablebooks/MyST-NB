@@ -37,9 +37,9 @@ class NotebookParser(MystParser):
         # If there are widgets, this will embed the state of all widgets in a script
         if contains_widgets(ntbk):
             document.append(JupyterWidgetStateNode(state=get_widgets(ntbk)))
-
         renderer = SphinxRenderer(document=document, current_node=None)
         with renderer:
+            # Loop through cells and render them
             for cell in ntbk.cells:
                 # Skip empty cells
                 if len(cell["source"]) == 0:
@@ -50,28 +50,27 @@ class NotebookParser(MystParser):
                 for tag in cell.metadata.get("tags", []):
                     classes.append(f"tag_{tag}")
 
-                sphinx_cell = CellNode(classes=classes, cell_type=cell["cell_type"])
-
-                # Give *all* cells an input container just to make it more consistent
-                cell_input = CellInputNode(classes=["cell_input"])
-                sphinx_cell += cell_input
-                document += sphinx_cell
-
                 # If a markdown cell, simply call the Myst parser and append children
                 if cell["cell_type"] == "markdown":
-                    # Initialize the render to append things to our current cell
-                    renderer.current_node = cell_input
                     myst_ast = tokenize(cell["source"].splitlines(keepends=True))
-                    for child in myst_ast:
-                        renderer.render(child)
 
-                    # Hack to make sure that new sections are inserted into the cell
-                    insert_nodes_at = len(cell_input.children)
-                    while not isinstance(document.children[-1], CellNode):
-                        cell_input.children.insert(insert_nodes_at, document.children.pop(-1))
+                    # Check for tag-specific behavior
+                    if "hide_input" in cell.metadata.get("tags", []):
+                        container = nodes.container()
+                        container["classes"].extend(["toggle"])
+                        with renderer.current_node_context(container, append=True):
+                            for child in myst_ast:
+                                renderer.render(child)
+                    else:
+                        for child in myst_ast:
+                            renderer.render(child)
 
                 # If a code cell, convert the code + outputs
                 elif cell["cell_type"] == "code":
+                    sphinx_cell = CellNode(classes=classes, cell_type=cell["cell_type"])
+                    cell_input = CellInputNode(classes=["cell_input"])
+                    sphinx_cell += cell_input
+                    renderer.current_node += sphinx_cell
                     # Input block
                     code_block = nodes.literal_block(text=cell["source"])
                     cell_input += code_block
