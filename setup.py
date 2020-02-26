@@ -44,6 +44,7 @@ setup(
         "nbformat",
         "nbconvert",
         "pyyaml",
+        "sphinx-togglebutton",
         (
             "mistletoe @ "
             "https://github.com/ExecutableBookProject/mistletoe/archive/myst.zip"
