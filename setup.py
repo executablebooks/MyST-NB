@@ -13,14 +13,14 @@ setup(
     name="MyST-NB",
     version=version,
     description=(
-        "An extended commonmark compliant parser, " "with bridges to docutils & sphinx."
+        "A Jupyter Notebook Sphinx reader built on top of the MyST markdown parser."
     ),
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/ExecutableBookProject/myst_nb",
-    author="Chris Sewell",
-    author_email="chrisj_sewell@hotmail.com",
-    license="MIT",
+    author="ExecutableBookProject",
+    author_email="choldgraf@berkeley.edu",
+    license="BSD-3",
     packages=find_packages(),
     entry_points={"console_scripts": []},
     classifiers=[
@@ -39,6 +39,7 @@ setup(
     ],
     keywords="markdown lexer parser development docutils sphinx",
     python_requires=">=3.5",
+    package_data={"myst_nb": ["_static/mystnb.css"]},
     install_requires=[
         "jupyter_sphinx",
         "nbformat",

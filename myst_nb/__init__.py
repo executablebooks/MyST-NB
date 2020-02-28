@@ -3,6 +3,7 @@ __version__ = "0.1.0"
 from docutils import nodes
 from jupyter_sphinx.execute import JupyterWidgetStateNode, JupyterWidgetViewNode
 from ipywidgets import embed
+from pathlib import Path
 
 from .parser import (
     NotebookParser,
@@ -13,6 +14,11 @@ from .parser import (
     CellImageNode,
 )
 from .transform import CellOutputsToNodes
+
+
+def static_path(app):
+    static_path = Path(__file__).absolute().with_name("_static")
+    app.config.html_static_path.append(str(static_path))
 
 
 def builder_inited(app):
@@ -114,6 +120,9 @@ def setup(app):
         "https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"
     )
     app.connect("builder-inited", builder_inited)
+    app.connect("builder-inited", static_path)
     app.add_config_value("myst_nb_require_url", REQUIRE_URL_DEFAULT, "html")
     app.add_config_value("myst_nb_embed_url", None, "html")
+    app.add_css_file("mystnb.css")
+
     return {"version": __version__, "parallel_read_safe": True}
