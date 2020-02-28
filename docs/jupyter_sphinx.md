@@ -17,7 +17,7 @@ code execution with minimal effort.
 You can use the `jupyter-execute` directive to embed code into the document
 
 ````
-```{jupyter-execute}
+```{execute}
 name = 'world'
 print('hello ' + name + '!')
 ```
@@ -25,7 +25,7 @@ print('hello ' + name + '!')
 
 The above is rendered as follows:
 
-```{jupyter-execute}
+```{execute}
 name = 'world'
 print('hello ' + name + '!')
 ```
@@ -36,11 +36,11 @@ is rendered directly after the code snippet.
 Because all code cells in a document are run in the same kernel, cells later in the document
 can use variables and functions defined in cells earlier in the document:
 
-```{jupyter-execute}
+```{execute}
 a = 1
 print('first cell: a = {}'.format(a))
 ```
-```{jupyter-execute}
+```{execute}
 a += 1
 print('second cell: a = {}'.format(a))
 ```
@@ -48,7 +48,7 @@ print('second cell: a = {}'.format(a))
 Because jupyter-sphinx uses the machinery of `nbconvert`, it is capable of rendering
 any rich output, for example plots:
 
-```{jupyter-execute}
+```{execute}
 
 import numpy as np
 from matplotlib import pyplot
@@ -63,14 +63,14 @@ pyplot.grid()
 
 LaTeX output:
 
-```{jupyter-execute}
+```{execute}
 
   from IPython.display import Latex
   Latex('∫_{-∞}^∞ e^{-x²}dx = \sqrt{π}')
 ```
 or even full-blown javascript widgets:
 
-```{jupyter-execute}
+```{execute}
 
 import ipywidgets as w
 from IPython.display import display
@@ -87,7 +87,7 @@ display(a, b)
 You may choose to hide the code of a cell, but keep its output visible using `:hide-code:`
 
 ````
-```{jupyter-execute}
+```{execute}
 :hide-code:
 
 print('this code is invisible')
@@ -96,7 +96,7 @@ print('this code is invisible')
 
 produces:
 
-```{jupyter-execute}
+```{execute}
 :hide-code:
 
 print('this code is invisible')
@@ -105,14 +105,14 @@ print('this code is invisible')
 or vice versa with ``:hide-output:``::
 
 ````
-```{jupyter-execute}
+```{execute}
 :hide-output:
 
 print('this output is invisible')
 ```
 ````
 
-```{jupyter-execute}
+```{execute}
 :hide-output:
 
 print('this output is invisible')
@@ -120,14 +120,14 @@ print('this output is invisible')
 
 You may also display the code *below* the output with ``:code-below:``::
 
-```{jupyter-execute}
+```{execute}
 :code-below:
 print('this output is above the code')
 ```
 
 You may also add *line numbers* to the source code with ``:linenos:``::
 
-```{jupyter-execute}
+```{execute}
 :linenos:
 
 print('A')
