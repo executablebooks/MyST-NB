@@ -44,12 +44,10 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "alabaster"
-
+html_theme = "pandas_sphinx_theme"
+html_logo = "_static/logo.png"
 html_theme_options = {
-    "logo": "logo.png",
-    "github_user": "ExecutableBookProject",
-    "github_repo": "myst-nb",
+    "github_url": "https://github.com/ExecutableBookProject/myst-nb",
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
