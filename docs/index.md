@@ -6,7 +6,7 @@ The primary tool this package provides is a Sphinx parser for `ipynb` files.
 This allows you to directly convert Jupyter Notebooks into Sphinx documents.
 It relies heavily on the [`MyST` parser](https://github.com/ExecutableBookProject/myst_parser).
 
-```{warn}
+```{warning}
 This project is in an alpha state. It may evolve rapidly and/or make breaking changes!
 It currently depends on a fork of the Mistletoe library, so keep that in mind as you
 use it!

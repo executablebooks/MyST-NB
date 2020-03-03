@@ -1,8 +1,9 @@
 from docutils import nodes
 import nbformat as nbf
+from pathlib import Path
 
 from myst_parser.docutils_renderer import SphinxRenderer, dict_to_docinfo
-from myst_parser.block_tokens import tokenize
+from myst_parser.block_tokens import Document
 from myst_parser.sphinx_parser import MystParser
 from jupyter_sphinx.execute import get_widgets, contains_widgets, JupyterWidgetStateNode
 
@@ -19,6 +20,7 @@ class NotebookParser(MystParser):
     config_section_dependencies = ("parsers",)
 
     def parse(self, inputstring, document):
+        self.reporter = document.reporter
         self.config = self.default_config.copy()
         try:
             new_cfg = document.settings.env.config.myst_config
@@ -40,53 +42,68 @@ class NotebookParser(MystParser):
         renderer = SphinxRenderer(document=document, current_node=None)
         with renderer:
             # Loop through cells and render them
-            for cell in ntbk.cells:
+            for ii, cell in enumerate(ntbk.cells):
                 # Skip empty cells
                 if len(cell["source"]) == 0:
                     continue
+                try:
+                    _render_cell(cell, renderer)
+                except Exception as exc:
+                    source = cell["source"][:50]
+                    if len(cell["source"]) > 50:
+                        source = source + "..."
+                    msg_node = self.reporter.error(
+                        (
+                            f"\nError parsing notebook cell #{ii+1}: {exc}\n"
+                            f"Type: {cell['cell_type']}\n"
+                            f"Source:\n{source}\n\n"
+                        )
+                    )
+                    msg_node += nodes.literal_block(cell["source"], cell["source"])
+                    renderer.current_node += [msg_node]
+                    continue
 
-                # Cell container will wrap whatever is in the cell
-                classes = ["cell"]
-                for tag in cell.metadata.get("tags", []):
-                    classes.append(f"tag_{tag}")
 
-                # If a markdown cell, simply call the Myst parser and append children
-                if cell["cell_type"] == "markdown":
-                    source = cell["source"]
-                    if not source.endswith("\n"):
-                        # Ensure we always end with a newline in case it's a one-liner
-                        source = source + "\n"
-                    myst_ast = tokenize(source.splitlines(keepends=True))
+def _render_cell(cell, renderer):
+    """Render a cell with a SphinxRenderer instance.
 
-                    # Check for tag-specific behavior
-                    if "hide_input" in cell.metadata.get("tags", []):
-                        container = nodes.container()
-                        container["classes"].extend(["toggle"])
-                        with renderer.current_node_context(container, append=True):
-                            for child in myst_ast:
-                                renderer.render(child)
-                    else:
-                        for child in myst_ast:
-                            renderer.render(child)
+    Returns nothing because the renderer updates itself.
+    """
+    # Cell container will wrap whatever is in the cell
+    classes = ["cell"]
+    for tag in cell.metadata.get("tags", []):
+        classes.append(f"tag_{tag}")
 
-                # If a code cell, convert the code + outputs
-                elif cell["cell_type"] == "code":
-                    sphinx_cell = CellNode(classes=classes, cell_type=cell["cell_type"])
-                    cell_input = CellInputNode(classes=["cell_input"])
-                    sphinx_cell += cell_input
-                    renderer.current_node += sphinx_cell
-                    # Input block
-                    code_block = nodes.literal_block(text=cell["source"])
-                    cell_input += code_block
+    # If a markdown cell, simply call the Myst parser and append children
+    if cell["cell_type"] == "markdown":
+        document = Document(cell["source"], inc_front_matter=False)
+        # Check for tag-specific behavior
+        if "hide_input" in cell.metadata.get("tags", []):
+            container = nodes.container()
+            container["classes"].extend(["toggle"])
+            with renderer.current_node_context(container, append=True):
+                renderer.render(document)
+        else:
+            renderer.render(document)
 
-                    # ==================
-                    # Cell output
-                    # ==================
-                    cell_output = CellOutputNode(classes=["cell_output"])
-                    sphinx_cell += cell_output
+    # If a code cell, convert the code + outputs
+    elif cell["cell_type"] == "code":
+        sphinx_cell = CellNode(classes=classes, cell_type=cell["cell_type"])
+        cell_input = CellInputNode(classes=["cell_input"])
+        sphinx_cell += cell_input
+        renderer.current_node += sphinx_cell
+        # Input block
+        code_block = nodes.literal_block(text=cell["source"])
+        cell_input += code_block
 
-                    outputs = CellOutputBundleNode(cell["outputs"])
-                    cell_output += outputs
+        # ==================
+        # Cell output
+        # ==================
+        cell_output = CellOutputNode(classes=["cell_output"])
+        sphinx_cell += cell_output
+
+        outputs = CellOutputBundleNode(cell["outputs"])
+        cell_output += outputs
 
 
 class CellNode(nodes.container):
