@@ -52,7 +52,11 @@ class NotebookParser(MystParser):
 
                 # If a markdown cell, simply call the Myst parser and append children
                 if cell["cell_type"] == "markdown":
-                    myst_ast = tokenize(cell["source"].splitlines(keepends=True))
+                    source = cell["source"]
+                    if not source.endswith("\n"):
+                        # Ensure we always end with a newline in case it's a one-liner
+                        source = source + "\n"
+                    myst_ast = tokenize(source.splitlines(keepends=True))
 
                     # Check for tag-specific behavior
                     if "hide_input" in cell.metadata.get("tags", []):
