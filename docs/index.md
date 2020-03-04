@@ -26,7 +26,7 @@ To install `myst-nb`, do the following:
 
   `myst-nb`:
   ```
-  pip install -e "git+https://github.com/executablebookproject/sphinx-notebook.git#egg=sphinx-notebook[sphinx]"
+  pip install -e "git+https://github.com/executablebookproject/sphinx-notebook.git#egg=sphinx-notebook"
   ```
 * Enable both the `myst_parser` and `sphinx-notebook` in your Sphinx repository's
   extensions:
