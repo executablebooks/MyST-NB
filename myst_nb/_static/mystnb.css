@@ -3,19 +3,34 @@ div.container.cell {
   padding-left: 0;
 }
 
-/* Input cells */
-.cell_input div.highlight pre {
-  border: 1px #ccc solid;
-  margin-bottom: .5em;
+/* Removing all background formatting so we can control at the div level */
+.cell_input div.highlight, .cell_input pre, .cell_output .output * {
+  border: none;
+  background: none;
+  background-color: transparent;
+  box-shadow: none;
 }
 
-div.cell.container div.cell_input {
+.cell_output .output pre, .cell_input pre {
+  margin: 0px;
+}
+
+/* Input cells */
+div.cell div.cell_input {
   padding-left: 0em;
+  border: 1px #ccc solid;
+  background-color: #f7f7f7;
+}
+
+div.cell_input > div, div.cell_output div.output > div.highlight {
+  margin: 0em !important;
+  border: none !important;
 }
 
 /* All cell outputs */
 .cell_output {
   padding-left: 1em;
+  padding-right: 0em;
   margin-bottom: 1em;
 }
 
@@ -34,29 +49,18 @@ div.section div.jupyter_container {
 .cell_output .output.text_plain,
 .cell_output .output.traceback,
 .cell_output .output.stream  {
-  background: none;
-}
-
-.cell_output .output.text_plain div,
-.cell_output .output.traceback div,
-.cell_output .output.stream div {
-  background: none
-}
-.cell_output .output.text_plain pre,
-.cell_output .output.traceback pre,
-.cell_output .output.stream pre  {
   background: #fcfcfc;
   margin-top: 1em;
   margin-bottom: 0em;
   box-shadow: none;
 }
 
-.cell_output .output.text_plain pre,
-.cell_output .output.stream pre {
+.cell_output .output.text_plain,
+.cell_output .output.stream {
   border: 1px solid #f7f7f7;
 }
 
-.cell_output .output.traceback pre {
+.cell_output .output.traceback {
   border: 1px solid #ffd6d6;
 }
 
