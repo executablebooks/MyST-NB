@@ -1,11 +1,22 @@
+/* Whole cell */
+div.container.cell {
+  padding-left: 0;
+}
+
 /* Input cells */
 .cell_input div.highlight pre {
   border: 1px #ccc solid;
+  margin-bottom: .5em;
+}
+
+div.cell.container div.cell_input {
+  padding-left: 0em;
 }
 
 /* All cell outputs */
 .cell_output {
-  margin-left: 1em;
+  padding-left: 1em;
+  margin-bottom: 1em;
 }
 
 /* Outputs from jupyter_sphinx overrides to remove extra CSS */
@@ -20,12 +31,33 @@ div.section div.jupyter_container {
 }
 
 /* Text outputs from cells */
-.cell_output .output.text_plain {
-  background: #fafafa;
+.cell_output .output.text_plain,
+.cell_output .output.traceback,
+.cell_output .output.stream  {
+  background: none;
 }
 
-.cell_output .output.text_plain * {
+.cell_output .output.text_plain div,
+.cell_output .output.traceback div,
+.cell_output .output.stream div {
   background: none
+}
+.cell_output .output.text_plain pre,
+.cell_output .output.traceback pre,
+.cell_output .output.stream pre  {
+  background: #fcfcfc;
+  margin-top: 1em;
+  margin-bottom: 0em;
+  box-shadow: none;
+}
+
+.cell_output .output.text_plain pre,
+.cell_output .output.stream pre {
+  border: 1px solid #f7f7f7;
+}
+
+.cell_output .output.traceback pre {
+  border: 1px solid #ffd6d6;
 }
 
 /* Pandas tables. Pulled from the Jupyter / nbsphinx CSS */
