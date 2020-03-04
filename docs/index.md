@@ -22,7 +22,7 @@ To install `myst-nb`, do the following:
   ```
   pip install -e "git+https://github.com/executablebookproject/myst-nb.git#egg=master"
   ```
-* Enable both the `myst_nb` extension in your Sphinx repository's extensions:
+* Enable the `myst_nb` extension in your Sphinx repository's extensions:
 
   ```python
   extensions = [

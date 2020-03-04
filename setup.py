@@ -41,6 +41,8 @@ setup(
     python_requires=">=3.5",
     package_data={"myst_nb": ["_static/mystnb.css"]},
     install_requires=[
+        "docutils>=0.15",
+        "sphinx>=2,<3",
         "jupyter_sphinx",
         "nbformat",
         "nbconvert",
@@ -56,15 +58,21 @@ setup(
         ),
     ],
     extras_require={
-        "sphinx": [
-            "pyyaml",
-            "docutils>=0.15",
-            "sphinx>=2,<3",
+        "code_style": ["flake8<3.8.0,>=3.7.0", "black", "pre-commit==1.17.0"],
+        "testing": [
+            "coverage",
+            "pytest>=3.6,<4",
+            "pytest-cov",
+            "pytest-regressions",
+            "beautifulsoup4",
+        ],
+        "rtd": [
+            "sphinxcontrib-bibtex",
+            "ipython",
             (
                 "pandas_sphinx_theme @ "
                 "https://github.com/pandas-dev/pandas-sphinx-theme/archive/master.zip"
             ),
-            "nbformat",
             "ipywidgets",
             "pandas",
             "numpy",
@@ -74,15 +82,6 @@ setup(
             "plotly",
             "matplotlib",
         ],
-        "code_style": ["flake8<3.8.0,>=3.7.0", "black", "pre-commit==1.17.0"],
-        "testing": [
-            "coverage",
-            "pytest>=3.6,<4",
-            "pytest-cov",
-            "pytest-regressions",
-            "beautifulsoup4",
-        ],
-        "rtd": ["sphinxcontrib-bibtex", "ipython"],
     },
     zip_safe=True,
 )
