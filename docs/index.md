@@ -17,12 +17,12 @@ Comments, requests, or bugreports are welcome and recommended! Please
 
 To install `myst-nb`, do the following:
 
-* Iinstall `myst-nb` with the following command:
+* Install `myst-nb` with the following command:
 
   ```
   pip install -e "git+https://github.com/executablebookproject/myst-nb.git#egg=master"
   ```
-* Enable both the `myst_nb` extension in your Sphinx repository's extensions:
+* Enable the `myst_nb` extension in your Sphinx repository's extensions:
 
   ```python
   extensions = [

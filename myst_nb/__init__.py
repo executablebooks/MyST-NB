@@ -56,6 +56,7 @@ def setup(app):
     # Sllow parsing ipynb files
     app.add_source_suffix(".ipynb", "ipynb")
     app.add_source_parser(NotebookParser)
+    app.setup_extension("sphinx_togglebutton")
 
     # Helper functions for the registry, pulled from jupyter-sphinx
     def skip(self, node):
@@ -140,6 +141,5 @@ def setup(app):
     app.add_config_value("myst_nb_embed_url", None, "html")
     app.add_css_file("mystnb.css")
     app.add_directive("execute", JupyterCell)
-    app.setup_extension("sphinx_togglebutton")
 
     return {"version": __version__, "parallel_read_safe": True}
