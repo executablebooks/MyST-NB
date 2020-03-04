@@ -42,7 +42,11 @@ def builder_inited(app):
 
 
 def update_togglebutton_classes(app, config):
-    to_add = [".tag_hide_input div.cell_input", ".tag_hide_output div.cell_output", ".tag_hide_cell.cell"]
+    to_add = [
+        ".tag_hide_input div.cell_input",
+        ".tag_hide_output div.cell_output",
+        ".tag_hide_cell.cell",
+    ]
     for selector in to_add:
         config.togglebutton_selector += f", {selector}"
 
@@ -136,5 +140,6 @@ def setup(app):
     app.add_config_value("myst_nb_embed_url", None, "html")
     app.add_css_file("mystnb.css")
     app.add_directive("execute", JupyterCell)
+    app.setup_extension("sphinx_togglebutton")
 
     return {"version": __version__, "parallel_read_safe": True}

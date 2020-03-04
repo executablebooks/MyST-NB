@@ -34,7 +34,6 @@ class CellOutputsToNodes(SphinxTransform):
 
     def apply(self):
         builder = self.app.builder.name
-
         for node in self.document.traverse(CellOutputBundleNode):
             # Create doctree nodes for cell outputs.
             output_nodes = cell_output_to_nodes(node.outputs, RENDER_PRIORITY[builder])

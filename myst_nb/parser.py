@@ -1,6 +1,5 @@
 from docutils import nodes
 import nbformat as nbf
-from pathlib import Path
 
 from myst_parser.docutils_renderer import SphinxRenderer, dict_to_docinfo
 from myst_parser.block_tokens import Document

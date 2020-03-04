@@ -47,10 +47,6 @@ setup(
         "pyyaml",
         "sphinx-togglebutton",
         (
-            "mistletoe @ "
-            "https://github.com/ExecutableBookProject/mistletoe/archive/myst.zip"
-        ),
-        (
             "myst_parser @ "
             "https://github.com/ExecutableBookProject/myst_parser/archive/master.zip"
         ),
