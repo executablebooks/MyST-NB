@@ -69,16 +69,15 @@ def _render_cell(cell, renderer):
 
     Returns nothing because the renderer updates itself.
     """
-    # Cell container will wrap whatever is in the cell
-    classes = ["cell"]
-    for tag in cell.metadata.get("tags", []):
-        classes.append(f"tag_{tag}")
+    tags = cell.metadata.get("tags", [])
+    if "remove_cell" in tags:
+        return
 
     # If a markdown cell, simply call the Myst parser and append children
     if cell["cell_type"] == "markdown":
         document = Document(cell["source"], inc_front_matter=False)
-        # Check for tag-specific behavior
-        if "hide_input" in cell.metadata.get("tags", []):
+        # Check for tag-specific behavior because markdown isn't wrapped in a cell
+        if "hide_input" in tags:
             container = nodes.container()
             container["classes"].extend(["toggle"])
             with renderer.current_node_context(container, append=True):
@@ -88,22 +87,29 @@ def _render_cell(cell, renderer):
 
     # If a code cell, convert the code + outputs
     elif cell["cell_type"] == "code":
+        # Cell container will wrap whatever is in the cell
+        classes = ["cell"]
+        for tag in tags:
+            classes.append(f"tag_{tag}")
         sphinx_cell = CellNode(classes=classes, cell_type=cell["cell_type"])
-        cell_input = CellInputNode(classes=["cell_input"])
-        sphinx_cell += cell_input
         renderer.current_node += sphinx_cell
-        # Input block
-        code_block = nodes.literal_block(text=cell["source"])
-        cell_input += code_block
+        if "remove_input" not in tags:
+            cell_input = CellInputNode(classes=["cell_input"])
+            sphinx_cell += cell_input
+
+            # Input block
+            code_block = nodes.literal_block(text=cell["source"])
+            cell_input += code_block
 
         # ==================
         # Cell output
         # ==================
-        cell_output = CellOutputNode(classes=["cell_output"])
-        sphinx_cell += cell_output
+        if "remove_output" not in tags:
+            cell_output = CellOutputNode(classes=["cell_output"])
+            sphinx_cell += cell_output
 
-        outputs = CellOutputBundleNode(cell["outputs"])
-        cell_output += outputs
+            outputs = CellOutputBundleNode(cell["outputs"])
+            cell_output += outputs
 
 
 class CellNode(nodes.container):

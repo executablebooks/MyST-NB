@@ -52,7 +52,7 @@ setup(
         ),
         (
             "myst_parser @ "
-            "https://github.com/ExecutableBookProject/myst_parser/archive/develop.zip"
+            "https://github.com/ExecutableBookProject/myst_parser/archive/master.zip"
         ),
     ],
     extras_require={
@@ -70,6 +70,8 @@ setup(
             "numpy",
             "altair",
             "alabaster",
+            "bokeh",
+            "plotly",
             "matplotlib",
         ],
         "code_style": ["flake8<3.8.0,>=3.7.0", "black", "pre-commit==1.17.0"],

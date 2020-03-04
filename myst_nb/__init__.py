@@ -41,6 +41,12 @@ def builder_inited(app):
         app.add_js_file(embed_url)
 
 
+def update_togglebutton_classes(app, config):
+    to_add = [".tag_hide_input div.cell_input", ".tag_hide_output div.cell_output", ".tag_hide_cell.cell"]
+    for selector in to_add:
+        config.togglebutton_selector += f", {selector}"
+
+
 def setup(app):
     """Initialize Sphinx extension."""
     # Sllow parsing ipynb files
@@ -125,6 +131,7 @@ def setup(app):
     )
     app.connect("builder-inited", builder_inited)
     app.connect("builder-inited", static_path)
+    app.connect("config-inited", update_togglebutton_classes)
     app.add_config_value("myst_nb_require_url", REQUIRE_URL_DEFAULT, "html")
     app.add_config_value("myst_nb_embed_url", None, "html")
     app.add_css_file("mystnb.css")
