@@ -49,12 +49,8 @@ setup(
         "pyyaml",
         "sphinx-togglebutton",
         (
-            "mistletoe @ "
-            "https://github.com/ExecutableBookProject/mistletoe/archive/myst.zip"
-        ),
-        (
             "myst_parser @ "
-            "https://github.com/ExecutableBookProject/myst_parser/archive/develop.zip"
+            "https://github.com/ExecutableBookProject/myst_parser/archive/master.zip"
         ),
     ],
     extras_require={
@@ -78,6 +74,8 @@ setup(
             "numpy",
             "altair",
             "alabaster",
+            "bokeh",
+            "plotly",
             "matplotlib",
         ],
     },
