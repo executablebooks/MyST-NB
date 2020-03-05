@@ -41,6 +41,7 @@ setup(
     python_requires=">=3.5",
     package_data={"myst_nb": ["_static/mystnb.css"]},
     install_requires=[
+        "myst-parser",
         "docutils>=0.15",
         "sphinx>=2,<3",
         "nbformat",
@@ -50,10 +51,6 @@ setup(
         (
             "jupyter_sphinx @ "
             "https://github.com/jupyter/jupyter-sphinx/archive/master.zip"
-        ),
-        (
-            "myst_parser @ "
-            "https://github.com/ExecutableBookProject/myst_parser/archive/master.zip"
         ),
     ],
     extras_require={
