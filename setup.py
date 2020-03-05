@@ -43,11 +43,14 @@ setup(
     install_requires=[
         "docutils>=0.15",
         "sphinx>=2,<3",
-        "jupyter_sphinx",
         "nbformat",
         "nbconvert",
         "pyyaml",
         "sphinx-togglebutton",
+        (
+            "jupyter_sphinx @ "
+            "https://github.com/jupyter/jupyter-sphinx/archive/master.zip"
+        ),
         (
             "myst_parser @ "
             "https://github.com/ExecutableBookProject/myst_parser/archive/master.zip"

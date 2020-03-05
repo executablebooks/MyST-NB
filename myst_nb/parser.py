@@ -4,7 +4,8 @@ import nbformat as nbf
 from myst_parser.docutils_renderer import SphinxRenderer, dict_to_docinfo
 from myst_parser.block_tokens import Document
 from myst_parser.sphinx_parser import MystParser
-from jupyter_sphinx.execute import get_widgets, contains_widgets, JupyterWidgetStateNode
+from jupyter_sphinx.ast import get_widgets, JupyterWidgetStateNode
+from jupyter_sphinx.execute import contains_widgets
 
 
 class NotebookParser(MystParser):
