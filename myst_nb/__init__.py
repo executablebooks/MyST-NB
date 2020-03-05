@@ -1,7 +1,7 @@
 __version__ = "0.1.0"
 
 from docutils import nodes
-from jupyter_sphinx.execute import (
+from jupyter_sphinx.ast import (
     JupyterWidgetStateNode,
     JupyterWidgetViewNode,
     JupyterCell,
@@ -23,22 +23,6 @@ from .transform import CellOutputsToNodes
 def static_path(app):
     static_path = Path(__file__).absolute().with_name("_static")
     app.config.html_static_path.append(str(static_path))
-
-
-def builder_inited(app):
-    """
-    2 cases
-    case 1: ipywidgets 7, with require
-    case 2: ipywidgets 7, no require
-    """
-    require_url = app.config.myst_nb_require_url
-    if require_url:
-        app.add_js_file(require_url)
-        embed_url = app.config.myst_nb_embed_url or embed.DEFAULT_EMBED_REQUIREJS_URL
-    else:
-        embed_url = app.config.myst_nb_embed_url or embed.DEFAULT_EMBED_SCRIPT_URL
-    if embed_url:
-        app.add_js_file(embed_url)
 
 
 def update_togglebutton_classes(app, config):
@@ -106,40 +90,14 @@ def setup(app):
         CellImageNode, override=True, html=(visit_cell_image, lambda self, node: "")
     )
 
-    # JupyterWidgetViewNode holds widget view JSON,
-    # but is only rendered properly in HTML documents.
-    app.add_node(
-        JupyterWidgetViewNode,
-        html=(visit_element_html, None),
-        latex=(skip, None),
-        textinfo=(skip, None),
-        text=(skip, None),
-        man=(skip, None),
-    )
-    # JupyterWidgetStateNode holds the widget state JSON,
-    # but is only rendered in HTML documents.
-    app.add_node(
-        JupyterWidgetStateNode,
-        html=(visit_element_html, None),
-        latex=(skip, None),
-        textinfo=(skip, None),
-        text=(skip, None),
-        man=(skip, None),
-    )
-
     # Register our post-transform which will convert output bundles to nodes
     app.add_post_transform(CellOutputsToNodes)
 
-    # Attach the `builder_inited` function to load the JS libraries for ipywidgets
-    REQUIRE_URL_DEFAULT = (
-        "https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"
-    )
-    app.connect("builder-inited", builder_inited)
     app.connect("builder-inited", static_path)
     app.connect("config-inited", update_togglebutton_classes)
-    app.add_config_value("myst_nb_require_url", REQUIRE_URL_DEFAULT, "html")
-    app.add_config_value("myst_nb_embed_url", None, "html")
     app.add_css_file("mystnb.css")
+    # We use `execute` here instead of `jupyter-execute`
     app.add_directive("execute", JupyterCell)
+    app.setup_extension("jupyter_sphinx")
 
     return {"version": __version__, "parallel_read_safe": True}
