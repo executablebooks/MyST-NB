@@ -21,12 +21,10 @@ install:
         pip install -e .[testing]
         pip install coveralls
       fi
-before_script:
-    - (cd tests/commonmark && ./spec.sh)
 script:
 - |
   if [[ "$TEST_TYPE" == "pytest" ]]; then
-      pytest -v --cov=myst_parser --cov-report=
+      pytest -v --cov=myst_nb --cov-report=
   fi
 - |
   if [[ "$TEST_TYPE" == "pre-commit" ]]; then

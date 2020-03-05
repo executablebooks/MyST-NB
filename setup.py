@@ -41,7 +41,7 @@ setup(
     python_requires=">=3.5",
     package_data={"myst_nb": ["_static/mystnb.css"]},
     install_requires=[
-        "myst-parser",
+        "myst-parser~=0.3",
         "docutils>=0.15",
         "sphinx>=2,<3",
         "nbformat",
