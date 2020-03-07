@@ -44,14 +44,11 @@ setup(
         "myst-parser~=0.4",
         "docutils>=0.15",
         "sphinx>=2,<3",
+        "jupyter_sphinx==0.2.4a1",
         "nbformat",
         "nbconvert",
         "pyyaml",
         "sphinx-togglebutton",
-        (
-            "jupyter_sphinx @ "
-            "https://github.com/jupyter/jupyter-sphinx/archive/master.zip"
-        ),
     ],
     extras_require={
         "code_style": ["flake8<3.8.0,>=3.7.0", "black", "pre-commit==1.17.0"],
@@ -65,10 +62,6 @@ setup(
         "rtd": [
             "sphinxcontrib-bibtex",
             "ipython",
-            (
-                "pandas_sphinx_theme @ "
-                "https://github.com/pandas-dev/pandas-sphinx-theme/archive/master.zip"
-            ),
             "ipywidgets",
             "pandas",
             "numpy",
