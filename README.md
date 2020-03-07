@@ -3,6 +3,7 @@
 [![Build Status][travis-badge]][travis-link]
 [![Coverage Status][coveralls-badge]][coveralls-link]
 [![Documentation Status][rtd-badge]][rtd-link]
+[![PyPI][pypi-badge]][pypi-link]
 
 A collection of tools for working with Jupyter Notebooks in Sphinx.
 
@@ -23,3 +24,5 @@ For more information, [see the MyST-NB documentation](https://myst-nb.readthedoc
 [rtd-link]: https://myst-nb.readthedocs.io/en/latest/?badge=latest
 [coveralls-badge]: https://coveralls.io/repos/github/ExecutableBookProject/MyST-NB/badge.svg
 [coveralls-link]: https://coveralls.io/github/ExecutableBookProject/MyST-NB
+[pypi-badge]: https://img.shields.io/pypi/v/myst-nb.svg
+[pypi-link]: https://pypi.org/project/myst-nb
