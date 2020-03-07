@@ -38,10 +38,10 @@ setup(
         "Topic :: Text Processing :: Markup",
     ],
     keywords="markdown lexer parser development docutils sphinx",
-    python_requires=">=3.5",
+    python_requires=">=3.6",
     package_data={"myst_nb": ["_static/mystnb.css"]},
     install_requires=[
-        "myst-parser~=0.3",
+        "myst-parser~=0.4",
         "docutils>=0.15",
         "sphinx>=2,<3",
         "nbformat",
