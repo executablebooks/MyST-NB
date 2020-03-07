@@ -12,7 +12,9 @@ jobs:
           keys:
             - cache-pip
 
-      - run: pip install --user .[rtd]
+      - run: |
+          pip install --user .[rtd]
+          pip install -r docs/requirements.txt
       - save_cache:
           key: cache-pip
           paths:
