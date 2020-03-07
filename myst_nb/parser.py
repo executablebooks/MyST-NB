@@ -75,7 +75,7 @@ def _render_cell(cell, renderer):
 
     # If a markdown cell, simply call the Myst parser and append children
     if cell["cell_type"] == "markdown":
-        document = Document(cell["source"], inc_front_matter=False)
+        document = Document.read(cell["source"], front_matter=False)
         # Check for tag-specific behavior because markdown isn't wrapped in a cell
         if "hide_input" in tags:
             container = nodes.container()

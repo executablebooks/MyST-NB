@@ -1,12 +1,13 @@
 __version__ = "0.1.0"
 
 from docutils import nodes
-from jupyter_sphinx.ast import (
+from jupyter_sphinx.ast import (  # noqa: F401
     JupyterWidgetStateNode,
     JupyterWidgetViewNode,
     JupyterCell,
 )
-from ipywidgets import embed
+
+# from ipywidgets import embed
 from pathlib import Path
 
 from .parser import (
