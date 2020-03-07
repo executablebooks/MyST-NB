@@ -1,6 +1,8 @@
 # MyST-NB
 
-[![Documentation Status](https://readthedocs.org/projects/myst-nb/badge/?version=latest)](https://myst-nb.readthedocs.io/en/latest/?badge=latest)
+[![Build Status][travis-badge]][travis-link]
+[![Coverage Status][coveralls-badge]][coveralls-link]
+[![Documentation Status][rtd-badge]][rtd-link]
 
 A collection of tools for working with Jupyter Notebooks in Sphinx.
 
@@ -14,3 +16,10 @@ It relies heavily on the [`MyST` parser](https://github.com/ExecutableBookProjec
 > use it!
 
 For more information, [see the MyST-NB documentation](https://myst-nb.readthedocs.io/en/latest/)
+
+[travis-link]: https://travis-ci.org/ExecutableBookProject/MyST-NB
+[travis-badge]: https://travis-ci.org/ExecutableBookProject/MyST-NB.svg?branch=master
+[rtd-badge]: https://readthedocs.org/projects/myst-nb/badge/?version=latest
+[rtd-link]: https://myst-nb.readthedocs.io/en/latest/?badge=latest
+[coveralls-badge]: https://coveralls.io/repos/github/ExecutableBookProject/MyST-NB/badge.svg
+[coveralls-link]: https://coveralls.io/github/ExecutableBookProject/MyST-NB
