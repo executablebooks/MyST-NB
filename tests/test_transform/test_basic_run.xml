@@ -1,0 +1,20 @@
+<document source="notset">
+    <docinfo>
+        <field>
+            <field_name>
+                test_name
+            <field_body>
+                notebook1
+    <section ids="a-title" names="a\ title">
+        <title>
+            a title
+        <paragraph>
+            some text
+        <CellNode cell_type="code" classes="cell">
+            <CellInputNode classes="cell_input">
+                <literal_block xml:space="preserve">
+                    a=1
+                    print(a)
+            <CellOutputNode classes="cell_output">
+                <literal_block classes="output stream" language="none" xml:space="preserve">
+                    1
