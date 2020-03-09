@@ -1,8 +1,12 @@
+"""
+Implements integration of jupyter-cache
+"""
 import os
 from sphinx.util import logging
 from jupyter_cache.cache import main as cache
 from jupyter_cache.cli.utils import get_cache
 from jupyter_cache.executors import load_executor
+import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -18,12 +22,16 @@ def cached_execution_and_merge(file_path, ntbk):
 
     # stage the notebook for execution
     stage_record = db.stage_notebook_file(file_path)
-    logger.info("Successfully staged {}".format(file_path))
 
     # execute the notebook
     execution_result = execute_nb(db, stage_record)
 
-    pk, ntbk = db.merge_match_into_notebook(ntbk)
+    if len(execution_result['errored']) or len(execution_result['excepted']):
+        #handle case for errored and excpeted
+        pass
+    else:
+        pk, ntbk = db.merge_match_into_notebook(ntbk)
+
     return ntbk
 
 def execute_nb(db, stage_record):
