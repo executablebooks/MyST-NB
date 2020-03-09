@@ -7,14 +7,16 @@ from jupyter_cache.executors import load_executor
 logger = logging.getLogger(__name__)
 
 def cached_execution_and_merge(file_path, ntbk):
-    try:
-        cache_path = os.environ.get("JUPYTERCACHE", os.path.join(os.getcwd(), ".jupyter_cache"))
-    except:
-        # create a new cache here
-        pass
-    
+    """
+    Function to get the database instance and stage notebooks to it.
+    Then cache the staged notebooks after execution, if not already present in the cache.
+    The executed output is then merged with the original notebook. 
+    """
+    cache_path = os.environ.get("JUPYTERCACHE", os.path.join(os.getcwd(), ".jupyter_cache"))
+
+    db = get_cache(cache_path) #gets the db in the cache_path, if the db does not exist, then creates a db in this path
+
     # stage the notebook for execution
-    db = get_cache(cache_path)
     stage_record = db.stage_notebook_file(file_path)
     logger.info("Successfully staged {}".format(file_path))
 
@@ -22,10 +24,12 @@ def cached_execution_and_merge(file_path, ntbk):
     execution_result = execute_nb(db, stage_record)
 
     pk, ntbk = db.merge_match_into_notebook(ntbk)
-
     return ntbk
 
 def execute_nb(db, stage_record):
+    """
+    executing the staged notebook
+    """
     try:
         executor = load_executor("basic", db, logger=logger)
     except ImportError as error:
