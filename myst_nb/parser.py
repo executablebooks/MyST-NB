@@ -6,6 +6,7 @@ from myst_parser.block_tokens import Document
 from myst_parser.sphinx_parser import MystParser
 from jupyter_sphinx.ast import get_widgets, JupyterWidgetStateNode
 from jupyter_sphinx.execute import contains_widgets
+from myst_nb.cache import cached_execution_and_merge
 
 
 class NotebookParser(MystParser):
@@ -23,12 +24,15 @@ class NotebookParser(MystParser):
         self.reporter = document.reporter
         self.config = self.default_config.copy()
         try:
+            source_path = document.settings._source # source file path
             new_cfg = document.settings.env.config.myst_config
             self.config.update(new_cfg)
         except AttributeError:
             pass
 
         ntbk = nbf.reads(inputstring, nbf.NO_CONVERT)
+    
+        ntbk = cached_execution_and_merge(source_path, ntbk)
 
         # Parse notebook-level metadata as front-matter
         # For now, only keep key/val pairs that point to int/float/string
