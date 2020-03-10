@@ -7,7 +7,6 @@ from myst_parser.block_tokens import Document
 from myst_parser.sphinx_parser import MystParser
 from jupyter_sphinx.ast import get_widgets, JupyterWidgetStateNode
 from jupyter_sphinx.execute import contains_widgets, write_notebook_output
-from jupyter_sphinx.utils import output_directory
 
 
 class NotebookParser(MystParser):

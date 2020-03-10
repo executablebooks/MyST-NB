@@ -2,10 +2,8 @@
 from docutils import nodes
 from sphinx.transforms import SphinxTransform
 from sphinx.util import logging
-import nbconvert
-from jupyter_sphinx.ast import JupyterWidgetViewNode, cell_output_to_nodes
-from jupyter_sphinx.utils import strip_latex_delimiters, sphinx_abs_dir
-from sphinx import builders
+from jupyter_sphinx.ast import cell_output_to_nodes
+from jupyter_sphinx.utils import sphinx_abs_dir
 from .parser import CellOutputBundleNode
 from sphinx.environment.collectors.asset import ImageCollector
 
