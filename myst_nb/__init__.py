@@ -36,6 +36,11 @@ def update_togglebutton_classes(app, config):
         config.togglebutton_selector += f", {selector}"
 
 
+# Just in case we have a jupyter cache in the doc folder, exclude it
+def skip_cache_notebooks(app, config):
+    config['exclude_patterns'].append('**.jupyter_cache')
+
+
 def setup(app):
     """Initialize Sphinx extension."""
     # Sllow parsing ipynb files
@@ -82,6 +87,10 @@ def setup(app):
         man=(skip, None),
     )
 
+    # Add configuration for the cache
+    app.add_config_value("jupyter_cache", False, "env")
+    app.add_config_value("jupyter_notebook_force_run", False, "env")
+
     # So that we can in-line images in HTML outputs
     def visit_cell_image(self, node):
         atts = {"src": f"data:image/png;base64, {node['uri']}", "alt": f"{node['alt']}"}
@@ -96,6 +105,8 @@ def setup(app):
 
     app.connect("builder-inited", static_path)
     app.connect("config-inited", update_togglebutton_classes)
+    app.connect("config-inited", skip_cache_notebooks)
+
     app.add_css_file("mystnb.css")
     # We use `execute` here instead of `jupyter-execute`
     app.add_directive("execute", JupyterCell)

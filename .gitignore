@@ -127,3 +127,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Jupyter Cache
+docs/.jupyter_cache

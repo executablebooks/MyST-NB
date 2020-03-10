@@ -1,12 +1,16 @@
 from docutils import nodes
 import nbformat as nbf
+from pathlib import Path
+from sphinx.util import logging
 
 from myst_parser.docutils_renderer import SphinxRenderer, dict_to_docinfo
 from myst_parser.block_tokens import Document
 from myst_parser.sphinx_parser import MystParser
 from jupyter_sphinx.ast import get_widgets, JupyterWidgetStateNode
 from jupyter_sphinx.execute import contains_widgets
-from myst_nb.cache import cached_execution_and_merge
+from myst_nb.cache import add_notebook_outputs
+
+logger = logging.getLogger(__name__)
 
 
 class NotebookParser(MystParser):
@@ -24,15 +28,26 @@ class NotebookParser(MystParser):
         self.reporter = document.reporter
         self.config = self.default_config.copy()
         try:
-            source_path = document.settings._source # source file path
+            source_path = document.settings.env.doc2path(document.settings.env.docname)
             new_cfg = document.settings.env.config.myst_config
             self.config.update(new_cfg)
         except AttributeError:
             pass
 
         ntbk = nbf.reads(inputstring, nbf.NO_CONVERT)
-    
-        ntbk = cached_execution_and_merge(source_path, ntbk)
+
+        # Populate the outputs either with nbclient or a cache
+        path_cache = document.settings.env.config['jupyter_cache']
+        if path_cache is True:
+            path_cache = Path(document.settings.env.srcdir).joinpath('.jupyter_cache')
+
+        # If outputs are in the notebook, assume we just use those outputs
+        do_run = document.settings.env.config['jupyter_notebook_force_run']
+        has_outputs = all(len(cell.outputs) == 0 for cell in ntbk.cells if cell['cell_type'] == "code")
+        if do_run or not has_outputs:
+            ntbk = add_notebook_outputs(source_path, ntbk, path_cache)
+        else:
+            logger.error(f"Did not run notebook with pre-populated outputs: {source_path}")
 
         # Parse notebook-level metadata as front-matter
         # For now, only keep key/val pairs that point to int/float/string
