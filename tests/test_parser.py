@@ -5,10 +5,10 @@ def test_basic_run(new_document_in_temp, get_notebook, file_regression):
     parser = NotebookParser()
     parser.parse(get_notebook("basic_run.ipynb").read_text(), new_document_in_temp)
     file_regression.check(new_document_in_temp.pformat(), extension=".xml")
-    filenames = [
-        p.name for p in new_document_in_temp.settings.env.app.srcdir.glob("**/*")
-    ]
-    assert filenames == ["nb.ipynb", "nb.py"]
+    filenames = {
+        p.name for p in new_document_in_temp.settings.env.app.outdir.parent.glob("**/*")
+    }
+    assert filenames == {"nb.py", "nb.ipynb", "source", "jupyter_execute"}
 
 
 def test_complex_outputs(new_document_in_temp, get_notebook, file_regression):
@@ -17,14 +17,17 @@ def test_complex_outputs(new_document_in_temp, get_notebook, file_regression):
         get_notebook("complex_outputs.ipynb").read_text(), new_document_in_temp
     )
     file_regression.check(new_document_in_temp.pformat(), extension=".xml")
-    filenames = [
-        p.name.replace(".jpeg", ".jpg") for p in new_document_in_temp.settings.env.app.srcdir.glob("**/*")
-    ]
-    assert filenames == [
+    filenames = {
+        p.name.replace(".jpeg", ".jpg")
+        for p in new_document_in_temp.settings.env.app.outdir.parent.glob("**/*")
+    }
+    assert filenames == {
+        "source",
+        "jupyter_execute",
         "nb.ipynb",
         "nb.py",
         "nb_13_0.jpg",
         "nb_17_0.pdf",
         "nb_17_0.svg",
         "nb_24_0.png",
-    ]
+    }
