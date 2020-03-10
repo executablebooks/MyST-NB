@@ -34,12 +34,12 @@ def new_document() -> nodes.document:
 
 @pytest.fixture()
 def new_document_in_temp(new_document, tmp_path) -> nodes.document:
-    new_document.settings.env.docname = tmp_path / "nb.ipynb"
-    new_document.settings.env.app.outdir = tmp_path
-    new_document.settings.env.app.srcdir = tmp_path
+    new_document.settings.env.docname = tmp_path / "source" / "nb"
+    new_document.settings.env.app.outdir = tmp_path / "build" / "outdir"
+    new_document.settings.env.app.srcdir = tmp_path / "source"
     new_document.settings.env.relfn2path = lambda imguri, docname: (
         "image.png",
-        tmp_path / "image.png",
+        tmp_path / "build" / "image.png",
     )
     yield new_document
 
