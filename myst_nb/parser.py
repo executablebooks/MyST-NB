@@ -28,6 +28,7 @@ class NotebookParser(MystParser):
 
     def parse(self, inputstring, document):
 
+        # de-serialize the notebook
         ntbk = nbf.reads(inputstring, nbf.NO_CONVERT)
 
         # This is a contaner for top level markdown tokens
