@@ -74,7 +74,7 @@ class NotebookParser(MystParser):
                 # link/footnote definitions are collected/stored in the global context
                 # TODO here it would be ideal to somehow include the cell index
                 # in the `position` attribute of each token
-                # and utilise in within the renderer.reporter
+                # and utilise in within the document.reporter
                 mkdown_tokens.extend(tokenize_block(lines))
 
                 # TODO think of a way to implement the previous
@@ -82,6 +82,7 @@ class NotebookParser(MystParser):
 
             elif nb_cell["cell_type"] == "code":
                 # here we do nothing but store the cell as a custom token
+                # TODO here index would instead be part of the position attribute
                 mkdown_tokens.append(NbCodeCell(cell=nb_cell, index=cell_index))
 
         # Now all definitions have been gathered, we walk the tokens and
