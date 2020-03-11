@@ -84,6 +84,8 @@ class NotebookParser(MystParser):
                 # >> mkdown_tokens.extend(tokenize_block(lines))
                 # then the metadata would propogate to the `position`
                 # attribute of the token
+                # Note-to-self: make sure this metadata is propogated
+                # during nested parsing of directive content in SphinxRenderer
 
                 # TODO think of a way to implement the previous
                 # `if "hide_input" in tags:` logic
