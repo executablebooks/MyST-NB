@@ -40,6 +40,8 @@ class NotebookParser(MystParser):
             find_blocks=SphinxRenderer.default_block_tokens,
             find_spans=SphinxRenderer.default_span_tokens,
         )
+        # TODO hook in the document.reporter here,
+        # to e.g. report on duplicate link/footnote definitions
         set_parse_context(parse_context)
 
         for cell_index, nb_cell in enumerate(ntbk.cells):
@@ -66,7 +68,7 @@ class NotebookParser(MystParser):
                     for line in lines
                 ]
 
-                # parse the markdown
+                # parse the markdown;
                 # at this point span/inline level tokens are not yet processed, but
                 # link/footnote definitions are collected/stored in the global context
                 # TODO here it would be ideal to somehow include the cell index
@@ -74,12 +76,15 @@ class NotebookParser(MystParser):
                 # and utilise in within the renderer.reporter
                 mkdown_tokens.extend(tokenize_block(lines))
 
+                # TODO think of a way to implement the previous
+                # `if "hide_input" in tags:` logic
+
             elif nb_cell["cell_type"] == "code":
                 # here we do nothing but store the cell as a custom token
                 mkdown_tokens.append(NbCodeCell(cell=nb_cell, index=cell_index))
 
         # Now all definitions have been gathered, we walk the tokens and
-        # process and inline text
+        # process any inline text
         # TODO maybe make this a small function in mistletoe/myst_parser
         for token in mkdown_tokens + list(
             get_parse_context().foot_definitions.values()
@@ -88,7 +93,7 @@ class NotebookParser(MystParser):
                 if isinstance(result.node.children, SpanContainer):
                     result.node.children = result.node.children.expand()
 
-        # store the front matter
+        # create the front matter token
         # TODO at present the front matter must be stored in its serialized form
         # but ideally we would also allow it to be a dict,
         # so we don't have this redundant round-trip conversion
