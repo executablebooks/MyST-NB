@@ -37,8 +37,8 @@ class NotebookParser(MystParser):
         # first we ensure that we are using a 'clean' global context
         # for parsing, which is setup with the MyST parsing tokens
         parse_context = ParseContext(
-            find_blocks=SphinxRenderer.default_block_tokens,
-            find_spans=SphinxRenderer.default_span_tokens,
+            find_blocks=SphinxNBRenderer.default_block_tokens,
+            find_spans=SphinxNBRenderer.default_span_tokens,
         )
         # TODO hook in the document.reporter here,
         # to e.g. report on duplicate link/footnote definitions
