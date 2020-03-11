@@ -69,13 +69,21 @@ class NotebookParser(MystParser):
                     for line in lines
                 ]
 
-                # parse the markdown;
+                # parse the source markdown text;
                 # at this point span/inline level tokens are not yet processed, but
                 # link/footnote definitions are collected/stored in the global context
+                mkdown_tokens.extend(tokenize_block(lines))
+
                 # TODO here it would be ideal to somehow include the cell index
                 # in the `position` attribute of each token
                 # and utilise in within the document.reporter
-                mkdown_tokens.extend(tokenize_block(lines))
+
+                # thinking about this now, I could make an upstream change to mistletoe
+                # so that you could do:
+                # >> lines = SourceLines(lines, metadata={"cell_index": cell_index})
+                # >> mkdown_tokens.extend(tokenize_block(lines))
+                # then the metadata would propogate to the `position`
+                # attribute of the token
 
                 # TODO think of a way to implement the previous
                 # `if "hide_input" in tags:` logic
