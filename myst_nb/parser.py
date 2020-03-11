@@ -48,7 +48,7 @@ class NotebookParser(MystParser):
         for cell_index, nb_cell in enumerate(ntbk.cells):
 
             # Skip empty cells
-            if len(nb_cell["source"]) == 0:
+            if len(nb_cell["source"].strip()) == 0:
                 continue
 
             # skip cells tagged for removal
