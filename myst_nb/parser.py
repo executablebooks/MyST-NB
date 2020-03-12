@@ -6,7 +6,7 @@ from sphinx.util import logging
 from myst_parser.docutils_renderer import SphinxRenderer
 from myst_parser.sphinx_parser import MystParser
 
-from mistletoe.base_elements import BlockToken, SourceLines
+from mistletoe.base_elements import BlockToken, Position, SourceLines
 from mistletoe.parse_context import ParseContext, get_parse_context, set_parse_context
 from mistletoe.block_tokenizer import tokenize_block
 from mistletoe.block_tokens import Document, FrontMatter
@@ -61,16 +61,14 @@ class NotebookParser(MystParser):
 
             if nb_cell["cell_type"] == "markdown":
 
-                # we include the docname and cell index in the source lines metadata
-                # TODO: currently the logic is not written into mistletoe/SphinxRenderer
-                # to actually handle this but, when it is,
-                # this should automatically include this data in error logging
+                # we add the document path and cell index
+                # to the source lines, so they can be included in the error logging
+                # NOTE: currently the logic to report metadata is not written
+                # into SphinxRenderer, but this will be introduced in a later update
                 lines = SourceLines(
                     nb_cell["source"],
-                    metadata={
-                        "docname": document.settings.env.docname,
-                        "cell_index": cell_index,
-                    },
+                    uri=document["source"],
+                    metadata={"cell_index": cell_index},
                     standardize_ends=True,
                 )
 
@@ -84,9 +82,16 @@ class NotebookParser(MystParser):
 
             elif nb_cell["cell_type"] == "code":
                 # here we do nothing but store the cell as a custom token
-                # TODO here index should instead be part of the position attribute
-                # this will require ExecutableBookProject/mistletoe-ebp#9
-                mkdown_tokens.append(NbCodeCell(cell=nb_cell, index=cell_index))
+                mkdown_tokens.append(
+                    NbCodeCell(
+                        cell=nb_cell,
+                        position=Position(
+                            line_start=0,
+                            uri=document["source"],
+                            data={"cell_index": cell_index},
+                        ),
+                    )
+                )
 
         # Now all definitions have been gathered, we walk the tokens and
         # process any inline text
@@ -135,9 +140,9 @@ class NotebookParser(MystParser):
 
 
 class NbCodeCell(BlockToken):
-    def __init__(self, cell, index):
+    def __init__(self, cell, position):
         self.cell = cell
-        self.index = index
+        self.position = position
 
 
 class SphinxNBRenderer(SphinxRenderer):
