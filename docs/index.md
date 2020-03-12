@@ -19,9 +19,20 @@ To install `myst-nb`, do the following:
 
 * Install `myst-nb` with the following command:
 
+  ```bash
+  pip install myst-nb
   ```
-  pip install -e "git+https://github.com/executablebookproject/myst-nb.git#egg=master"
+
+  Or for package development:
+
+  ```bash
+  git clone https://github.com/ExecutableBookProject/MyST-NB
+  cd MyST-NB
+  git checkout master
+  pip install -e .[code_style,testing,rtd]
+  pip install git+https://github.com/pandas-dev/pandas-sphinx-theme.git@master
   ```
+
 * Enable the `myst_nb` extension in your Sphinx repository's extensions:
 
   ```python
