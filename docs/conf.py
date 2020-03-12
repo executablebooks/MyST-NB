@@ -53,3 +53,4 @@ html_theme_options = {"github_url": "https://github.com/ExecutableBookProject/my
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 jupyter_sphinx_require_url = ""
+nb_execute = True

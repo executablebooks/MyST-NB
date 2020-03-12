@@ -30,9 +30,24 @@ class NotebookParser(MystParser):
     config_section_dependencies = ("parsers",)
 
     def parse(self, inputstring, document):
+        # Paths we'll use later
+        path_doc = Path(document.settings.env.docname)
+        doc_relpath = path_doc.parent
+        doc_filename = path_doc.name
 
         # de-serialize the notebook
         ntbk = nbf.reads(inputstring, nbf.NO_CONVERT)
+
+        # Execute the notebook if there are no outputs
+        if all(
+            len(cell.output) == 0
+            for cell in ntbk.cells
+            if cell.cell_type == "code_cell"
+        ):
+            from nbclient import execute
+
+            SPHINX_LOGGER.info(f"Executing notebook {path_doc}.ipynb")
+            ntbk = execute(ntbk, cwd=str(doc_relpath.absolute()))
 
         # This is a contaner for top level markdown tokens
         # which we will add to as we walk the document
@@ -125,9 +140,6 @@ class NotebookParser(MystParser):
             pass
 
         # Write the notebook's output to disk
-        path_doc = Path(document.settings.env.docname)
-        doc_relpath = path_doc.parent
-        doc_filename = path_doc.name
         build_dir = Path(document.settings.env.app.outdir).parent
         output_dir = build_dir.joinpath("jupyter_execute", doc_relpath)
         write_notebook_output(ntbk, str(output_dir), doc_filename)

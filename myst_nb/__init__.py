@@ -91,4 +91,6 @@ def setup(app):
     app.add_directive("execute", JupyterCell)
     app.setup_extension("jupyter_sphinx")
 
+    # Configuration
+    app.add_config_value("nb_execute", False, "html")
     return {"version": __version__, "parallel_read_safe": True}
