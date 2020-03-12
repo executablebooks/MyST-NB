@@ -100,6 +100,10 @@ class NotebookParser(MystParser):
         ):
             token.expand_spans()
 
+        # If there are widgets, this will embed the state of all widgets in a script
+        if contains_widgets(ntbk):
+            mkdown_tokens.insert(0, JupyterWidgetState(state=get_widgets(ntbk)))
+
         # create the front matter token
         front_matter = FrontMatter(content=ntbk.metadata, position=None)
 
@@ -128,15 +132,16 @@ class NotebookParser(MystParser):
         output_dir = build_dir.joinpath("jupyter_execute", doc_relpath)
         write_notebook_output(ntbk, str(output_dir), doc_filename)
 
-        # If there are widgets, this will embed the state of all widgets in a script
-        if contains_widgets(ntbk):
-            document.append(JupyterWidgetStateNode(state=get_widgets(ntbk)))
-
         # render the Markdown AST to docutils AST
         renderer = SphinxNBRenderer(
             parse_context=parse_context, document=document, current_node=None
         )
         renderer.render(markdown_doc)
+
+
+class JupyterWidgetState(BlockToken):
+    def __init__(self, state):
+        self.state = state
 
 
 class NbCodeCell(BlockToken):
@@ -149,6 +154,10 @@ class SphinxNBRenderer(SphinxRenderer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.render_map["NbCodeCell"] = self.render_nb_code_cell
+        self.render_map["JupyterWidgetState"] = self.render_jupyter_widget_state
+
+    def render_jupyter_widget_state(self, token):
+        self.document.append(JupyterWidgetStateNode(state=token.state))
 
     def render_nb_code_cell(self, token: NbCodeCell):
         """Render a Jupyter notebook cell."""
