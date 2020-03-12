@@ -1,18 +1,21 @@
 from docutils import nodes
 import nbformat as nbf
 from pathlib import Path
-import yaml
+from sphinx.util import logging
 
 from myst_parser.docutils_renderer import SphinxRenderer
 from myst_parser.sphinx_parser import MystParser
 
-from mistletoe.base_elements import SpanContainer, BlockToken
+from mistletoe.base_elements import BlockToken, SourceLines
 from mistletoe.parse_context import ParseContext, get_parse_context, set_parse_context
 from mistletoe.block_tokenizer import tokenize_block
 from mistletoe.block_tokens import Document, FrontMatter
 
 from jupyter_sphinx.ast import get_widgets, JupyterWidgetStateNode
 from jupyter_sphinx.execute import contains_widgets, write_notebook_output
+
+
+SPHINX_LOGGER = logging.getLogger(__name__)
 
 
 class NotebookParser(MystParser):
@@ -33,16 +36,16 @@ class NotebookParser(MystParser):
 
         # This is a contaner for top level markdown tokens
         # which we will add to as we walk the document
-        mkdown_tokens = []
+        mkdown_tokens = []  # type: list[BlockToken]
 
-        # first we ensure that we are using a 'clean' global context
+        # First we ensure that we are using a 'clean' global context
         # for parsing, which is setup with the MyST parsing tokens
+        # the logger will report on duplicate link/footnote definitions, etc
         parse_context = ParseContext(
             find_blocks=SphinxNBRenderer.default_block_tokens,
             find_spans=SphinxNBRenderer.default_span_tokens,
+            logger=SPHINX_LOGGER,
         )
-        # TODO hook in the document.reporter here,
-        # to e.g. report on duplicate link/footnote definitions
         set_parse_context(parse_context)
 
         for cell_index, nb_cell in enumerate(ntbk.cells):
@@ -57,64 +60,43 @@ class NotebookParser(MystParser):
                 continue
 
             if nb_cell["cell_type"] == "markdown":
-                lines = nb_cell["source"]
 
-                # ensure all lines end with a new line
-                # TODO this is going to be changed in mistletoe, to just be
-                # lines = SourceLines(lines)
-                if isinstance(lines, str):
-                    lines = lines.splitlines(keepends=True)
-                lines = [
-                    line if line.endswith("\n") else "{}\n".format(line)
-                    for line in lines
-                ]
+                # we include the docname and cell index in the source lines metadata
+                # TODO: currently the logic is not written into mistletoe/SphinxRenderer
+                # to actually handle this but, when it is,
+                # this should automatically include this data in error logging
+                lines = SourceLines(
+                    nb_cell["source"],
+                    metadata={
+                        "docname": document.settings.env.docname,
+                        "cell_index": cell_index,
+                    },
+                    standardize_ends=True,
+                )
 
                 # parse the source markdown text;
                 # at this point span/inline level tokens are not yet processed, but
                 # link/footnote definitions are collected/stored in the global context
                 mkdown_tokens.extend(tokenize_block(lines))
 
-                # TODO here it would be ideal to somehow include the cell index
-                # in the `position` attribute of each token
-                # and utilise in within the document.reporter
-
-                # thinking about this now, I could make an upstream change to mistletoe
-                # so that you could do:
-                # >> lines = SourceLines(lines, metadata={"cell_index": cell_index})
-                # >> mkdown_tokens.extend(tokenize_block(lines))
-                # then the metadata would propogate to the `position`
-                # attribute of the token
-                # Note-to-self: make sure this metadata is propogated
-                # during nested parsing of directive content in SphinxRenderer
-
                 # TODO think of a way to implement the previous
                 # `if "hide_input" in tags:` logic
 
             elif nb_cell["cell_type"] == "code":
                 # here we do nothing but store the cell as a custom token
-                # TODO here index would instead be part of the position attribute
+                # TODO here index should instead be part of the position attribute
+                # this will require ExecutableBookProject/mistletoe-ebp#9
                 mkdown_tokens.append(NbCodeCell(cell=nb_cell, index=cell_index))
 
         # Now all definitions have been gathered, we walk the tokens and
         # process any inline text
-        # TODO maybe make this a small function in mistletoe/myst_parser
         for token in mkdown_tokens + list(
             get_parse_context().foot_definitions.values()
         ):
-            for result in list(token.walk(include_self=True)):
-                if isinstance(result.node.children, SpanContainer):
-                    result.node.children = result.node.children.expand()
+            token.expand_spans()
 
         # create the front matter token
-        # TODO at present the front matter must be stored in its serialized form
-        # but ideally we would also allow it to be a dict,
-        # so we don't have this redundant round-trip conversion
-        yaml.add_representer(
-            nbf.NotebookNode,
-            lambda d, node: d.represent_dict(dict(node)),
-            yaml.SafeDumper,
-        )
-        front_matter = FrontMatter(content=yaml.safe_dump(ntbk.metadata), position=None)
+        front_matter = FrontMatter(content=ntbk.metadata, position=None)
 
         # Finally, we create the top-level markdown document
         markdown_doc = Document(
@@ -163,13 +145,9 @@ class SphinxNBRenderer(SphinxRenderer):
         super().__init__(*args, **kwargs)
         self.render_map["NbCodeCell"] = self.render_nb_code_cell
 
-    def render_nb_code_cell(self, token):
-        """Render a cell with a SphinxRenderer instance.
-
-        Returns nothing because the renderer updates itself.
-        """
+    def render_nb_code_cell(self, token: NbCodeCell):
+        """Render a Jupyter notebook cell."""
         cell = token.cell
-        # index = token.index
         tags = cell.metadata.get("tags", [])
 
         # Cell container will wrap whatever is in the cell
