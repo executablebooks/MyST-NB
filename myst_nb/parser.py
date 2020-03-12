@@ -77,7 +77,7 @@ class NotebookParser(MystParser):
                 # link/footnote definitions are collected/stored in the global context
                 mkdown_tokens.extend(tokenize_block(lines))
 
-                # TODO think of a way to implement the previous
+                # TODO for md cells, think of a way to implement the previous
                 # `if "hide_input" in tags:` logic
 
             elif nb_cell["cell_type"] == "code":
