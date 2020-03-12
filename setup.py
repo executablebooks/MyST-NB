@@ -10,7 +10,7 @@ for line in text.split("\n"):
 version = line.split("= ")[-1].strip('"')
 
 setup(
-    name="MyST-NB",
+    name="myst-nb",
     version=version,
     description=(
         "A Jupyter Notebook Sphinx reader built on top of the MyST markdown parser."
