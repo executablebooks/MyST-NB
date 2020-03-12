@@ -1,6 +1,7 @@
 __version__ = "0.1.0"
 
 from docutils import nodes
+from myst_nb.cache import execution_cache
 from jupyter_sphinx.ast import (  # noqa: F401
     JupyterWidgetStateNode,
     JupyterWidgetViewNode,
@@ -39,7 +40,6 @@ def update_togglebutton_classes(app, config):
 # Just in case we have a jupyter cache in the doc folder, exclude it
 def skip_cache_notebooks(app, config):
     config['exclude_patterns'].append('**.jupyter_cache')
-
 
 def setup(app):
     """Initialize Sphinx extension."""
@@ -89,6 +89,7 @@ def setup(app):
 
     # Add configuration for the cache
     app.add_config_value("jupyter_cache", False, "env")
+    app.add_config_value("execution_excludepatterns", [], "env")
     app.add_config_value("jupyter_notebook_force_run", False, "env")
 
     # So that we can in-line images in HTML outputs
@@ -104,6 +105,7 @@ def setup(app):
     app.add_post_transform(CellOutputsToNodes)
 
     app.connect("builder-inited", static_path)
+    app.connect("env-get-outdated", execution_cache)
     app.connect("config-inited", update_togglebutton_classes)
     app.connect("config-inited", skip_cache_notebooks)
 

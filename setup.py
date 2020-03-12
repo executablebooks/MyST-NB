@@ -47,6 +47,8 @@ setup(
         "jupyter_sphinx==0.2.4a1",
         "nbformat",
         "nbconvert",
+        "nbclient",
+        "jupyter-cache",
         "pyyaml",
         "sphinx-togglebutton",
     ],

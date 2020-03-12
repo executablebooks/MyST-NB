@@ -29,25 +29,21 @@ class NotebookParser(MystParser):
         self.config = self.default_config.copy()
         try:
             source_path = document.settings.env.doc2path(document.settings.env.docname)
+            dest_path = document.settings.env.app.outdir
             new_cfg = document.settings.env.config.myst_config
             self.config.update(new_cfg)
         except AttributeError:
             pass
-
+            
         ntbk = nbf.reads(inputstring, nbf.NO_CONVERT)
 
-        # Populate the outputs either with nbclient or a cache
-        path_cache = document.settings.env.config['jupyter_cache']
-        if path_cache is True:
-            path_cache = Path(document.settings.env.srcdir).joinpath('.jupyter_cache')
-
-        # If outputs are in the notebook, assume we just use those outputs
-        do_run = document.settings.env.config['jupyter_notebook_force_run']
-        has_outputs = all(len(cell.outputs) == 0 for cell in ntbk.cells if cell['cell_type'] == "code")
-        if do_run or not has_outputs:
-            ntbk = add_notebook_outputs(source_path, ntbk, path_cache)
+        ## add outputs to notebook from the cache
+        if hasattr(document.settings.env, 'path_cache'):
+            path_cache = document.settings.env.path_cache
+            ntbk = add_notebook_outputs(source_path, ntbk, path_cache, dest_path)
         else:
-            logger.error(f"Did not run notebook with pre-populated outputs: {source_path}")
+            # If we explicitly did not wish to cache, then just execute the notebook
+            ntbk = execute(ntbk)
 
         # Parse notebook-level metadata as front-matter
         # For now, only keep key/val pairs that point to int/float/string
