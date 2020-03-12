@@ -7,7 +7,7 @@ from myst_parser.docutils_renderer import SphinxRenderer, dict_to_docinfo
 from myst_parser.block_tokens import Document
 from myst_parser.sphinx_parser import MystParser
 from jupyter_sphinx.ast import get_widgets, JupyterWidgetStateNode
-from jupyter_sphinx.execute import contains_widgets
+from jupyter_sphinx.execute import contains_widgets, write_notebook_output
 from myst_nb.cache import add_notebook_outputs
 
 logger = logging.getLogger(__name__)
@@ -44,6 +44,14 @@ class NotebookParser(MystParser):
         else:
             # If we explicitly did not wish to cache, then just execute the notebook
             ntbk = execute(ntbk)
+            
+        # Write the notebook's output to disk
+        path_doc = Path(document.settings.env.docname)
+        doc_relpath = path_doc.parent
+        doc_filename = path_doc.name
+        build_dir = Path(document.settings.env.app.outdir).parent
+        output_dir = build_dir.joinpath("jupyter_execute", doc_relpath)
+        write_notebook_output(ntbk, str(output_dir), doc_filename)
 
         # Parse notebook-level metadata as front-matter
         # For now, only keep key/val pairs that point to int/float/string
@@ -153,11 +161,4 @@ class CellOutputBundleNode(nodes.container):
 
     def __init__(self, outputs, rawsource="", *children, **attributes):
         self.outputs = outputs
-        super().__init__("", **attributes)
-
-
-class CellImageNode(nodes.image):
-    """An inline image that will output to an inline HTML image."""
-
-    def __init__(self, rawsource="", *children, **attributes):
         super().__init__("", **attributes)

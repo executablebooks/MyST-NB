@@ -7,4 +7,5 @@ in Sphinx with MyST-NB.
 basic
 interactive
 hiding
+markdown
 ```

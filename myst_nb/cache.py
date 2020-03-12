@@ -68,7 +68,7 @@ def stage_and_execute(env, nb_list, path_cache):
                 stage_record = db.stage_notebook_file(source_path)
                 pk_list.append(stage_record.pk)
             else:
-                logger.error(f"Will not run notebook with pre-populated outputs: {source_path}")
+                logger.error(f"Will not run notebook with pre-populated outputs or no output cells: {source_path}")
         
         execution_result = execute_staged_nb(db, pk_list) #can leverage parallel execution implemented in jupyter-cache here
 

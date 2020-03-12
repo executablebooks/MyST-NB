@@ -17,7 +17,6 @@ from .parser import (
     CellInputNode,
     CellOutputNode,
     CellOutputBundleNode,
-    CellImageNode,
 )
 from .transform import CellOutputsToNodes
 
@@ -91,16 +90,7 @@ def setup(app):
     app.add_config_value("jupyter_cache", False, "env")
     app.add_config_value("execution_excludepatterns", [], "env")
     app.add_config_value("jupyter_notebook_force_run", False, "env")
-
-    # So that we can in-line images in HTML outputs
-    def visit_cell_image(self, node):
-        atts = {"src": f"data:image/png;base64, {node['uri']}", "alt": f"{node['alt']}"}
-        self.body.append(self.emptytag(node, "img", "\n", **atts))
-
-    app.add_node(
-        CellImageNode, override=True, html=(visit_cell_image, lambda self, node: "")
-    )
-
+    
     # Register our post-transform which will convert output bundles to nodes
     app.add_post_transform(CellOutputsToNodes)
 
