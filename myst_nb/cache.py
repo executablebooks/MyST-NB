@@ -35,7 +35,7 @@ def execution_cache(app, env, added, changed, removed):
     
 
 def stage_and_execute(env, nb_list, path_cache):
-    pk_lists = None
+    pk_list = None
     
     if path_cache:
         try:
@@ -63,12 +63,14 @@ def stage_and_execute(env, nb_list, path_cache):
 
             # If outputs are in the notebook, assume we just use those outputs
             if do_run or not has_outputs:
+                if pk_list is None:
+                    pk_list = []
                 stage_record = db.stage_notebook_file(source_path)
-                pk_lists.append(stage_record.pk)
+                pk_list.append(stage_record.pk)
             else:
                 logger.error(f"Will not run notebook with pre-populated outputs: {source_path}")
         
-        execution_result = execute_staged_nb(db, pk_lists) #can leverage parallel execution implemented in jupyter-cache here
+        execution_result = execute_staged_nb(db, pk_list) #can leverage parallel execution implemented in jupyter-cache here
 
 def add_notebook_outputs(file_path, ntbk, path_cache, dest_path):
     """
