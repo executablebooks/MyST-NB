@@ -30,6 +30,7 @@ class NotebookParser(MystParser):
     config_section_dependencies = ("parsers",)
 
     def parse(self, inputstring, document):
+        from .glue import find_all_keys, mime_prefix
 
         # de-serialize the notebook
         ntbk = nbf.reads(inputstring, nbf.NO_CONVERT)
@@ -124,7 +125,22 @@ class NotebookParser(MystParser):
         except AttributeError:
             pass
 
-        # Write the notebook's output to disk
+        # Remove all the mime prefixes from "glue" step.
+        # This way, writing properly captures the glued images
+        replace_mime = []
+        for cell in ntbk.cells:
+            if hasattr(cell, "outputs"):
+                for out in cell.outputs:
+                    if "data" in out:
+                        # Only do the mimebundle replacing for the scrapbook outputs
+                        if out.get("metadata", {}).get("scrapbook", {}).get("name"):
+                            out["data"] = {
+                                key.replace(mime_prefix, ""): val
+                                for key, val in out["data"].items()
+                            }
+                            replace_mime.append(out)
+
+        # Write the notebook's output to disk. This changes metadata in notebook cells
         path_doc = Path(document.settings.env.docname)
         doc_relpath = path_doc.parent
         doc_filename = path_doc.name
@@ -132,6 +148,20 @@ class NotebookParser(MystParser):
         output_dir = build_dir.joinpath("jupyter_execute", doc_relpath)
         write_notebook_output(ntbk, str(output_dir), doc_filename)
 
+        # Now add back the mime prefixes to the right outputs so they aren't rendered
+        # until called from the role/directive
+        for out in replace_mime:
+            out["data"] = {
+                f"{mime_prefix}{key}": val for key, val in out["data"].items()
+            }
+
+        # Update our glue key list with new ones defined in this page
+        if hasattr(self, "app"):
+            # App is only there if we're in a full Sphinx build. But this can also be
+            # used outside of it.
+            new_keys = find_all_keys(ntbk, keys=self.app.env.glue_data)
+            self.app.env.glue_data.update(new_keys)
+            
         # render the Markdown AST to docutils AST
         renderer = SphinxNBRenderer(
             parse_context=parse_context, document=document, current_node=None
