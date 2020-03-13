@@ -7,8 +7,8 @@ from jupyter_sphinx.ast import (  # noqa: F401
     JupyterCell,
 )
 
-# from ipywidgets import embed
 from pathlib import Path
+import json
 
 from .parser import (
     NotebookParser,
@@ -39,6 +39,11 @@ def update_togglebutton_classes(app, config):
 def init_glue_cache(app):
     if not hasattr(app.env, "glue_data"):
         app.env.glue_data = {}
+
+
+def save_glue_cache(app, env):
+    path_cache = Path(env.doctreedir).joinpath("glue_cache.json")
+    json.dump(env.glue_data, path_cache.open("w"))
 
 
 def setup(app):
@@ -94,6 +99,7 @@ def setup(app):
     app.connect("builder-inited", init_glue_cache)
     app.connect("builder-inited", static_path)
     app.connect("config-inited", update_togglebutton_classes)
+    app.connect("env-updated", save_glue_cache)
     app.add_css_file("mystnb.css")
     # We use `execute` here instead of `jupyter-execute`
     app.add_directive("execute", JupyterCell)

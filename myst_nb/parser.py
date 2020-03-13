@@ -30,7 +30,7 @@ class NotebookParser(MystParser):
     config_section_dependencies = ("parsers",)
 
     def parse(self, inputstring, document):
-        from .glue import find_all_keys, mime_prefix
+        from .glue import _find_all_keys, mime_prefix
 
         # de-serialize the notebook
         ntbk = nbf.reads(inputstring, nbf.NO_CONVERT)
@@ -159,9 +159,11 @@ class NotebookParser(MystParser):
         if hasattr(self, "app"):
             # App is only there if we're in a full Sphinx build. But this can also be
             # used outside of it.
-            new_keys = find_all_keys(ntbk, keys=self.app.env.glue_data)
+            new_keys = _find_all_keys(
+                ntbk, keys=self.app.env.glue_data, path=str(path_doc)
+            )
             self.app.env.glue_data.update(new_keys)
-            
+
         # render the Markdown AST to docutils AST
         renderer = SphinxNBRenderer(
             parse_context=parse_context, document=document, current_node=None
