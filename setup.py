@@ -70,6 +70,7 @@ setup(
             "bokeh",
             "plotly",
             "matplotlib",
+            "sphinx-copybutton",
         ],
     },
     zip_safe=True,

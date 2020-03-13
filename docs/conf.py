@@ -28,7 +28,7 @@ master_doc = "index"
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ["myst_parser", "myst_nb", "sphinx_togglebutton"]
+extensions = ["myst_parser", "myst_nb", "sphinx_togglebutton", "sphinx_copybutton"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -53,3 +53,4 @@ html_theme_options = {"github_url": "https://github.com/ExecutableBookProject/my
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 jupyter_sphinx_require_url = ""
+copybutton_selector = "div:not(.output) > div.highlight pre"
