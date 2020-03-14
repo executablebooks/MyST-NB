@@ -62,6 +62,8 @@ class NbGlueDomain(Domain):
     # data value for a fresh environment
     # - cache is the mapping of all keys to outputs
     # - docmap is the mapping of docnames to the set of keys it contains
+    # TODO storing all the outputs in the cache, could allow it to get very big
+    # we may need to consider storing outputs on disc?
     initial_data = {"cache": {}, "docmap": {}}
 
     directives = {"paste": Paste}
