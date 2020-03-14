@@ -1,0 +1,60 @@
+<document source="notset">
+    <docinfo>
+        <field>
+            <field_name>
+                test_name
+            <field_body>
+                notebook1
+    <section ids="glue-tests" names="glue\ tests">
+        <title>
+            Glue Tests
+        <CellNode cell_type="code" classes="cell">
+            <CellInputNode classes="cell_input">
+                <literal_block xml:space="preserve">
+                    from myst_nb.glue import glue
+            <CellOutputNode classes="cell_output">
+        <CellNode cell_type="code" classes="cell">
+            <CellInputNode classes="cell_input">
+                <literal_block xml:space="preserve">
+                    glue("key_text1", "text1")
+                    glue("key_text2", "text2")
+            <CellOutputNode classes="cell_output">
+        <CellNode cell_type="code" classes="cell">
+            <CellInputNode classes="cell_input">
+                <literal_block xml:space="preserve">
+                    glue("key_undisplayed", "undisplayed", display=False)
+            <CellOutputNode classes="cell_output">
+        <CellNode cell_type="code" classes="cell">
+            <CellInputNode classes="cell_input">
+                <literal_block xml:space="preserve">
+                    import pandas as pd
+                    df = pd.DataFrame({"header": [1, 2, 3]})
+                    glue("key_df", df)
+            <CellOutputNode classes="cell_output">
+        <CellNode cell_type="code" classes="cell">
+            <CellInputNode classes="cell_input">
+                <literal_block xml:space="preserve">
+                    import matplotlib.pyplot as plt
+                    plt.plot([1, 2, 3])
+                    glue("key_plt", plt.gcf(), display=False)
+            <CellOutputNode classes="cell_output">
+                <image candidates="{'*': 'image.png'}" uri="image.png">
+        <section ids="referencing-the-figs" names="referencing\ the\ figs">
+            <title>
+                Referencing the figs
+            <CellNode>
+                <CellInputNode>
+                <CellOutputBundleNode>
+            <paragraph>
+                and 
+                <inline classes="pasted-text">
+                    text1
+                 inline...
+            <CellNode>
+                <CellInputNode>
+                <CellOutputBundleNode>
+            <paragraph>
+                and 
+                <inline classes="pasted-text">
+                    undisplayed
+                 inline...
