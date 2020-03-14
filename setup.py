@@ -58,6 +58,7 @@ setup(
             "pytest-cov",
             "pytest-regressions",
             "beautifulsoup4",
+            "ipython",
         ],
         "rtd": [
             "sphinxcontrib-bibtex",

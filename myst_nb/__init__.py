@@ -7,8 +7,8 @@ from jupyter_sphinx.ast import (  # noqa: F401
     JupyterCell,
 )
 
-# from ipywidgets import embed
 from pathlib import Path
+import json
 
 from .parser import (
     NotebookParser,
@@ -18,6 +18,7 @@ from .parser import (
     CellOutputBundleNode,
 )
 from .transform import CellOutputsToNodes
+from .glue import Paste, paste_role, PasteNodesToDocutils
 
 
 def static_path(app):
@@ -33,6 +34,17 @@ def update_togglebutton_classes(app, config):
     ]
     for selector in to_add:
         config.togglebutton_selector += f", {selector}"
+
+
+def init_glue_cache(app):
+    if not hasattr(app.env, "glue_data"):
+        app.env.glue_data = {}
+
+
+def save_glue_cache(app, env):
+    path_cache = Path(env.doctreedir).joinpath("glue_cache.json")
+    with path_cache.open("w") as handle:
+        json.dump(env.glue_data, handle)
 
 
 def setup(app):
@@ -82,13 +94,18 @@ def setup(app):
     )
 
     # Register our post-transform which will convert output bundles to nodes
+    app.add_post_transform(PasteNodesToDocutils)
     app.add_post_transform(CellOutputsToNodes)
 
+    app.connect("builder-inited", init_glue_cache)
     app.connect("builder-inited", static_path)
     app.connect("config-inited", update_togglebutton_classes)
+    app.connect("env-updated", save_glue_cache)
     app.add_css_file("mystnb.css")
     # We use `execute` here instead of `jupyter-execute`
     app.add_directive("execute", JupyterCell)
+    app.add_directive("paste", Paste)
+    app.add_role("paste", paste_role)
     app.setup_extension("jupyter_sphinx")
 
     return {"version": __version__, "parallel_read_safe": True}

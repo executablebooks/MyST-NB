@@ -100,3 +100,10 @@ div.cell_output table {
   div.cell_output tbody tr:hover {
     background: rgba(66, 165, 245, 0.2);
   }
+
+
+/* Inline text from `paste` operation */
+
+span.pasted-text {
+  font-weight: bold;
+}
