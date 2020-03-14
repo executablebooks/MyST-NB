@@ -103,8 +103,8 @@ def find_all_keys(ntbk, existing_keys=None, path=None, logger=None):
                         logger.warning(msg, location=(path, None))
                 elif this_key in new_keys:
                     msg = (
-                        f"Overwriting glue key `{this_key}`, from cell {i}, "
-                        "defined previously in notebook."
+                        f"Glue key `{this_key}`, in cell {i}, overwrites one "
+                        "previously defined in the notebook."
                     )
                     if logger is None:
                         print(msg)
