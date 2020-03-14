@@ -72,12 +72,12 @@ def find_glued_key(path_ntbk, key):
     return outputs[0]
 
 
-def find_all_keys(ntbk, existing_keys=None, path=None, logger=None, strip_images=True):
+def find_all_keys(ntbk, existing_keys=None, path=None, logger=None, strip_stored=True):
     """Find all `glue` keys in a notebook and return a dictionary with key: outputs.
 
     :param existing_keys: a map of key to docname
-    :param strip_images: replace image base64 values with None,
-        if they have already been stored as a file
+    :param strip_stored: if the content of a mimetype is already stored on disc
+        (referenced in output.metadata.filenames) then replace it by None
     """
     if isinstance(ntbk, (str, Path)):
         ntbk = nbf.read(str(ntbk), nbf.NO_CONVERT)
@@ -114,7 +114,7 @@ def find_all_keys(ntbk, existing_keys=None, path=None, logger=None, strip_images
                     else:
                         logger.warning(msg, location=(path, None))
 
-                if strip_images:
+                if strip_stored:
                     output = output.copy()
                     filenames = output["metadata"].get("filenames", {})
                     output["data"] = {
