@@ -65,6 +65,10 @@ class PasteFigure(Paste):
         figwidth = self.options.pop("figwidth", None)
         figclasses = self.options.pop("figclass", None)
         align = self.options.pop("align", None)
+        # On the Paste node we should add an attribute to specify that only image
+        # type mimedata is allowed, then this would be used by
+        # PasteNodesToDocutils -> CellOutputsToNodes to alter the render priority
+        # and/or log warnings if that type of mimedata is not available
         (paste_node,) = Paste.run(self)
         if isinstance(paste_node, nodes.system_message):
             return [paste_node]
