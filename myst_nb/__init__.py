@@ -18,7 +18,7 @@ from .parser import (
     CellOutputBundleNode,
 )
 from .transform import CellOutputsToNodes
-from .glue import Paste, paste_role, PasteNodesToDocutils
+from .glue.sphinx import Paste, paste_role, PasteNodesToDocutils
 
 
 def static_path(app):

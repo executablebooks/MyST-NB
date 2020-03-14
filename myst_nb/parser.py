@@ -14,6 +14,9 @@ from mistletoe.block_tokens import Document, FrontMatter
 from jupyter_sphinx.ast import get_widgets, JupyterWidgetStateNode
 from jupyter_sphinx.execute import contains_widgets, write_notebook_output
 
+from myst_nb.glue import GLUE_PREFIX
+from myst_nb.glue.utils import find_all_keys
+
 
 SPHINX_LOGGER = logging.getLogger(__name__)
 
@@ -30,7 +33,6 @@ class NotebookParser(MystParser):
     config_section_dependencies = ("parsers",)
 
     def parse(self, inputstring, document):
-        from .glue import find_all_keys, GLUE_PREFIX
 
         # de-serialize the notebook
         ntbk = nbf.reads(inputstring, nbf.NO_CONVERT)
