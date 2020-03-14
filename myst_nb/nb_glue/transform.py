@@ -1,8 +1,7 @@
 from sphinx.transforms import SphinxTransform
 from sphinx.util import logging
 
-from myst_nb.parser import CellNode, CellInputNode, CellOutputBundleNode
-from myst_nb.nb_glue.domain import PasteNode, PasteTextNode, NbGlueDomain
+from myst_nb.nb_glue.domain import PasteNode, NbGlueDomain
 
 
 SPHINX_LOGGER = logging.getLogger(__name__)
@@ -30,15 +29,7 @@ class PasteNodesToDocutils(SphinxTransform):
             # Grab the output for this key
             output = glue_domain.get(paste_node.key)
 
-            if isinstance(paste_node, PasteTextNode):
-                out_node = paste_node.create_node(outputs=output)
-            else:
-                # the whole output chunk is deposited and rendered later
-                output_node = CellOutputBundleNode(outputs=[output])
-                out_node = CellNode()
-                out_node += CellInputNode()
-                out_node += output_node
-
+            out_node = paste_node.create_node(output=output)
             if out_node is None:
                 SPHINX_LOGGER.warning(
                     (

@@ -31,6 +31,28 @@ class PasteNode(nodes.container):
     def copy(self):
         return self.__class__(location=self.location, **self.attributes)
 
+    def create_node(self, output: dict):
+        """Create the output node, give the cell output."""
+        # the whole output chunk is deposited and rendered later
+        # TODO move these nodes to separate module, to avoid cyclic imports
+        from myst_nb.parser import CellNode, CellInputNode, CellOutputBundleNode
+
+        output_node = CellOutputBundleNode(outputs=[output])
+        out_node = CellNode()
+        out_node += CellInputNode()
+        out_node += output_node
+        return out_node
+
+
+class PasteInlineNode(PasteNode):
+    def create_node(self, output: dict):
+        """Create the output node, give the cell output."""
+        # the whole output chunk is deposited and rendered later
+        from myst_nb.parser import CellOutputBundleNode
+
+        output_node = CellOutputBundleNode(outputs=[output], inline=True)
+        return output_node
+
 
 class PasteTextNode(PasteNode):
     """A subclass of ``PasteNode`` that only supports plain text."""
@@ -39,9 +61,9 @@ class PasteTextNode(PasteNode):
     def formatting(self):
         return self.attributes["formatting"]
 
-    def create_node(self, outputs):
-        """Create the output node, give the mimebundle."""
-        mimebundle = outputs["data"]
+    def create_node(self, output: dict):
+        """Create the output node, give the cell output."""
+        mimebundle = output["data"]
         if "text/plain" in mimebundle:
             text = mimebundle["text/plain"].strip("'")
             # If formatting is specified, see if we have a number of some kind
@@ -132,6 +154,17 @@ class PasteFigure(Paste):
         return [figure_node]
 
 
+def paste_any_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
+    """This role will simply add the cell output
+    """
+    path = inliner.document.current_source
+    # Remove line number if we have a notebook because it is unreliable
+    if path.endswith(".ipynb"):
+        lineno = None
+    path = str(Path(path).with_suffix(""))
+    return [PasteInlineNode(text, location=(path, lineno))], []
+
+
 def paste_text_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
     """This role will be parsed as text, with some formatting fanciness.
 
@@ -158,7 +191,7 @@ def paste_text_role(name, rawtext, text, lineno, inliner, options={}, content=[]
 class NbGlueDomain(Domain):
     """A sphinx domain for handling glue data """
 
-    name = "nb"
+    name = "glu"
     label = "NotebookGlue"
     # data version, bump this when the format of self.data changes
     data_version = 0.1
@@ -169,9 +202,9 @@ class NbGlueDomain(Domain):
     # we may need to consider storing outputs on disc?
     initial_data = {"cache": {}, "docmap": {}}
 
-    directives = {"paste": Paste, "figure": PasteFigure}
+    directives = {"any": Paste, "figure": PasteFigure}
 
-    roles = {"text": paste_text_role}
+    roles = {"any": paste_any_role, "text": paste_text_role}
 
     @property
     def cache(self) -> dict:
