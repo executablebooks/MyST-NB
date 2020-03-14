@@ -22,6 +22,11 @@ class PasteNode(nodes.container):
         self.location = location
         super().__init__("", **attributes)
 
+    def copy(self):
+        return self.__class__(
+            self.key, self.kind, location=self.location, **self.attributes
+        )
+
 
 # Role and directive for pasting
 class Paste(SphinxDirective):
@@ -41,6 +46,54 @@ class Paste(SphinxDirective):
         # Remove the suffix from path so its suffix is printed properly in logs
         path = str(Path(path).with_suffix(""))
         return [PasteNode(self.arguments[0], "directive", location=(path, lineno))]
+
+
+class PasteFigure(Paste):
+    def align(argument):
+        return directives.choice(argument, ("left", "center", "right"))
+
+    def figwidth_value(argument):
+        return directives.length_or_percentage_or_unitless(argument, "px")
+
+    option_spec = Paste.option_spec.copy()
+    option_spec["figwidth"] = figwidth_value
+    option_spec["figclass"] = directives.class_option
+    option_spec["align"] = align
+    has_content = True
+
+    def run(self):
+        figwidth = self.options.pop("figwidth", None)
+        figclasses = self.options.pop("figclass", None)
+        align = self.options.pop("align", None)
+        (paste_node,) = Paste.run(self)
+        if isinstance(paste_node, nodes.system_message):
+            return [paste_node]
+        figure_node = nodes.figure("", paste_node)
+        if figwidth is not None:
+            figure_node["width"] = figwidth
+        if figclasses:
+            figure_node["classes"] += figclasses
+        if align:
+            figure_node["align"] = align
+        if self.content:
+            node = nodes.Element()  # anonymous container for parsing
+            self.state.nested_parse(self.content, self.content_offset, node)
+            first_node = node[0]
+            if isinstance(first_node, nodes.paragraph):
+                caption = nodes.caption(first_node.rawsource, "", *first_node.children)
+                caption.source = first_node.source
+                caption.line = first_node.line
+                figure_node += caption
+            elif not (isinstance(first_node, nodes.comment) and len(first_node) == 0):
+                error = self.state_machine.reporter.error(
+                    "Figure caption must be a paragraph or empty comment.",
+                    nodes.literal_block(self.block_text, self.block_text),
+                    line=self.lineno,
+                )
+                return [figure_node, error]
+            if len(node) > 1:
+                figure_node += nodes.legend("", *node[1:])
+        return [figure_node]
 
 
 def paste_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
@@ -66,7 +119,7 @@ class NbGlueDomain(Domain):
     # we may need to consider storing outputs on disc?
     initial_data = {"cache": {}, "docmap": {}}
 
-    directives = {"paste": Paste}
+    directives = {"paste": Paste, "figure": PasteFigure}
 
     roles = {"paste": paste_role}
 
