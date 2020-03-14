@@ -16,7 +16,7 @@ class PasteNodesToDocutils(SphinxTransform):
     default_priority = 699  # must be applied before CellOutputsToNodes
 
     def apply(self):
-        glue_data = self.app.env.domaindata[NbGlueDomain.name]["cache"]
+        glue_domain = NbGlueDomain.from_env(self.app.env)  # type: NbGlueDomain
         for paste_node in self.document.traverse(PasteNode):
 
             # First check if we have both key:format in the key
@@ -27,7 +27,7 @@ class PasteNodesToDocutils(SphinxTransform):
                 key = parts[0]
                 formatting = None
 
-            if key not in glue_data:
+            if key not in glue_domain:
                 SPHINX_LOGGER.warning(
                     f"Couldn't find key `{key}` in keys defined across all pages.",
                     location=paste_node.location,
@@ -35,7 +35,7 @@ class PasteNodesToDocutils(SphinxTransform):
                 continue
 
             # Grab the output for this key and replace `glue` specific prefix info
-            output = glue_data.get(key).copy()
+            output = glue_domain.get(key).copy()
             output["data"] = {
                 key.replace(GLUE_PREFIX, ""): val for key, val in output["data"].items()
             }

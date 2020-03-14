@@ -8,7 +8,6 @@ from jupyter_sphinx.ast import (  # noqa: F401
 )
 
 from pathlib import Path
-import json
 
 from .parser import (
     NotebookParser,
@@ -39,9 +38,7 @@ def update_togglebutton_classes(app, config):
 
 
 def save_glue_cache(app, env):
-    path_cache = Path(env.doctreedir).joinpath("glue_cache.json")
-    with path_cache.open("w") as handle:
-        json.dump(env.domaindata[NbGlueDomain.name]["cache"], handle)
+    NbGlueDomain.from_env(env).write_cache()
 
 
 def setup(app):

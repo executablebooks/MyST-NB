@@ -15,7 +15,6 @@ from jupyter_sphinx.ast import get_widgets, JupyterWidgetStateNode
 from jupyter_sphinx.execute import contains_widgets, write_notebook_output
 
 from myst_nb.nb_glue import GLUE_PREFIX
-from myst_nb.nb_glue.utils import find_all_keys
 from myst_nb.nb_glue.domain import NbGlueDomain
 
 
@@ -159,13 +158,8 @@ class NotebookParser(MystParser):
             }
 
         # Update our glue key list with new ones defined in this page
-        new_keys = find_all_keys(
-            ntbk,
-            keys=document.settings.env.domaindata[NbGlueDomain.name]["cache"],
-            path=str(path_doc),
-            logger=SPHINX_LOGGER,
-        )
-        document.settings.env.domaindata[NbGlueDomain.name]["cache"].update(new_keys)
+        glue_domain = NbGlueDomain.from_env(document.settings.env)
+        glue_domain.add_notebook(ntbk, path_doc)
 
         # render the Markdown AST to docutils AST
         renderer = SphinxNBRenderer(

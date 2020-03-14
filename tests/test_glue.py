@@ -108,6 +108,10 @@ def test_parser(mock_document, get_notebook, file_regression):
     transformer.apply_transforms()
 
     file_regression.check(mock_document.pformat(), extension=".xml")
-    assert set(
-        mock_document.document.settings.env.domaindata[NbGlueDomain.name]["cache"]
-    ) == {"key_text1", "key_float", "key_undisplayed", "key_df", "key_plt"}
+    assert set(NbGlueDomain.from_env(mock_document.document.settings.env).cache) == {
+        "key_text1",
+        "key_float",
+        "key_undisplayed",
+        "key_df",
+        "key_plt",
+    }

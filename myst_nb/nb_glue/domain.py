@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from docutils import nodes
@@ -5,6 +6,8 @@ from docutils.parsers.rst import directives
 from sphinx.domains import Domain
 from sphinx.util.docutils import SphinxDirective
 from sphinx.util import logging
+
+from myst_nb.nb_glue.utils import find_all_keys
 
 SPHINX_LOGGER = logging.getLogger(__name__)
 
@@ -61,3 +64,32 @@ class NbGlueDomain(Domain):
     directives = {"paste": Paste}
 
     roles = {"paste": paste_role}
+
+    @property
+    def cache(self) -> dict:
+        return self.env.domaindata[self.name]["cache"]
+
+    def __contains__(self, key):
+        return key in self.cache
+
+    def get(self, key):
+        return self.cache.get(key)
+
+    @classmethod
+    def from_env(cls, env) -> "NbGlueDomain":
+        return env.domains[cls.name]
+
+    def write_cache(self, path=None):
+        """If None, write to doctreedir"""
+        if path is None:
+            path = Path(self.env.doctreedir).joinpath("glue_cache.json")
+        if isinstance(path, str):
+            path = Path(path)
+        with path.open("w") as handle:
+            json.dump(self.cache, handle)
+
+    def add_notebook(self, ntbk, docname):
+        new_keys = find_all_keys(
+            ntbk, keys=self.cache, path=str(docname), logger=SPHINX_LOGGER
+        )
+        self.cache.update(new_keys)
