@@ -49,6 +49,7 @@ class CellOutputsToNodes(SphinxTransform):
                 output_nodes = cell_output_to_nodes(
                     cell, RENDER_PRIORITY[builder], True, output_dir, None
                 )
+            # TODO add warning if output_nodes is empty
             node.replace_self(output_nodes)
 
         # Image collect extra nodes from cell outputs that we need to process
