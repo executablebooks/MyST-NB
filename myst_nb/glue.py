@@ -98,15 +98,19 @@ def find_glued_key(path_ntbk, key):
                     bundle = {this_key: val for key, val in bundle.items()}
                     outputs.append(bundle)
     if len(outputs) == 0:
-        print(f"Did not find key {this_key} in notebook {path_ntbk}")
-        return
+        raise KeyError(f"Did not find key {this_key} in notebook {path_ntbk}")
     if len(outputs) > 1:
-        print(f"Multiple variables found for key: {this_key}. Returning first value.")
+        raise KeyError(
+            f"Multiple variables found for key: {this_key}. Returning first value."
+        )
     return outputs[0]
 
 
 def find_all_keys(ntbk, keys=None, path=None, logger=None):
     """Find all `glue` keys in a notebook and return a dictionary with key: outputs."""
+    if isinstance(ntbk, (str, Path)):
+        ntbk = nbf.read(str(ntbk), nbf.NO_CONVERT)
+
     if keys is None:
         keys = {}
 

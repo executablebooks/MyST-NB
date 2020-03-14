@@ -91,6 +91,26 @@ def test_glue_func_obj_no_display(mock_ipython):
     ]
 
 
+def test_find_glued_key(get_notebook):
+
+    bundle = glue.find_glued_key(get_notebook("with_glue.ipynb"), "key_text1")
+    assert bundle == {"key_text1": "'text1'"}
+
+    with pytest.raises(KeyError):
+        glue.find_glued_key(get_notebook("with_glue.ipynb"), "unknown")
+
+
+def test_find_all_keys(get_notebook):
+    keys = glue.find_all_keys(get_notebook("with_glue.ipynb"))
+    assert set(keys) == {
+        "key_text1",
+        "key_text2",
+        "key_undisplayed",
+        "key_df",
+        "key_plt",
+    }
+
+
 def test_parser(patch_docutils, mock_document_in_temp, get_notebook, file_regression):
     parser = NotebookParser()
     parser.parse(get_notebook("with_glue.ipynb").read_text(), mock_document_in_temp)
