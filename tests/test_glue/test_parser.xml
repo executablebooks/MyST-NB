@@ -17,7 +17,7 @@
             <CellInputNode classes="cell_input">
                 <literal_block xml:space="preserve">
                     glue("key_text1", "text1")
-                    glue("key_text2", "text2")
+                    glue("key_float", 3.14159)
             <CellOutputNode classes="cell_output">
         <CellNode cell_type="code" classes="cell">
             <CellInputNode classes="cell_input">
@@ -50,6 +50,10 @@
                 <inline classes="pasted-text">
                     text1
                  inline...
+            <paragraph>
+                and formatted 
+                <inline classes="pasted-text">
+                    3.14
             <CellNode>
                 <CellInputNode>
                 <CellOutputBundleNode>

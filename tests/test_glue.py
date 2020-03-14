@@ -104,7 +104,7 @@ def test_find_all_keys(get_notebook):
     keys = glue.find_all_keys(get_notebook("with_glue.ipynb"))
     assert set(keys) == {
         "key_text1",
-        "key_text2",
+        "key_float",
         "key_undisplayed",
         "key_df",
         "key_plt",
@@ -119,7 +119,7 @@ def test_parser(patch_docutils, mock_document_in_temp, get_notebook, file_regres
     file_regression.check(mock_document_in_temp.pformat(), extension=".xml")
     assert set(mock_document_in_temp.document.settings.env.glue_data) == {
         "key_text1",
-        "key_text2",
+        "key_float",
         "key_undisplayed",
         "key_df",
         "key_plt",
