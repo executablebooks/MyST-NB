@@ -59,7 +59,7 @@ class PasteFigure(Paste):
     option_spec["figwidth"] = figwidth_value
     option_spec["figclass"] = directives.class_option
     option_spec["align"] = align
-    # TODO how to add label that can be referenced?
+    option_spec["name"] = directives.unchanged
     has_content = True
 
     def run(self):
@@ -74,12 +74,16 @@ class PasteFigure(Paste):
         if isinstance(paste_node, nodes.system_message):
             return [paste_node]
         figure_node = nodes.figure("", paste_node)
+        figure_node.line = paste_node.line
+        figure_node.source = paste_node.source
         if figwidth is not None:
             figure_node["width"] = figwidth
         if figclasses:
             figure_node["classes"] += figclasses
         if align:
             figure_node["align"] = align
+        self.add_name(figure_node)
+        # note: this is copied directly from sphinx.Figure
         if self.content:
             node = nodes.Element()  # anonymous container for parsing
             self.state.nested_parse(self.content, self.content_offset, node)

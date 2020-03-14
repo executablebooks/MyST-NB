@@ -99,3 +99,9 @@
                 <inline classes="pasted-text">
                     undisplayed
                  inline...
+            <figure ids="abc" names="abc">
+                <CellNode>
+                    <CellInputNode>
+                    <image candidates="{'*': 'image.png'}" uri="image.png">
+                <caption>
+                    A caption....
