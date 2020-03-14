@@ -14,8 +14,9 @@ from mistletoe.block_tokens import Document, FrontMatter
 from jupyter_sphinx.ast import get_widgets, JupyterWidgetStateNode
 from jupyter_sphinx.execute import contains_widgets, write_notebook_output
 
-from myst_nb.glue import GLUE_PREFIX
-from myst_nb.glue.utils import find_all_keys
+from myst_nb.nb_glue import GLUE_PREFIX
+from myst_nb.nb_glue.utils import find_all_keys
+from myst_nb.nb_glue.domain import NbGlueDomain
 
 
 SPHINX_LOGGER = logging.getLogger(__name__)
@@ -160,11 +161,11 @@ class NotebookParser(MystParser):
         # Update our glue key list with new ones defined in this page
         new_keys = find_all_keys(
             ntbk,
-            keys=document.settings.env.glue_data,
+            keys=document.settings.env.domaindata[NbGlueDomain.name]["cache"],
             path=str(path_doc),
             logger=SPHINX_LOGGER,
         )
-        document.settings.env.glue_data.update(new_keys)
+        document.settings.env.domaindata[NbGlueDomain.name]["cache"].update(new_keys)
 
         # render the Markdown AST to docutils AST
         renderer = SphinxNBRenderer(

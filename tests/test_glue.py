@@ -1,12 +1,10 @@
-from copy import copy
-
 import pytest
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.core.displaypub import DisplayPublisher
-from docutils.parsers.rst import directives, roles
 from docutils.transforms import Transformer
 
-from myst_nb.glue import glue, domain, transform, utils
+from myst_nb.nb_glue import glue, transform, utils
+from myst_nb.nb_glue.domain import NbGlueDomain
 from myst_nb.parser import NotebookParser
 from myst_nb.transform import CellOutputsToNodes
 
@@ -27,17 +25,6 @@ def mock_ipython():
     shell.display_pub = MockDisplayPublisher()
     yield shell.display_pub
     InteractiveShell.clear_instance()
-
-
-@pytest.fixture()
-def patch_docutils():
-    _directives = copy(directives._directives)
-    _roles = copy(roles._roles)
-    directives._directives["paste"] = domain.Paste
-    roles._roles["paste"] = domain.paste_role
-    yield None
-    directives._directives = _directives
-    roles._roles = _roles
 
 
 def test_glue_func_text(mock_ipython):
@@ -112,19 +99,15 @@ def test_find_all_keys(get_notebook):
     }
 
 
-def test_parser(patch_docutils, mock_document_in_temp, get_notebook, file_regression):
+def test_parser(mock_document, get_notebook, file_regression):
     parser = NotebookParser()
-    parser.parse(get_notebook("with_glue.ipynb").read_text(), mock_document_in_temp)
+    parser.parse(get_notebook("with_glue.ipynb").read_text(), mock_document)
 
-    transformer = Transformer(mock_document_in_temp)
+    transformer = Transformer(mock_document)
     transformer.add_transforms([CellOutputsToNodes, transform.PasteNodesToDocutils])
     transformer.apply_transforms()
 
-    file_regression.check(mock_document_in_temp.pformat(), extension=".xml")
-    assert set(mock_document_in_temp.document.settings.env.glue_data) == {
-        "key_text1",
-        "key_float",
-        "key_undisplayed",
-        "key_df",
-        "key_plt",
-    }
+    file_regression.check(mock_document.pformat(), extension=".xml")
+    assert set(
+        mock_document.document.settings.env.domaindata[NbGlueDomain.name]["cache"]
+    ) == {"key_text1", "key_float", "key_undisplayed", "key_df", "key_plt"}

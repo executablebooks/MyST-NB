@@ -3,7 +3,7 @@ from pathlib import Path
 
 import nbformat as nbf
 
-from myst_nb.glue import GLUE_PREFIX
+from myst_nb.nb_glue import GLUE_PREFIX
 
 
 def read_glue_cache(path):

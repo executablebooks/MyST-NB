@@ -3,8 +3,8 @@ from sphinx.transforms import SphinxTransform
 from sphinx.util import logging
 
 from myst_nb.parser import CellNode, CellInputNode, CellOutputBundleNode
-from myst_nb.glue import GLUE_PREFIX
-from myst_nb.glue.domain import PasteNode
+from myst_nb.nb_glue import GLUE_PREFIX
+from myst_nb.nb_glue.domain import PasteNode, NbGlueDomain
 
 
 SPHINX_LOGGER = logging.getLogger(__name__)
@@ -16,7 +16,7 @@ class PasteNodesToDocutils(SphinxTransform):
     default_priority = 699  # must be applied before CellOutputsToNodes
 
     def apply(self):
-        glue_data = self.app.env.glue_data
+        glue_data = self.app.env.domaindata[NbGlueDomain.name]["cache"]
         for paste_node in self.document.traverse(PasteNode):
 
             # First check if we have both key:format in the key

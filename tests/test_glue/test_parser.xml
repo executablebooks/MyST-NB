@@ -11,7 +11,7 @@
         <CellNode cell_type="code" classes="cell">
             <CellInputNode classes="cell_input">
                 <literal_block xml:space="preserve">
-                    from myst_nb.glue import glue
+                    from myst_nb import glue
             <CellOutputNode classes="cell_output">
         <CellNode cell_type="code" classes="cell">
             <CellInputNode classes="cell_input">

@@ -2,6 +2,7 @@ from pathlib import Path
 
 from docutils import nodes
 from docutils.parsers.rst import directives
+from sphinx.domains import Domain
 from sphinx.util.docutils import SphinxDirective
 from sphinx.util import logging
 
@@ -45,3 +46,18 @@ def paste_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
         lineno = None
     path = str(Path(path).with_suffix(""))
     return [PasteNode(text, "role", location=(path, lineno))], []
+
+
+class NbGlueDomain(Domain):
+    """A sphinx domain for handling glue data """
+
+    name = "nb"
+    label = "NotebookGlue"
+    # data version, bump this when the format of self.data changes
+    data_version = 0.1
+    # data value for a fresh environment
+    initial_data = {"cache": {}}
+
+    directives = {"paste": Paste}
+
+    roles = {"paste": paste_role}
