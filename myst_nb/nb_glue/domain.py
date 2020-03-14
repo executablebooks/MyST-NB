@@ -59,6 +59,7 @@ class PasteFigure(Paste):
     option_spec["figwidth"] = figwidth_value
     option_spec["figclass"] = directives.class_option
     option_spec["align"] = align
+    # TODO how to add label that can be referenced?
     has_content = True
 
     def run(self):
