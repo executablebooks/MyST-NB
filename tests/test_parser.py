@@ -1,25 +1,26 @@
 from myst_nb.parser import NotebookParser
 
 
-def test_basic_run(new_document_in_temp, get_notebook, file_regression):
+def test_basic_run(mock_document_in_temp, get_notebook, file_regression):
     parser = NotebookParser()
-    parser.parse(get_notebook("basic_run.ipynb").read_text(), new_document_in_temp)
-    file_regression.check(new_document_in_temp.pformat(), extension=".xml")
+    parser.parse(get_notebook("basic_run.ipynb").read_text(), mock_document_in_temp)
+    file_regression.check(mock_document_in_temp.pformat(), extension=".xml")
     filenames = {
-        p.name for p in new_document_in_temp.settings.env.app.outdir.parent.glob("**/*")
+        p.name
+        for p in mock_document_in_temp.settings.env.app.outdir.parent.glob("**/*")
     }
     assert filenames == {"nb.py", "nb.ipynb", "source", "jupyter_execute"}
 
 
-def test_complex_outputs(new_document_in_temp, get_notebook, file_regression):
+def test_complex_outputs(mock_document_in_temp, get_notebook, file_regression):
     parser = NotebookParser()
     parser.parse(
-        get_notebook("complex_outputs.ipynb").read_text(), new_document_in_temp
+        get_notebook("complex_outputs.ipynb").read_text(), mock_document_in_temp
     )
-    file_regression.check(new_document_in_temp.pformat(), extension=".xml")
+    file_regression.check(mock_document_in_temp.pformat(), extension=".xml")
     filenames = {
         p.name.replace(".jpeg", ".jpg")
-        for p in new_document_in_temp.settings.env.app.outdir.parent.glob("**/*")
+        for p in mock_document_in_temp.settings.env.app.outdir.parent.glob("**/*")
     }
     assert filenames == {
         "source",

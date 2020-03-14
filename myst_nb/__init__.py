@@ -18,7 +18,7 @@ from .parser import (
     CellOutputBundleNode,
 )
 from .transform import CellOutputsToNodes
-from .glue import Paste, glue, paste_role, PasteNodesToDocutils
+from .glue import Paste, paste_role, PasteNodesToDocutils
 
 
 def static_path(app):
@@ -43,7 +43,8 @@ def init_glue_cache(app):
 
 def save_glue_cache(app, env):
     path_cache = Path(env.doctreedir).joinpath("glue_cache.json")
-    json.dump(env.glue_data, path_cache.open("w"))
+    with path_cache.open("w") as handle:
+        json.dump(env.glue_data, handle)
 
 
 def setup(app):

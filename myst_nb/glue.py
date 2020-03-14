@@ -13,7 +13,7 @@ from .parser import CellNode, CellInputNode, CellOutputBundleNode
 
 SPHINX_LOGGER = logging.getLogger(__name__)
 
-mime_prefix = "application/papermill.record/"
+GLUE_PREFIX = "application/papermill.record/"
 
 
 def glue(name, variable, display=True):
@@ -33,7 +33,7 @@ def glue(name, variable, display=True):
         state of the object at glue-time.
     """
     mimebundle, metadata = IPython.core.formatters.format_display_data(variable)
-    mime_prefix = "" if display else "application/papermill.record/"
+    mime_prefix = "" if display else GLUE_PREFIX
     metadata["scrapbook"] = dict(name=name, mime_prefix=mime_prefix)
     ipy_display(
         {mime_prefix + k: v for k, v in mimebundle.items()}, raw=True, metadata=metadata
@@ -92,7 +92,7 @@ def find_glued_key(path_ntbk, key):
         for output in cell["outputs"]:
             meta = output.get("metadata", {})
             if "scrapbook" in meta:
-                this_key = meta["scrapbook"]["name"].replace(mime_prefix, "")
+                this_key = meta["scrapbook"]["name"].replace(GLUE_PREFIX, "")
                 if key == this_key:
                     bundle = output["data"]
                     bundle = {this_key: val for key, val in bundle.items()}
@@ -105,8 +105,7 @@ def find_glued_key(path_ntbk, key):
     return outputs[0]
 
 
-# Helper functions
-def _find_all_keys(ntbk, keys=None, path=None):
+def find_all_keys(ntbk, keys=None, path=None, logger=None):
     """Find all `glue` keys in a notebook and return a dictionary with key: outputs."""
     if keys is None:
         keys = {}
@@ -120,11 +119,11 @@ def _find_all_keys(ntbk, keys=None, path=None):
             if "scrapbook" in meta:
                 this_key = meta["scrapbook"]["name"]
                 if this_key in keys:
-                    SPHINX_LOGGER.warning(
-                        f"Over-writing pre-existing glue key: `{this_key}`",
-                        location=(path, None),
-                    )
-                    print((path, None))
+                    msg = f"Over-writing pre-existing glue key: `{this_key}`"
+                    if logger is None:
+                        print(msg)
+                    else:
+                        logger.warning(msg, location=(path, None))
                 keys[this_key] = output
     return keys
 
@@ -196,7 +195,7 @@ class PasteNodesToDocutils(SphinxTransform):
             # Grab the output for this key and replace `glue` specific prefix info
             output = glue_data.get(key).copy()
             output["data"] = {
-                key.replace(mime_prefix, ""): val for key, val in output["data"].items()
+                key.replace(GLUE_PREFIX, ""): val for key, val in output["data"].items()
             }
 
             # Roles will be parsed as text, with some formatting fanciness
