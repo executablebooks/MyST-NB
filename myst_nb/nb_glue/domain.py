@@ -1,3 +1,4 @@
+import copy
 import json
 from pathlib import Path
 from typing import List, Dict
@@ -8,6 +9,8 @@ from sphinx.domains import Domain
 from sphinx.util.docutils import SphinxDirective
 from sphinx.util import logging
 
+
+from myst_nb.nb_glue import GLUE_PREFIX
 from myst_nb.nb_glue.utils import find_all_keys
 
 SPHINX_LOGGER = logging.getLogger(__name__)
@@ -16,16 +19,40 @@ SPHINX_LOGGER = logging.getLogger(__name__)
 class PasteNode(nodes.container):
     """Represent a MimeBundle in the Sphinx AST, to be transformed later."""
 
-    def __init__(self, key, kind, location=None, rawsource="", *children, **attributes):
-        self.key = key
-        self.kind = kind
+    def __init__(self, key, location=None, rawsource="", *children, **attributes):
         self.location = location
+        attributes["key"] = key
         super().__init__("", **attributes)
 
+    @property
+    def key(self):
+        return self.attributes["key"]
+
     def copy(self):
-        return self.__class__(
-            self.key, self.kind, location=self.location, **self.attributes
-        )
+        return self.__class__(location=self.location, **self.attributes)
+
+
+class PasteTextNode(PasteNode):
+    """A subclass of ``PasteNode`` that only supports plain text."""
+
+    @property
+    def formatting(self):
+        return self.attributes["formatting"]
+
+    def create_node(self, outputs):
+        """Create the output node, give the mimebundle."""
+        mimebundle = outputs["data"]
+        if "text/plain" in mimebundle:
+            text = mimebundle["text/plain"].strip("'")
+            # If formatting is specified, see if we have a number of some kind
+            if self.formatting:
+                try:
+                    newtext = float(text)
+                    text = f"{newtext:>{self.formatting}}"
+                except ValueError:
+                    pass
+            return nodes.inline(text, text, classes=["pasted-text"])
+        return None
 
 
 # Role and directive for pasting
@@ -45,7 +72,7 @@ class Paste(SphinxDirective):
             lineno = None
         # Remove the suffix from path so its suffix is printed properly in logs
         path = str(Path(path).with_suffix(""))
-        return [PasteNode(self.arguments[0], "directive", location=(path, lineno))]
+        return [PasteNode(self.arguments[0], location=(path, lineno))]
 
 
 class PasteFigure(Paste):
@@ -105,13 +132,27 @@ class PasteFigure(Paste):
         return [figure_node]
 
 
-def paste_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
+def paste_text_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
+    """This role will be parsed as text, with some formatting fanciness.
+
+    The text can have a final ``:``,
+    whereby everything to the right will be treated as a formatting string, e.g.
+    ``key:.2f``
+    """
+    # First check if we have both key:format in the key
+    parts = text.rsplit(":", 1)
+    if len(parts) == 2:
+        key, formatting = parts
+    else:
+        key = parts[0]
+        formatting = None
+
     path = inliner.document.current_source
     # Remove line number if we have a notebook because it is unreliable
     if path.endswith(".ipynb"):
         lineno = None
     path = str(Path(path).with_suffix(""))
-    return [PasteNode(text, "role", location=(path, lineno))], []
+    return [PasteTextNode(key, formatting=formatting, location=(path, lineno))], []
 
 
 class NbGlueDomain(Domain):
@@ -130,7 +171,7 @@ class NbGlueDomain(Domain):
 
     directives = {"paste": Paste, "figure": PasteFigure}
 
-    roles = {"paste": paste_role}
+    roles = {"text": paste_text_role}
 
     @property
     def cache(self) -> dict:
@@ -143,8 +184,16 @@ class NbGlueDomain(Domain):
     def __contains__(self, key):
         return key in self.cache
 
-    def get(self, key):
-        return self.cache.get(key)
+    def get(self, key, view=True, replace=True):
+        """Grab the output for this key and replace `glue` specific prefix info."""
+        output = self.cache.get(key)
+        if view:
+            output = copy.deepcopy(output)
+        if replace:
+            output["data"] = {
+                key.replace(GLUE_PREFIX, ""): val for key, val in output["data"].items()
+            }
+        return output
 
     @classmethod
     def from_env(cls, env) -> "NbGlueDomain":
