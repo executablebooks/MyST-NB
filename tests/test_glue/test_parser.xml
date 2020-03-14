@@ -44,7 +44,44 @@
                 Referencing the figs
             <CellNode>
                 <CellInputNode>
-                <CellOutputBundleNode>
+                <raw classes="output text_html" format="html" xml:space="preserve">
+                    <div>
+                    <style scoped>
+                        .dataframe tbody tr th:only-of-type {
+                            vertical-align: middle;
+                        }
+                    
+                        .dataframe tbody tr th {
+                            vertical-align: top;
+                        }
+                    
+                        .dataframe thead th {
+                            text-align: right;
+                        }
+                    </style>
+                    <table border="1" class="dataframe">
+                      <thead>
+                        <tr style="text-align: right;">
+                          <th></th>
+                          <th>header</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <th>0</th>
+                          <td>1</td>
+                        </tr>
+                        <tr>
+                          <th>1</th>
+                          <td>2</td>
+                        </tr>
+                        <tr>
+                          <th>2</th>
+                          <td>3</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    </div>
             <paragraph>
                 and 
                 <inline classes="pasted-text">
@@ -56,7 +93,7 @@
                     3.14
             <CellNode>
                 <CellInputNode>
-                <CellOutputBundleNode>
+                <image candidates="{'*': 'image.png'}" uri="image.png">
             <paragraph>
                 and 
                 <inline classes="pasted-text">
