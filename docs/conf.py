@@ -54,3 +54,7 @@ html_theme_options = {"github_url": "https://github.com/ExecutableBookProject/my
 html_static_path = ["_static"]
 jupyter_sphinx_require_url = ""
 copybutton_selector = "div:not(.output) > div.highlight pre"
+
+binderhub_url = "https://mybinder.org"
+path_to_docs = "docs"
+repository_url = "https://github.com/ExecutableBookProject/myst-nb"

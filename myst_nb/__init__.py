@@ -7,6 +7,7 @@ from jupyter_sphinx.ast import (  # noqa: F401
     JupyterCell,
 )
 
+from sphinx.util import logging
 from pathlib import Path
 import json
 
@@ -19,6 +20,8 @@ from .parser import (
 )
 from .transform import CellOutputsToNodes
 from .glue import Paste, paste_role, PasteNodesToDocutils
+
+SPHINX_LOGGER = logging.getLogger(__name__)
 
 
 def static_path(app):
@@ -45,6 +48,23 @@ def save_glue_cache(app, env):
     path_cache = Path(env.doctreedir).joinpath("glue_cache.json")
     with path_cache.open("w") as handle:
         json.dump(env.glue_data, handle)
+
+
+def add_binder_link(app, pagename, templatename, context, doctree):
+    """Builds a binder link and inserts it in HTML context for use in templating."""
+    hub_url = app.config["binderhub_url"]
+    book_relpath = app.config["path_to_docs"].strip("/")
+    repo_url = app.config["repository_url"]
+    if "github.com" in repo_url:
+        end = repo_url.split("github.com/")[-1]
+        org, repo = end.split("/")[:2]
+    else:
+        SPHINX_LOGGER.warning(f"Repo URL will not work with Binder links: {repo_url}")
+
+    path = app.env.doc2path(pagename)
+    if hub_url and path.endswith(".ipynb"):
+        url = f"{hub_url}/v2/gh/{org}/{repo}/master?filepath={book_relpath}/{path}"
+        context["binder_url"] = url
 
 
 def setup(app):
@@ -107,5 +127,11 @@ def setup(app):
     app.add_directive("paste", Paste)
     app.add_role("paste", paste_role)
     app.setup_extension("jupyter_sphinx")
+
+    # Binder
+    app.add_config_value("binderhub_url", "", "html")
+    app.add_config_value("path_to_docs", "", "html")
+    app.add_config_value("repository_url", "", "html")
+    app.connect("html-page-context", add_binder_link)
 
     return {"version": __version__, "parallel_read_safe": True}
