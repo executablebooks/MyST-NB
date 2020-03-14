@@ -42,6 +42,13 @@
         <section ids="referencing-the-figs" names="referencing\ the\ figs">
             <title>
                 Referencing the figs
+            <paragraph>
+                <inline classes="pasted-inline">
+                    <literal classes="output text_plain" language="none">
+                        'text1'
+                , 
+                <inline classes="pasted-inline">
+                    <image candidates="{'*': 'image.png'}" uri="image.png">
             <CellNode>
                 <CellInputNode>
                 <raw classes="output text_html" format="html" xml:space="preserve">
