@@ -1,4 +1,5 @@
 from myst_nb.parser import NotebookParser
+import myst_nb
 
 
 def test_basic_run(mock_document, get_notebook, file_regression):
@@ -29,3 +30,17 @@ def test_complex_outputs(mock_document, get_notebook, file_regression):
         "nb_17_0.svg",
         "nb_24_0.png",
     }
+
+
+class MockApp:
+    def mock_method(self, *args, **kwargs):
+        pass
+
+    def __getattr__(self, name):
+        print(name)
+        return self.mock_method
+
+
+def test_sphinx_setup():
+    app = MockApp()
+    myst_nb.setup(app)
