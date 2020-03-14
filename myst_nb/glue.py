@@ -175,7 +175,7 @@ class PasteNode(nodes.container):
 class PasteNodesToDocutils(SphinxTransform):
     """Use the builder context to transform a CellOutputNode into Sphinx nodes."""
 
-    default_priority = 700
+    default_priority = 699  # must be applied before CellOutputsToNodes
 
     def apply(self):
         glue_data = self.app.env.glue_data

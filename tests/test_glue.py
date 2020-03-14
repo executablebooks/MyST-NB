@@ -4,6 +4,7 @@ import pytest
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.core.displaypub import DisplayPublisher
 from docutils.parsers.rst import directives, roles
+from docutils.transforms import Transformer
 
 from myst_nb import glue
 from myst_nb.parser import NotebookParser
@@ -114,8 +115,11 @@ def test_find_all_keys(get_notebook):
 def test_parser(patch_docutils, mock_document_in_temp, get_notebook, file_regression):
     parser = NotebookParser()
     parser.parse(get_notebook("with_glue.ipynb").read_text(), mock_document_in_temp)
-    glue.PasteNodesToDocutils(mock_document_in_temp).apply()
-    CellOutputsToNodes(mock_document_in_temp).apply()
+
+    transformer = Transformer(mock_document_in_temp)
+    transformer.add_transforms([CellOutputsToNodes, glue.PasteNodesToDocutils])
+    transformer.apply_transforms()
+
     file_regression.check(mock_document_in_temp.pformat(), extension=".xml")
     assert set(mock_document_in_temp.document.settings.env.glue_data) == {
         "key_text1",
