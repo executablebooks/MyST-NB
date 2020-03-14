@@ -1,4 +1,4 @@
-__version__ = "0.2.2"
+__version__ = "0.3.0"
 
 from docutils import nodes
 from jupyter_sphinx.ast import (  # noqa: F401
