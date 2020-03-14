@@ -6,7 +6,7 @@ from IPython.core.displaypub import DisplayPublisher
 from docutils.parsers.rst import directives, roles
 from docutils.transforms import Transformer
 
-from myst_nb.glue import glue, sphinx, utils
+from myst_nb.glue import glue, domain, transform, utils
 from myst_nb.parser import NotebookParser
 from myst_nb.transform import CellOutputsToNodes
 
@@ -33,8 +33,8 @@ def mock_ipython():
 def patch_docutils():
     _directives = copy(directives._directives)
     _roles = copy(roles._roles)
-    directives._directives["paste"] = sphinx.Paste
-    roles._roles["paste"] = sphinx.paste_role
+    directives._directives["paste"] = domain.Paste
+    roles._roles["paste"] = domain.paste_role
     yield None
     directives._directives = _directives
     roles._roles = _roles
@@ -117,7 +117,7 @@ def test_parser(patch_docutils, mock_document_in_temp, get_notebook, file_regres
     parser.parse(get_notebook("with_glue.ipynb").read_text(), mock_document_in_temp)
 
     transformer = Transformer(mock_document_in_temp)
-    transformer.add_transforms([CellOutputsToNodes, sphinx.PasteNodesToDocutils])
+    transformer.add_transforms([CellOutputsToNodes, transform.PasteNodesToDocutils])
     transformer.apply_transforms()
 
     file_regression.check(mock_document_in_temp.pformat(), extension=".xml")
