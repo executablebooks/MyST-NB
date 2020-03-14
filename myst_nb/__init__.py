@@ -100,4 +100,6 @@ def setup(app):
     app.setup_extension("jupyter_sphinx")
     app.add_domain(NbGlueDomain)
 
-    return {"version": __version__, "parallel_read_safe": True}
+    # TODO need to deal with key clashes in NbGlueDomain.merge_domaindata
+    # before this is parallel_read_safe
+    return {"version": __version__, "parallel_read_safe": False}

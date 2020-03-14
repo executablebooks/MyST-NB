@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from typing import List, Dict
 
 from docutils import nodes
 from docutils.parsers.rst import directives
@@ -59,7 +60,9 @@ class NbGlueDomain(Domain):
     # data version, bump this when the format of self.data changes
     data_version = 0.1
     # data value for a fresh environment
-    initial_data = {"cache": {}}
+    # - cache is the mapping of all keys to outputs
+    # - docmap is the mapping of docnames to the set of keys it contains
+    initial_data = {"cache": {}, "docmap": {}}
 
     directives = {"paste": Paste}
 
@@ -68,6 +71,10 @@ class NbGlueDomain(Domain):
     @property
     def cache(self) -> dict:
         return self.env.domaindata[self.name]["cache"]
+
+    @property
+    def docmap(self) -> dict:
+        return self.env.domaindata[self.name]["docmap"]
 
     def __contains__(self, key):
         return key in self.cache
@@ -86,10 +93,39 @@ class NbGlueDomain(Domain):
         if isinstance(path, str):
             path = Path(path)
         with path.open("w") as handle:
-            json.dump(self.cache, handle)
+            json.dump(
+                {
+                    d: {k: self.cache[k] for k in vs if k in self.cache}
+                    for d, vs in self.docmap.items()
+                    if vs
+                },
+                handle,
+                indent=2,
+            )
 
     def add_notebook(self, ntbk, docname):
+        """Find all glue keys from the notebook and add to the cache."""
         new_keys = find_all_keys(
-            ntbk, keys=self.cache, path=str(docname), logger=SPHINX_LOGGER
+            ntbk,
+            existing_keys={v: k for k, vs in self.docmap.items() for v in vs},
+            path=str(docname),
+            logger=SPHINX_LOGGER,
         )
+        self.docmap[str(docname)] = set(new_keys)
         self.cache.update(new_keys)
+
+    def clear_doc(self, docname: str) -> None:
+        """Remove traces of a document in the domain-specific inventories."""
+        for key in self.docmap.get(docname, []):
+            self.cache.pop(key, None)
+        self.docmap.pop(docname, None)
+
+    def merge_domaindata(self, docnames: List[str], otherdata: Dict) -> None:
+        """Merge in data regarding *docnames* from a different domaindata
+        inventory (coming from a subprocess in parallel builds).
+        """
+        # TODO need to deal with key clashes
+        raise NotImplementedError(
+            "merge_domaindata must be implemented in %s "
+            "to be able to do parallel builds!" % self.__class__
+        )

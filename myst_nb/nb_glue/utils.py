@@ -72,15 +72,19 @@ def find_glued_key(path_ntbk, key):
     return outputs[0]
 
 
-def find_all_keys(ntbk, keys=None, path=None, logger=None):
-    """Find all `glue` keys in a notebook and return a dictionary with key: outputs."""
+def find_all_keys(ntbk, existing_keys=None, path=None, logger=None):
+    """Find all `glue` keys in a notebook and return a dictionary with key: outputs.
+
+    :param existing_keys: a map of key to docname
+    """
     if isinstance(ntbk, (str, Path)):
         ntbk = nbf.read(str(ntbk), nbf.NO_CONVERT)
 
-    if keys is None:
-        keys = {}
+    if existing_keys is None:
+        existing_keys = {}
+    new_keys = {}
 
-    for cell in ntbk.cells:
+    for i, cell in enumerate(ntbk.cells):
         if cell.cell_type != "code":
             continue
 
@@ -88,11 +92,25 @@ def find_all_keys(ntbk, keys=None, path=None, logger=None):
             meta = output.get("metadata", {})
             if "scrapbook" in meta:
                 this_key = meta["scrapbook"]["name"]
-                if this_key in keys:
-                    msg = f"Over-writing pre-existing glue key: `{this_key}`"
+                if this_key in existing_keys:
+                    msg = (
+                        f"Skipping glue key `{this_key}`, in cell {i}, "
+                        f"that already exists in: '{existing_keys[this_key]}'"
+                    )
                     if logger is None:
                         print(msg)
                     else:
                         logger.warning(msg, location=(path, None))
-                keys[this_key] = output
-    return keys
+                elif this_key in new_keys:
+                    msg = (
+                        f"Overwriting glue key `{this_key}`, from cell {i}, "
+                        "defined previously in notebook."
+                    )
+                    if logger is None:
+                        print(msg)
+                    else:
+                        logger.warning(msg, location=(path, None))
+                    new_keys[this_key] = output
+                else:
+                    new_keys[this_key] = output
+    return new_keys
