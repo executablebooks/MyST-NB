@@ -16,3 +16,11 @@ def test_complex_outputs(new_document, get_notebook, file_regression):
     transform = CellOutputsToNodes(new_document)
     transform.apply()
     file_regression.check(new_document.pformat(), extension=".xml")
+
+
+def test_glue(new_document_in_temp, get_notebook, file_regression):
+    parser = NotebookParser()
+    parser.parse(get_notebook("glue.ipynb").read_text(), new_document_in_temp)
+    transform = CellOutputsToNodes(new_document_in_temp)
+    transform.apply()
+    file_regression.check(new_document_in_temp.pformat(), extension=".xml")
