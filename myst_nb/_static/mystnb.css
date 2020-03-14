@@ -107,3 +107,7 @@ div.cell_output table {
 span.pasted-text {
   font-weight: bold;
 }
+
+span.pasted-inline img {
+  max-height: 2em;
+}

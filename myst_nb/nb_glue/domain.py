@@ -50,8 +50,9 @@ class PasteInlineNode(PasteNode):
         # the whole output chunk is deposited and rendered later
         from myst_nb.parser import CellOutputBundleNode
 
-        output_node = CellOutputBundleNode(outputs=[output], inline=True)
-        return output_node
+        bundle_node = CellOutputBundleNode(outputs=[output], inline=True)
+        inline_node = nodes.inline("", "", bundle_node, classes=["pasted-inline"])
+        return inline_node
 
 
 class PasteTextNode(PasteNode):

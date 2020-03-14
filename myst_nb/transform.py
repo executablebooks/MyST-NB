@@ -100,7 +100,6 @@ def cell_output_to_nodes_inline(cell, data_priority, write_stderr, dir, thebe_co
                     # would otherwise add a <div class="highlight">.
 
                     # container = docutils.nodes.container(classes=["stderr"])
-                    # TODO span version of container?
                     literal = docutils.nodes.literal(
                         text=output["text"],
                         rawsource="",  # disables Pygment highlighting
