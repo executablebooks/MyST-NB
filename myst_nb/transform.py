@@ -62,6 +62,7 @@ class CellOutputsToNodes(SphinxTransform):
             col.process_doc(self.app, node)
 
 
+# TODO this needs to be upstreamed to jupyter-sphinx
 def cell_output_to_nodes_inline(cell, data_priority, write_stderr, dir, thebe_config):
     """Convert a jupyter cell with outputs and filenames to doctree nodes.
 

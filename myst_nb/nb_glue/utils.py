@@ -72,10 +72,12 @@ def find_glued_key(path_ntbk, key):
     return outputs[0]
 
 
-def find_all_keys(ntbk, existing_keys=None, path=None, logger=None):
+def find_all_keys(ntbk, existing_keys=None, path=None, logger=None, strip_images=True):
     """Find all `glue` keys in a notebook and return a dictionary with key: outputs.
 
     :param existing_keys: a map of key to docname
+    :param strip_images: replace image base64 values with None,
+        if they have already been stored as a file
     """
     if isinstance(ntbk, (str, Path)):
         ntbk = nbf.read(str(ntbk), nbf.NO_CONVERT)
@@ -101,7 +103,8 @@ def find_all_keys(ntbk, existing_keys=None, path=None, logger=None):
                         print(msg)
                     else:
                         logger.warning(msg, location=(path, None))
-                elif this_key in new_keys:
+                    continue
+                if this_key in new_keys:
                     msg = (
                         f"Glue key `{this_key}`, in cell {i}, overwrites one "
                         "previously defined in the notebook."
@@ -110,7 +113,14 @@ def find_all_keys(ntbk, existing_keys=None, path=None, logger=None):
                         print(msg)
                     else:
                         logger.warning(msg, location=(path, None))
-                    new_keys[this_key] = output
-                else:
-                    new_keys[this_key] = output
+
+                if strip_images:
+                    output = output.copy()
+                    filenames = output["metadata"].get("filenames", {})
+                    output["data"] = {
+                        k: None if k.replace(GLUE_PREFIX, "") in filenames else v
+                        for k, v in output.get("data", {}).items()
+                    }
+
+                new_keys[this_key] = output
     return new_keys
