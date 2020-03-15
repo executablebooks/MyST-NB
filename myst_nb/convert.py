@@ -23,6 +23,7 @@ def myst_to_nb(
     NOTE: we assume here that all of these directives are at the top-level,
     i.e. not nested in other directives.
     """
+    # TODO add logger to options
     from myst_nb.parser import SphinxNBRenderer
 
     original_context = get_parse_context()
