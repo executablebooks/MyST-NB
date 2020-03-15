@@ -135,9 +135,14 @@ class NotebookParser(MystParser):
                 for out in cell.outputs:
                     if "data" in out:
                         # Only do the mimebundle replacing for the scrapbook outputs
-                        if out.get("metadata", {}).get("scrapbook", {}).get("name"):
+                        mime_prefix = (
+                            out.get("metadata", {})
+                            .get("scrapbook", {})
+                            .get("mime_prefix")
+                        )
+                        if mime_prefix:
                             out["data"] = {
-                                key.replace(GLUE_PREFIX, ""): val
+                                key.replace(mime_prefix, ""): val
                                 for key, val in out["data"].items()
                             }
                             replace_mime.append(out)
