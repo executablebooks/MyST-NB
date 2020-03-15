@@ -15,6 +15,9 @@ def test_basic(file_regression):
         b
         c
         ```{nb-cell}
+        ---
+        tags: ["hide-code"]
+        ---
         a = 1
         print(a)
         ```
