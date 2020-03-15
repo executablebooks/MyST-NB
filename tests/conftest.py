@@ -6,6 +6,7 @@ from docutils.frontend import OptionParser
 from docutils.parsers.rst import Parser as RSTParser
 from docutils.utils import new_document
 
+from sphinx.domains.math import MathDomain
 from sphinx.util.docutils import sphinx_domains
 
 from myst_nb.nb_glue.domain import NbGlueDomain
@@ -20,7 +21,10 @@ class MockEnv:
         self.docname = "source/nb"
         self.dependencies = defaultdict(set)
         self.domaindata = {}
-        self.domains = {NbGlueDomain.name: NbGlueDomain(self)}
+        self.domains = {
+            NbGlueDomain.name: NbGlueDomain(self),
+            MathDomain.name: MathDomain(self),
+        }
         self._tmp_path = tmp_path
 
         class app:
@@ -41,6 +45,9 @@ class MockEnv:
 
     def relfn2path(self, imguri, docname):
         return ("image.png", self._tmp_path / "build" / "image.png")
+
+    def new_serialno(self, name):
+        return 1
 
 
 @pytest.fixture()

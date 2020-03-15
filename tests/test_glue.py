@@ -96,6 +96,7 @@ def test_find_all_keys(get_notebook):
         "key_undisplayed",
         "key_df",
         "key_plt",
+        "sym_eq",
     }
 
 
@@ -115,6 +116,7 @@ def test_parser(mock_document, get_notebook, file_regression):
         "key_undisplayed",
         "key_df",
         "key_plt",
+        "sym_eq",
     }
     glue_domain.clear_doc(mock_document.settings.env.docname)
     assert glue_domain.cache == {}

@@ -1,11 +1,12 @@
 import copy
 import json
 from pathlib import Path
-from typing import List, Dict
+from typing import cast, List, Dict
 
 from docutils import nodes
 from docutils.parsers.rst import directives
 from sphinx.domains import Domain
+from sphinx.domains.math import MathDomain
 from sphinx.util.docutils import SphinxDirective
 from sphinx.util import logging
 
@@ -31,7 +32,7 @@ class PasteNode(nodes.container):
     def copy(self):
         return self.__class__(location=self.location, **self.attributes)
 
-    def create_node(self, output: dict):
+    def create_node(self, output: dict, document, env):
         """Create the output node, give the cell output."""
         # the whole output chunk is deposited and rendered later
         # TODO move these nodes to separate module, to avoid cyclic imports
@@ -44,7 +45,7 @@ class PasteNode(nodes.container):
 
 
 class PasteInlineNode(PasteNode):
-    def create_node(self, output: dict):
+    def create_node(self, output: dict, document, env):
         """Create the output node, give the cell output."""
         # the whole output chunk is deposited and rendered later
         from myst_nb.parser import CellOutputBundleNode
@@ -61,7 +62,7 @@ class PasteTextNode(PasteNode):
     def formatting(self):
         return self.attributes["formatting"]
 
-    def create_node(self, output: dict):
+    def create_node(self, output: dict, document, env):
         """Create the output node, give the cell output."""
         mimebundle = output["data"]
         if "text/plain" in mimebundle:
@@ -74,6 +75,35 @@ class PasteTextNode(PasteNode):
                 except ValueError:
                     pass
             return nodes.inline(text, text, classes=["pasted-text"])
+        return None
+
+
+class PasteMathNode(PasteNode):
+    """A subclass of ``PasteNode`` that only supports plain text.
+
+    Code mainly copied from sphinx.directives.patches.MathDirective
+    """
+
+    def create_node(self, output: dict, document, env):
+        """Create the output node, give the cell output."""
+        mimebundle = output["data"]
+        if "text/latex" in mimebundle:
+            text = mimebundle["text/latex"].strip("$")
+            node = nodes.math_block(
+                text,
+                text,
+                classes=["pasted-math"],
+                docname=env.docname,
+                number=self["math_number"],
+                nowrap=self["math_nowrap"],
+                label=self["math_label"],
+            )
+            node.line = self.line
+            node.source = self.source
+            if "math_class" in self and self["math_class"]:
+                node["classes"].append(self["math_class"])
+
+            return node
         return None
 
 
@@ -95,6 +125,47 @@ class Paste(SphinxDirective):
         # Remove the suffix from path so its suffix is printed properly in logs
         path = str(Path(path).with_suffix(""))
         return [PasteNode(self.arguments[0], location=(path, lineno))]
+
+
+class PasteMath(Paste):
+
+    option_spec = Paste.option_spec.copy()
+    option_spec["class"] = directives.class_option
+    option_spec["label"] = directives.unchanged
+    option_spec["nowrap"] = directives.flag
+    has_content = False
+
+    def run(self):
+        # TODO: Figure out how to report cell number in the location
+        #       currently, line numbers in ipynb files are not reliable
+        path, lineno = self.state_machine.get_source_and_line(self.lineno)
+        # Remove line number if we have a notebook because it is unreliable
+        if path.endswith(".ipynb"):
+            lineno = None
+        # Remove the suffix from path so its suffix is printed properly in logs
+        path = str(Path(path).with_suffix(""))
+        paste_node = PasteMathNode(self.arguments[0], location=(path, lineno))
+        paste_node["math_class"] = self.options.pop("class", None)
+        paste_node["math_label"] = self.options.pop("label", None)
+        paste_node["math_nowrap"] = "nowrap" in self.options
+        target = self.add_target(paste_node)
+        if target:
+            return [target, paste_node]
+        return [paste_node]
+
+    def add_target(self, node):
+        if not node["math_label"]:
+            return None
+        # register label to domain
+        domain = cast(MathDomain, self.env.get_domain("math"))
+        domain.note_equation(self.env.docname, node["math_label"], location=node)
+        node["math_number"] = domain.get_equation_number_for(node["math_label"])
+
+        # add target node
+        node_id = nodes.make_id("equation-%s" % node["math_label"])
+        target = nodes.target("", "", ids=[node_id])
+        self.state.document.note_explicit_target(target)
+        return target
 
 
 class PasteFigure(Paste):
@@ -200,7 +271,7 @@ class NbGlueDomain(Domain):
     # - docmap is the mapping of docnames to the set of keys it contains
     initial_data = {"cache": {}, "docmap": {}}
 
-    directives = {"any": Paste, "figure": PasteFigure}
+    directives = {"any": Paste, "figure": PasteFigure, "math": PasteMath}
 
     roles = {"any": paste_any_role, "text": paste_text_role}
 

@@ -151,3 +151,21 @@
                     <image candidates="{'*': 'image.png'}" uri="image.png">
                 <caption>
                     A caption....
+        <section ids="math" names="math">
+            <title>
+                Math
+            <CellNode cell_type="code" classes="cell">
+                <CellInputNode classes="cell_input">
+                    <literal_block xml:space="preserve">
+                        import sympy as sym
+                        f = sym.Function('f')
+                        y = sym.Function('y')
+                        n = sym.symbols(r'\alpha')
+                        f = y(n)-2*y(n-1/sym.pi)-5*y(n-2)
+                        glue("sym_eq", sym.rsolve(f,y(n),[1,4]))
+                <CellOutputNode classes="cell_output">
+                    <math_block classes="output text_latex" nowrap="False" number="True" xml:space="preserve">
+                        \displaystyle \left(\sqrt{5} i\right)^{\alpha} \left(\frac{1}{2} - \frac{2 \sqrt{5} i}{5}\right) + \left(- \sqrt{5} i\right)^{\alpha} \left(\frac{1}{2} + \frac{2 \sqrt{5} i}{5}\right)
+            <target ids="equation-eq-sym">
+            <math_block classes="pasted-math" docname="source/nb" label="eq-sym" nowrap="False" number="2" xml:space="preserve">
+                \displaystyle \left(\sqrt{5} i\right)^{\alpha} \left(\frac{1}{2} - \frac{2 \sqrt{5} i}{5}\right) + \left(- \sqrt{5} i\right)^{\alpha} \left(\frac{1}{2} + \frac{2 \sqrt{5} i}{5}\right)

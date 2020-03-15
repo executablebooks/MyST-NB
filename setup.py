@@ -65,6 +65,7 @@ setup(
             "ipywidgets",
             "pandas",
             "numpy",
+            "sympy",
             "altair",
             "alabaster",
             "bokeh",

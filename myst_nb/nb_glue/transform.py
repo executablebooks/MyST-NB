@@ -29,7 +29,9 @@ class PasteNodesToDocutils(SphinxTransform):
             # Grab the output for this key
             output = glue_domain.get(paste_node.key)
 
-            out_node = paste_node.create_node(output=output)
+            out_node = paste_node.create_node(
+                output=output, document=self.document, env=self.app.env
+            )
             if out_node is None:
                 SPHINX_LOGGER.warning(
                     (
