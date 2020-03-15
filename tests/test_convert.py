@@ -7,7 +7,7 @@ def test_basic(file_regression):
     text = dedent(
         """\
         ---
-        a: 1
+        orphan: true
         ---
 
         a
@@ -20,6 +20,8 @@ def test_basic(file_regression):
         ```
 
         c
+
+        +++ {"tags": ["hide-cell"]}
 
         d
 

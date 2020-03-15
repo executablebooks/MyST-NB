@@ -1,3 +1,4 @@
+import json
 from typing import List, Union
 
 from docutils.parsers.rst.directives.misc import TestDirective
@@ -7,6 +8,7 @@ from mistletoe.base_elements import SourceLines
 from mistletoe.parse_context import ParseContext, get_parse_context, set_parse_context
 from mistletoe.block_tokens import Document, CodeFence
 
+from myst_parser.block_tokens import BlockBreak
 from myst_parser.parse_directives import parse_directive_text
 
 
@@ -50,10 +52,35 @@ def myst_to_nb(
         notebook = nbf.v4.new_notebook(**kwargs)
 
         current_line = 0 if not doc.front_matter else doc.front_matter.position.line_end
+        md_metadata = {}
 
-        for item in doc.walk(["CodeFence"]):
-            token = item.node  # type: CodeFence
-            if token.language == "{{{0}}}".format(directive):
+        for item in doc.walk(["CodeFence", "BlockBreak"]):
+            if isinstance(item.node, BlockBreak):
+                token = item.node  # type: BlockBreak
+                notebook.cells.append(
+                    nbf.v4.new_markdown_cell(
+                        source="".join(
+                            lines.lines[current_line : token.position.line_start - 1]
+                        ).rstrip(),
+                        metadata=nbf.from_dict(md_metadata),
+                    )
+                )
+                if token.content:
+                    try:
+                        md_metadata = json.loads(token.content.strip())
+                    except Exception:
+                        # TODO log warning if content can't be parsed as json
+                        md_metadata = {}
+                    if not isinstance(md_metadata, dict):
+                        # TODO log warning if content isn't a dict
+                        md_metadata = {}
+                else:
+                    md_metadata = {}
+                current_line = token.position.line_start
+            if isinstance(
+                item.node, CodeFence
+            ) and item.node.language == "{{{0}}}".format(directive):
+                token = item.node  # type: CodeFence
 
                 # Note: we ignore anything after the directive on the first line
                 # TODO: could log warning about this: ``if token.arguments != ""```
@@ -70,10 +97,12 @@ def myst_to_nb(
                     nbf.v4.new_markdown_cell(
                         source="".join(
                             lines.lines[current_line : token.position.line_start - 1]
-                        )
+                        ).rstrip(),
+                        metadata=nbf.from_dict(md_metadata),
                     )
                 )
                 current_line = token.position.line_end
+                md_metadata = {}
 
                 notebook.cells.append(
                     nbf.v4.new_code_cell(
@@ -81,9 +110,13 @@ def myst_to_nb(
                     )
                 )
 
+        # add the final markdown cell (if present)
         if lines.lines[current_line:]:
             notebook.cells.append(
-                nbf.v4.new_markdown_cell(source="".join(lines.lines[current_line:]))
+                nbf.v4.new_markdown_cell(
+                    source="".join(lines.lines[current_line:]),
+                    metadata=nbf.from_dict(md_metadata),
+                )
             )
 
     finally:
