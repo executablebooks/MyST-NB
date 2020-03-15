@@ -49,8 +49,7 @@
                 , 
                 <inline classes="pasted-inline">
                     <image candidates="{'*': 'image.png'}" uri="image.png">
-            <CellNode>
-                <CellInputNode>
+            <CellOutputNode classes="cell_output">
                 <raw classes="output text_html" format="html" xml:space="preserve">
                     <div>
                     <style scoped>
@@ -98,8 +97,7 @@
                 and formatted 
                 <inline classes="pasted-text">
                     3.14
-            <CellNode>
-                <CellInputNode>
+            <CellOutputNode classes="cell_output">
                 <image candidates="{'*': 'image.png'}" uri="image.png">
             <paragraph>
                 and 
@@ -107,8 +105,7 @@
                     undisplayed
                  inline...
             <figure ids="abc" names="abc">
-                <CellNode>
-                    <CellInputNode>
+                <CellOutputNode classes="cell_output">
                     <image candidates="{'*': 'image.png'}" uri="image.png">
                 <caption>
                     A caption....

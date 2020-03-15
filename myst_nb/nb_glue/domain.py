@@ -35,11 +35,10 @@ class PasteNode(nodes.container):
         """Create the output node, give the cell output."""
         # the whole output chunk is deposited and rendered later
         # TODO move these nodes to separate module, to avoid cyclic imports
-        from myst_nb.parser import CellNode, CellInputNode, CellOutputBundleNode
+        from myst_nb.parser import CellOutputNode, CellOutputBundleNode
 
         output_node = CellOutputBundleNode(outputs=[output])
-        out_node = CellNode()
-        out_node += CellInputNode()
+        out_node = CellOutputNode(classes=["cell_output"])
         out_node += output_node
         return out_node
 
