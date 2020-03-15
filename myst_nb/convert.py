@@ -1,8 +1,13 @@
+"""
+This module contains round-trip conversion between
+myst formatted text documents and notebooks.
+"""
 import json
 from typing import List, Union
 
 from docutils.parsers.rst.directives.misc import TestDirective
 import nbformat as nbf
+import yaml
 
 from mistletoe.base_elements import SourceLines
 from mistletoe.parse_context import ParseContext, get_parse_context, set_parse_context
@@ -12,8 +17,11 @@ from myst_parser.block_tokens import BlockBreak
 from myst_parser.parse_directives import parse_directive_text
 
 
+DEFAULT_DIRECTIVE = "nb-code"
+
+
 def myst_to_nb(
-    text: Union[str, List[str], SourceLines], directive: str = "nb-cell"
+    text: Union[str, List[str], SourceLines], directive: str = DEFAULT_DIRECTIVE
 ) -> nbf.NotebookNode:
     """Convert text written in the myst format to a notebook.
 
@@ -84,7 +92,8 @@ def myst_to_nb(
                 token = item.node  # type: CodeFence
 
                 # Note: we ignore anything after the directive on the first line
-                # TODO: could log warning about this: ``if token.arguments != ""```
+                # this is reserved for the optional lexer name
+                # TODO: could log warning about if token.arguments != lexer name
 
                 # we use the TestDirective here, since `parse_directive_text`
                 # is setup to skip any option validation for this class
@@ -124,3 +133,61 @@ def myst_to_nb(
         set_parse_context(original_context)
 
     return notebook
+
+
+def from_nbnode(value):
+    """Recursively convert NotebookNode to dict."""
+    if isinstance(value, nbf.NotebookNode):
+        return {k: from_nbnode(v) for k, v in value.items()}
+    return value
+
+
+def nb_to_myst(nb: nbf.NotebookNode, directive: str = DEFAULT_DIRECTIVE):
+    string = ""
+
+    metadata = from_nbnode(nb.metadata)
+    metadata["nbformat"] = nb.nbformat
+    metadata["nbformat_minor"] = nb.nbformat_minor
+
+    # we add the pygments lexer as a directive argument, for use by syntax highlighters
+    pygments_lexer = metadata.get("language_info", {}).get("pygments_lexer", None)
+
+    string += "---\n"
+    string += yaml.safe_dump(metadata)
+    string += "---\n"
+
+    last_cell_md = False
+    for i, cell in enumerate(nb.cells):
+
+        if cell.cell_type == "markdown":
+            metadata = from_nbnode(cell.metadata)
+            if metadata or last_cell_md:
+                if metadata:
+                    string += "\n+++ {}\n".format(json.dumps(metadata))
+                else:
+                    string += "\n+++\n"
+            string += cell.source
+            if not cell.source.endswith("\n"):
+                string += "\n"
+            last_cell_md = True
+
+        elif cell.cell_type == "code":
+            string += "```{{{}}}".format(directive)
+            if pygments_lexer:
+                string += " {}".format(pygments_lexer)
+            string += "\n"
+            metadata = from_nbnode(cell.metadata)
+            if metadata:
+                string += "---\n"
+                string += yaml.safe_dump(metadata)
+                string += "---\n"
+            string += cell.source
+            if not cell.source.endswith("\n"):
+                string += "\n"
+            string += "```\n"
+            last_cell_md = False
+
+        else:
+            raise NotImplementedError("cell {}, type: {}".format(i, cell.cell_type))
+
+    return string.rstrip() + "\n"

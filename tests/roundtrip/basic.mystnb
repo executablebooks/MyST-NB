@@ -1,0 +1,27 @@
+---
+language_info:
+  name: python
+  pygments_lexer: ipython3
+nbformat: 4
+nbformat_minor: 4
+orphan: true
+---
+
+a
+
+b
+c
+```{nb-code} ipython3
+---
+tags:
+- hide-code
+---
+a = 1
+print(a)
+```
+
+c
+
++++ {"tags": ["hide-cell"]}
+
+d
