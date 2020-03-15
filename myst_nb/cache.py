@@ -8,7 +8,7 @@ from pathlib import Path
 from sphinx.util import logging
 from sphinx.util.osutil import ensuredir
 from jupyter_cache.cache import main as cache
-from jupyter_cache.cli.utils import get_cache
+from jupyter_cache import get_cache
 from jupyter_cache.executors import load_executor
 from nbclient import execute
 import datetime

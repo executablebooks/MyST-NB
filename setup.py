@@ -48,7 +48,7 @@ setup(
         "nbformat",
         "nbconvert",
         "nbclient",
-        "jupyter-cache",
+        "jupyter-cache~=0.1",
         "pyyaml",
         "sphinx-togglebutton",
     ],
