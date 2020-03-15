@@ -114,7 +114,7 @@ def myst_to_nb(
         if lines.lines[current_line:]:
             notebook.cells.append(
                 nbf.v4.new_markdown_cell(
-                    source="".join(lines.lines[current_line:]),
+                    source="".join(lines.lines[current_line:]).rstrip(),
                     metadata=nbf.from_dict(md_metadata),
                 )
             )
