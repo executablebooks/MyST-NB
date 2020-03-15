@@ -271,9 +271,9 @@ class NbGlueDomain(Domain):
     # - docmap is the mapping of docnames to the set of keys it contains
     initial_data = {"cache": {}, "docmap": {}}
 
-    directives = {"any": Paste, "figure": PasteFigure, "math": PasteMath}
+    directives = {"": Paste, "any": Paste, "figure": PasteFigure, "math": PasteMath}
 
-    roles = {"any": paste_any_role, "text": paste_text_role}
+    roles = {"": paste_any_role, "any": paste_any_role, "text": paste_text_role}
 
     @property
     def cache(self) -> dict:
