@@ -1,4 +1,4 @@
-__version__ = "0.1.0"
+__version__ = "0.3.0"
 
 from docutils import nodes
 from myst_nb.cache import execution_cache
@@ -8,8 +8,8 @@ from jupyter_sphinx.ast import (  # noqa: F401
     JupyterCell,
 )
 
-# from ipywidgets import embed
 from pathlib import Path
+import json
 
 from .parser import (
     NotebookParser,
@@ -19,6 +19,7 @@ from .parser import (
     CellOutputBundleNode,
 )
 from .transform import CellOutputsToNodes
+from .glue import Paste, paste_role, PasteNodesToDocutils
 
 
 def static_path(app):
@@ -36,9 +37,16 @@ def update_togglebutton_classes(app, config):
         config.togglebutton_selector += f", {selector}"
 
 
-# Just in case we have a jupyter cache in the doc folder, exclude it
-def skip_cache_notebooks(app, config):
-    config['exclude_patterns'].append('**.jupyter_cache')
+def init_glue_cache(app):
+    if not hasattr(app.env, "glue_data"):
+        app.env.glue_data = {}
+
+
+def save_glue_cache(app, env):
+    path_cache = Path(env.doctreedir).joinpath("glue_cache.json")
+    with path_cache.open("w") as handle:
+        json.dump(env.glue_data, handle)
+
 
 def setup(app):
     """Initialize Sphinx extension."""
@@ -92,16 +100,19 @@ def setup(app):
     app.add_config_value("jupyter_notebook_force_run", False, "env")
     
     # Register our post-transform which will convert output bundles to nodes
+    app.add_post_transform(PasteNodesToDocutils)
     app.add_post_transform(CellOutputsToNodes)
 
+    app.connect("builder-inited", init_glue_cache)
     app.connect("builder-inited", static_path)
     app.connect("env-get-outdated", execution_cache)
     app.connect("config-inited", update_togglebutton_classes)
-    app.connect("config-inited", skip_cache_notebooks)
-
+    app.connect("env-updated", save_glue_cache)
     app.add_css_file("mystnb.css")
     # We use `execute` here instead of `jupyter-execute`
     app.add_directive("execute", JupyterCell)
+    app.add_directive("paste", Paste)
+    app.add_role("paste", paste_role)
     app.setup_extension("jupyter_sphinx")
 
     return {"version": __version__, "parallel_read_safe": True}

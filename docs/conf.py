@@ -28,7 +28,7 @@ master_doc = "index"
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ["myst_parser", "myst_nb", "sphinx_togglebutton"]
+extensions = ["myst_parser", "myst_nb", "sphinx_togglebutton", "sphinx_copybutton"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -55,3 +55,4 @@ html_static_path = ["_static"]
 jupyter_sphinx_require_url = ""
 
 jupyter_cache_path = ".jupyter_cache"
+copybutton_selector = "div:not(.output) > div.highlight pre"

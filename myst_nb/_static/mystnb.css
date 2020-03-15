@@ -18,8 +18,11 @@ div.container.cell {
 /* Input cells */
 div.cell div.cell_input {
   padding-left: 0em;
+  padding-right: 0em;
   border: 1px #ccc solid;
   background-color: #f7f7f7;
+  border-left-color: green;
+  border-left-width: medium;
 }
 
 div.cell_input > div, div.cell_output div.output > div.highlight {
@@ -97,3 +100,10 @@ div.cell_output table {
   div.cell_output tbody tr:hover {
     background: rgba(66, 165, 245, 0.2);
   }
+
+
+/* Inline text from `paste` operation */
+
+span.pasted-text {
+  font-weight: bold;
+}

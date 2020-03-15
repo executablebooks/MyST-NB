@@ -10,7 +10,7 @@ for line in text.split("\n"):
 version = line.split("= ")[-1].strip('"')
 
 setup(
-    name="MyST-NB",
+    name="myst-nb",
     version=version,
     description=(
         "A Jupyter Notebook Sphinx reader built on top of the MyST markdown parser."
@@ -41,7 +41,7 @@ setup(
     python_requires=">=3.6",
     package_data={"myst_nb": ["_static/mystnb.css"]},
     install_requires=[
-        "myst-parser~=0.5",
+        "myst-parser~=0.6.0",
         "docutils>=0.15",
         "sphinx>=2,<3",
         "jupyter_sphinx==0.2.4a1",
@@ -60,6 +60,7 @@ setup(
             "pytest-cov",
             "pytest-regressions",
             "beautifulsoup4",
+            "ipython",
         ],
         "rtd": [
             "sphinxcontrib-bibtex",
@@ -72,6 +73,7 @@ setup(
             "bokeh",
             "plotly",
             "matplotlib",
+            "sphinx-copybutton",
         ],
     },
     zip_safe=True,
