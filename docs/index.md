@@ -7,6 +7,9 @@ The primary tool this package provides is a Sphinx parser for `ipynb` files.
 This allows you to directly convert Jupyter Notebooks into Sphinx documents.
 It relies heavily on the [`MyST` parser](https://github.com/ExecutableBookProject/myst_parser).
 
+A secondary tool is the 'glue' functionality, outlined in the {ref}`Inserting variables with glue <glue>` section,
+which allows outputs of notebook code cells to be accessed and displayed anywhere within the documentation (even from different files).
+
 ```{warning}
 This project is in an alpha state. It may evolve rapidly and/or make breaking changes!
 Comments, requests, or bugreports are welcome and recommended! Please

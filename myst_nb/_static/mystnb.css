@@ -75,6 +75,8 @@ div.cell_output table {
     color: black;
     font-size: 1em;
     table-layout: fixed;
+    margin-left:auto;
+    margin-right:auto;
   }
   div.cell_output thead {
     border-bottom: 1px solid black;
@@ -106,4 +108,8 @@ div.cell_output table {
 
 span.pasted-text {
   font-weight: bold;
+}
+
+span.pasted-inline img {
+  max-height: 2em;
 }

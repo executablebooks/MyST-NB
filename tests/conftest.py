@@ -6,43 +6,57 @@ from docutils.frontend import OptionParser
 from docutils.parsers.rst import Parser as RSTParser
 from docutils.utils import new_document
 
+from sphinx.domains.math import MathDomain
+from sphinx.util.docutils import sphinx_domains
+
+from myst_nb.nb_glue.domain import NbGlueDomain
+
 import pytest
 
 NB_DIR = Path(__file__).parent.joinpath("notebooks")
 
 
 class MockEnv:
-    class app:
-        class builder:
-            name = "html"
+    def __init__(self, tmp_path):
+        self.docname = "source/nb"
+        self.dependencies = defaultdict(set)
+        self.domaindata = {}
+        self.domains = {
+            NbGlueDomain.name: NbGlueDomain(self),
+            MathDomain.name: MathDomain(self),
+        }
+        self._tmp_path = tmp_path
 
-        class config:
-            language = None
+        class app:
+            class builder:
+                name = "html"
 
-    dependencies = defaultdict(set)
+            class config:
+                language = None
+
+            env = self
+            srcdir = tmp_path / "source"
+            outdir = tmp_path / "build" / "outdir"
+
+        self.app = app
+
+    def get_domain(self, name):
+        return self.domains[name]
+
+    def relfn2path(self, imguri, docname):
+        return ("image.png", self._tmp_path / "build" / "image.png")
+
+    def new_serialno(self, name):
+        return 1
 
 
 @pytest.fixture()
-def mock_document() -> nodes.document:
-    source_path = "notset"
+def mock_document(tmp_path) -> nodes.document:
     settings = OptionParser(components=(RSTParser,)).get_default_values()
-    document = new_document(source_path, settings=settings)
-    document.settings.env = MockEnv
-    document.settings.env.glue_data = {}
-    document.settings.env.app.env = document.settings.env
-    yield document
-
-
-@pytest.fixture()
-def mock_document_in_temp(mock_document, tmp_path) -> nodes.document:
-    mock_document.settings.env.docname = "source/nb"
-    mock_document.settings.env.app.outdir = tmp_path / "build" / "outdir"
-    mock_document.settings.env.app.srcdir = tmp_path / "source"
-    mock_document.settings.env.relfn2path = lambda imguri, docname: (
-        "image.png",
-        tmp_path / "build" / "image.png",
-    )
-    yield mock_document
+    document = new_document("notset", settings=settings)
+    document.settings.env = MockEnv(tmp_path)
+    with sphinx_domains(document.settings.env):
+        yield document
 
 
 @pytest.fixture()
