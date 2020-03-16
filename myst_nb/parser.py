@@ -38,6 +38,25 @@ class NotebookParser(MystParser):
         # de-serialize the notebook
         ntbk = nbf.reads(inputstring, nbf.NO_CONVERT)
 
+        self.reporter = document.reporter
+        self.config = self.default_config.copy()
+
+        try:
+            source_path = document.settings.env.doc2path(document.settings.env.docname)
+            dest_path = document.settings.env.app.outdir
+            new_cfg = document.settings.env.config.myst_config
+            self.config.update(new_cfg)
+        except AttributeError:
+            pass
+            
+        ## add outputs to notebook from the cache
+        if hasattr(document.settings.env, 'path_cache'):
+            path_cache = document.settings.env.path_cache
+            ntbk = add_notebook_outputs(source_path, ntbk, path_cache, dest_path)
+        else:
+            # If we explicitly did not wish to cache, then just execute the notebook
+            ntbk = execute(ntbk)
+            
         # This is a contaner for top level markdown tokens
         # which we will add to as we walk the document
         mkdown_tokens = []  # type: list[BlockToken]
@@ -51,7 +70,7 @@ class NotebookParser(MystParser):
             logger=SPHINX_LOGGER,
         )
         set_parse_context(parse_context)
-
+        
         for cell_index, nb_cell in enumerate(ntbk.cells):
 
             # Skip empty cells
@@ -119,26 +138,6 @@ class NotebookParser(MystParser):
             footnotes=parse_context.foot_definitions,
             footref_order=parse_context.foot_references,
         )
-
-        self.reporter = document.reporter
-        self.config = self.default_config.copy()
-        try:
-            source_path = document.settings.env.doc2path(document.settings.env.docname)
-            dest_path = document.settings.env.app.outdir
-            new_cfg = document.settings.env.config.myst_config
-            self.config.update(new_cfg)
-        except AttributeError:
-            pass
-            
-        ntbk = nbf.reads(inputstring, nbf.NO_CONVERT)
-
-        ## add outputs to notebook from the cache
-        if hasattr(document.settings.env, 'path_cache'):
-            path_cache = document.settings.env.path_cache
-            ntbk = add_notebook_outputs(source_path, ntbk, path_cache, dest_path)
-        else:
-            # If we explicitly did not wish to cache, then just execute the notebook
-            ntbk = execute(ntbk)
             
         # Write the notebook's output to disk
 

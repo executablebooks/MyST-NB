@@ -7,7 +7,7 @@ import nbformat as nbf
 from pathlib import Path
 from sphinx.util import logging
 from sphinx.util.osutil import ensuredir
-from jupyter_cache.cache import main as cache
+from jupyter_cache.cache.db import NbCacheRecord
 from jupyter_cache import get_cache
 from jupyter_cache.executors import load_executor
 from nbclient import execute
@@ -44,7 +44,7 @@ def stage_and_execute(env, nb_list, path_cache):
             logger.error(("Using caching functionality requires that "
                           "jupyter_cache is installed. Install it first."))
 
-        db = get_cache(path_cache)
+        cache_base = get_cache(path_cache)
         do_run = env.env.config['jupyter_notebook_force_run']
 
 
@@ -65,12 +65,14 @@ def stage_and_execute(env, nb_list, path_cache):
             if do_run or not has_outputs:
                 if pk_list is None:
                     pk_list = []
-                stage_record = db.stage_notebook_file(source_path)
+                stage_record = cache_base.stage_notebook_file(source_path)
                 pk_list.append(stage_record.pk)
             else:
-                logger.error(f"Will not run notebook with pre-populated outputs or no output cells: {source_path}")
+                if has_outputs: # directly cache the already executed notebooks
+                    cache_record = cache_base.cache_notebook_file(source_path, overwrite=True)
+                logger.error(f"Will not run notebook with pre-populated outputs or no output cells, will directly cache: {source_path}")
         
-        execution_result = execute_staged_nb(db, pk_list) #can leverage parallel execution implemented in jupyter-cache here
+        execution_result = execute_staged_nb(cache_base, pk_list) #can leverage parallel execution implemented in jupyter-cache here
 
 def add_notebook_outputs(file_path, ntbk, path_cache, dest_path):
     """
@@ -84,19 +86,33 @@ def add_notebook_outputs(file_path, ntbk, path_cache, dest_path):
 
     if path_cache:
 
-        db = get_cache(path_cache)
-
+        cache_base = get_cache(path_cache)
+        db = cache_base.db
+        cache_record = None
         r_file_path = _relative_file_path(file_path)
-        cache_record = db.get_cache_record_of_staged(r_file_path)
 
-        if cache_record:
-            try:
-                _, ntbk = db.merge_match_into_notebook(ntbk)
-            except KeyError:
-                logger.error((f"Couldn't find cache key for notebook file {ntbk_name}. "
+        try:
+            cache_list = NbCacheRecord.records_from_uri(file_path, db)
+            if len(cache_list):
+                latest = None
+                for item in cache_list:
+                    if latest is None or (latest > item.created): 
+                        latest = item.created
+                        latest_pk = item.pk
+                cache_record = cache_base.get_cache_record(latest_pk)
+        except KeyError:
+            cache_record = None
+            logger.error((f"Couldn't find cache key for notebook file {r_file_path}. "
                                 "Outputs will not be inserted"))
+
+  
+        if cache_record:
+            _, ntbk = cache_base.merge_match_into_notebook(ntbk)    
         else:
-            stage_record = db.get_staged_record(r_file_path)
+            try:
+                stage_record = cache_base.get_staged_record(r_file_path)
+            except KeyError:
+                stage_record = None
 
             if stage_record and stage_record.traceback:
                 #save the traceback to a log file
@@ -109,12 +125,12 @@ def add_notebook_outputs(file_path, ntbk, path_cache, dest_path):
     
     return ntbk
 
-def execute_staged_nb(db, pk_list):
+def execute_staged_nb(cache_base, pk_list):
     """
     executing the staged notebook
     """
     try:
-        executor = load_executor("basic", db, logger=logger)
+        executor = load_executor("basic", cache_base, logger=logger)
     except ImportError as error:
         logger.error(str(error))
         return 1
@@ -125,4 +141,4 @@ def _relative_file_path(file_path):
     currentdir = os.getcwd()
     dir_index = currentdir.rfind('/')
     r_file_path = file_path[dir_index + 1:]
-    return file_path
+    return r_file_path
