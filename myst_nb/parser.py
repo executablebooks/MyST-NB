@@ -2,6 +2,7 @@ from docutils import nodes
 import nbformat as nbf
 from pathlib import Path
 from sphinx.util import logging
+from nbclient import execute
 
 from myst_parser.docutils_renderer import SphinxRenderer
 from myst_parser.sphinx_parser import MystParser

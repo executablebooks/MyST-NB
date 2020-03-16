@@ -10,7 +10,6 @@ from sphinx.util.osutil import ensuredir
 from jupyter_cache.cache.db import NbCacheRecord
 from jupyter_cache import get_cache
 from jupyter_cache.executors import load_executor
-from nbclient import execute
 import datetime
 
 logger = logging.getLogger(__name__)
