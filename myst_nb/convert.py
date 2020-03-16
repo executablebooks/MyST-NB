@@ -5,7 +5,6 @@ myst formatted text documents and notebooks.
 import json
 from typing import List, Union
 
-from docutils.parsers.rst.directives.misc import TestDirective
 import nbformat as nbf
 import yaml
 
@@ -18,6 +17,13 @@ from myst_parser.parse_directives import parse_directive_text
 
 
 DEFAULT_DIRECTIVE = "nb-code"
+
+
+class MockDirective:
+    option_spec = {"options": True}
+    required_arguments = 0
+    optional_arguments = 1
+    has_content = True
 
 
 def myst_to_nb(
@@ -95,12 +101,11 @@ def myst_to_nb(
                 # this is reserved for the optional lexer name
                 # TODO: could log warning about if token.arguments != lexer name
 
-                # we use the TestDirective here, since `parse_directive_text`
-                # is setup to skip any option validation for this class
                 _, options, body_lines = parse_directive_text(
-                    directive_class=TestDirective,
+                    directive_class=MockDirective,
                     argument_str="",
                     content=token.children[0].content,
+                    validate_options=False,
                 )
 
                 notebook.cells.append(
