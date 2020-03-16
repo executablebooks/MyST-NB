@@ -9,7 +9,6 @@ from jupyter_sphinx.ast import (  # noqa: F401
 )
 
 from pathlib import Path
-import json
 
 from .parser import (
     NotebookParser,
@@ -19,7 +18,9 @@ from .parser import (
     CellOutputBundleNode,
 )
 from .transform import CellOutputsToNodes
-from .glue import Paste, paste_role, PasteNodesToDocutils
+from .nb_glue import glue  # noqa: F401
+from .nb_glue.domain import NbGlueDomain
+from .nb_glue.transform import PasteNodesToDocutils
 
 
 def static_path(app):
@@ -37,15 +38,8 @@ def update_togglebutton_classes(app, config):
         config.togglebutton_selector += f", {selector}"
 
 
-def init_glue_cache(app):
-    if not hasattr(app.env, "glue_data"):
-        app.env.glue_data = {}
-
-
 def save_glue_cache(app, env):
-    path_cache = Path(env.doctreedir).joinpath("glue_cache.json")
-    with path_cache.open("w") as handle:
-        json.dump(env.glue_data, handle)
+    NbGlueDomain.from_env(env).write_cache()
 
 
 def setup(app):
@@ -103,7 +97,6 @@ def setup(app):
     app.add_post_transform(PasteNodesToDocutils)
     app.add_post_transform(CellOutputsToNodes)
 
-    app.connect("builder-inited", init_glue_cache)
     app.connect("builder-inited", static_path)
     app.connect("env-get-outdated", execution_cache)
     app.connect("config-inited", update_togglebutton_classes)
@@ -111,8 +104,9 @@ def setup(app):
     app.add_css_file("mystnb.css")
     # We use `execute` here instead of `jupyter-execute`
     app.add_directive("execute", JupyterCell)
-    app.add_directive("paste", Paste)
-    app.add_role("paste", paste_role)
     app.setup_extension("jupyter_sphinx")
+    app.add_domain(NbGlueDomain)
 
-    return {"version": __version__, "parallel_read_safe": True}
+    # TODO need to deal with key clashes in NbGlueDomain.merge_domaindata
+    # before this is parallel_read_safe
+    return {"version": __version__, "parallel_read_safe": False}

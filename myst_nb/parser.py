@@ -17,6 +17,9 @@ from myst_nb.cache import add_notebook_outputs
 
 logger = logging.getLogger(__name__)
 
+from myst_nb.nb_glue import GLUE_PREFIX
+from myst_nb.nb_glue.domain import NbGlueDomain
+
 
 SPHINX_LOGGER = logging.getLogger(__name__)
 
@@ -33,7 +36,6 @@ class NotebookParser(MystParser):
     config_section_dependencies = ("parsers",)
 
     def parse(self, inputstring, document):
-        from .glue import find_all_keys, GLUE_PREFIX
 
         # de-serialize the notebook
         ntbk = nbf.reads(inputstring, nbf.NO_CONVERT)
@@ -149,9 +151,14 @@ class NotebookParser(MystParser):
                 for out in cell.outputs:
                     if "data" in out:
                         # Only do the mimebundle replacing for the scrapbook outputs
-                        if out.get("metadata", {}).get("scrapbook", {}).get("name"):
+                        mime_prefix = (
+                            out.get("metadata", {})
+                            .get("scrapbook", {})
+                            .get("mime_prefix")
+                        )
+                        if mime_prefix:
                             out["data"] = {
-                                key.replace(GLUE_PREFIX, ""): val
+                                key.replace(mime_prefix, ""): val
                                 for key, val in out["data"].items()
                             }
                             replace_mime.append(out)
@@ -172,13 +179,8 @@ class NotebookParser(MystParser):
             }
 
         # Update our glue key list with new ones defined in this page
-        new_keys = find_all_keys(
-            ntbk,
-            keys=document.settings.env.glue_data,
-            path=str(path_doc),
-            logger=SPHINX_LOGGER,
-        )
-        document.settings.env.glue_data.update(new_keys)
+        glue_domain = NbGlueDomain.from_env(document.settings.env)
+        glue_domain.add_notebook(ntbk, path_doc)
 
         # render the Markdown AST to docutils AST
         renderer = SphinxNBRenderer(
