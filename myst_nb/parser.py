@@ -7,6 +7,9 @@ from nbclient import execute
 from myst_parser.docutils_renderer import SphinxRenderer
 from myst_parser.sphinx_parser import MystParser
 
+from myst_nb.nb_glue import GLUE_PREFIX
+from myst_nb.nb_glue.domain import NbGlueDomain
+
 from mistletoe.base_elements import BlockToken, Position, SourceLines
 from mistletoe.parse_context import ParseContext, get_parse_context, set_parse_context
 from mistletoe.block_tokenizer import tokenize_block
@@ -17,9 +20,6 @@ from jupyter_sphinx.execute import contains_widgets, write_notebook_output
 from myst_nb.cache import add_notebook_outputs
 
 logger = logging.getLogger(__name__)
-
-from myst_nb.nb_glue import GLUE_PREFIX
-from myst_nb.nb_glue.domain import NbGlueDomain
 
 
 SPHINX_LOGGER = logging.getLogger(__name__)
@@ -45,21 +45,23 @@ class NotebookParser(MystParser):
         self.config = self.default_config.copy()
 
         try:
-            source_path = document.settings.env.doc2path(document.settings.env.docname)
-            dest_path = document.settings.env.app.outdir
             new_cfg = document.settings.env.config.myst_config
             self.config.update(new_cfg)
         except AttributeError:
             pass
-            
-        ## add outputs to notebook from the cache
-        if hasattr(document.settings.env, 'path_cache'):
-            path_cache = document.settings.env.path_cache
-            ntbk = add_notebook_outputs(source_path, ntbk, path_cache, dest_path)
-        else:
-            # If we explicitly did not wish to cache, then just execute the notebook
-            ntbk = execute(ntbk)
-            
+
+        # add outputs to notebook from the cache
+        if document.settings.env.config["jupyter_execute_notebooks"]:
+            source_path = document.settings.env.doc2path(document.settings.env.docname)
+            dest_path = document.settings.env.app.outdir
+
+            if hasattr(document.settings.env, "path_cache"):
+                path_cache = document.settings.env.path_cache
+                ntbk = add_notebook_outputs(source_path, ntbk, path_cache, dest_path)
+            else:
+                # If we explicitly did not wish to cache, then just execute the notebook
+                ntbk = execute(ntbk)
+
         # This is a contaner for top level markdown tokens
         # which we will add to as we walk the document
         mkdown_tokens = []  # type: list[BlockToken]
@@ -73,7 +75,7 @@ class NotebookParser(MystParser):
             logger=SPHINX_LOGGER,
         )
         set_parse_context(parse_context)
-        
+
         for cell_index, nb_cell in enumerate(ntbk.cells):
 
             # Skip empty cells
@@ -141,7 +143,7 @@ class NotebookParser(MystParser):
             footnotes=parse_context.foot_definitions,
             footref_order=parse_context.foot_references,
         )
-            
+
         # Write the notebook's output to disk
 
         # Remove all the mime prefixes from "glue" step.
