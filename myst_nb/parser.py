@@ -49,7 +49,6 @@ class NotebookParser(MystParser):
             self.config.update(new_cfg)
         except AttributeError:
             pass
-
         # add outputs to notebook from the cache
         if document.settings.env.config["jupyter_execute_notebooks"]:
             source_path = document.settings.env.doc2path(document.settings.env.docname)

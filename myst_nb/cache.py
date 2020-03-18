@@ -31,13 +31,14 @@ def execution_cache(app, env, added, changed, removed):
                 path_cache  # TODO: is there a better way to make it accessible?
             )
 
-        stage_and_execute(env, nb_list, path_cache)
+        stage_and_execute(env.env, nb_list, path_cache)
 
     return nb_list  # TODO: can also compare timestamps for inputs outputs
 
 
 def stage_and_execute(env, nb_list, path_cache):
     pk_list = None
+    do_run = False
 
     if path_cache:
         try:
@@ -51,30 +52,35 @@ def stage_and_execute(env, nb_list, path_cache):
             )
 
         cache_base = get_cache(path_cache)
-        do_run = env.env.config["jupyter_notebook_force_run"]
+
+        if "jupyter_notebook_force_run" in env.config:
+            do_run = env.config["jupyter_notebook_force_run"]
 
         for nb in nb_list:
             # excludes the file with patterns given in execution_excludepatterns
             # conf variable from executing, like index.rst
-            exclude_file = [
-                x in nb for x in env.env.config["execution_excludepatterns"]
-            ]
+            exclude_file = [x in nb for x in env.config["execution_excludepatterns"]]
             if True in exclude_file:
                 continue
 
             has_outputs = False
-            source_path = env.env.doc2path(nb)
 
-            with open(source_path, "r") as f:
-                ntbk = nbf.read(f, as_version=4)
-                has_outputs = all(
-                    len(cell.outputs) != 0
-                    for cell in ntbk.cells
-                    if cell["cell_type"] == "code"
-                )
+            if "/" in nb:  # nb includes the path to notebook
+                source_path = nb
+            else:
+                source_path = env.doc2path(nb)
+
+            if not do_run:
+                with open(source_path, "r") as f:
+                    ntbk = nbf.read(f, as_version=4)
+                    has_outputs = all(
+                        len(cell.outputs) != 0
+                        for cell in ntbk.cells
+                        if cell["cell_type"] == "code"
+                    )
 
             # If outputs are in the notebook, assume we just use those outputs
-            if do_run or not has_outputs:
+            if not has_outputs:
                 if pk_list is None:
                     pk_list = []
                 stage_record = cache_base.stage_notebook_file(source_path)
@@ -91,7 +97,7 @@ def stage_and_execute(env, nb_list, path_cache):
         )  # can leverage parallel execution implemented in jupyter-cache here
 
 
-def add_notebook_outputs(file_path, ntbk, path_cache, dest_path):
+def add_notebook_outputs(file_path, ntbk, path_cache, dest_path=""):
     """
     Add outputs to a NotebookNode by pulling from cache.
 
@@ -103,12 +109,10 @@ def add_notebook_outputs(file_path, ntbk, path_cache, dest_path):
     reports_dir = dest_path + "/reports"
 
     if path_cache:
-
         cache_base = get_cache(path_cache)
         db = cache_base.db
         cache_record = None
         r_file_path = _relative_file_path(file_path)
-
         try:
             cache_list = NbCacheRecord.records_from_uri(file_path, db)
             if len(cache_list):

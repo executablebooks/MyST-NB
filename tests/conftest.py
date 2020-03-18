@@ -39,6 +39,7 @@ class MockEnv:
             outdir = tmp_path / "build" / "outdir"
 
         self.app = app
+        self.config = {"jupyter_execute_notebooks": False}
 
     def get_domain(self, name):
         return self.domains[name]
