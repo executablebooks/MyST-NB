@@ -13,25 +13,26 @@ from jupyter_cache.executors import load_executor
 logger = logging.getLogger(__name__)
 
 
-def execution_cache(app, env, added, changed, removed):
+def execution_cache(app, env, added, changed, removed, path_cache=None):
     """
     If cacheing is required, stages and executes the added or modified notebooks,
     and caches then for further use.
     """
+    jupyter_cache = False
     nb_list = added.union(
         changed
     )  # all the added and changed notebooks should be operated on.
 
     if env.config["jupyter_execute_notebooks"]:
-        path_cache = env.env.config["jupyter_cache"]
+        jupyter_cache = env.config["jupyter_cache"]
 
-        if path_cache is True:
-            path_cache = Path(env.env.srcdir).joinpath(".jupyter_cache")
-            app.env.path_cache = (
-                path_cache  # TODO: is there a better way to make it accessible?
-            )
+    if jupyter_cache is True:
+        path_cache = path_cache or Path(env.srcdir).joinpath(".jupyter_cache")
+        app.env.path_cache = (
+            path_cache  # TODO: is there a better way to make it accessible?
+        )
 
-        stage_and_execute(env.env, nb_list, path_cache)
+        stage_and_execute(env, nb_list, path_cache)
 
     return nb_list  # TODO: can also compare timestamps for inputs outputs
 
@@ -68,7 +69,7 @@ def stage_and_execute(env, nb_list, path_cache):
             if "/" in nb:  # nb includes the path to notebook
                 source_path = nb
             else:
-                source_path = env.doc2path(nb)
+                source_path = env.env.doc2path(nb)
 
             if not do_run:
                 with open(source_path, "r") as f:
