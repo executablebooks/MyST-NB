@@ -27,10 +27,6 @@ script:
       pytest -v --cov=myst_nb --cov-report=
   fi
 - |
-  if [[ "$TEST_TYPE" == "pytest" ]]; then
-      pytest -v
-  fi
-- |
   if [[ "$TEST_TYPE" == "pre-commit" ]]; then
     pre-commit run --all-files || ( git status --short ; git diff ; exit 1 )
   fi

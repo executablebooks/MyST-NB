@@ -41,7 +41,7 @@ setup(
     python_requires=">=3.6",
     package_data={"myst_nb": ["_static/mystnb.css"]},
     install_requires=[
-        "myst-parser~=0.6.0",
+        "myst-parser~=0.7.1",
         "docutils>=0.15",
         "sphinx>=2,<3",
         "jupyter_sphinx==0.2.4a1",
@@ -74,6 +74,7 @@ setup(
             "plotly",
             "matplotlib",
             "sphinx-copybutton",
+            "pydata-sphinx-theme",
         ],
     },
     zip_safe=True,

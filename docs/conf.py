@@ -44,7 +44,7 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "pandas_sphinx_theme"
+html_theme = "pydata_sphinx_theme"
 html_logo = "_static/logo.png"
 html_theme_options = {"github_url": "https://github.com/ExecutableBookProject/myst-nb"}
 
