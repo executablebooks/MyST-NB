@@ -36,11 +36,10 @@ class NotebookParser(MystParser):
     config_section = "ipynb parser"
     config_section_dependencies = ("parsers",)
 
-    def parse(self, inputstring, document):
+    def parse(self, inputstring, document, source_path=None):
 
         # de-serialize the notebook
         ntbk = nbf.reads(inputstring, nbf.NO_CONVERT)
-
         self.reporter = document.reporter
         self.config = self.default_config.copy()
 
@@ -51,12 +50,11 @@ class NotebookParser(MystParser):
             pass
         # add outputs to notebook from the cache
         if document.settings.env.config["jupyter_execute_notebooks"]:
-            source_path = document.settings.env.doc2path(document.settings.env.docname)
-            dest_path = document.settings.env.app.outdir
-
             if hasattr(document.settings.env, "path_cache"):
                 path_cache = document.settings.env.path_cache
-                ntbk = add_notebook_outputs(source_path, ntbk, path_cache, dest_path)
+                ntbk = add_notebook_outputs(
+                    document.settings.env, ntbk, path_cache, source_path
+                )
             else:
                 # If we explicitly did not wish to cache, then just execute the notebook
                 ntbk = execute(ntbk)

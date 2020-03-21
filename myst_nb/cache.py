@@ -71,16 +71,9 @@ def stage_and_execute(env, nb_list, path_cache):
             else:
                 source_path = env.env.doc2path(nb)
 
-            if not do_run:
-                with open(source_path, "r") as f:
-                    ntbk = nbf.read(f, as_version=4)
-                    has_outputs = all(
-                        len(cell.outputs) != 0
-                        for cell in ntbk.cells
-                        if cell["cell_type"] == "code"
-                    )
+            has_outputs = read_nb_output_cells(source_path, has_outputs, do_run)
 
-            # If outputs are in the notebook, assume we just use those outputs
+            # If outputs are in the notebook use those outputs
             if not has_outputs:
                 if pk_list is None:
                     pk_list = []
@@ -90,7 +83,7 @@ def stage_and_execute(env, nb_list, path_cache):
                 if has_outputs:  # directly cache the already executed notebooks
                     cache_base.cache_notebook_file(source_path, overwrite=True)
                 logger.error(
-                    f"Will not run notebook with pre-populated outputs or no output cells, will directly cache: {source_path}"  # noqa:E501
+                    f"Will not run notebook with pre-populated outputs/no output cells, will directly cache: {source_path}"  # noqa:E501
                 )
 
         execute_staged_nb(
@@ -98,7 +91,7 @@ def stage_and_execute(env, nb_list, path_cache):
         )  # can leverage parallel execution implemented in jupyter-cache here
 
 
-def add_notebook_outputs(file_path, ntbk, path_cache, dest_path=""):
+def add_notebook_outputs(env, ntbk, path_cache, file_path=None):
     """
     Add outputs to a NotebookNode by pulling from cache.
 
@@ -107,6 +100,8 @@ def add_notebook_outputs(file_path, ntbk, path_cache, dest_path=""):
     checks if there was error during execution, then saves the traceback to a log file.
     """
     # If we have a jupyter_cache, see if there's a cache for this notebook
+    file_path = file_path or env.doc2path(env.docname)
+    dest_path = env.app.outdir
     reports_dir = dest_path + "/reports"
 
     if path_cache:
@@ -131,15 +126,13 @@ def add_notebook_outputs(file_path, ntbk, path_cache, dest_path=""):
                     "Outputs will not be inserted"
                 )
             )
-
         if cache_record:
             _, ntbk = cache_base.merge_match_into_notebook(ntbk)
         else:
             try:
-                stage_record = cache_base.get_staged_record(r_file_path)
+                stage_record = cache_base.get_staged_record(file_path)
             except KeyError:
                 stage_record = None
-
             if stage_record and stage_record.traceback:
                 # save the traceback to a log file
                 ensuredir(reports_dir)
@@ -173,6 +166,19 @@ def execute_staged_nb(cache_base, pk_list):
 
 def _relative_file_path(file_path):
     currentdir = os.getcwd()
-    dir_index = currentdir.rfind("/")
-    r_file_path = file_path[dir_index + 1 :]
-    return r_file_path
+    if currentdir in file_path:
+        dir_index = currentdir.rfind("/")
+        file_path = file_path[dir_index + 1 :]
+    return file_path
+
+
+def read_nb_output_cells(source_path, has_outputs, do_run):
+    if not do_run:
+        with open(source_path, "r") as f:
+            ntbk = nbf.read(f, as_version=4)
+            has_outputs = all(
+                len(cell.outputs) != 0
+                for cell in ntbk.cells
+                if cell["cell_type"] == "code"
+            )
+    return has_outputs
