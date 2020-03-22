@@ -4,5 +4,5 @@ Numerical Methods
 .. toctree::
    :maxdepth: 1
    
-   Lab 7 <lab7/lab7.ipynb>
+   Lab 8 <lab8/lab8_snip.ipynb>
 
