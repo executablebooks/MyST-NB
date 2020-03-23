@@ -61,6 +61,10 @@ setup(
             "pytest-cov",
             "pytest-regressions",
             "beautifulsoup4",
+            "matplotlib",
+            "numpy",
+            "sympy",
+            "pandas",
             "ipypublish",
         ],
         "rtd": [
