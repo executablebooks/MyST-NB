@@ -3,9 +3,12 @@ Implements integration of jupyter-cache
 """
 import os
 import nbformat as nbf
+from nbclient import execute
 from pathlib import Path
+
 from sphinx.util import logging
 from sphinx.util.osutil import ensuredir
+
 from jupyter_cache.cache.db import NbCacheRecord
 from jupyter_cache import get_cache
 from jupyter_cache.executors import load_executor
@@ -22,7 +25,6 @@ def execution_cache(app, env, added, changed, removed, path_cache=None):
     nb_list = added.union(
         changed
     )  # all the added and changed notebooks should be operated on.
-
     if env.config["jupyter_execute_notebooks"]:
         jupyter_cache = env.config["jupyter_cache"]
 
@@ -73,7 +75,6 @@ def stage_and_execute(env, nb_list, path_cache):
 
             has_outputs = read_nb_output_cells(source_path, has_outputs, do_run)
 
-            # If outputs are in the notebook use those outputs
             if not has_outputs:
                 if pk_list is None:
                     pk_list = []
@@ -91,7 +92,7 @@ def stage_and_execute(env, nb_list, path_cache):
         )  # can leverage parallel execution implemented in jupyter-cache here
 
 
-def add_notebook_outputs(env, ntbk, path_cache, file_path=None):
+def add_notebook_outputs(env, ntbk, file_path=None):
     """
     Add outputs to a NotebookNode by pulling from cache.
 
@@ -103,6 +104,10 @@ def add_notebook_outputs(env, ntbk, path_cache, file_path=None):
     file_path = file_path or env.doc2path(env.docname)
     dest_path = env.app.outdir
     reports_dir = dest_path + "/reports"
+    path_cache = False
+
+    if env.config["jupyter_cache"]:
+        path_cache = env.path_cache
 
     if path_cache:
         cache_base = get_cache(path_cache)
@@ -114,7 +119,7 @@ def add_notebook_outputs(env, ntbk, path_cache, file_path=None):
             if len(cache_list):
                 latest = None
                 for item in cache_list:
-                    if latest is None or (latest > item.created):
+                    if latest is None or (latest < item.created):
                         latest = item.created
                         latest_pk = item.pk
                 cache_record = cache_base.get_cache_record(latest_pk)
@@ -147,6 +152,9 @@ def add_notebook_outputs(env, ntbk, path_cache, file_path=None):
                         file_name, full_path
                     )
                 )
+    else:
+        # If we explicitly did not wish to cache, then just execute the notebook
+        ntbk = execute(ntbk)
 
     return ntbk
 

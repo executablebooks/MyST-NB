@@ -2,7 +2,6 @@ from docutils import nodes
 import nbformat as nbf
 from pathlib import Path
 from sphinx.util import logging
-from nbclient import execute
 
 from myst_parser.docutils_renderer import SphinxRenderer
 from myst_parser.sphinx_parser import MystParser
@@ -50,14 +49,7 @@ class NotebookParser(MystParser):
             pass
         # add outputs to notebook from the cache
         if document.settings.env.config["jupyter_execute_notebooks"]:
-            if hasattr(document.settings.env, "path_cache"):
-                path_cache = document.settings.env.path_cache
-                ntbk = add_notebook_outputs(
-                    document.settings.env, ntbk, path_cache, source_path
-                )
-            else:
-                # If we explicitly did not wish to cache, then just execute the notebook
-                ntbk = execute(ntbk)
+            ntbk = add_notebook_outputs(document.settings.env, ntbk, source_path)
 
         # This is a contaner for top level markdown tokens
         # which we will add to as we walk the document

@@ -61,6 +61,7 @@ setup(
             "pytest-cov",
             "pytest-regressions",
             "beautifulsoup4",
+            "ipypublish",
         ],
         "rtd": [
             "sphinxcontrib-bibtex",
