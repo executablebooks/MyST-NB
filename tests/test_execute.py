@@ -86,9 +86,20 @@ def mock_document(tmp_path) -> nodes.document:
         yield document
 
 
+def empty_non_deterministic_outputs(cell):
+    if "outputs" in cell and len(cell.outputs):
+        for item in cell.outputs:
+            if "data" in item and "image/png" in item.data:
+                item.data["image/png"] = ""
+
+
 def check_nbs(obtained_filename, expected_filename):
     obtained_nb = nbf.read(str(obtained_filename), nbf.NO_CONVERT)
     expect_nb = nbf.read(str(expected_filename), nbf.NO_CONVERT)
+    for cell in expect_nb.cells:
+        empty_non_deterministic_outputs(cell)
+    for cell in obtained_nb.cells:
+        empty_non_deterministic_outputs(cell)
     diff = diff_notebooks(obtained_nb, expect_nb)
     filename_without_path = str(expected_filename)[
         str(expected_filename).rfind("/") + 1 :
