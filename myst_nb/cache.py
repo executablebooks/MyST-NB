@@ -29,7 +29,7 @@ def execution_cache(app, env, added, changed, removed, path_cache=None):
         jupyter_cache = env.config["jupyter_cache"]
 
     if jupyter_cache is True:
-        path_cache = path_cache or Path(env.srcdir).joinpath(".jupyter_cache")
+        path_cache = path_cache or Path(env.outdir).parent.joinpath(".jupyter_cache")
         app.env.path_cache = (
             path_cache  # TODO: is there a better way to make it accessible?
         )
@@ -121,8 +121,8 @@ def add_notebook_outputs(env, ntbk, file_path=None):
                 for item in cache_list:
                     if latest is None or (latest < item.created):
                         latest = item.created
-                        latest_pk = item.pk
-                cache_record = cache_base.get_cache_record(latest_pk)
+                        latest_record = item
+                cache_record = latest_record
         except KeyError:
             cache_record = None
             logger.error(
