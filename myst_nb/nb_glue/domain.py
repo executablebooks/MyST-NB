@@ -262,7 +262,7 @@ def paste_text_role(name, rawtext, text, lineno, inliner, options={}, content=[]
 class NbGlueDomain(Domain):
     """A sphinx domain for handling glue data """
 
-    name = "glu"
+    name = "glue"
     label = "NotebookGlue"
     # data version, bump this when the format of self.data changes
     data_version = 0.1
