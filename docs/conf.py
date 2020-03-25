@@ -59,3 +59,4 @@ copybutton_selector = "div:not(.output) > div.highlight pre"
 
 jupyter_execute_notebooks = True
 jupyter_cache = True
+jupyter_notebook_force_run = True
