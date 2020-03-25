@@ -136,7 +136,7 @@ def add_notebook_outputs(env, ntbk, file_path=None):
                 "Outputs will not be inserted"
             )
         )
-        
+
     if cache_record:
         _, ntbk = cache_base.merge_match_into_notebook(ntbk)
     else:
@@ -152,9 +152,7 @@ def add_notebook_outputs(env, ntbk, file_path=None):
             with open(full_path, "w") as log_file:
                 log_file.write(stage_record.traceback)
             logger.info(
-                "Execution traceback for {} is saved in {}".format(
-                    file_name, full_path
-                )
+                "Execution traceback for {} is saved in {}".format(file_name, full_path)
             )
 
     return ntbk
