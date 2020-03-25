@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 def execution_cache(app, env, added, changed, removed, path_cache=None):
     """
     If cacheing is required, stages and executes the added or modified notebooks,
-    and caches then for further use.
+    and caches them for further use.
     """
     jupyter_cache = False
     nb_list = added.union(
