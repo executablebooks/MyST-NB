@@ -224,3 +224,19 @@ def test_no_execute(mock_document, get_notebook, file_regression):
     )
 
     check_docutils_xml(mock_document, ntbk, first_nb, file_regression)
+
+def test_jupyter_cache_path(mock_document, get_notebook, file_regression):
+    jupyter_cache = mock_document.settings.env.env.outdir + "/.jupyter_cache"
+    os.makedirs(jupyter_cache)
+    mock_document.settings.env.set_config(["jupyter_cache", jupyter_cache])
+    
+    first_nb = get_notebook("basic_unrun.ipynb")
+    nb_list = {str(first_nb.relative_to(first_nb.cwd()))}  # A set
+
+    ntbk, ntbk_output = execute_and_merge(mock_document.settings.env, nb_list, first_nb)
+    # for testing the generated notebook output
+    file_regression.check(
+        nbf.writes(ntbk_output), check_fn=check_nbs, extension=".ipynb"
+    )
+
+    check_docutils_xml(mock_document, ntbk, first_nb, file_regression)
