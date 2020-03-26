@@ -12,17 +12,24 @@ the sections below for each configuration option and its effect.
 To trigger the execution of notebook pages, use the following configuration in `conf.py`
 
 ```
-jupyter_execute_notebooks = True
+jupyter_execute_notebooks = "auto"
 ```
 
 By default, this will only execute notebooks that are missing at least one output. If
 the notebook has *all* of its outputs populated, then it will not be executed.
 
-**To force the execution of all notebooks, regardless of their outputs**, use the
-following configuration value in addition to the above value:
+**To force the execution of all notebooks, regardless of their outputs**, change the
+above configuration value to:
 
 ```
-jupyter_notebook_force_run = True
+jupyter_execute_notebooks = "force"
+```
+
+**To turn off notebook execution**,change the
+above configuration value to:
+
+```
+jupyter_execute_notebooks = "off"
 ```
 
 **To exclude certain file patterns from execution**, use the following

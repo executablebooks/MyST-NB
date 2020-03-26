@@ -51,8 +51,7 @@ class MockEnv:
             srcdir = str(tmp_path) + "/source"
             outdir = str(tmp_path) + "/build" + "/outdir"
             config = {
-                "jupyter_execute_notebooks": True,
-                "jupyter_notebook_force_run": True,
+                "jupyter_execute_notebooks": "auto",
                 "execution_excludepatterns": [],
                 "jupyter_cache": True,
             }
@@ -173,7 +172,7 @@ def test_basic_unrun_nbclient(mock_document, get_notebook, file_regression):
 
 
 def test_outputs_present(mock_document, get_notebook, file_regression):
-    mock_document.settings.env.set_config(["jupyter_notebook_force_run", False])
+    mock_document.settings.env.set_config(["jupyter_execute_notebooks", "force"])
     first_nb = get_notebook("basic_run.ipynb")
     nb_list = {str(first_nb.relative_to(first_nb.cwd()))}  # A set
 
@@ -202,6 +201,20 @@ def test_complex_outputs_unrun(mock_document, get_notebook, file_regression):
 def test_complex_outputs_unrun_nbclient(mock_document, get_notebook, file_regression):
     mock_document.settings.env.set_config(["jupyter_cache", False])
     first_nb = get_notebook("complex_outputs_unrun.ipynb")
+    nb_list = {str(first_nb.relative_to(first_nb.cwd()))}  # A set
+
+    ntbk, ntbk_output = execute_and_merge(mock_document.settings.env, nb_list, first_nb)
+    # for testing the generated notebook output
+    file_regression.check(
+        nbf.writes(ntbk_output), check_fn=check_nbs, extension=".ipynb"
+    )
+
+    check_docutils_xml(mock_document, ntbk, first_nb, file_regression)
+
+
+def test_no_execute(mock_document, get_notebook, file_regression):
+    mock_document.settings.env.set_config(["jupyter_execute_notebooks", "off"])
+    first_nb = get_notebook("basic_unrun.ipynb")
     nb_list = {str(first_nb.relative_to(first_nb.cwd()))}  # A set
 
     ntbk, ntbk_output = execute_and_merge(mock_document.settings.env, nb_list, first_nb)

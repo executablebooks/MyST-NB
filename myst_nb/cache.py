@@ -25,11 +25,29 @@ def execution_cache(app, env, added, changed, removed, path_cache=None):
     nb_list = added.union(
         changed
     )  # all the added and changed notebooks should be operated on.
-    if env.config["jupyter_execute_notebooks"]:
+
+    if env.config["jupyter_execute_notebooks"] not in ["force", "auto", "off"]:
+        logger.error(
+            "Conf jupyter_execute_notebooks can either be `force`, `auto` or `off`"
+        )
+        exit(1)
+
+    if env.config["jupyter_execute_notebooks"] in ["force", "auto"]:
         jupyter_cache = env.config["jupyter_cache"]
 
-    if jupyter_cache is True:
-        path_cache = path_cache or Path(env.outdir).parent.joinpath(".jupyter_cache")
+    if jupyter_cache:
+        if jupyter_cache is True:
+            path_cache = path_cache or Path(env.outdir).parent.joinpath(
+                ".jupyter_cache"
+            )
+        elif os.path.isdir(jupyter_cache):
+            path_cache = jupyter_cache
+        else:
+            logger.error(
+                "Conf jupyter_cache is invalid, either use True or a path to an"
+                "existing cache"
+            )
+            exit(1)
         app.env.path_cache = (
             path_cache  # TODO: is there a better way to make it accessible?
         )
@@ -41,7 +59,6 @@ def execution_cache(app, env, added, changed, removed, path_cache=None):
 
 def _stage_and_execute(env, nb_list, path_cache):
     pk_list = None
-    do_run = False
 
     if path_cache:
         try:
@@ -55,9 +72,6 @@ def _stage_and_execute(env, nb_list, path_cache):
             )
 
         cache_base = get_cache(path_cache)
-
-        if "jupyter_notebook_force_run" in env.config:
-            do_run = env.config["jupyter_notebook_force_run"]
 
         for nb in nb_list:
 
@@ -73,7 +87,9 @@ def _stage_and_execute(env, nb_list, path_cache):
             if True in exclude_file or ".ipynb" not in source_path:
                 continue
 
-            has_outputs = _read_nb_output_cells(source_path, has_outputs, do_run)
+            has_outputs = _read_nb_output_cells(
+                source_path, has_outputs, env.config["jupyter_execute_notebooks"]
+            )
 
             if not has_outputs:
                 if pk_list is None:
@@ -171,16 +187,8 @@ def execute_staged_nb(cache_base, pk_list):
     return result
 
 
-def _relative_file_path(file_path):
-    currentdir = os.getcwd()
-    if currentdir in file_path:
-        dir_index = currentdir.rfind("/")
-        file_path = file_path[dir_index + 1 :]
-    return file_path
-
-
-def _read_nb_output_cells(source_path, has_outputs, do_run):
-    if not do_run:
+def _read_nb_output_cells(source_path, has_outputs, jupyter_execute_notebooks):
+    if jupyter_execute_notebooks and jupyter_execute_notebooks == "auto":
         with open(source_path, "r") as f:
             ntbk = nbf.read(f, as_version=4)
             has_outputs = all(

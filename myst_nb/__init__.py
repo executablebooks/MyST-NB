@@ -91,8 +91,7 @@ def setup(app):
     # Add configuration for the cache
     app.add_config_value("jupyter_cache", False, "env")
     app.add_config_value("execution_excludepatterns", [], "env")
-    app.add_config_value("jupyter_execute_notebooks", False, "env")
-    app.add_config_value("jupyter_notebook_force_run", False, "env")
+    app.add_config_value("jupyter_execute_notebooks", "auto", "env")
 
     # Register our post-transform which will convert output bundles to nodes
     app.add_post_transform(PasteNodesToDocutils)
