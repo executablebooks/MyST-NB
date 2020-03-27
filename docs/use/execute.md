@@ -25,6 +25,15 @@ above configuration value to:
 jupyter_execute_notebooks = "force"
 ```
 
+**To cache execution outputs with [jupyter-cache]**, change the above configuration
+value to:
+
+```
+jupyter_execute_notebooks = "cache"
+```
+
+See {ref}`execute/cache` for more information.
+
 **To turn off notebook execution**,change the
 above configuration value to:
 
@@ -42,10 +51,10 @@ execution_excludepatterns = ['list', 'of', '*patterns']
 Any file that matches one of the items in `execution_excludepatterns` will not be
 executed.
 
+(execute/cache)=
 ## Cacheing the notebook execution
 
-You may also **cache the results of executing a notebook page** using the
-[Jupyter Cache project](https://github.com/executablebookproject/jupyter-cache). In
+You may also **cache the results of executing a notebook page** using [jupyter-cache]. In
 this case, when a page is executed, its outputs will be stored in a local database.
 This allows you to be sure that the outputs in your documentation are up-to-date,
 while saving time avoiding unnecessary re-execution. It also allows you to store your
@@ -77,3 +86,5 @@ jupyter_cache = path/to/mycache
 
 The path should point to an **empty folder**, or a folder where a
 **jupyter cache already exists**.
+
+[jupyter-cache]: https://github.com/executablebookproject/jupyter-cache "the Jupyter Cache Project"
