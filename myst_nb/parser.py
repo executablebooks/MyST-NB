@@ -48,7 +48,7 @@ class NotebookParser(MystParser):
         except AttributeError:
             pass
         # add outputs to notebook from the cache
-        if document.settings.env.config["jupyter_execute_notebooks"]:
+        if document.settings.env.config["jupyter_execute_notebooks"] != "off":
             ntbk = add_notebook_outputs(document.settings.env, ntbk, source_path)
 
         # This is a contaner for top level markdown tokens

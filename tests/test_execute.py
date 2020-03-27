@@ -1,14 +1,5 @@
 from myst_nb.cache import execution_cache, add_notebook_outputs
 from myst_nb.parser import NotebookParser
-from myst_nb.nb_glue.domain import NbGlueDomain
-
-from docutils import nodes
-from docutils.frontend import OptionParser
-from docutils.parsers.rst import Parser as RSTParser
-from docutils.utils import new_document
-
-from sphinx.domains.math import MathDomain
-from sphinx.util.docutils import sphinx_domains
 
 from nbdime.diffing.notebooks import (
     diff_notebooks,
@@ -18,7 +9,6 @@ from nbdime.diffing.notebooks import (
 from nbdime.prettyprint import pretty_print_diff
 
 import nbformat as nbf
-from collections import defaultdict
 
 import pytest
 import os
@@ -27,65 +17,6 @@ import os
 NB_VERSION = 4
 set_notebook_diff_ignores({"/nbformat_minor": True})
 set_notebook_diff_targets(metadata=False)
-
-
-class MockEnv:
-    def __init__(self, tmp_path):
-        self.docname = "source/nb"
-        self.dependencies = defaultdict(set)
-        self.domaindata = {}
-        self.domains = {
-            NbGlueDomain.name: NbGlueDomain(self),
-            MathDomain.name: MathDomain(self),
-        }
-        self._tmp_path = tmp_path
-        self.path_cache = str(tmp_path) + "/.jupyter_cache"
-
-        class app:
-            class builder:
-                name = "html"
-
-            outdir = str(tmp_path) + "/build" + "/outdir"
-
-        class env:
-            srcdir = str(tmp_path) + "/source"
-            outdir = str(tmp_path) + "/build" + "/outdir"
-            config = {
-                "jupyter_execute_notebooks": "cache",
-                "execution_excludepatterns": [],
-                "jupyter_cache": "",
-            }
-
-        self.app = app
-        self.env = env
-        self.env.app = app
-        self.config = env.config
-
-    def set_config(self, config_val):
-        for key, val in self.env.config.items():
-            if config_val[0] == key:
-                self.env.config[key] = config_val[1]
-
-    def set_srcdir(self, srcdir):
-        self.env.srcdir = srcdir
-
-    def set_docname(self, docname):
-        self.docname = docname
-
-
-@pytest.fixture()
-def mock_environment(tmp_path):
-    env = MockEnv(tmp_path)
-    return env
-
-
-@pytest.fixture()
-def mock_document(tmp_path) -> nodes.document:
-    settings = OptionParser(components=(RSTParser,)).get_default_values()
-    document = new_document("notset", settings=settings)
-    document.settings.env = MockEnv(tmp_path)
-    with sphinx_domains(document.settings.env):
-        yield document
 
 
 def empty_non_deterministic_outputs(cell):
@@ -144,6 +75,7 @@ def check_report_file(dest_path, nb):
 
 def test_basic_unrun(mock_document, get_notebook, file_regression):
     first_nb = get_notebook("basic_unrun.ipynb")
+    mock_document.settings.env.set_config(["jupyter_execute_notebooks", "cache"])
     mock_document.settings.env.set_docname("basic_unrun.ipynb")
     nb_list = {str(first_nb.relative_to(first_nb.cwd()))}  # A set
     ntbk, ntbk_output = execute_and_merge(mock_document.settings.env, nb_list, first_nb)
@@ -156,6 +88,7 @@ def test_basic_unrun(mock_document, get_notebook, file_regression):
 
 def test_basic_failing(mock_document, get_notebook, file_regression):
     first_nb = get_notebook("basic_failing.ipynb")
+    mock_document.settings.env.set_config(["jupyter_execute_notebooks", "cache"])
     mock_document.settings.env.set_docname("basic_failing.ipynb")
     nb_list = {str(first_nb.relative_to(first_nb.cwd()))}  # A set
 
@@ -192,6 +125,7 @@ def test_outputs_present(mock_document, get_notebook, file_regression):
 
 def test_complex_outputs_unrun(mock_document, get_notebook, file_regression):
     first_nb = get_notebook("complex_outputs_unrun.ipynb")
+    mock_document.settings.env.set_config(["jupyter_execute_notebooks", "cache"])
     mock_document.settings.env.set_docname("complex_outputs_unrun.ipynb")
     nb_list = {str(first_nb.relative_to(first_nb.cwd()))}  # A set
 
@@ -238,6 +172,7 @@ def test_jupyter_cache_path(mock_document, get_notebook, file_regression):
     jupyter_cache = mock_document.settings.env.env.outdir + "/.jupyter_cache"
     os.makedirs(jupyter_cache)
     mock_document.settings.env.set_config(["jupyter_cache", jupyter_cache])
+    mock_document.settings.env.set_config(["jupyter_execute_notebooks", "cache"])
 
     first_nb = get_notebook("basic_unrun.ipynb")
     mock_document.settings.env.set_docname("basic_unrun.ipynb")
