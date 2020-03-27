@@ -63,7 +63,7 @@ When you re-build your site, the following will happen:
 To enable cacheing of notebook outputs, use the following configuration:
 
 ```
-jupyter_cache = True
+jupyter_execute_notebooks = "cache"
 ```
 
 By default, the cache will be placed in the parent of your build folder. Generally,
