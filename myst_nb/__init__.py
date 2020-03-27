@@ -89,7 +89,7 @@ def setup(app):
     )
 
     # Add configuration for the cache
-    app.add_config_value("jupyter_cache", False, "env")
+    app.add_config_value("jupyter_cache", "", "env")
     app.add_config_value("execution_excludepatterns", [], "env")
     app.add_config_value("jupyter_execute_notebooks", "auto", "env")
 

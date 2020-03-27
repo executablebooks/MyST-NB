@@ -51,9 +51,9 @@ class MockEnv:
             srcdir = str(tmp_path) + "/source"
             outdir = str(tmp_path) + "/build" + "/outdir"
             config = {
-                "jupyter_execute_notebooks": "auto",
+                "jupyter_execute_notebooks": "cache",
                 "execution_excludepatterns": [],
-                "jupyter_cache": True,
+                "jupyter_cache": "",
             }
 
         self.app = app
@@ -68,6 +68,9 @@ class MockEnv:
 
     def set_srcdir(self, srcdir):
         self.env.srcdir = srcdir
+
+    def set_docname(self, docname):
+        self.docname = docname
 
 
 @pytest.fixture()
@@ -141,8 +144,8 @@ def check_report_file(dest_path, nb):
 
 def test_basic_unrun(mock_document, get_notebook, file_regression):
     first_nb = get_notebook("basic_unrun.ipynb")
+    mock_document.settings.env.set_docname("basic_unrun.ipynb")
     nb_list = {str(first_nb.relative_to(first_nb.cwd()))}  # A set
-
     ntbk, ntbk_output = execute_and_merge(mock_document.settings.env, nb_list, first_nb)
     # for testing the generated notebook output
     file_regression.check(
@@ -153,6 +156,7 @@ def test_basic_unrun(mock_document, get_notebook, file_regression):
 
 def test_basic_failing(mock_document, get_notebook, file_regression):
     first_nb = get_notebook("basic_failing.ipynb")
+    mock_document.settings.env.set_docname("basic_failing.ipynb")
     nb_list = {str(first_nb.relative_to(first_nb.cwd()))}  # A set
 
     ntbk, ntbk_output = execute_and_merge(mock_document.settings.env, nb_list, first_nb)
@@ -167,13 +171,14 @@ def test_basic_failing(mock_document, get_notebook, file_regression):
 
 
 def test_basic_unrun_nbclient(mock_document, get_notebook, file_regression):
-    mock_document.settings.env.set_config(["jupyter_cache", False])
+    mock_document.settings.env.set_config(["jupyter_execute_notebooks", "auto"])
     test_basic_unrun(mock_document, get_notebook, file_regression)
 
 
 def test_outputs_present(mock_document, get_notebook, file_regression):
     mock_document.settings.env.set_config(["jupyter_execute_notebooks", "force"])
     first_nb = get_notebook("basic_run.ipynb")
+    mock_document.settings.env.set_docname("basic_run.ipynb")
     nb_list = {str(first_nb.relative_to(first_nb.cwd()))}  # A set
 
     ntbk, ntbk_output = execute_and_merge(mock_document.settings.env, nb_list, first_nb)
@@ -187,6 +192,7 @@ def test_outputs_present(mock_document, get_notebook, file_regression):
 
 def test_complex_outputs_unrun(mock_document, get_notebook, file_regression):
     first_nb = get_notebook("complex_outputs_unrun.ipynb")
+    mock_document.settings.env.set_docname("complex_outputs_unrun.ipynb")
     nb_list = {str(first_nb.relative_to(first_nb.cwd()))}  # A set
 
     ntbk, ntbk_output = execute_and_merge(mock_document.settings.env, nb_list, first_nb)
@@ -199,8 +205,9 @@ def test_complex_outputs_unrun(mock_document, get_notebook, file_regression):
 
 
 def test_complex_outputs_unrun_nbclient(mock_document, get_notebook, file_regression):
-    mock_document.settings.env.set_config(["jupyter_cache", False])
+    mock_document.settings.env.set_config(["jupyter_execute_notebooks", "auto"])
     first_nb = get_notebook("complex_outputs_unrun.ipynb")
+    mock_document.settings.env.set_docname("complex_outputs_unrun.ipynb")
     nb_list = {str(first_nb.relative_to(first_nb.cwd()))}  # A set
 
     ntbk, ntbk_output = execute_and_merge(mock_document.settings.env, nb_list, first_nb)
@@ -215,6 +222,7 @@ def test_complex_outputs_unrun_nbclient(mock_document, get_notebook, file_regres
 def test_no_execute(mock_document, get_notebook, file_regression):
     mock_document.settings.env.set_config(["jupyter_execute_notebooks", "off"])
     first_nb = get_notebook("basic_unrun.ipynb")
+    mock_document.settings.env.set_docname("basic_unrun.ipynb")
     nb_list = {str(first_nb.relative_to(first_nb.cwd()))}  # A set
 
     ntbk, ntbk_output = execute_and_merge(mock_document.settings.env, nb_list, first_nb)
@@ -225,12 +233,14 @@ def test_no_execute(mock_document, get_notebook, file_regression):
 
     check_docutils_xml(mock_document, ntbk, first_nb, file_regression)
 
+
 def test_jupyter_cache_path(mock_document, get_notebook, file_regression):
     jupyter_cache = mock_document.settings.env.env.outdir + "/.jupyter_cache"
     os.makedirs(jupyter_cache)
     mock_document.settings.env.set_config(["jupyter_cache", jupyter_cache])
-    
+
     first_nb = get_notebook("basic_unrun.ipynb")
+    mock_document.settings.env.set_docname("basic_unrun.ipynb")
     nb_list = {str(first_nb.relative_to(first_nb.cwd()))}  # A set
 
     ntbk, ntbk_output = execute_and_merge(mock_document.settings.env, nb_list, first_nb)

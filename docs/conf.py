@@ -56,5 +56,4 @@ jupyter_sphinx_require_url = ""
 
 copybutton_selector = "div:not(.output) > div.highlight pre"
 
-jupyter_execute_notebooks = "force"
-jupyter_cache = True
+jupyter_execute_notebooks = "cache"

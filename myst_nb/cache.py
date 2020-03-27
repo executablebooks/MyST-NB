@@ -15,6 +15,8 @@ from jupyter_cache.executors import load_executor
 
 logger = logging.getLogger(__name__)
 
+filtered_nb_list = set()
+
 
 def execution_cache(app, env, added, changed, removed, path_cache=None):
     """
@@ -22,37 +24,56 @@ def execution_cache(app, env, added, changed, removed, path_cache=None):
     and caches them for further use.
     """
     jupyter_cache = False
+    exclude_files = []
     nb_list = added.union(
         changed
     )  # all the added and changed notebooks should be operated on.
 
-    if env.config["jupyter_execute_notebooks"] not in ["force", "auto", "off"]:
+    if env.config["jupyter_execute_notebooks"] not in ["force", "auto", "cache", "off"]:
         logger.error(
-            "Conf jupyter_execute_notebooks can either be `force`, `auto` or `off`"
+            "Conf jupyter_execute_notebooks can either be `force`, `auto`, `cache` or `off`"  # noqa: E501
         )
         exit(1)
 
-    if env.config["jupyter_execute_notebooks"] in ["force", "auto"]:
-        jupyter_cache = env.config["jupyter_cache"]
+    jupyter_cache = env.config["jupyter_cache"]
 
-    if jupyter_cache:
-        if jupyter_cache is True:
+    # excludes the file with patterns given in execution_excludepatterns
+    # conf variable from executing, like index.rst
+    for path in env.config["execution_excludepatterns"]:
+        exclude_files.extend(Path().cwd().rglob(path))
+
+    for nb in nb_list:
+        exclude = False
+        for files in exclude_files:
+            if nb in str(files):
+                exclude = True
+        if not exclude:
+            filtered_nb_list.add(nb)
+
+    if "cache" in env.config["jupyter_execute_notebooks"]:
+        if jupyter_cache:
+            if os.path.isdir(jupyter_cache):
+                path_cache = jupyter_cache
+            else:
+                logger.error("Path to jupyter_cache is not a directory")
+                exit(1)
+        else:
             path_cache = path_cache or Path(env.outdir).parent.joinpath(
                 ".jupyter_cache"
             )
-        elif os.path.isdir(jupyter_cache):
-            path_cache = jupyter_cache
-        else:
-            logger.error(
-                "Conf jupyter_cache is invalid, either use True or a path to an"
-                "existing cache"
-            )
-            exit(1)
-        app.env.path_cache = (
-            path_cache  # TODO: is there a better way to make it accessible?
-        )
 
-        _stage_and_execute(env, nb_list, path_cache)
+        app.env.path_cache = str(
+            path_cache
+        )  # TODO: is there a better way to make it accessible?
+
+        _stage_and_execute(env, filtered_nb_list, path_cache)
+
+    elif jupyter_cache:
+        logger.error(
+            "If using conf jupyter_cache, please set jupyter_execute_notebooks"  # noqa: E501
+            " to `cache`"
+        )
+        exit(1)
 
     return nb_list  # TODO: can also compare timestamps for inputs outputs
 
@@ -60,52 +81,33 @@ def execution_cache(app, env, added, changed, removed, path_cache=None):
 def _stage_and_execute(env, nb_list, path_cache):
     pk_list = None
 
-    if path_cache:
-        try:
-            from jupyter_cache.cache.main import JupyterCacheBase  # noqa: F401
-        except ImportError:
-            logger.error(
-                (
-                    "Using caching functionality requires that "
-                    "jupyter_cache is uninstalled. Install it first."
-                )
-            )
+    try:
+        from jupyter_cache.cache.main import JupyterCacheBase  # noqa: F401
+    except ImportError:
+        logger.error(
+            "Using caching requires that jupyter_cache is installed."  # noqa: E501
+        )
 
-        cache_base = get_cache(path_cache)
+    cache_base = get_cache(path_cache)
 
-        for nb in nb_list:
+    for nb in nb_list:
+        if "." in nb:  # nb includes the path to notebook
+            source_path = nb
+        else:
+            source_path = env.env.doc2path(nb)
 
-            has_outputs = False
-            if "." in nb:  # nb includes the path to notebook
-                source_path = nb
-            else:
-                source_path = env.env.doc2path(nb)
+        # prevents execution of other formats like .md
+        if ".ipynb" not in source_path:
+            continue
 
-            # excludes the file with patterns given in execution_excludepatterns
-            # conf variable from executing, like index.rst
-            exclude_file = [xx in nb for xx in env.config["execution_excludepatterns"]]
-            if True in exclude_file or ".ipynb" not in source_path:
-                continue
+        if pk_list is None:
+            pk_list = []
+        stage_record = cache_base.stage_notebook_file(source_path)
+        pk_list.append(stage_record.pk)
 
-            has_outputs = _read_nb_output_cells(
-                source_path, has_outputs, env.config["jupyter_execute_notebooks"]
-            )
-
-            if not has_outputs:
-                if pk_list is None:
-                    pk_list = []
-                stage_record = cache_base.stage_notebook_file(source_path)
-                pk_list.append(stage_record.pk)
-            else:
-                # directly cache the already executed notebooks
-                cache_base.cache_notebook_file(source_path, overwrite=True)
-                logger.warning(
-                    f"Will not run notebook with pre-populated outputs/no output cells, will directly cache: {source_path}"  # noqa:E501
-                )
-
-        execute_staged_nb(
-            cache_base, pk_list
-        )  # can leverage parallel execution implemented in jupyter-cache here
+    execute_staged_nb(
+        cache_base, pk_list
+    )  # can leverage parallel execution implemented in jupyter-cache here
 
 
 def add_notebook_outputs(env, ntbk, file_path=None):
@@ -122,12 +124,29 @@ def add_notebook_outputs(env, ntbk, file_path=None):
     reports_dir = str(dest_path) + "/reports"
     path_cache = False
 
-    if env.config["jupyter_cache"]:
+    # checking if filename in execute_excludepattern
+    file_present = [env.docname in nb for nb in filtered_nb_list]
+    if True not in file_present:
+        return ntbk
+
+    if "cache" in env.config["jupyter_execute_notebooks"]:
         path_cache = env.path_cache
 
     if not path_cache:
-        # If we explicitly did not wish to cache, then just execute the notebook
-        ntbk = execute(ntbk)
+        if "off" not in env.config["jupyter_execute_notebooks"]:
+            has_outputs = _read_nb_output_cells(
+                file_path, env.config["jupyter_execute_notebooks"]
+            )
+            if not has_outputs:
+                logger.info("Executing: {}".format(env.docname))
+                ntbk = execute(ntbk)
+            else:
+                logger.info(
+                    "Did not execute {}. "
+                    "Set jupyter_execute_notebooks to `force` to execute".format(
+                        env.docname
+                    )
+                )
         return ntbk
 
     cache_base = get_cache(path_cache)
@@ -187,7 +206,8 @@ def execute_staged_nb(cache_base, pk_list):
     return result
 
 
-def _read_nb_output_cells(source_path, has_outputs, jupyter_execute_notebooks):
+def _read_nb_output_cells(source_path, jupyter_execute_notebooks):
+    has_outputs = False
     if jupyter_execute_notebooks and jupyter_execute_notebooks == "auto":
         with open(source_path, "r") as f:
             ntbk = nbf.read(f, as_version=4)
