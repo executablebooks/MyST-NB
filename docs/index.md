@@ -88,3 +88,9 @@ outputs, to compare how these outputs look relative to the MyST-NB style.
 ```{toctree}
 examples/jupyter_sphinx.md
 ```
+
+Finally, here is documentation on contributing to the development of MySt-NB
+
+```{toctree}
+develop/index.md
+```
