@@ -6,6 +6,9 @@ from sphinx.util import logging
 from myst_parser.docutils_renderer import SphinxRenderer
 from myst_parser.sphinx_parser import MystParser
 
+from myst_nb.nb_glue import GLUE_PREFIX
+from myst_nb.nb_glue.domain import NbGlueDomain
+
 from mistletoe.base_elements import BlockToken, Position, SourceLines
 from mistletoe.parse_context import ParseContext, get_parse_context, set_parse_context
 from mistletoe.block_tokenizer import tokenize_block
@@ -13,9 +16,9 @@ from mistletoe.block_tokens import Document, FrontMatter
 
 from jupyter_sphinx.ast import get_widgets, JupyterWidgetStateNode
 from jupyter_sphinx.execute import contains_widgets, write_notebook_output
+from myst_nb.cache import add_notebook_outputs
 
-from myst_nb.nb_glue import GLUE_PREFIX
-from myst_nb.nb_glue.domain import NbGlueDomain
+logger = logging.getLogger(__name__)
 
 
 SPHINX_LOGGER = logging.getLogger(__name__)
@@ -32,10 +35,21 @@ class NotebookParser(MystParser):
     config_section = "ipynb parser"
     config_section_dependencies = ("parsers",)
 
-    def parse(self, inputstring, document):
+    def parse(self, inputstring, document, source_path=None):
 
         # de-serialize the notebook
         ntbk = nbf.reads(inputstring, nbf.NO_CONVERT)
+        self.reporter = document.reporter
+        self.config = self.default_config.copy()
+
+        try:
+            new_cfg = document.settings.env.config.myst_config
+            self.config.update(new_cfg)
+        except AttributeError:
+            pass
+        # add outputs to notebook from the cache
+        if document.settings.env.config["jupyter_execute_notebooks"] != "off":
+            ntbk = add_notebook_outputs(document.settings.env, ntbk, source_path)
 
         # This is a contaner for top level markdown tokens
         # which we will add to as we walk the document
@@ -119,13 +133,7 @@ class NotebookParser(MystParser):
             footref_order=parse_context.foot_references,
         )
 
-        self.reporter = document.reporter
-        self.config = self.default_config.copy()
-        try:
-            new_cfg = document.settings.env.config.myst_config
-            self.config.update(new_cfg)
-        except AttributeError:
-            pass
+        # Write the notebook's output to disk
 
         # Remove all the mime prefixes from "glue" step.
         # This way, writing properly captures the glued images
