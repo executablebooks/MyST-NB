@@ -26,6 +26,7 @@ class MockEnv:
             MathDomain.name: MathDomain(self),
         }
         self._tmp_path = tmp_path
+        self.path_cache = str(tmp_path) + "/.jupyter_cache"
 
         class app:
             class builder:
@@ -38,7 +39,19 @@ class MockEnv:
             srcdir = tmp_path / "source"
             outdir = tmp_path / "build" / "outdir"
 
+        class env:
+            srcdir = str(tmp_path) + "/source"
+            outdir = str(tmp_path) + "/build" + "/outdir"
+            config = {
+                "jupyter_execute_notebooks": "off",
+                "execution_excludepatterns": [],
+                "jupyter_cache": "",
+            }
+
         self.app = app
+        self.env = env
+        self.env.app = app
+        self.config = env.config
 
     def get_domain(self, name):
         return self.domains[name]
@@ -48,6 +61,17 @@ class MockEnv:
 
     def new_serialno(self, name):
         return 1
+
+    def set_config(self, config_val):
+        for key, val in self.env.config.items():
+            if config_val[0] == key:
+                self.env.config[key] = config_val[1]
+
+    def set_srcdir(self, srcdir):
+        self.env.srcdir = srcdir
+
+    def set_docname(self, docname):
+        self.docname = docname
 
 
 @pytest.fixture()
