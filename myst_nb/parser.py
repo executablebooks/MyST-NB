@@ -57,7 +57,7 @@ class NotebookParser(MystParser):
         # containing global data like reference definitions
         md, env, tokens = nb_to_tokens(ntbk)
 
-        path_doc = nb_output_to_disc(ntbk)
+        path_doc = nb_output_to_disc(ntbk, document)
 
         # Update our glue key list with new ones defined in this page
         glue_domain = NbGlueDomain.from_env(document.settings.env)
