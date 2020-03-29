@@ -17,6 +17,10 @@ from myst_parser.main import default_parser
 from myst_parser.sphinx_renderer import SphinxRenderer
 from myst_parser.sphinx_parser import MystParser
 
+from markdown_it.token import Token
+from markdown_it.rules_core import StateCore
+from markdown_it.utils import AttrDict
+
 from myst_nb.nb_glue import GLUE_PREFIX
 from myst_nb.nb_glue.domain import NbGlueDomain
 
