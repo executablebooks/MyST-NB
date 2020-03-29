@@ -5,22 +5,21 @@ from docutils import nodes
 import nbformat as nbf
 from sphinx.util import logging
 
-from myst_parser.main import default_parser
-from myst_parser.sphinx_renderer import SphinxRenderer
-from myst_parser.sphinx_parser import MystParser
+from jupyter_sphinx.ast import get_widgets, JupyterWidgetStateNode
+from jupyter_sphinx.execute import contains_widgets, write_notebook_output
 
 from markdown_it.token import Token
 from markdown_it.rules_core import StateCore
 from markdown_it.utils import AttrDict
 
+from myst_parser.main import default_parser
+from myst_parser.sphinx_renderer import SphinxRenderer
+from myst_parser.sphinx_parser import MystParser
+
 from myst_nb.nb_glue import GLUE_PREFIX
 from myst_nb.nb_glue.domain import NbGlueDomain
 
-from jupyter_sphinx.ast import get_widgets, JupyterWidgetStateNode
-from jupyter_sphinx.execute import contains_widgets, write_notebook_output
 from myst_nb.cache import add_notebook_outputs
-
-logger = logging.getLogger(__name__)
 
 
 SPHINX_LOGGER = logging.getLogger(__name__)
@@ -57,6 +56,7 @@ class NotebookParser(MystParser):
         # containing global data like reference definitions
         md, env, tokens = nb_to_tokens(ntbk)
 
+        # Write the notebook's output to disk
         path_doc = nb_output_to_disc(ntbk, document)
 
         # Update our glue key list with new ones defined in this page
@@ -78,7 +78,7 @@ def nb_to_tokens(ntbk):
     rules = md.core.ruler.get_active_rules()
 
     # First only run pre-inline chains
-    # so we can collect all reference definitions, etc
+    # so we can collect all reference definitions, etc, before assessing references
     def parse_block(src, meta=None):
         with md.reset_rules():
             # enable only rules up to block
@@ -98,6 +98,7 @@ def nb_to_tokens(ntbk):
             continue
 
         # skip cells tagged for removal
+        # TODO this logic should be deferred to a transform
         tags = nb_cell.metadata.get("tags", [])
         if "remove_cell" in tags:
             continue
@@ -119,15 +120,17 @@ def nb_to_tokens(ntbk):
 
     # Now all definitions have been gathered,
     # we run inline and post-inline chains, to expand the text
-    # (note we assume here that these rules never require the actual source text)
+    # Note we assume here that these rules never require the actual source text,
+    # only acting on the existing tokens
     state = StateCore(None, md, env, block_tokens)
     with md.reset_rules():
         md.core.ruler.enableOnly(rules[rules.index("inline") :])
         md.core.process(state)
 
-    # add the front matter
-    # note the myst_parser now serialises dict/list like keys, when rendering to
-    # docutils docinfo, so to stay consistent (for now) we strip this data
+    # Add the front matter.
+    # Note that myst_parser now serialises dict/list like keys, when rendering to
+    # docutils docinfo,
+    # so to stay consistent with the previous code (for now) we strip this data
     state.tokens = [
         Token(
             "front_matter",
@@ -165,6 +168,7 @@ class SphinxNBRenderer(SphinxRenderer):
     def render_nb_code_cell(self, token: Token):
         """Render a Jupyter notebook cell."""
         cell = token.meta["cell"]
+        # TODO logic involving tags should be deferred to a transform
         tags = cell.metadata.get("tags", [])
 
         # Cell container will wrap whatever is in the cell
