@@ -85,14 +85,24 @@ def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Tok
 
     # First only run pre-inline chains
     # so we can collect all reference definitions, etc, before assessing references
-    def parse_block(src, meta=None):
+    def parse_block(src, cell_index):
         with md.reset_rules():
             # enable only rules up to block
             md.core.ruler.enableOnly(rules[: rules.index("inline")])
             tokens = md.parse(src, env)
         for token in tokens:
-            token.meta = token.meta or {}
-            token.meta["doc"] = meta
+            if token.map:
+                token.map = [
+                    (cell_index + 1) * 10000 + token.map[0],
+                    (cell_index + 1) * 10000 + token.map[1],
+                ]
+        for dup_ref in env.get("duplicate_refs", []):
+            if "fixed" not in dup_ref:
+                dup_ref["map"] = [
+                    (cell_index + 1) * 10000 + dup_ref["map"][0],
+                    (cell_index + 1) * 10000 + dup_ref["map"][1],
+                ]
+                dup_ref["fixed"] = True
         return tokens
 
     block_tokens = []
@@ -114,13 +124,17 @@ def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Tok
             # we add the cell index to tokens,
             # so they can be included in the error logging,
             # although note this logic isn't currently implemented in SphinxRenderer
-            block_tokens.extend(parse_block(nb_cell["source"], {"index": cell_index}))
+            block_tokens.extend(parse_block(nb_cell["source"], cell_index))
 
         elif nb_cell["cell_type"] == "code":
             # here we do nothing but store the cell as a custom token
             block_tokens.append(
                 Token(
-                    "nb_code_cell", "", 0, meta={"index": cell_index, "cell": nb_cell}
+                    "nb_code_cell",
+                    "",
+                    0,
+                    meta={"cell": nb_cell},
+                    map=[(cell_index + 1) * 10000, (cell_index + 1) * 10000],
                 )
             )
 
