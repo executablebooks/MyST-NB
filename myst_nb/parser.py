@@ -1,18 +1,20 @@
+import json
+from pathlib import Path
+
 from docutils import nodes
 import nbformat as nbf
-from pathlib import Path
 from sphinx.util import logging
 
-from myst_parser.docutils_renderer import SphinxRenderer
+from myst_parser.main import default_parser
+from myst_parser.sphinx_renderer import SphinxRenderer
 from myst_parser.sphinx_parser import MystParser
+
+from markdown_it.token import Token
+from markdown_it.rules_core import StateCore
+from markdown_it.utils import AttrDict
 
 from myst_nb.nb_glue import GLUE_PREFIX
 from myst_nb.nb_glue.domain import NbGlueDomain
-
-from mistletoe.base_elements import BlockToken, Position, SourceLines
-from mistletoe.parse_context import ParseContext, get_parse_context, set_parse_context
-from mistletoe.block_tokenizer import tokenize_block
-from mistletoe.block_tokens import Document, FrontMatter
 
 from jupyter_sphinx.ast import get_widgets, JupyterWidgetStateNode
 from jupyter_sphinx.execute import contains_widgets, write_notebook_output
@@ -51,159 +53,118 @@ class NotebookParser(MystParser):
         if document.settings.env.config["jupyter_execute_notebooks"] != "off":
             ntbk = add_notebook_outputs(document.settings.env, ntbk, source_path)
 
-        # This is a contaner for top level markdown tokens
-        # which we will add to as we walk the document
-        mkdown_tokens = []  # type: list[BlockToken]
+        # parse the notebook content to a list of syntax tokens and an env
+        # containing global data like reference definitions
+        md, env, tokens = nb_to_tokens(ntbk)
 
-        # First we ensure that we are using a 'clean' global context
-        # for parsing, which is setup with the MyST parsing tokens
-        # the logger will report on duplicate link/footnote definitions, etc
-        parse_context = ParseContext(
-            find_blocks=SphinxNBRenderer.default_block_tokens,
-            find_spans=SphinxNBRenderer.default_span_tokens,
-            logger=SPHINX_LOGGER,
-        )
-        set_parse_context(parse_context)
-
-        for cell_index, nb_cell in enumerate(ntbk.cells):
-
-            # Skip empty cells
-            if len(nb_cell["source"].strip()) == 0:
-                continue
-
-            # skip cells tagged for removal
-            tags = nb_cell.metadata.get("tags", [])
-            if "remove_cell" in tags:
-                continue
-
-            if nb_cell["cell_type"] == "markdown":
-
-                # we add the document path and cell index
-                # to the source lines, so they can be included in the error logging
-                # NOTE: currently the logic to report metadata is not written
-                # into SphinxRenderer, but this will be introduced in a later update
-                lines = SourceLines(
-                    nb_cell["source"],
-                    uri=document["source"],
-                    metadata={"cell_index": cell_index},
-                    standardize_ends=True,
-                )
-
-                # parse the source markdown text;
-                # at this point span/inline level tokens are not yet processed, but
-                # link/footnote definitions are collected/stored in the global context
-                mkdown_tokens.extend(tokenize_block(lines))
-
-                # TODO for md cells, think of a way to implement the previous
-                # `if "hide_input" in tags:` logic
-
-            elif nb_cell["cell_type"] == "code":
-                # here we do nothing but store the cell as a custom token
-                mkdown_tokens.append(
-                    NbCodeCell(
-                        cell=nb_cell,
-                        position=Position(
-                            line_start=0,
-                            uri=document["source"],
-                            data={"cell_index": cell_index},
-                        ),
-                    )
-                )
-
-        # Now all definitions have been gathered, we walk the tokens and
-        # process any inline text
-        for token in mkdown_tokens + list(
-            get_parse_context().foot_definitions.values()
-        ):
-            token.expand_spans()
-
-        # If there are widgets, this will embed the state of all widgets in a script
-        if contains_widgets(ntbk):
-            mkdown_tokens.insert(0, JupyterWidgetState(state=get_widgets(ntbk)))
-
-        # create the front matter token
-        front_matter = FrontMatter(content=ntbk.metadata, position=None)
-
-        # Finally, we create the top-level markdown document
-        markdown_doc = Document(
-            children=mkdown_tokens,
-            front_matter=front_matter,
-            link_definitions=parse_context.link_definitions,
-            footnotes=parse_context.foot_definitions,
-            footref_order=parse_context.foot_references,
-        )
-
-        # Write the notebook's output to disk
-
-        # Remove all the mime prefixes from "glue" step.
-        # This way, writing properly captures the glued images
-        replace_mime = []
-        for cell in ntbk.cells:
-            if hasattr(cell, "outputs"):
-                for out in cell.outputs:
-                    if "data" in out:
-                        # Only do the mimebundle replacing for the scrapbook outputs
-                        mime_prefix = (
-                            out.get("metadata", {})
-                            .get("scrapbook", {})
-                            .get("mime_prefix")
-                        )
-                        if mime_prefix:
-                            out["data"] = {
-                                key.replace(mime_prefix, ""): val
-                                for key, val in out["data"].items()
-                            }
-                            replace_mime.append(out)
-
-        # Write the notebook's output to disk. This changes metadata in notebook cells
-        path_doc = Path(document.settings.env.docname)
-        doc_relpath = path_doc.parent
-        doc_filename = path_doc.name
-        build_dir = Path(document.settings.env.app.outdir).parent
-        output_dir = build_dir.joinpath("jupyter_execute", doc_relpath)
-        write_notebook_output(ntbk, str(output_dir), doc_filename)
-
-        # Now add back the mime prefixes to the right outputs so they aren't rendered
-        # until called from the role/directive
-        for out in replace_mime:
-            out["data"] = {
-                f"{GLUE_PREFIX}{key}": val for key, val in out["data"].items()
-            }
+        path_doc = nb_output_to_disc(ntbk)
 
         # Update our glue key list with new ones defined in this page
         glue_domain = NbGlueDomain.from_env(document.settings.env)
         glue_domain.add_notebook(ntbk, path_doc)
 
         # render the Markdown AST to docutils AST
-        renderer = SphinxNBRenderer(
-            parse_context=parse_context, document=document, current_node=None
+        md.options["document"] = document
+        md.renderer.render(tokens, md.options, env)
+
+
+def nb_to_tokens(ntbk):
+    # setup a markdown parser
+    md = default_parser().disable("front_matter", ignoreInvalid=True)
+    md.renderer = SphinxNBRenderer(md)
+    # make a sandbox where all the parsing global data,
+    # like reference definitions will be stored
+    env = AttrDict()
+    rules = md.core.ruler.get_active_rules()
+
+    # First only run pre-inline chains
+    # so we can collect all reference definitions, etc
+    def parse_block(src, meta=None):
+        with md.reset_rules():
+            # enable only rules up to block
+            md.core.ruler.enableOnly(rules[: rules.index("inline")])
+            tokens = md.parse(src, env)
+        for token in tokens:
+            token.meta = token.meta or {}
+            token.meta["doc"] = meta
+        return tokens
+
+    block_tokens = []
+
+    for cell_index, nb_cell in enumerate(ntbk.cells):
+
+        # Skip empty cells
+        if len(nb_cell["source"].strip()) == 0:
+            continue
+
+        # skip cells tagged for removal
+        tags = nb_cell.metadata.get("tags", [])
+        if "remove_cell" in tags:
+            continue
+
+        if nb_cell["cell_type"] == "markdown":
+
+            # we add the cell index to tokens,
+            # so they can be included in the error logging,
+            # although note this logic isn't currently implemented in SphinxRenderer
+            block_tokens.extend(parse_block(nb_cell["source"], {"index": cell_index}))
+
+        elif nb_cell["cell_type"] == "code":
+            # here we do nothing but store the cell as a custom token
+            block_tokens.append(
+                Token(
+                    "nb_code_cell", "", 0, meta={"index": cell_index, "cell": nb_cell}
+                )
+            )
+
+    # Now all definitions have been gathered,
+    # we run inline and post-inline chains, to expand the text
+    # (note we assume here that these rules never require the actual source text)
+    state = StateCore(None, md, env, block_tokens)
+    with md.reset_rules():
+        md.core.ruler.enableOnly(rules[rules.index("inline") :])
+        md.core.process(state)
+
+    # add the front matter
+    # note the myst_parser now serialises dict/list like keys, when rendering to
+    # docutils docinfo, so to stay consistent (for now) we strip this data
+    state.tokens = [
+        Token(
+            "front_matter",
+            "",
+            0,
+            content=json.dumps(
+                {
+                    k: v
+                    for k, v in ntbk.metadata.items()
+                    if isinstance(v, (str, int, float))
+                }
+            ),
         )
-        renderer.render(markdown_doc)
+    ] + state.tokens
 
+    # If there are widgets, this will embed the state of all widgets in a script
+    if contains_widgets(ntbk):
+        state.tokens = [
+            Token("jupyter_widget_state", "", 0, meta={"state": get_widgets(ntbk)})
+        ] + state.tokens
 
-class JupyterWidgetState(BlockToken):
-    def __init__(self, state):
-        self.state = state
-
-
-class NbCodeCell(BlockToken):
-    def __init__(self, cell, position):
-        self.cell = cell
-        self.position = position
+    return md, env, state.tokens
 
 
 class SphinxNBRenderer(SphinxRenderer):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.render_map["NbCodeCell"] = self.render_nb_code_cell
-        self.render_map["JupyterWidgetState"] = self.render_jupyter_widget_state
+    """A markdown-it token renderer,
+    which includes special methods for notebook cells.
+    """
 
-    def render_jupyter_widget_state(self, token):
-        self.document.append(JupyterWidgetStateNode(state=token.state))
+    def render_jupyter_widget_state(self, token: Token):
+        node = JupyterWidgetStateNode(state=token.meta["state"])
+        self.add_line_and_source_path(node, token)
+        self.document.append(node)
 
-    def render_nb_code_cell(self, token: NbCodeCell):
+    def render_nb_code_cell(self, token: Token):
         """Render a Jupyter notebook cell."""
-        cell = token.cell
+        cell = token.meta["cell"]
         tags = cell.metadata.get("tags", [])
 
         # Cell container will wrap whatever is in the cell
@@ -258,3 +219,41 @@ class CellOutputBundleNode(nodes.container):
     def __init__(self, outputs, rawsource="", *children, **attributes):
         self.outputs = outputs
         super().__init__("", **attributes)
+
+
+def nb_output_to_disc(ntbk, document):
+    """Write the notebook's output to disk
+
+    We remove all the mime prefixes from "glue" step.
+    This way, writing properly captures the glued images
+    """
+    replace_mime = []
+    for cell in ntbk.cells:
+        if hasattr(cell, "outputs"):
+            for out in cell.outputs:
+                if "data" in out:
+                    # Only do the mimebundle replacing for the scrapbook outputs
+                    mime_prefix = (
+                        out.get("metadata", {}).get("scrapbook", {}).get("mime_prefix")
+                    )
+                    if mime_prefix:
+                        out["data"] = {
+                            key.replace(mime_prefix, ""): val
+                            for key, val in out["data"].items()
+                        }
+                        replace_mime.append(out)
+
+    # Write the notebook's output to disk. This changes metadata in notebook cells
+    path_doc = Path(document.settings.env.docname)
+    doc_relpath = path_doc.parent
+    doc_filename = path_doc.name
+    build_dir = Path(document.settings.env.app.outdir).parent
+    output_dir = build_dir.joinpath("jupyter_execute", doc_relpath)
+    write_notebook_output(ntbk, str(output_dir), doc_filename)
+
+    # Now add back the mime prefixes to the right outputs so they aren't rendered
+    # until called from the role/directive
+    for out in replace_mime:
+        out["data"] = {f"{GLUE_PREFIX}{key}": val for key, val in out["data"].items()}
+
+    return path_doc
