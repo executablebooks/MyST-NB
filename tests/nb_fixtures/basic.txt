@@ -117,7 +117,7 @@ cells:
         <pending_xref refdomain="True" refexplicit="True" reftarget="before" reftype="any" refwarn="True">
             <literal classes="xref any">
                 a
-
+         
         <pending_xref refdomain="True" refexplicit="True" reftarget="after" reftype="any" refwarn="True">
             <literal classes="xref any">
                 b
@@ -143,7 +143,7 @@ cells:
     <docinfo>
     <paragraph>
         <footnote_reference auto="1" ids="id1" refname="a">
-
+         
         <footnote_reference auto="1" ids="id2" refname="b">
     <transition>
     <footnote auto="1" ids="a" names="a">
