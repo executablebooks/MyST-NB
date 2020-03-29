@@ -15,4 +15,4 @@
                 <literal_block xml:space="preserve">
                     raise Exception('oopsie!')
             <CellOutputNode classes="cell_output">
-                <CellOutputBundleNode>
+                <CellOutputBundleNode outputs="0">

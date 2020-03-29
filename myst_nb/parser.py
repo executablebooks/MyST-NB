@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from typing import List, Tuple
 
 from docutils import nodes
 import nbformat as nbf
@@ -8,6 +9,7 @@ from sphinx.util import logging
 from jupyter_sphinx.ast import get_widgets, JupyterWidgetStateNode
 from jupyter_sphinx.execute import contains_widgets, write_notebook_output
 
+from markdown_it import MarkdownIt
 from markdown_it.token import Token
 from markdown_it.rules_core import StateCore
 from markdown_it.utils import AttrDict
@@ -36,7 +38,7 @@ class NotebookParser(MystParser):
     config_section = "ipynb parser"
     config_section_dependencies = ("parsers",)
 
-    def parse(self, inputstring, document, source_path=None):
+    def parse(self, inputstring: str, document: nodes.document, source_path=None):
 
         # de-serialize the notebook
         ntbk = nbf.reads(inputstring, nbf.NO_CONVERT)
@@ -52,9 +54,9 @@ class NotebookParser(MystParser):
         if document.settings.env.config["jupyter_execute_notebooks"] != "off":
             ntbk = add_notebook_outputs(document.settings.env, ntbk, source_path)
 
-        # parse the notebook content to a list of syntax tokens and an env
+        # Parse the notebook content to a list of syntax tokens and an env
         # containing global data like reference definitions
-        md, env, tokens = nb_to_tokens(ntbk)
+        md_parser, env, tokens = nb_to_tokens(ntbk)
 
         # Write the notebook's output to disk
         path_doc = nb_output_to_disc(ntbk, document)
@@ -63,13 +65,17 @@ class NotebookParser(MystParser):
         glue_domain = NbGlueDomain.from_env(document.settings.env)
         glue_domain.add_notebook(ntbk, path_doc)
 
-        # render the Markdown AST to docutils AST
-        md.options["document"] = document
-        md.renderer.render(tokens, md.options, env)
+        # Render the Markdown tokens to docutils AST.
+        tokens_to_docutils(md_parser, env, tokens, document)
 
 
-def nb_to_tokens(ntbk):
-    # setup a markdown parser
+def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Token]]:
+    """Parse the notebook content to a list of syntax tokens and an env,
+    containing global data like reference definitions.
+    """
+    # setup the markdown parser
+    # Note we disable front matter parsing,
+    # because this is taken from the actual notebook metadata
     md = default_parser().disable("front_matter", ignoreInvalid=True)
     md.renderer = SphinxNBRenderer(md)
     # make a sandbox where all the parsing global data,
@@ -119,7 +125,7 @@ def nb_to_tokens(ntbk):
             )
 
     # Now all definitions have been gathered,
-    # we run inline and post-inline chains, to expand the text
+    # we run inline and post-inline chains, to expand the text.
     # Note we assume here that these rules never require the actual source text,
     # only acting on the existing tokens
     state = StateCore(None, md, env, block_tokens)
@@ -153,6 +159,14 @@ def nb_to_tokens(ntbk):
         ] + state.tokens
 
     return md, env, state.tokens
+
+
+def tokens_to_docutils(
+    md: MarkdownIt, env: AttrDict, tokens: List[Token], document: nodes.document
+):
+    """Render the Markdown tokens to docutils AST."""
+    md.options["document"] = document
+    md.renderer.render(tokens, md.options, env)
 
 
 class SphinxNBRenderer(SphinxRenderer):
@@ -222,10 +236,11 @@ class CellOutputBundleNode(nodes.container):
 
     def __init__(self, outputs, rawsource="", *children, **attributes):
         self.outputs = outputs
+        attributes["outputs"] = len(outputs)
         super().__init__("", **attributes)
 
 
-def nb_output_to_disc(ntbk, document):
+def nb_output_to_disc(ntbk: nbf.NotebookNode, document: nodes.document) -> Path:
     """Write the notebook's output to disk
 
     We remove all the mime prefixes from "glue" step.

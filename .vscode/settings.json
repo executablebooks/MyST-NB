@@ -14,4 +14,5 @@
     "python.linting.flake8Enabled": true,
     "python.linting.enabled": true,
     "python.pythonPath": "/anaconda/envs/ebp/bin/python",
+    "python.dataScience.useNotebookEditor": false
 }
