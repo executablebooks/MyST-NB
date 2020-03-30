@@ -1,4 +1,3 @@
-import json
 from pathlib import Path
 from typing import List, Tuple
 
@@ -156,7 +155,7 @@ def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Tok
             "front_matter",
             "",
             0,
-            content=json.dumps(
+            content=(
                 {
                     k: v
                     for k, v in ntbk.metadata.items()

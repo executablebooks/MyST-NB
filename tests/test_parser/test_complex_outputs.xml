@@ -1,15 +1,4 @@
-<document source="notset">
-    <docinfo>
-        <field>
-            <field_name>
-                celltoolbar
-            <field_body>
-                Edit Metadata
-        <field>
-            <field_name>
-                hide_input
-            <field_body>
-                False
+<document source="complex_outputs">
     <CellNode cell_type="code" classes="cell">
         <CellInputNode classes="cell_input">
             <literal_block xml:space="preserve">

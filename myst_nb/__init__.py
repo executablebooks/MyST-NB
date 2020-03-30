@@ -1,7 +1,7 @@
 __version__ = "0.5.0a1"
 
 from docutils import nodes
-from myst_nb.cache import execution_cache
+from myst_nb.cache import execution_cache, filtered_nb_list
 from jupyter_sphinx.ast import (  # noqa: F401
     JupyterWidgetStateNode,
     JupyterWidgetViewNode,
@@ -40,6 +40,7 @@ def update_togglebutton_classes(app, config):
 
 def save_glue_cache(app, env):
     NbGlueDomain.from_env(env).write_cache()
+    filtered_nb_list.clear()
 
 
 def setup(app):

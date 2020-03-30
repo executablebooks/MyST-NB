@@ -17,9 +17,9 @@ logger = logging.getLogger(__name__)
 filtered_nb_list = set()  # TODO preferably this wouldn't be a global variable
 
 
-def execution_cache(app, builder, added, changed, removed, path_cache=None):
+def execution_cache(app, builder, added, changed, removed):
     """
-    If cacheing is required, stages and executes the added or modified notebooks,
+    If caching is required, stages and executes the added or modified notebooks,
     and caches them for further use.
     """
     jupyter_cache = False
@@ -67,12 +67,12 @@ def execution_cache(app, builder, added, changed, removed, path_cache=None):
             if os.path.isdir(jupyter_cache):
                 path_cache = jupyter_cache
             else:
-                logger.error("Path to jupyter_cache is not a directory")
+                logger.error(
+                    f"Path to jupyter_cache is not a directory: {jupyter_cache}"
+                )
                 exit(1)
         else:
-            path_cache = path_cache or Path(app.outdir).parent.joinpath(
-                ".jupyter_cache"
-            )
+            path_cache = Path(app.outdir).parent.joinpath(".jupyter_cache")
 
         app.env.path_cache = str(
             path_cache

@@ -1,46 +1,42 @@
-from myst_nb.parser import NotebookParser
-import myst_nb
+import pytest
 
 
-def test_basic_run(mock_document, get_notebook, file_regression):
-    parser = NotebookParser()
-    parser.parse(get_notebook("basic_run.ipynb").read_text(), mock_document)
-    file_regression.check(mock_document.pformat(), extension=".xml")
+@pytest.mark.nb_params(nb="basic_run.ipynb", conf={"jupyter_execute_notebooks": "off"})
+def test_basic_run(nb_run, file_regression):
+    nb_run.build()
+    # print(nb_run.status())
+    assert nb_run.warnings() == ""
+    assert nb_run.app.env.metadata == {"basic_run": {"test_name": "notebook1"}}
+    file_regression.check(nb_run.get_doctree().pformat(), extension=".xml")
+
     filenames = {
-        p.name for p in mock_document.settings.env.app.outdir.parent.glob("**/*")
+        p for p in (nb_run.app.srcdir / "_build" / "jupyter_execute").listdir()
     }
-    assert filenames == {"nb.py", "nb.ipynb", "source", "jupyter_execute"}
+    assert filenames == {"basic_run.py", "basic_run.ipynb"}
 
 
-def test_complex_outputs(mock_document, get_notebook, file_regression):
-    parser = NotebookParser()
-    parser.parse(get_notebook("complex_outputs.ipynb").read_text(), mock_document)
-    file_regression.check(mock_document.pformat(), extension=".xml")
+@pytest.mark.nb_params(
+    nb="complex_outputs.ipynb", conf={"jupyter_execute_notebooks": "off"}
+)
+def test_complex_outputs(nb_run, file_regression):
+    nb_run.build()
+    # print(nb_run.status())
+    assert nb_run.warnings() == ""
+    assert nb_run.app.env.metadata == {
+        "complex_outputs": {"celltoolbar": "Edit Metadata", "hide_input": "False"}
+    }
+    file_regression.check(nb_run.get_doctree().pformat(), extension=".xml")
+
     filenames = {
-        p.name.replace(".jpeg", ".jpg")
-        for p in mock_document.settings.env.app.outdir.parent.glob("**/*")
+        p.replace(".jpeg", ".jpg")
+        for p in (nb_run.app.srcdir / "_build" / "jupyter_execute").listdir()
     }
+    print(filenames)
     assert filenames == {
-        "source",
-        "jupyter_execute",
-        "nb.ipynb",
-        "nb.py",
-        "nb_13_0.jpg",
-        "nb_17_0.pdf",
-        "nb_17_0.svg",
-        "nb_24_0.png",
+        "complex_outputs_17_0.svg",
+        "complex_outputs.ipynb",
+        "complex_outputs_17_0.pdf",
+        "complex_outputs.py",
+        "complex_outputs_24_0.png",
+        "complex_outputs_13_0.jpg",
     }
-
-
-class MockApp:
-    def mock_method(self, *args, **kwargs):
-        pass
-
-    def __getattr__(self, name):
-        print(name)
-        return self.mock_method
-
-
-def test_sphinx_setup():
-    app = MockApp()
-    myst_nb.setup(app)
