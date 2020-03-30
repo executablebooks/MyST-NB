@@ -22,4 +22,4 @@ def test_complex_outputs(nb_run, file_regression):
     document = nb_run.get_doctree()
     transform = CellOutputsToNodes(document)
     transform.apply()
-    file_regression.check(document.pformat(), extension=".xml")
+    file_regression.check(document.pformat().replace(".jpeg", ".jpg"), extension=".xml")
