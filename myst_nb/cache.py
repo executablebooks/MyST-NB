@@ -17,39 +17,52 @@ logger = logging.getLogger(__name__)
 filtered_nb_list = set()  # TODO preferably this wouldn't be a global variable
 
 
-def execution_cache(app, env, added, changed, removed, path_cache=None):
+def execution_cache(app, builder, added, changed, removed, path_cache=None):
     """
     If cacheing is required, stages and executes the added or modified notebooks,
     and caches them for further use.
     """
     jupyter_cache = False
     exclude_files = []
-    nb_list = added.union(
+    file_list = added.union(
         changed
     )  # all the added and changed notebooks should be operated on.
 
-    if env.config["jupyter_execute_notebooks"] not in ["force", "auto", "cache", "off"]:
+    if app.config["jupyter_execute_notebooks"] not in ["force", "auto", "cache", "off"]:
         logger.error(
             "Conf jupyter_execute_notebooks can either be `force`, `auto`, `cache` or `off`"  # noqa: E501
         )
         exit(1)
 
-    jupyter_cache = env.config["jupyter_cache"]
+    jupyter_cache = app.config["jupyter_cache"]
 
     # excludes the file with patterns given in execution_excludepatterns
     # conf variable from executing, like index.rst
-    for path in env.config["execution_excludepatterns"]:
+    for path in app.config["execution_excludepatterns"]:
         exclude_files.extend(Path().cwd().rglob(path))
+
+    allowed_suffixes = {
+        suffix
+        for suffix, parser_type in app.config["source_suffix"].items()
+        if parser_type in ("ipynb",)
+    }
+
+    nb_list = [
+        p
+        for p in file_list
+        if os.path.splitext(app.env.doc2path(p))[1] in allowed_suffixes
+    ]
 
     for nb in nb_list:
         exclude = False
         for files in exclude_files:
             if nb in str(files):
                 exclude = True
+                break
         if not exclude:
             filtered_nb_list.add(nb)
 
-    if "cache" in env.config["jupyter_execute_notebooks"]:
+    if "cache" in app.config["jupyter_execute_notebooks"]:
         if jupyter_cache:
             if os.path.isdir(jupyter_cache):
                 path_cache = jupyter_cache
@@ -57,7 +70,7 @@ def execution_cache(app, env, added, changed, removed, path_cache=None):
                 logger.error("Path to jupyter_cache is not a directory")
                 exit(1)
         else:
-            path_cache = path_cache or Path(env.outdir).parent.joinpath(
+            path_cache = path_cache or Path(app.outdir).parent.joinpath(
                 ".jupyter_cache"
             )
 
@@ -67,13 +80,14 @@ def execution_cache(app, env, added, changed, removed, path_cache=None):
 
         cache_base = get_cache(path_cache)
         for path in removed:
-            docpath = env.env.doc2path(path)
+            docpath = app.env.doc2path(path)
             # there is an issue in sphinx doc2path, whereby if the path does not
             # exist then it will be assigned the default source_suffix (usually .rst)
-            docpath = os.path.splitext(docpath)[0] + ".ipynb"
-            cache_base.discard_staged_notebook(docpath)
+            for suffix in allowed_suffixes:
+                docpath = os.path.splitext(docpath)[0] + suffix
+                cache_base.discard_staged_notebook(docpath)
 
-        _stage_and_execute(env, filtered_nb_list, path_cache)
+        _stage_and_execute(app, filtered_nb_list, path_cache)
 
     elif jupyter_cache:
         logger.error(
@@ -82,10 +96,10 @@ def execution_cache(app, env, added, changed, removed, path_cache=None):
         )
         exit(1)
 
-    return nb_list  # TODO: can also compare timestamps for inputs outputs
+    return file_list  # TODO: can also compare timestamps for inputs outputs
 
 
-def _stage_and_execute(env, nb_list, path_cache):
+def _stage_and_execute(app, nb_list, path_cache):
     pk_list = None
 
     cache_base = get_cache(path_cache)
@@ -94,11 +108,7 @@ def _stage_and_execute(env, nb_list, path_cache):
         if "." in nb:  # nb includes the path to notebook
             source_path = nb
         else:
-            source_path = env.env.doc2path(nb)
-
-        # prevents execution of other formats like .md
-        if ".ipynb" not in source_path:
-            continue
+            source_path = app.env.doc2path(nb)
 
         if pk_list is None:
             pk_list = []

@@ -46,7 +46,11 @@ class MockEnv:
                 "jupyter_execute_notebooks": "off",
                 "execution_excludepatterns": [],
                 "jupyter_cache": "",
+                "source_suffix": {".ipynb": "ipynb"},
             }
+
+            def doc2path(docname):
+                return docname + ".ipynb"
 
         self.app = app
         self.env = env
