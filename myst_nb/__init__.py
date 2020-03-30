@@ -62,6 +62,7 @@ def update_togglebutton_classes(app, config):
 
 def save_glue_cache(app, env):
     NbGlueDomain.from_env(env).write_cache()
+    filtered_nb_list.clear()
 
 
 def setup(app):
