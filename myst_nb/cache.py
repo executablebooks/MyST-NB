@@ -14,7 +14,7 @@ from jupyter_cache.executors import load_executor
 
 logger = logging.getLogger(__name__)
 
-filtered_nb_list = set()
+filtered_nb_list = set()  # TODO preferably this wouldn't be a global variable
 
 
 def execution_cache(app, env, added, changed, removed, path_cache=None):
@@ -65,6 +65,14 @@ def execution_cache(app, env, added, changed, removed, path_cache=None):
             path_cache
         )  # TODO: is there a better way to make it accessible?
 
+        cache_base = get_cache(path_cache)
+        for path in removed:
+            docpath = env.env.doc2path(path)
+            # there is an issue in sphinx doc2path, whereby if the path does not
+            # exist then it will be assigned the default source_suffix (usually .rst)
+            docpath = os.path.splitext(docpath)[0] + ".ipynb"
+            cache_base.discard_staged_notebook(docpath)
+
         _stage_and_execute(env, filtered_nb_list, path_cache)
 
     elif jupyter_cache:
@@ -79,13 +87,6 @@ def execution_cache(app, env, added, changed, removed, path_cache=None):
 
 def _stage_and_execute(env, nb_list, path_cache):
     pk_list = None
-
-    try:
-        from jupyter_cache.cache.main import JupyterCacheBase  # noqa: F401
-    except ImportError:
-        logger.error(
-            "Using caching requires that jupyter_cache is installed."  # noqa: E501
-        )
 
     cache_base = get_cache(path_cache)
 
