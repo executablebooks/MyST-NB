@@ -9,7 +9,6 @@ from pathlib import Path
 from sphinx.util import logging
 from sphinx.util.osutil import ensuredir
 
-from jupyter_cache.cache.db import NbCacheRecord
 from jupyter_cache import get_cache
 from jupyter_cache.executors import load_executor
 
@@ -150,31 +149,15 @@ def add_notebook_outputs(env, ntbk, file_path=None):
         return ntbk
 
     cache_base = get_cache(path_cache)
-    db = cache_base.db
-    cache_record = None
     r_file_path = Path(file_path).relative_to(Path(file_path).cwd())
 
     try:
-        cache_list = NbCacheRecord.records_from_uri(file_path, db)
-        if len(cache_list):
-            latest = None
-            for item in cache_list:
-                if latest is None or (latest < item.created):
-                    latest = item.created
-                    latest_record = item
-            cache_record = latest_record
-    except KeyError:
-        cache_record = None
-        logger.error(
-            (
-                f"Couldn't find cache key for notebook file {str(r_file_path)}. "
-                "Outputs will not be inserted"
-            )
-        )
-
-    if cache_record:
         _, ntbk = cache_base.merge_match_into_notebook(ntbk)
-    else:
+    except KeyError:
+        message = (
+            f"Couldn't find cache key for notebook file {str(r_file_path)}. "
+            "Outputs will not be inserted."
+        )
         try:
             stage_record = cache_base.get_staged_record(file_path)
         except KeyError:
@@ -186,9 +169,11 @@ def add_notebook_outputs(env, ntbk, file_path=None):
             full_path = reports_dir + "/{}.log".format(file_name)
             with open(full_path, "w") as log_file:
                 log_file.write(stage_record.traceback)
-            logger.info(
-                "Execution traceback for {} is saved in {}".format(file_name, full_path)
+            message += "\n  Last execution failed with traceback saved in {}".format(
+                full_path
             )
+
+        logger.error(message)
 
     return ntbk
 
