@@ -1,5 +1,5 @@
 import json
-from os.path import splitext
+import os
 from pathlib import Path
 
 # import jupytext
@@ -12,40 +12,52 @@ RAW_DIRECTIVE = "{raw-cell}"
 
 def string_to_notebook(inputstring, env):
     """de-serialize a notebook or text-based representation"""
-    extension = splitext(env.doc2path(env.docname))[1]
+    extension = os.path.splitext(env.doc2path(env.docname))[1]
     if extension == ".ipynb":
         return nbf.reads(inputstring, nbf.NO_CONVERT)
-    elif is_myst_notebook(inputstring):
+    elif is_myst_notebook(inputstring.splitlines(keepends=True)):
         # return jupytext.reads(inputstring, fmt="myst")
         return myst_to_notebook(inputstring)
     return None
 
 
 def path_to_notebook(path):
-    extension = splitext(path)[1]
+    extension = os.path.splitext(path)[1]
     if extension == ".ipynb":
         return nbf.read(path, nbf.NO_CONVERT)
     else:
         return myst_to_notebook(Path(path).read_text())
 
 
-def is_myst_notebook(inputstring):
+def is_myst_file(path):
+    extension = os.path.splitext(path)[1]
+    if extension == ".ipynb":
+        return True
+    if not os.path.exists(path):
+        return False
+
+    with open(path) as handle:
+        # here we use an iterator, so that only the required lines are read
+        is_myst = is_myst_notebook((line for line in handle))
+
+    return is_myst
+
+
+def is_myst_notebook(line_iter):
     """Is the text file a MyST based notebook representation?"""
     # we need to distinguish between markdown representing notebooks
     # and standard notebooks.
     # Therefore, for now we require that, at a mimimum we can find some top matter
     # containing the jupytext format_name
-    lines = inputstring.splitlines()
-    if (not lines) or (not lines[0].startswith("---")):
-        return False
-
     yaml_lines = []
-    for line in lines[1:]:
-        if line.startswith("---") or line.startswith("..."):
+    for i, line in enumerate(line_iter):
+        if i == 0 and not line.startswith("---"):
+            return False
+        if i != 0 and (line.startswith("---") or line.startswith("...")):
             break
-        yaml_lines.append(line)
+        yaml_lines.append(line.rstrip() + "\n")
 
-    front_matter = yaml.safe_load("\n".join(yaml_lines))
+    front_matter = yaml.safe_load("".join(yaml_lines))
     if (
         front_matter.get("jupytext", {})
         .get("text_representation", {})

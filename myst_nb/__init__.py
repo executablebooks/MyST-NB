@@ -70,6 +70,7 @@ def setup(app):
     """Initialize Sphinx extension."""
     # Allow parsing ipynb files
     app.add_source_suffix(".ipynb", "myst-nb")
+    app.add_source_suffix(".md", "myst-nb")
     app.add_source_parser(NotebookParser)
     app.setup_extension("sphinx_togglebutton")
 

@@ -12,7 +12,7 @@ from sphinx.util.osutil import ensuredir
 from jupyter_cache import get_cache
 from jupyter_cache.executors import load_executor
 
-from .converter import path_to_notebook
+from .converter import path_to_notebook, is_myst_file
 
 LOGGER = logging.getLogger(__name__)
 
@@ -96,8 +96,9 @@ def _stage_and_execute(env, exec_docnames, path_cache):
 
     for nb in exec_docnames:
         source_path = env.doc2path(nb)
-        stage_record = cache_base.stage_notebook_file(source_path)
-        pk_list.append(stage_record.pk)
+        if is_myst_file(source_path):
+            stage_record = cache_base.stage_notebook_file(source_path)
+            pk_list.append(stage_record.pk)
 
     # can leverage parallel execution implemented in jupyter-cache here
     execute_staged_nb(cache_base, pk_list or None)
