@@ -2,6 +2,8 @@ __version__ = "0.6.0"
 
 from pathlib import Path
 
+from pathlib import Path
+
 from docutils import nodes
 from sphinx.util import logging
 
@@ -62,7 +64,6 @@ def update_togglebutton_classes(app, config):
 
 def save_glue_cache(app, env):
     NbGlueDomain.from_env(env).write_cache()
-    filtered_nb_list.clear()
 
 
 def setup(app):
