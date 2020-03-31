@@ -3,12 +3,12 @@
 MyST-NB also provides functionality for notebooks within markdown. This lets you
 include and control notebook-like behavior from with your markdown content.
 
-The primary way to accomplish this is with the `{execute}` directive. The content
+The primary way to accomplish this is with the `{jupyter-execute}` directive. The content
 of this directive should be runnable code in Jupyter. For example, the following
 code:
 
 ````
-```{execute}
+```{jupyter-execute}
 a = "This is some"
 b = "Python code!"
 print(f"{a} {b}")
@@ -17,7 +17,7 @@ print(f"{a} {b}")
 
 Yields the following:
 
-```{execute}
+```{jupyter-execute}
 a = "This is some"
 b = "Python code!"
 print(f"{a} {b}")

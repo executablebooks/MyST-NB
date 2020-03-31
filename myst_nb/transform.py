@@ -29,6 +29,7 @@ RENDER_PRIORITY = {
     "latex": ["text/latex", "text/plain"],
 }
 RENDER_PRIORITY["readthedocs"] = RENDER_PRIORITY["html"]
+RENDER_PRIORITY["singlehtml"] = RENDER_PRIORITY["html"]
 
 
 class CellOutputsToNodes(SphinxTransform):

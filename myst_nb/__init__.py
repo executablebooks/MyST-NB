@@ -125,8 +125,6 @@ def setup(app):
     app.connect("config-inited", update_togglebutton_classes)
     app.connect("env-updated", save_glue_cache)
     app.add_css_file("mystnb.css")
-    # We use `execute` here instead of `jupyter-execute`
-    app.add_directive("execute", JupyterCell)
     app.setup_extension("jupyter_sphinx")
     app.add_domain(NbGlueDomain)
 
