@@ -103,6 +103,7 @@ def nb_params(request):
     nb_path = NB_DIR.joinpath(nb_file)
     assert nb_path.exists(), nb_path
 
+
 @pytest.fixture()
 def nb_run(nb_params, make_app, tempdir):
     """A fixture to setup and run a sphinx build,
