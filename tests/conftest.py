@@ -18,21 +18,29 @@ def get_notebook():
 
 
 class SphinxFixture:
+    """A class returned by the ``nb_run`` fixture, to run sphinx,
+    and retrieve aspects of the build.
+    """
+
     def __init__(self, app, nb_file):
         self.app = app
         self.nb_file = nb_file
         self.nb_name = os.path.splitext(nb_file)[0]
 
     def build(self):
+        """Run the sphinx build."""
         self.app.build()
 
     def status(self):
+        """Return the stdout stream of the sphinx build."""
         return self.app._status.getvalue().strip()
 
     def warnings(self):
+        """Return the stderr stream of the sphinx build."""
         return self.app._warning.getvalue().strip()
 
     def get_doctree(self):
+        """Load and return the built docutils.document."""
         _path = self.app.doctreedir / (self.nb_name + ".doctree")
         if not _path.exists():
             pytest.fail("doctree not output")
@@ -44,18 +52,21 @@ class SphinxFixture:
         return doctree
 
     def get_html(self):
+        """Return the built HTML file."""
         _path = self.app.outdir / (self.nb_name + ".html")
         if not _path.exists():
             pytest.fail("html not output")
         return _path.text()
 
     def get_nb(self):
+        """Return the output notebook (after any execution)."""
         _path = self.app.srcdir / "_build" / "jupyter_execute" / self.nb_file
         if not _path.exists():
             pytest.fail("notebook not output")
         return _path.text()
 
     def get_report_file(self):
+        """Return the report file for a failed execution."""
         _path = self.app.outdir / "reports" / (self.nb_name + ".log")
         if not _path.exists():
             pytest.fail("report log not output")
@@ -65,7 +76,11 @@ class SphinxFixture:
 @pytest.fixture()
 def nb_params(request):
     """Parameters that are specified by 'pytest.mark.nb_params'
-    are passed to the ``nb_run`` fixture.
+    are passed to the ``nb_run`` fixture::
+
+        @pytest.mark.nb_params(nb="name.ipynb", conf={"option": "value"})
+        def test_something(nb_run):
+            ...
     """
     markers = request.node.iter_markers("nb_params")
     kwargs = {}
