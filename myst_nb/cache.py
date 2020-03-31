@@ -12,6 +12,8 @@ from sphinx.util.osutil import ensuredir
 from jupyter_cache import get_cache
 from jupyter_cache.executors import load_executor
 
+from .converter import path_to_notebook
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -45,10 +47,10 @@ def execution_cache(app, builder, added, changed, removed):
 
     jupyter_cache = app.config["jupyter_cache"]
 
-    exec_list = [
+    exec_docnames = [
         docname for docname in altered_docnames if is_valid_exec_file(app.env, docname)
     ]
-    LOGGER.verbose("MyST-NB: Potential docnames to execute: %s", exec_list)
+    LOGGER.verbose("MyST-NB: Potential docnames to execute: %s", exec_docnames)
 
     if "cache" in app.config["jupyter_execute_notebooks"]:
         if jupyter_cache:
@@ -76,7 +78,7 @@ def execution_cache(app, builder, added, changed, removed):
                 docpath = os.path.splitext(docpath)[0] + suffix
                 cache_base.discard_staged_notebook(docpath)
 
-        _stage_and_execute(app, exec_list, path_cache)
+        _stage_and_execute(app.env, exec_docnames, path_cache)
 
     elif jupyter_cache:
         LOGGER.error(
@@ -88,24 +90,17 @@ def execution_cache(app, builder, added, changed, removed):
     return altered_docnames
 
 
-def _stage_and_execute(app, exec_list, path_cache):
-    pk_list = None
-
+def _stage_and_execute(env, exec_docnames, path_cache):
+    pk_list = []
     cache_base = get_cache(path_cache)
 
-    for nb in exec_list:
-        if "." in nb:  # nb includes the path to notebook
-            source_path = nb
-        else:
-            source_path = app.env.doc2path(nb)
-
-        if pk_list is None:
-            pk_list = []
+    for nb in exec_docnames:
+        source_path = env.doc2path(nb)
         stage_record = cache_base.stage_notebook_file(source_path)
         pk_list.append(stage_record.pk)
 
     # can leverage parallel execution implemented in jupyter-cache here
-    execute_staged_nb(cache_base, pk_list)
+    execute_staged_nb(cache_base, pk_list or None)
 
 
 def add_notebook_outputs(env, ntbk, file_path=None):
@@ -186,7 +181,9 @@ def execute_staged_nb(cache_base, pk_list):
     except ImportError as error:
         LOGGER.error(str(error))
         return 1
-    result = executor.run_and_cache(filter_pks=pk_list or None)
+    result = executor.run_and_cache(
+        filter_pks=pk_list or None, converter=path_to_notebook
+    )
     return result
 
 

@@ -12,4 +12,4 @@
                     a=1
                     print(a)
             <CellOutputNode classes="cell_output">
-                <CellOutputBundleNode outputs="0">
+                <CellOutputBundleNode outputs="1">

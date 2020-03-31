@@ -1,4 +1,3 @@
-from os.path import splitext
 from pathlib import Path
 from typing import List, Tuple
 
@@ -8,7 +7,6 @@ from sphinx.util import logging
 
 from jupyter_sphinx.ast import get_widgets, JupyterWidgetStateNode
 from jupyter_sphinx.execute import contains_widgets, write_notebook_output
-import jupytext
 
 from markdown_it import MarkdownIt
 from markdown_it.token import Token
@@ -27,10 +25,10 @@ from myst_parser.main import default_parser
 from myst_parser.sphinx_renderer import SphinxRenderer
 from myst_parser.sphinx_parser import MystParser
 
+from myst_nb.cache import add_notebook_outputs
+from myst_nb.converter import string_to_notebook
 from myst_nb.nb_glue import GLUE_PREFIX
 from myst_nb.nb_glue.domain import NbGlueDomain
-
-from myst_nb.cache import add_notebook_outputs
 
 
 SPHINX_LOGGER = logging.getLogger(__name__)
@@ -59,7 +57,7 @@ class NotebookParser(MystParser):
             pass
 
         try:
-            ntbk = get_notebook(inputstring, self.env)
+            ntbk = string_to_notebook(inputstring, self.env)
         except Exception as err:
             SPHINX_LOGGER.error(
                 "Notebook load failed for %s: %s", self.env.docname, err
@@ -87,39 +85,6 @@ class NotebookParser(MystParser):
 
         # Render the Markdown tokens to docutils AST.
         tokens_to_docutils(md_parser, env, tokens, document)
-
-
-def get_notebook(inputstring, env):
-    """de-serialize the notebook"""
-    extension = splitext(env.doc2path(env.docname))[1]
-    if extension == ".ipynb":
-        return nbf.reads(inputstring, nbf.NO_CONVERT)
-
-    # we need to distinguish between markdown representing notebooks
-    # and standard notebooks.
-    # Therefore, for now we require that, at a mimimum we can find some top matter
-    # containing the `jupytext: text_representation: format_name: name`
-    # TODO this should be improved
-    lines = inputstring.splitlines()
-    if not lines:
-        return None
-    if not lines[0].startswith("---"):
-        return None
-    format_name = jfound = tfound = False
-    for line in lines[1:]:
-        if line.startswith("---") or line.startswith("..."):
-            break
-        if line.lstrip().startswith("jupytext:"):
-            jfound = True
-        elif jfound and line.lstrip().startswith("text_representation:"):
-            tfound = True
-        elif jfound and tfound and line.lstrip().startswith("format_name:"):
-            format_name = line.split(":", maxsplit=1)[1].strip()
-            break
-    if not format_name:
-        return None
-    nbtk = jupytext.reads(inputstring, fmt=format_name)
-    return nbtk
 
 
 def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Token]]:

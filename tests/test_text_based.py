@@ -3,7 +3,7 @@ import pytest
 
 @pytest.mark.nb_params(
     nb="basic_unrun.md",
-    conf={"jupyter_execute_notebooks": "off", "source_suffix": {".md": "myst-nb"}},
+    conf={"jupyter_execute_notebooks": "cache", "source_suffix": {".md": "myst-nb"}},
 )
 def test_basic_run(nb_run, file_regression, check_nbs):
     nb_run.build()
