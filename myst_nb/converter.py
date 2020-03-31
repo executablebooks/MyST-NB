@@ -63,19 +63,6 @@ def is_myst_notebook(inputstring):
             "A myst notebook text-representation requires "
             "kernelspec/display_name metadata"
         )
-    # TODO language_info is only really required by jupyter_sphinx, to dump the
-    # "code only version" of the notebook, should this be a hard-requirement,
-    # especially given that it is not automatically output by jupytext conversion
-    if "name" not in front_matter.get("language_info", {}):
-        raise IOError(
-            "A myst notebook text-representation requires "
-            "language_info/name metadata"
-        )
-    if "file_extension" not in front_matter.get("language_info", {}):
-        raise IOError(
-            "A myst notebook text-representation requires "
-            "language_info/file_extension metadata"
-        )
     return True
 
 
