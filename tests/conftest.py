@@ -24,11 +24,17 @@ class SphinxFixture:
 
     def __init__(self, app, nb_file):
         self.app = app
+        self.env = app.env
         self.nb_file = nb_file
         self.nb_name = os.path.splitext(nb_file)[0]
 
     def build(self):
         """Run the sphinx build."""
+        # reset streams before each build
+        self.app._status.truncate(0)
+        self.app._status.seek(0)
+        self.app._warning.truncate(0)
+        self.app._warning.seek(0)
         self.app.build()
 
     def status(self):
@@ -38,6 +44,10 @@ class SphinxFixture:
     def warnings(self):
         """Return the stderr stream of the sphinx build."""
         return self.app._warning.getvalue().strip()
+
+    def invalidate_notebook(self):
+        """Invalidate the notebook file, such that it will be flagged for a re-read."""
+        self.env.all_docs.pop(self.nb_name)
 
     def get_doctree(self):
         """Load and return the built docutils.document."""
@@ -107,7 +117,11 @@ def nb_run(nb_params, make_app, tempdir):
     (srcdir / "conf.py").write_text("")
 
     (srcdir / nb_file).write_text(nb_path.read_text())
-    confoverrides = {"extensions": ["myst_nb"], "master_doc": nb_name}
+    confoverrides = {
+        "extensions": ["myst_nb"],
+        "master_doc": nb_name,
+        "exclude_patterns": ["_build"],
+    }
     confoverrides.update(conf)
     app = make_app(buildername="html", srcdir=srcdir, confoverrides=confoverrides)
 
