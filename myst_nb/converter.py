@@ -10,14 +10,14 @@ CODE_DIRECTIVE = "{code-cell}"
 RAW_DIRECTIVE = "{raw-cell}"
 
 
-def string_to_notebook(inputstring, env):
+def string_to_notebook(inputstring, env, add_source_map=True):
     """de-serialize a notebook or text-based representation"""
     extension = os.path.splitext(env.doc2path(env.docname))[1]
     if extension == ".ipynb":
         return nbf.reads(inputstring, nbf.NO_CONVERT)
     elif is_myst_notebook(inputstring.splitlines(keepends=True)):
         # return jupytext.reads(inputstring, fmt="myst")
-        return myst_to_notebook(inputstring)
+        return myst_to_notebook(inputstring, add_source_map=add_source_map)
     return None
 
 
@@ -140,15 +140,15 @@ def myst_to_notebook(
     text,
     code_directive=CODE_DIRECTIVE,
     raw_directive=RAW_DIRECTIVE,
-    store_line_numbers=False,
+    add_source_map=False,
 ):
     """Convert text written in the myst format to a notebook.
 
     :param text: the file text
     :param code_directive: the name of the directive to search for containing code cells
     :param raw_directive: the name of the directive to search for containing raw cells
-    :param store_line_numbers: add a `_source_lines` key to cell metadata,
-        mapping to the source text.
+    :param add_source_map: add a `source_map` key to the notebook metadata,
+        which is a list of the starting source line number for each cell.
 
     :raises MystMetadataParsingError if the metadata block is not valid JSON/YAML
 
@@ -177,15 +177,15 @@ def myst_to_notebook(
     nbf_version = nbf.v4
     kwargs = {"metadata": nbf.from_dict(metadata_nb)}
     notebook = nbf_version.new_notebook(**kwargs)
+    source_map = []  # this is a list of the starting line number for each cell
 
     def _flush_markdown(start_line, token, md_metadata):
         """When we find a cell we check if there is preceding text.o"""
         endline = token.map[0] if token else len(lines)
         md_source = strip_blank_lines("\n".join(lines[start_line:endline]))
         meta = nbf.from_dict(md_metadata)
-        if store_line_numbers:
-            meta["_source_lines"] = [start_line, endline]
         if md_source:
+            source_map.append(start_line)
             notebook.cells.append(
                 nbf_version.new_markdown_cell(source=md_source, metadata=meta)
             )
@@ -206,8 +206,7 @@ def myst_to_notebook(
             _flush_markdown(md_start_line, token, md_metadata)
             options, body_lines = read_fenced_cell(token, len(notebook.cells), "Code")
             meta = nbf.from_dict(options)
-            if store_line_numbers:
-                meta["_source_lines"] = [token.map[0] + 1, token.map[1]]
+            source_map.append(token.map[0] + 1)
             notebook.cells.append(
                 nbf_version.new_code_cell(source="\n".join(body_lines), metadata=meta)
             )
@@ -218,8 +217,7 @@ def myst_to_notebook(
             _flush_markdown(md_start_line, token, md_metadata)
             options, body_lines = read_fenced_cell(token, len(notebook.cells), "Raw")
             meta = nbf.from_dict(options)
-            if store_line_numbers:
-                meta["_source_lines"] = [token.map[0] + 1, token.map[1]]
+            source_map.append(token.map[0] + 1)
             notebook.cells.append(
                 nbf_version.new_raw_cell(source="\n".join(body_lines), metadata=meta)
             )
@@ -233,4 +231,6 @@ def myst_to_notebook(
 
     _flush_markdown(md_start_line, None, md_metadata)
 
+    if add_source_map:
+        notebook.metadata["source_map"] = source_map
     return notebook

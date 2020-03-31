@@ -103,29 +103,33 @@ def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Tok
 
     # First only run pre-inline chains
     # so we can collect all reference definitions, etc, before assessing references
-    def parse_block(src, cell_index):
+    def parse_block(src, start_line):
         with md.reset_rules():
             # enable only rules up to block
             md.core.ruler.enableOnly(rules[: rules.index("inline")])
             tokens = md.parse(src, env)
         for token in tokens:
             if token.map:
-                token.map = [
-                    (cell_index + 1) * 10000 + token.map[0],
-                    (cell_index + 1) * 10000 + token.map[1],
-                ]
+                token.map = [start_line + token.map[0], start_line + token.map[1]]
         for dup_ref in env.get("duplicate_refs", []):
             if "fixed" not in dup_ref:
                 dup_ref["map"] = [
-                    (cell_index + 1) * 10000 + dup_ref["map"][0],
-                    (cell_index + 1) * 10000 + dup_ref["map"][1],
+                    start_line + dup_ref["map"][0],
+                    start_line + dup_ref["map"][1],
                 ]
                 dup_ref["fixed"] = True
         return tokens
 
     block_tokens = []
+    source_map = ntbk.metadata.get("source_map", None)
 
     for cell_index, nb_cell in enumerate(ntbk.cells):
+
+        # if the the source_map ahs been stored (for text-based notebooks),
+        # we use that do define the starting line for each cell
+        # otherwise, we set a pseudo base that represents the cell index
+        start_line = source_map[cell_index] if source_map else (cell_index + 1) * 10000
+        start_line += 1  # use base 1 rather than 0
 
         # Skip empty cells
         if len(nb_cell["source"].strip()) == 0:
@@ -142,7 +146,7 @@ def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Tok
             # we add the cell index to tokens,
             # so they can be included in the error logging,
             # although note this logic isn't currently implemented in SphinxRenderer
-            block_tokens.extend(parse_block(nb_cell["source"], cell_index))
+            block_tokens.extend(parse_block(nb_cell["source"], start_line))
 
         elif nb_cell["cell_type"] == "code":
             # here we do nothing but store the cell as a custom token
@@ -152,7 +156,7 @@ def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Tok
                     "",
                     0,
                     meta={"cell": nb_cell},
-                    map=[(cell_index + 1) * 10000, (cell_index + 1) * 10000],
+                    map=[start_line, start_line],
                 )
             )
 

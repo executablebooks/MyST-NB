@@ -76,7 +76,8 @@ def execution_cache(app, builder, added, changed, removed):
             # therefore, to be safe here, we run through all possible suffixes
             for suffix in app.env.allowed_nb_exec_suffixes:
                 docpath = os.path.splitext(docpath)[0] + suffix
-                cache_base.discard_staged_notebook(docpath)
+                if not os.path.exists(docpath):
+                    cache_base.discard_staged_notebook(docpath)
 
         _stage_and_execute(app.env, exec_docnames, path_cache)
 
