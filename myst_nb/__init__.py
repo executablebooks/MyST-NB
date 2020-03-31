@@ -48,7 +48,7 @@ def set_valid_execution_paths(app):
     app.env.allowed_nb_exec_suffixes = {
         suffix
         for suffix, parser_type in app.config["source_suffix"].items()
-        if parser_type in ("ipynb",)
+        if parser_type in ("myst-nb",)
     }
 
 
@@ -68,8 +68,8 @@ def save_glue_cache(app, env):
 
 def setup(app):
     """Initialize Sphinx extension."""
-    # Sllow parsing ipynb files
-    app.add_source_suffix(".ipynb", "ipynb")
+    # Allow parsing ipynb files
+    app.add_source_suffix(".ipynb", "myst-nb")
     app.add_source_parser(NotebookParser)
     app.setup_extension("sphinx_togglebutton")
 

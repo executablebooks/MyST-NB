@@ -1,3 +1,4 @@
+from os.path import splitext
 from pathlib import Path
 from typing import List, Tuple
 
@@ -7,13 +8,14 @@ from sphinx.util import logging
 
 from jupyter_sphinx.ast import get_widgets, JupyterWidgetStateNode
 from jupyter_sphinx.execute import contains_widgets, write_notebook_output
+import jupytext
 
 from markdown_it import MarkdownIt
 from markdown_it.token import Token
 from markdown_it.rules_core import StateCore
 from markdown_it.utils import AttrDict
 
-from myst_parser.main import default_parser
+from myst_parser.main import default_parser, to_docutils
 from myst_parser.sphinx_renderer import SphinxRenderer
 from myst_parser.sphinx_parser import MystParser
 
@@ -37,29 +39,40 @@ SPHINX_LOGGER = logging.getLogger(__name__)
 class NotebookParser(MystParser):
     """Docutils parser for IPynb + CommonMark + Math + Tables + RST Extensions """
 
-    supported = ("ipynb",)
+    supported = ("myst-nb",)
     translate_section_name = None
 
     default_config = {"known_url_schemes": None}
 
-    config_section = "ipynb parser"
+    config_section = "myst-nb parser"
     config_section_dependencies = ("parsers",)
 
-    def parse(self, inputstring: str, document: nodes.document, source_path=None):
+    def parse(self, inputstring: str, document: nodes.document):
 
-        # de-serialize the notebook
-        ntbk = nbf.reads(inputstring, nbf.NO_CONVERT)
         self.reporter = document.reporter
+        self.env = document.settings.env
         self.config = self.default_config.copy()
-
         try:
             new_cfg = document.settings.env.config.myst_config
             self.config.update(new_cfg)
         except AttributeError:
             pass
+
+        try:
+            ntbk = get_notebook(inputstring, self.env)
+        except Exception as err:
+            SPHINX_LOGGER.error(
+                "Notebook load failed for %s: %s", self.env.docname, err
+            )
+            return
+        if not ntbk:
+            # Read the notebook as a text-document
+            to_docutils(inputstring, options=self.config, document=document)
+            return
+
         # add outputs to notebook from the cache
         if document.settings.env.config["jupyter_execute_notebooks"] != "off":
-            ntbk = add_notebook_outputs(document.settings.env, ntbk, source_path)
+            ntbk = add_notebook_outputs(self.env, ntbk)
 
         # Parse the notebook content to a list of syntax tokens and an env
         # containing global data like reference definitions
@@ -69,11 +82,44 @@ class NotebookParser(MystParser):
         path_doc = nb_output_to_disc(ntbk, document)
 
         # Update our glue key list with new ones defined in this page
-        glue_domain = NbGlueDomain.from_env(document.settings.env)
+        glue_domain = NbGlueDomain.from_env(self.env)
         glue_domain.add_notebook(ntbk, path_doc)
 
         # Render the Markdown tokens to docutils AST.
         tokens_to_docutils(md_parser, env, tokens, document)
+
+
+def get_notebook(inputstring, env):
+    """de-serialize the notebook"""
+    extension = splitext(env.doc2path(env.docname))[1]
+    if extension == ".ipynb":
+        return nbf.reads(inputstring, nbf.NO_CONVERT)
+
+    # we need to distinguish between markdown representing notebooks
+    # and standard notebooks.
+    # Therefore, for now we require that, at a mimimum we can find some top matter
+    # containing the `jupytext: text_representation: format_name: name`
+    # TODO this should be improved
+    lines = inputstring.splitlines()
+    if not lines:
+        return None
+    if not lines[0].startswith("---"):
+        return None
+    format_name = jfound = tfound = False
+    for line in lines[1:]:
+        if line.startswith("---") or line.startswith("..."):
+            break
+        if line.lstrip().startswith("jupytext:"):
+            jfound = True
+        elif jfound and line.lstrip().startswith("text_representation:"):
+            tfound = True
+        elif jfound and tfound and line.lstrip().startswith("format_name:"):
+            format_name = line.split(":", maxsplit=1)[1].strip()
+            break
+    if not format_name:
+        return None
+    nbtk = jupytext.reads(inputstring, fmt=format_name)
+    return nbtk
 
 
 def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Token]]:
