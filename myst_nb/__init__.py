@@ -1,4 +1,4 @@
-__version__ = "0.5.0a1"
+__version__ = "0.6.0a1"
 
 from docutils import nodes
 from myst_nb.cache import execution_cache, filtered_nb_list
