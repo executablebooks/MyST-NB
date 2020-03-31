@@ -17,19 +17,6 @@ def get_notebook():
     return _get_notebook
 
 
-@pytest.fixture()
-def nb_params(request):
-    """Parameters that are specified by 'pytest.mark.doc_params'
-    are passed to the ``mock_document`` fixture.
-    """
-    markers = request.node.iter_markers("nb_params")
-    kwargs = {}
-    if markers is not None:
-        for info in reversed(list(markers)):
-            kwargs.update(info.kwargs)
-    return kwargs
-
-
 class SphinxFixture:
     def __init__(self, app, nb_file):
         self.app = app
@@ -76,7 +63,22 @@ class SphinxFixture:
 
 
 @pytest.fixture()
+def nb_params(request):
+    """Parameters that are specified by 'pytest.mark.nb_params'
+    are passed to the ``nb_run`` fixture.
+    """
+    markers = request.node.iter_markers("nb_params")
+    kwargs = {}
+    if markers is not None:
+        for info in reversed(list(markers)):
+            kwargs.update(info.kwargs)
+    return kwargs
+
+
+@pytest.fixture()
 def nb_run(nb_params, make_app, tempdir):
+    """A fixture to setup and run a sphinx build,
+    with the `myst_nb` extension for a single notebook, in a sandboxed folder."""
     nb_file = nb_params["nb"]
     conf = nb_params.get("conf", {})
 
