@@ -67,6 +67,11 @@ div.section div.jupyter_container {
   border: 1px solid #ffd6d6;
 }
 
+/* Math align to the left */
+.cell_output .MathJax_Display {
+  text-align: left !important;
+}
+
 /* Pandas tables. Pulled from the Jupyter / nbsphinx CSS */
 div.cell_output table {
     border: none;
