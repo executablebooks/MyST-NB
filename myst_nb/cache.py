@@ -102,7 +102,20 @@ def _stage_and_execute(env, exec_docnames, path_cache):
             pk_list.append(stage_record.pk)
 
     # can leverage parallel execution implemented in jupyter-cache here
-    execute_staged_nb(cache_base, pk_list or None)
+    try:
+        execute_staged_nb(cache_base, pk_list or None)
+    except OSError as err:
+        # This is a 'fix' for obscure cases, such as if you
+        # remove name.ipynb and add name.md (i.e. same name, different extension)
+        # and then name.ipynb isn't flagged for removal.
+        # Normally we want to keep the stage records available, so that we can retrieve
+        # execution tracebacks at the `add_notebook_outputs` stage,
+        # but we need to flush if it becomes 'corrupted'
+        LOGGER.error(
+            "Execution failed in an unexpected way, clearing staged notebooks: %s", err
+        )
+        for record in cache_base.list_staged_records():
+            cache_base.discard_staged_notebook(record.pk)
 
 
 def add_notebook_outputs(env, ntbk, file_path=None):
