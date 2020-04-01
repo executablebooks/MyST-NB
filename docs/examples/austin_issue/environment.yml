@@ -8,6 +8,7 @@ dependencies:
   - jupytext
   - sphinx
   - pydata-sphinx-theme
+  - ghp-import
   - pip
   - pip:
     - git+https://github.com/ExecutableBookProject/MyST-NB.git
