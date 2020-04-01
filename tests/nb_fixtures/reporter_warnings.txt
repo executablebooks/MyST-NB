@@ -1,0 +1,70 @@
+Unknown Role:
+.
+cells:
+  - cell_type: markdown
+    metadata: {}
+    source: |
+        a
+  - cell_type: markdown
+    metadata: {}
+    source: |
+        {unknown}`a`
+.
+source/path:20001: (ERROR/3) Unknown interpreted text role "unknown".
+.
+
+
+Unknown directive:
+.
+cells:
+  - cell_type: markdown
+    metadata: {}
+    source: |
+        a
+        ```{xyz}
+        ```
+.
+source/path:10002: (ERROR/3) Unknown directive type "xyz".
+.
+
+Directive parsing error:
+.
+cells:
+  - cell_type: markdown
+    metadata: {}
+    source: |
+        ```{class}
+        ```
+.
+source/path:10001: (ERROR/3) Directive 'class': 1 argument(s) required, 0 supplied
+.
+
+Directive run error:
+.
+cells:
+  - cell_type: markdown
+    metadata: {}
+    source: |
+        ```{date}
+        x
+        ```
+.
+source/path:10001: (ERROR/3) Invalid context: the "date" directive can only be used within a substitution definition.
+.
+
+Duplicate reference definition:
+.
+cells:
+  - cell_type: markdown
+    metadata: {}
+    source: |
+        [a]: b
+  - cell_type: markdown
+    metadata: {}
+    source: |
+        d
+
+        [a]: c
+.
+source/path:20003: (WARNING/2) Duplicate reference definition: A
+.

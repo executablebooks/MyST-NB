@@ -1,10 +1,4 @@
-<document source="notset">
-    <docinfo>
-        <field>
-            <field_name>
-                test_name
-            <field_body>
-                notebook1
+<document source="basic_failing">
     <section ids="a-title" names="a\ title">
         <title>
             a title
@@ -15,4 +9,4 @@
                 <literal_block xml:space="preserve">
                     raise Exception('oopsie!')
             <CellOutputNode classes="cell_output">
-                <CellOutputBundleNode>
+                <CellOutputBundleNode outputs="0">

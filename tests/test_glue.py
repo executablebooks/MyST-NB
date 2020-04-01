@@ -5,7 +5,6 @@ from docutils.transforms import Transformer
 
 from myst_nb.nb_glue import glue, transform, utils
 from myst_nb.nb_glue.domain import NbGlueDomain
-from myst_nb.parser import NotebookParser
 from myst_nb.transform import CellOutputsToNodes
 
 
@@ -100,16 +99,17 @@ def test_find_all_keys(get_notebook):
     }
 
 
-def test_parser(mock_document, get_notebook, file_regression):
-    parser = NotebookParser()
-    parser.parse(get_notebook("with_glue.ipynb").read_text(), mock_document)
-
-    transformer = Transformer(mock_document)
+@pytest.mark.nb_params(nb="with_glue.ipynb", conf={"jupyter_execute_notebooks": "off"})
+def test_parser(nb_run, file_regression):
+    nb_run.build()
+    # print(nb_run.status())
+    assert nb_run.warnings() == ""
+    document = nb_run.get_doctree()
+    transformer = Transformer(document)
     transformer.add_transforms([CellOutputsToNodes, transform.PasteNodesToDocutils])
     transformer.apply_transforms()
-
-    file_regression.check(mock_document.pformat(), extension=".xml")
-    glue_domain = NbGlueDomain.from_env(mock_document.document.settings.env)
+    file_regression.check(document.pformat(), extension=".xml")
+    glue_domain = NbGlueDomain.from_env(nb_run.app.env)
     assert set(glue_domain.cache) == {
         "key_text1",
         "key_float",
@@ -118,6 +118,6 @@ def test_parser(mock_document, get_notebook, file_regression):
         "key_plt",
         "sym_eq",
     }
-    glue_domain.clear_doc(mock_document.settings.env.docname)
+    glue_domain.clear_doc("with_glue")
     assert glue_domain.cache == {}
     assert glue_domain.docmap == {}
