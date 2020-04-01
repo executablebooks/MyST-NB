@@ -13,10 +13,10 @@ kernelspec:
 # Notebooks as Markdown
 
 MyST-NB also provides functionality for writing notebooks in a text-based format,
-utilising the [MyST Markdown format](https://jupytext.readthedocs.io/en/latest/formats.html#myst-markdown) outlined in [jupytext](https://jupytext.readthedocs.io).
+utilising the [MyST Markdown format](https://jupytext.readthedocs.io/en/latest/formats.html#myst-markdown) outlined in [jupytext](https://jupytext.readthedocs.io).[^download]
 These files have a 1-to-1 mapping with the notebook, so can be opened as notebooks
 in Jupyter Notebook and Jupyter Lab (with jupytext installed), and are also integrated
-directly into the {ref}`Execution and Caching <execute/cache>` machinery![^download]
+directly into the {ref}`Execution and Caching <execute/cache>` machinery!
 
 [^download]: This notebook can be downloaded as
             **{jupyter-download:notebook}`markdown`** and {download}`markdown.md`
@@ -36,6 +36,21 @@ kernelspec:
 
 ```{tip}
 You can also create the file from an existing notebook: `jupytext notebook.ipynb --to myst`
+```
+
+By default the `myst_nb` extension will look for both `.ipynb` and `.md` file extensions,
+treating markdown files with the above front matter as notebooks, and as standard
+markdown files otherwise. You can also change which files are parsed by MyST-NB using
+the [source_suffix](https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-source_suffix)
+option in your `conf.py`, e.g.:
+
+```python
+extensions = ["myst_nb"]
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.ipynb': 'myst-nb',
+    '.myst': 'myst-nb',
+}
 ```
 
 The following syntax can then be used to define a code cell:
