@@ -12,7 +12,7 @@ Code style is tested using [flake8](http://flake8.pycqa.org),
 with the configuration set in `.flake8`,
 and code formatted with [black](https://github.com/ambv/black).
 
-Installing with `myst-parser[code_style]` makes the [pre-commit](https://pre-commit.com/)
+Installing with `myst-nb[code_style]` makes the [pre-commit](https://pre-commit.com/)
 package available, which will ensure this style is met before commits are submitted, by reformatting the code
 and testing for lint errors.
 It can be setup by:
@@ -72,8 +72,8 @@ Merging pull requests: There are three ways of 'merging' pull requests on GitHub
 [coveralls-link]: https://coveralls.io/github/ExecutableBookProject/MyST-NB?branch=master
 [circleci-badge]: https://circleci.com/gh/ExecutableBookProject/MyST-NB.svg?style=shield
 [circleci-link]: https://circleci.com/gh/ExecutableBookProject/MyST-NB
-[rtd-badge]: https://readthedocs.org/projects/myst-parser/badge/?version=latest
-[rtd-link]: https://myst-parser.readthedocs.io/en/latest/?badge=latest
+[rtd-badge]: https://readthedocs.org/projects/myst-nb/badge/?version=latest
+[rtd-link]: https://myst-nb.readthedocs.io/en/latest/?badge=latest
 [black-badge]: https://img.shields.io/badge/code%20style-black-000000.svg
 [black-link]: https://github.com/ambv/black
 

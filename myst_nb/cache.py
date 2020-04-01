@@ -12,6 +12,8 @@ from sphinx.util.osutil import ensuredir
 from jupyter_cache import get_cache
 from jupyter_cache.executors import load_executor
 
+from .converter import path_to_notebook, is_myst_file
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -45,10 +47,10 @@ def execution_cache(app, builder, added, changed, removed):
 
     jupyter_cache = app.config["jupyter_cache"]
 
-    exec_list = [
+    exec_docnames = [
         docname for docname in altered_docnames if is_valid_exec_file(app.env, docname)
     ]
-    LOGGER.verbose("MyST-NB: Potential docnames to execute: %s", exec_list)
+    LOGGER.verbose("MyST-NB: Potential docnames to execute: %s", exec_docnames)
 
     if "cache" in app.config["jupyter_execute_notebooks"]:
         if jupyter_cache:
@@ -74,9 +76,10 @@ def execution_cache(app, builder, added, changed, removed):
             # therefore, to be safe here, we run through all possible suffixes
             for suffix in app.env.allowed_nb_exec_suffixes:
                 docpath = os.path.splitext(docpath)[0] + suffix
-                cache_base.discard_staged_notebook(docpath)
+                if not os.path.exists(docpath):
+                    cache_base.discard_staged_notebook(docpath)
 
-        _stage_and_execute(app, exec_list, path_cache)
+        _stage_and_execute(app.env, exec_docnames, path_cache)
 
     elif jupyter_cache:
         LOGGER.error(
@@ -88,24 +91,31 @@ def execution_cache(app, builder, added, changed, removed):
     return altered_docnames
 
 
-def _stage_and_execute(app, exec_list, path_cache):
-    pk_list = None
-
+def _stage_and_execute(env, exec_docnames, path_cache):
+    pk_list = []
     cache_base = get_cache(path_cache)
 
-    for nb in exec_list:
-        if "." in nb:  # nb includes the path to notebook
-            source_path = nb
-        else:
-            source_path = app.env.doc2path(nb)
-
-        if pk_list is None:
-            pk_list = []
-        stage_record = cache_base.stage_notebook_file(source_path)
-        pk_list.append(stage_record.pk)
+    for nb in exec_docnames:
+        source_path = env.doc2path(nb)
+        if is_myst_file(source_path):
+            stage_record = cache_base.stage_notebook_file(source_path)
+            pk_list.append(stage_record.pk)
 
     # can leverage parallel execution implemented in jupyter-cache here
-    execute_staged_nb(cache_base, pk_list)
+    try:
+        execute_staged_nb(cache_base, pk_list or None)
+    except OSError as err:
+        # This is a 'fix' for obscure cases, such as if you
+        # remove name.ipynb and add name.md (i.e. same name, different extension)
+        # and then name.ipynb isn't flagged for removal.
+        # Normally we want to keep the stage records available, so that we can retrieve
+        # execution tracebacks at the `add_notebook_outputs` stage,
+        # but we need to flush if it becomes 'corrupted'
+        LOGGER.error(
+            "Execution failed in an unexpected way, clearing staged notebooks: %s", err
+        )
+        for record in cache_base.list_staged_records():
+            cache_base.discard_staged_notebook(record.pk)
 
 
 def add_notebook_outputs(env, ntbk, file_path=None):
@@ -171,6 +181,14 @@ def add_notebook_outputs(env, ntbk, file_path=None):
             )
 
         LOGGER.error(message)
+
+        # This is a 'fix' for jupyter_sphinx, which requires this value for dumping the
+        # script file, to stop it from raising an exception if not found:
+        # Normally it would be added from the executed notebook but,
+        # since we are already logging an error, we don't want to block the whole build.
+        # So here we just add a dummy .txt extension
+        if "language_info" not in ntbk.metadata:
+            ntbk.metadata["language_info"] = nbf.from_dict({"file_extension": ".txt"})
     else:
         LOGGER.verbose("Merged cached outputs into %s", str(r_file_path))
 
@@ -186,7 +204,9 @@ def execute_staged_nb(cache_base, pk_list):
     except ImportError as error:
         LOGGER.error(str(error))
         return 1
-    result = executor.run_and_cache(filter_pks=pk_list or None)
+    result = executor.run_and_cache(
+        filter_pks=pk_list or None, converter=path_to_notebook
+    )
     return result
 
 

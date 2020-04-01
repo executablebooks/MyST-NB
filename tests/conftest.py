@@ -2,9 +2,22 @@ import os
 from pathlib import Path
 import pickle
 
-from docutils.utils import Reporter
-
 import pytest
+
+from docutils.utils import Reporter
+from nbdime.diffing.notebooks import (
+    diff_notebooks,
+    set_notebook_diff_targets,
+    set_notebook_diff_ignores,
+)
+from nbdime.prettyprint import pretty_print_diff
+import nbformat as nbf
+
+
+# -Diff Configuration-#
+NB_VERSION = 4
+set_notebook_diff_ignores({"/nbformat_minor": True})
+set_notebook_diff_targets(metadata=False)
 
 NB_DIR = Path(__file__).parent.joinpath("notebooks")
 
@@ -70,7 +83,9 @@ class SphinxFixture:
 
     def get_nb(self):
         """Return the output notebook (after any execution)."""
-        _path = self.app.srcdir / "_build" / "jupyter_execute" / self.nb_file
+        _path = (
+            self.app.srcdir / "_build" / "jupyter_execute" / (self.nb_name + ".ipynb")
+        )
         if not _path.exists():
             pytest.fail("notebook not output")
         return _path.text()
@@ -126,3 +141,36 @@ def nb_run(nb_params, make_app, tempdir):
     app = make_app(buildername="html", srcdir=srcdir, confoverrides=confoverrides)
 
     return SphinxFixture(app, nb_file)
+
+
+def empty_non_deterministic_outputs(cell):
+    if "outputs" in cell and len(cell.outputs):
+        for item in cell.outputs:
+            if "data" in item and "image/png" in item.data:
+                item.data["image/png"] = ""
+            if "filenames" in item.get("metadata", {}):
+                item["metadata"]["filenames"] = {
+                    k: os.path.basename(v)
+                    for k, v in item["metadata"]["filenames"].items()
+                }
+
+
+@pytest.fixture()
+def check_nbs():
+    def _check_nbs(obtained_filename, expected_filename):
+        obtained_nb = nbf.read(str(obtained_filename), nbf.NO_CONVERT)
+        expect_nb = nbf.read(str(expected_filename), nbf.NO_CONVERT)
+        for cell in expect_nb.cells:
+            empty_non_deterministic_outputs(cell)
+        for cell in obtained_nb.cells:
+            empty_non_deterministic_outputs(cell)
+        diff = diff_notebooks(obtained_nb, expect_nb)
+        filename_without_path = str(expected_filename)[
+            str(expected_filename).rfind("/") + 1 :
+        ]
+        if diff:
+            raise AssertionError(
+                pretty_print_diff(obtained_nb, diff, str(filename_without_path))
+            )
+
+    return _check_nbs

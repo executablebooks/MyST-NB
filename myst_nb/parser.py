@@ -13,14 +13,14 @@ from markdown_it.token import Token
 from markdown_it.rules_core import StateCore
 from markdown_it.utils import AttrDict
 
-from myst_parser.main import default_parser
+from myst_parser.main import default_parser, to_docutils
 from myst_parser.sphinx_renderer import SphinxRenderer
 from myst_parser.sphinx_parser import MystParser
 
+from myst_nb.cache import add_notebook_outputs
+from myst_nb.converter import string_to_notebook
 from myst_nb.nb_glue import GLUE_PREFIX
 from myst_nb.nb_glue.domain import NbGlueDomain
-
-from myst_nb.cache import add_notebook_outputs
 
 
 SPHINX_LOGGER = logging.getLogger(__name__)
@@ -29,29 +29,40 @@ SPHINX_LOGGER = logging.getLogger(__name__)
 class NotebookParser(MystParser):
     """Docutils parser for IPynb + CommonMark + Math + Tables + RST Extensions """
 
-    supported = ("ipynb",)
+    supported = ("myst-nb",)
     translate_section_name = None
 
     default_config = {"known_url_schemes": None}
 
-    config_section = "ipynb parser"
+    config_section = "myst-nb parser"
     config_section_dependencies = ("parsers",)
 
-    def parse(self, inputstring: str, document: nodes.document, source_path=None):
+    def parse(self, inputstring: str, document: nodes.document):
 
-        # de-serialize the notebook
-        ntbk = nbf.reads(inputstring, nbf.NO_CONVERT)
         self.reporter = document.reporter
+        self.env = document.settings.env
         self.config = self.default_config.copy()
-
         try:
             new_cfg = document.settings.env.config.myst_config
             self.config.update(new_cfg)
         except AttributeError:
             pass
+
+        try:
+            ntbk = string_to_notebook(inputstring, self.env)
+        except Exception as err:
+            SPHINX_LOGGER.error(
+                "Notebook load failed for %s: %s", self.env.docname, err
+            )
+            return
+        if not ntbk:
+            # Read the notebook as a text-document
+            to_docutils(inputstring, options=self.config, document=document)
+            return
+
         # add outputs to notebook from the cache
-        if document.settings.env.config["jupyter_execute_notebooks"] != "off":
-            ntbk = add_notebook_outputs(document.settings.env, ntbk, source_path)
+        if self.env.config["jupyter_execute_notebooks"] != "off":
+            ntbk = add_notebook_outputs(self.env, ntbk)
 
         # Parse the notebook content to a list of syntax tokens and an env
         # containing global data like reference definitions
@@ -61,7 +72,7 @@ class NotebookParser(MystParser):
         path_doc = nb_output_to_disc(ntbk, document)
 
         # Update our glue key list with new ones defined in this page
-        glue_domain = NbGlueDomain.from_env(document.settings.env)
+        glue_domain = NbGlueDomain.from_env(self.env)
         glue_domain.add_notebook(ntbk, path_doc)
 
         # Render the Markdown tokens to docutils AST.
@@ -84,29 +95,33 @@ def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Tok
 
     # First only run pre-inline chains
     # so we can collect all reference definitions, etc, before assessing references
-    def parse_block(src, cell_index):
+    def parse_block(src, start_line):
         with md.reset_rules():
             # enable only rules up to block
             md.core.ruler.enableOnly(rules[: rules.index("inline")])
             tokens = md.parse(src, env)
         for token in tokens:
             if token.map:
-                token.map = [
-                    (cell_index + 1) * 10000 + token.map[0],
-                    (cell_index + 1) * 10000 + token.map[1],
-                ]
+                token.map = [start_line + token.map[0], start_line + token.map[1]]
         for dup_ref in env.get("duplicate_refs", []):
             if "fixed" not in dup_ref:
                 dup_ref["map"] = [
-                    (cell_index + 1) * 10000 + dup_ref["map"][0],
-                    (cell_index + 1) * 10000 + dup_ref["map"][1],
+                    start_line + dup_ref["map"][0],
+                    start_line + dup_ref["map"][1],
                 ]
                 dup_ref["fixed"] = True
         return tokens
 
     block_tokens = []
+    source_map = ntbk.metadata.get("source_map", None)
 
     for cell_index, nb_cell in enumerate(ntbk.cells):
+
+        # if the the source_map ahs been stored (for text-based notebooks),
+        # we use that do define the starting line for each cell
+        # otherwise, we set a pseudo base that represents the cell index
+        start_line = source_map[cell_index] if source_map else (cell_index + 1) * 10000
+        start_line += 1  # use base 1 rather than 0
 
         # Skip empty cells
         if len(nb_cell["source"].strip()) == 0:
@@ -123,7 +138,7 @@ def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Tok
             # we add the cell index to tokens,
             # so they can be included in the error logging,
             # although note this logic isn't currently implemented in SphinxRenderer
-            block_tokens.extend(parse_block(nb_cell["source"], cell_index))
+            block_tokens.extend(parse_block(nb_cell["source"], start_line))
 
         elif nb_cell["cell_type"] == "code":
             # here we do nothing but store the cell as a custom token
@@ -133,7 +148,7 @@ def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Tok
                     "",
                     0,
                     meta={"cell": nb_cell},
-                    map=[(cell_index + 1) * 10000, (cell_index + 1) * 10000],
+                    map=[start_line, start_line],
                 )
             )
 
