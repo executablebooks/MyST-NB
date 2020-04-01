@@ -6,9 +6,9 @@ in Sphinx with MyST-NB.
 ```{toctree}
 :maxdepth: 1
 basic
+markdown
 interactive
 hiding
 execute
-markdown
 glue
 ```

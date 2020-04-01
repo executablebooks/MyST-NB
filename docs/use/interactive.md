@@ -16,9 +16,12 @@ Widgets and interactive outputs
 
 Jupyter Notebooks have support for many kinds of interactive outputs.
 These should all be supported in MyST-NB by passing the output HTML through
-automatically.
+automatically. This page has a few common examples.[^download]
 
-This page has a few common examples. First off, we'll download a little bit of data
+[^download]: This notebook can be downloaded as
+            **{jupyter-download:notebook}`interactive`** and {download}`interactive.md`
+
+First off, we'll download a little bit of data
 and show its structure:
 
 ```{code-cell} ipython3

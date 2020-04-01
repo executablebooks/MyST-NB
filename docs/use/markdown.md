@@ -16,7 +16,10 @@ MyST-NB also provides functionality for writing notebooks in a text-based format
 utilising the [MyST Markdown format](https://jupytext.readthedocs.io/en/latest/formats.html#myst-markdown) outlined in [jupytext](https://jupytext.readthedocs.io).
 These files have a 1-to-1 mapping with the notebook, so can be opened as notebooks
 in Jupyter Notebook and Jupyter Lab (with jupytext installed), and are also integrated
-directly into the {ref}`Execution and Caching <execute/cache>` machinery!
+directly into the {ref}`Execution and Caching <execute/cache>` machinery![^download]
+
+[^download]: This notebook can be downloaded as
+            **{jupyter-download:notebook}`markdown`** and {download}`markdown.md`
 
 They are distinguished from standard Markdown files by adding this top matter to the first line of you file (or the relevant `kernelspec` for your code):
 

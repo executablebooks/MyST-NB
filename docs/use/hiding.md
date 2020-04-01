@@ -16,7 +16,10 @@ Hiding cell contents
 
 You can use Jupyter Notebook **cell tags** to control some of the behavior of
 the rendered notebook. This uses the [**`sphinx-togglebutton`**](https://sphinx-togglebutton.readthedocs.io/en/latest/)
-package to add a little button that toggles the visibility of content.
+package to add a little button that toggles the visibility of content.[^download]
+
+[^download]: This notebook can be downloaded as
+            **{jupyter-download:notebook}`hiding`** and {download}`hiding.md`
 
 (use/hiding/code)=
 
@@ -160,7 +163,7 @@ Here's a cell with a `remove_output` tag:
 
 # This cell has a remove_output tag
 fig, ax = plt.subplots()
-ax.scatter(*data, c=data[0], s=data[0])
+points = ax.scatter(*data, c=data[0], s=data[0])
 ```
 
 And the following cell has a `remove_cell` tag (there should be nothing
@@ -171,5 +174,5 @@ below, since the cell will be gone).
 
 # This cell has a remove_cell tag
 fig, ax = plt.subplots()
-ax.scatter(*data, c=data[0], s=data[0])
+points = ax.scatter(*data, c=data[0], s=data[0])
 ```
