@@ -44,10 +44,20 @@ To install `myst-nb`, do the following:
   ]
   ```
 
-  ```{note}
-  If you'd like to use MyST to parse markdown files as well, then you can enable it by
-  adding `myst_parser` to your list of extensions as well.
-  ```
+By default, MyST-NB will parse both markdown (`.md`) and notebooks (`.ipynb`).
+You can also change which files are parsed by MyST-NB using
+the [source_suffix](https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-source_suffix)
+option in your `conf.py`, e.g.:
+
+```python
+extensions = ["myst_nb"]
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.ipynb': 'myst-nb',
+    '.myst': 'myst-nb',
+}
+```
+
 * Write Jupyter Notebooks with your built documentation, and remember to include them
   in your `toctree`, and that's it!
 

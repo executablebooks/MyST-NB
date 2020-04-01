@@ -57,7 +57,10 @@ def is_myst_notebook(line_iter):
             break
         yaml_lines.append(line.rstrip() + "\n")
 
-    front_matter = yaml.safe_load("".join(yaml_lines))
+    try:
+        front_matter = yaml.safe_load("".join(yaml_lines))
+    except Exception:
+        return False
     if (
         front_matter.get("jupytext", {})
         .get("text_representation", {})
