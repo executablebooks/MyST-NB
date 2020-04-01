@@ -2,8 +2,6 @@ __version__ = "0.6.0"
 
 from pathlib import Path
 
-from pathlib import Path
-
 from docutils import nodes
 from sphinx.util import logging
 

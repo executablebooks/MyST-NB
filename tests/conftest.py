@@ -114,10 +114,6 @@ def nb_params(request):
             kwargs.update(info.kwargs)
     return kwargs
 
-    nb_name = os.path.splitext(nb_file)[0]
-    nb_path = NB_DIR.joinpath(nb_file)
-    assert nb_path.exists(), nb_path
-
 
 @pytest.fixture()
 def nb_run(nb_params, make_app, tempdir):
