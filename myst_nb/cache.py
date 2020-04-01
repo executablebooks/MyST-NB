@@ -168,6 +168,14 @@ def add_notebook_outputs(env, ntbk, file_path=None):
             )
 
         LOGGER.error(message)
+
+        # This is a 'fix' for jupyter_sphinx, which requires this value for dumping the
+        # script file, to stop it from raising an exception if not found:
+        # Normally it would be added from the executed notebook but,
+        # since we are already logging an error, we don't want to block the whole build.
+        # So here we just add a dummy .txt extension
+        if "language_info" not in ntbk.metadata:
+            ntbk.metadata["language_info"] = nbf.from_dict({"file_extension": ".txt"})
     else:
         LOGGER.verbose("Merged cached outputs into %s", str(r_file_path))
 
