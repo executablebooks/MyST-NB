@@ -18,7 +18,7 @@ It relies heavily on the [`MyST` parser](https://github.com/ExecutableBookProjec
 
 For more information, [see the MyST-NB documentation](https://myst-nb.readthedocs.io/en/latest/)
 
-[github-ci]: https://github.com/ExecutableBookProject/MyST-NB/workflows/Python%20package/badge.svg?branch=master
+[github-ci]: https://github.com/ExecutableBookProject/MyST-NB/workflows/continuous-integration/badge.svg?branch=master
 [github-link]: https://github.com/ExecutableBookProject/MyST-NB
 [rtd-badge]: https://readthedocs.org/projects/myst-nb/badge/?version=latest
 [rtd-link]: https://myst-nb.readthedocs.io/en/latest/?badge=latest

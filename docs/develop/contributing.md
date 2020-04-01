@@ -66,7 +66,7 @@ Merging pull requests: There are three ways of 'merging' pull requests on GitHub
 - Merge with merge commit: put all commits as they are on the base branch, with a merge commit on top
     Choose for collaborative PRs with many commits. Here, the merge commit provides actual benefits.
 
-[github-ci]: https://github.com/ExecutableBookProject/MyST-NB/workflows/Python%20package/badge.svg?branch=master
+[github-ci]: https://github.com/ExecutableBookProject/MyST-NB/workflows/continuous-integration/badge.svg?branch=master
 [github-link]: https://github.com/ExecutableBookProject/MyST-NB
 [coveralls-badge]: https://coveralls.io/repos/github/ExecutableBookProject/MyST-NB/badge.svg?branch=master
 [coveralls-link]: https://coveralls.io/github/ExecutableBookProject/MyST-NB?branch=master
