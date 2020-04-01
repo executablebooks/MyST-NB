@@ -1,9 +1,8 @@
 """MyST-NB package setup."""
-from pathlib import Path
 from setuptools import find_packages, setup
 
 # Manually finding the version so we don't need to import our module
-text = path = Path("./myst_nb/__init__.py").read_text()
+text = open("./myst_nb/__init__.py").read()
 for line in text.split("\n"):
     if "__version__" in line:
         break
