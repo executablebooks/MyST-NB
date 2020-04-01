@@ -1,6 +1,3 @@
-from myst_nb.cache import execution_cache, add_notebook_outputs
-from myst_nb.parser import NotebookParser
-
 from nbdime.diffing.notebooks import (
     diff_notebooks,
     set_notebook_diff_targets,
@@ -24,6 +21,11 @@ def empty_non_deterministic_outputs(cell):
         for item in cell.outputs:
             if "data" in item and "image/png" in item.data:
                 item.data["image/png"] = ""
+            if "filenames" in item.get("metadata", {}):
+                item["metadata"]["filenames"] = {
+                    k: os.path.basename(v)
+                    for k, v in item["metadata"]["filenames"].items()
+                }
 
 
 def check_nbs(obtained_filename, expected_filename):
@@ -43,145 +45,137 @@ def check_nbs(obtained_filename, expected_filename):
         )
 
 
-def execute_and_merge(mock_environment, nb_list, first_nb):
-    ntbk = nbf.reads(first_nb.read_text(), nbf.NO_CONVERT)
-    execution_cache(
-        mock_environment,
-        mock_environment.env,
-        nb_list,
-        [],
-        [],
-        mock_environment.path_cache,
+@pytest.mark.nb_params(
+    nb="basic_unrun.ipynb", conf={"jupyter_execute_notebooks": "cache"}
+)
+def test_basic_unrun(nb_run, file_regression):
+    """The outputs should be populated."""
+    nb_run.build()
+    # print(nb_run.status())
+    assert nb_run.warnings() == ""
+    assert "test_name" in nb_run.app.env.metadata["basic_unrun"]
+    file_regression.check(nb_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
+    file_regression.check(nb_run.get_doctree().pformat(), extension=".xml")
+
+
+@pytest.mark.nb_params(
+    nb="basic_unrun.ipynb", conf={"jupyter_execute_notebooks": "cache"}
+)
+def test_rebuild_cache(nb_run):
+    """The notebook should only be executed once."""
+    nb_run.build()
+    assert "Executing" in nb_run.status(), nb_run.status()
+    nb_run.invalidate_notebook()
+    nb_run.build()
+    assert "Executing" not in nb_run.status(), nb_run.status()
+
+
+@pytest.mark.nb_params(
+    nb="basic_unrun.ipynb", conf={"jupyter_execute_notebooks": "force"}
+)
+def test_rebuild_force(nb_run):
+    """The notebook should be executed twice."""
+    nb_run.build()
+    assert "Executing" in nb_run.status(), nb_run.status()
+    nb_run.invalidate_notebook()
+    nb_run.build()
+    assert "Executing" in nb_run.status(), nb_run.status()
+
+
+@pytest.mark.nb_params(
+    nb="basic_unrun.ipynb",
+    conf={
+        "jupyter_execute_notebooks": "cache",
+        "execution_excludepatterns": ["basic_*"],
+    },
+)
+def test_exclude_path(nb_run, file_regression):
+    """The notebook should not be executed."""
+    nb_run.build()
+    assert len(nb_run.app.env.excluded_nb_exec_paths) == 1
+    assert "Executing" not in nb_run.status(), nb_run.status()
+    file_regression.check(nb_run.get_doctree().pformat(), extension=".xml")
+
+
+@pytest.mark.nb_params(
+    nb="basic_failing.ipynb", conf={"jupyter_execute_notebooks": "cache"}
+)
+def test_basic_failing(nb_run, file_regression):
+    nb_run.build()
+    # print(nb_run.status())
+    assert "Execution Failed" in nb_run.warnings()
+    assert (
+        "Couldn't find cache key for notebook file source/basic_failing.ipynb"
+        in nb_run.warnings()
     )
-    ntbk_output = add_notebook_outputs(mock_environment, ntbk, str(first_nb))
-    return ntbk, ntbk_output
+    file_regression.check(nb_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
+    file_regression.check(nb_run.get_doctree().pformat(), extension=".xml")
+    nb_run.get_report_file()
 
 
-def check_docutils_xml(mock_document, ntbk, first_nb, file_regression):
-    # for testing the generated docutils xml
-    parser = NotebookParser()
-    parser.parse(nbf.writes(ntbk), mock_document, str(first_nb))
-    file_regression.check(mock_document.pformat(), extension=".xml")
+@pytest.mark.nb_params(
+    nb="basic_unrun.ipynb", conf={"jupyter_execute_notebooks": "auto"}
+)
+def test_basic_unrun_nbclient(nb_run, file_regression):
+    nb_run.build()
+    # print(nb_run.status())
+    assert nb_run.warnings() == ""
+    assert "test_name" in nb_run.app.env.metadata["basic_unrun"]
+    file_regression.check(nb_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
+    file_regression.check(nb_run.get_doctree().pformat(), extension=".xml")
 
 
-def check_report_file(dest_path, nb):
-    report_dir = dest_path + "/reports"
-    if os.path.isdir(report_dir):
-        filename = str(nb)[str(nb).rfind("/") + 1 : str(nb).rfind(".")]
-        file_path = report_dir + "/{}.log".format(filename)
-        if not os.path.exists(file_path):
-            pytest.fail("log file for {} was not created".format(filename))
+@pytest.mark.nb_params(
+    nb="basic_unrun.ipynb", conf={"jupyter_execute_notebooks": "force"}
+)
+def test_outputs_present(nb_run, file_regression):
+    nb_run.build()
+    # print(nb_run.status())
+    assert nb_run.warnings() == ""
+    assert "test_name" in nb_run.app.env.metadata["basic_unrun"]
+    file_regression.check(nb_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
+    file_regression.check(nb_run.get_doctree().pformat(), extension=".xml")
 
 
-def test_basic_unrun(mock_document, get_notebook, file_regression):
-    first_nb = get_notebook("basic_unrun.ipynb")
-    mock_document.settings.env.set_config(["jupyter_execute_notebooks", "cache"])
-    mock_document.settings.env.set_docname("basic_unrun.ipynb")
-    nb_list = {str(first_nb.relative_to(first_nb.cwd()))}  # A set
-    ntbk, ntbk_output = execute_and_merge(mock_document.settings.env, nb_list, first_nb)
-    # for testing the generated notebook output
-    file_regression.check(
-        nbf.writes(ntbk_output), check_fn=check_nbs, extension=".ipynb"
-    )
-    check_docutils_xml(mock_document, ntbk, first_nb, file_regression)
+@pytest.mark.nb_params(
+    nb="complex_outputs_unrun.ipynb", conf={"jupyter_execute_notebooks": "cache"}
+)
+def test_complex_outputs_unrun(nb_run, file_regression):
+    nb_run.build()
+    # print(nb_run.status())
+    assert nb_run.warnings() == ""
+    file_regression.check(nb_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
+    file_regression.check(nb_run.get_doctree().pformat(), extension=".xml")
 
 
-def test_basic_failing(mock_document, get_notebook, file_regression):
-    first_nb = get_notebook("basic_failing.ipynb")
-    mock_document.settings.env.set_config(["jupyter_execute_notebooks", "cache"])
-    mock_document.settings.env.set_docname("basic_failing.ipynb")
-    nb_list = {str(first_nb.relative_to(first_nb.cwd()))}  # A set
-
-    ntbk, ntbk_output = execute_and_merge(mock_document.settings.env, nb_list, first_nb)
-    # for testing the generated notebook output
-    file_regression.check(
-        nbf.writes(ntbk_output), check_fn=check_nbs, extension=".ipynb"
-    )
-
-    check_report_file(mock_document.settings.env.env.outdir, first_nb)
-
-    check_docutils_xml(mock_document, ntbk, first_nb, file_regression)
+@pytest.mark.nb_params(
+    nb="complex_outputs_unrun.ipynb", conf={"jupyter_execute_notebooks": "auto"}
+)
+def test_complex_outputs_unrun_nbclient(nb_run, file_regression):
+    nb_run.build()
+    # print(nb_run.status())
+    assert nb_run.warnings() == ""
+    file_regression.check(nb_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
+    file_regression.check(nb_run.get_doctree().pformat(), extension=".xml")
 
 
-def test_basic_unrun_nbclient(mock_document, get_notebook, file_regression):
-    mock_document.settings.env.set_config(["jupyter_execute_notebooks", "auto"])
-    test_basic_unrun(mock_document, get_notebook, file_regression)
+@pytest.mark.nb_params(
+    nb="basic_unrun.ipynb", conf={"jupyter_execute_notebooks": "off"}
+)
+def test_no_execute(nb_run, file_regression):
+    nb_run.build()
+    # print(nb_run.status())
+    assert nb_run.warnings() == ""
+    file_regression.check(nb_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
+    file_regression.check(nb_run.get_doctree().pformat(), extension=".xml")
 
 
-def test_outputs_present(mock_document, get_notebook, file_regression):
-    mock_document.settings.env.set_config(["jupyter_execute_notebooks", "force"])
-    first_nb = get_notebook("basic_run.ipynb")
-    mock_document.settings.env.set_docname("basic_run.ipynb")
-    nb_list = {str(first_nb.relative_to(first_nb.cwd()))}  # A set
-
-    ntbk, ntbk_output = execute_and_merge(mock_document.settings.env, nb_list, first_nb)
-    # for testing the generated notebook output
-    file_regression.check(
-        nbf.writes(ntbk_output), check_fn=check_nbs, extension=".ipynb"
-    )
-
-    check_docutils_xml(mock_document, ntbk, first_nb, file_regression)
-
-
-def test_complex_outputs_unrun(mock_document, get_notebook, file_regression):
-    first_nb = get_notebook("complex_outputs_unrun.ipynb")
-    mock_document.settings.env.set_config(["jupyter_execute_notebooks", "cache"])
-    mock_document.settings.env.set_docname("complex_outputs_unrun.ipynb")
-    nb_list = {str(first_nb.relative_to(first_nb.cwd()))}  # A set
-
-    ntbk, ntbk_output = execute_and_merge(mock_document.settings.env, nb_list, first_nb)
-    # for testing the generated notebook output
-    file_regression.check(
-        nbf.writes(ntbk_output), check_fn=check_nbs, extension=".ipynb"
-    )
-
-    check_docutils_xml(mock_document, ntbk, first_nb, file_regression)
-
-
-def test_complex_outputs_unrun_nbclient(mock_document, get_notebook, file_regression):
-    mock_document.settings.env.set_config(["jupyter_execute_notebooks", "auto"])
-    first_nb = get_notebook("complex_outputs_unrun.ipynb")
-    mock_document.settings.env.set_docname("complex_outputs_unrun.ipynb")
-    nb_list = {str(first_nb.relative_to(first_nb.cwd()))}  # A set
-
-    ntbk, ntbk_output = execute_and_merge(mock_document.settings.env, nb_list, first_nb)
-    # for testing the generated notebook output
-    file_regression.check(
-        nbf.writes(ntbk_output), check_fn=check_nbs, extension=".ipynb"
-    )
-
-    check_docutils_xml(mock_document, ntbk, first_nb, file_regression)
-
-
-def test_no_execute(mock_document, get_notebook, file_regression):
-    mock_document.settings.env.set_config(["jupyter_execute_notebooks", "off"])
-    first_nb = get_notebook("basic_unrun.ipynb")
-    mock_document.settings.env.set_docname("basic_unrun.ipynb")
-    nb_list = {str(first_nb.relative_to(first_nb.cwd()))}  # A set
-
-    ntbk, ntbk_output = execute_and_merge(mock_document.settings.env, nb_list, first_nb)
-    # for testing the generated notebook output
-    file_regression.check(
-        nbf.writes(ntbk_output), check_fn=check_nbs, extension=".ipynb"
-    )
-
-    check_docutils_xml(mock_document, ntbk, first_nb, file_regression)
-
-
-def test_jupyter_cache_path(mock_document, get_notebook, file_regression):
-    jupyter_cache = mock_document.settings.env.env.outdir + "/.jupyter_cache"
-    os.makedirs(jupyter_cache)
-    mock_document.settings.env.set_config(["jupyter_cache", jupyter_cache])
-    mock_document.settings.env.set_config(["jupyter_execute_notebooks", "cache"])
-
-    first_nb = get_notebook("basic_unrun.ipynb")
-    mock_document.settings.env.set_docname("basic_unrun.ipynb")
-    nb_list = {str(first_nb.relative_to(first_nb.cwd()))}  # A set
-
-    ntbk, ntbk_output = execute_and_merge(mock_document.settings.env, nb_list, first_nb)
-    # for testing the generated notebook output
-    file_regression.check(
-        nbf.writes(ntbk_output), check_fn=check_nbs, extension=".ipynb"
-    )
-
-    check_docutils_xml(mock_document, ntbk, first_nb, file_regression)
+@pytest.mark.nb_params(
+    nb="basic_unrun.ipynb", conf={"jupyter_execute_notebooks": "cache"}
+)
+def test_jupyter_cache_path(nb_run, file_regression):
+    nb_run.build()
+    assert "Execution Succeeded" in nb_run.status()
+    assert nb_run.warnings() == ""
+    file_regression.check(nb_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
+    file_regression.check(nb_run.get_doctree().pformat(), extension=".xml")
