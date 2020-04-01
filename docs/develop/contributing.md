@@ -1,6 +1,6 @@
 # Contributing
 
-[![Travis-CI][travis-badge]][travis-link]
+[![Github-CI][github-ci]][github-link]
 [![Coverage][coveralls-badge]][coveralls-link]
 [![CircleCI][circleci-badge]][circleci-link]
 [![Documentation Status][rtd-badge]][rtd-link]
@@ -66,8 +66,8 @@ Merging pull requests: There are three ways of 'merging' pull requests on GitHub
 - Merge with merge commit: put all commits as they are on the base branch, with a merge commit on top
     Choose for collaborative PRs with many commits. Here, the merge commit provides actual benefits.
 
-[travis-link]: https://travis-ci.org/ExecutableBookProject/MyST-NB
-[travis-badge]: https://travis-ci.org/ExecutableBookProject/MyST-NB.svg?branch=master
+[github-ci]: https://github.com/ExecutableBookProject/MyST-NB/workflows/Python%20package/badge.svg?branch=master
+[github-link]: https://github.com/ExecutableBookProject/MyST-NB
 [coveralls-badge]: https://coveralls.io/repos/github/ExecutableBookProject/MyST-NB/badge.svg?branch=master
 [coveralls-link]: https://coveralls.io/github/ExecutableBookProject/MyST-NB?branch=master
 [circleci-badge]: https://circleci.com/gh/ExecutableBookProject/MyST-NB.svg?style=shield

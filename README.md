@@ -1,6 +1,6 @@
 # MyST-NB
 
-[![Build Status][travis-badge]][travis-link]
+[![Github-CI][github-ci]][github-link]
 [![Coverage Status][coveralls-badge]][coveralls-link]
 [![Documentation Status][rtd-badge]][rtd-link]
 [![PyPI][pypi-badge]][pypi-link]
@@ -18,8 +18,8 @@ It relies heavily on the [`MyST` parser](https://github.com/ExecutableBookProjec
 
 For more information, [see the MyST-NB documentation](https://myst-nb.readthedocs.io/en/latest/)
 
-[travis-link]: https://travis-ci.org/ExecutableBookProject/MyST-NB
-[travis-badge]: https://travis-ci.org/ExecutableBookProject/MyST-NB.svg?branch=master
+[github-ci]: https://github.com/ExecutableBookProject/MyST-NB/workflows/Python%20package/badge.svg?branch=master
+[github-link]: https://github.com/ExecutableBookProject/MyST-NB
 [rtd-badge]: https://readthedocs.org/projects/myst-nb/badge/?version=latest
 [rtd-link]: https://myst-nb.readthedocs.io/en/latest/?badge=latest
 [coveralls-badge]: https://coveralls.io/repos/github/ExecutableBookProject/MyST-NB/badge.svg
