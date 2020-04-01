@@ -40,11 +40,7 @@ Wow, a note!
 `````
 Other MyST features like **equation numbering** can be used in notebooks:
 
-```{math} e^{i\pi} + 1 = 0
----
-label: euler
----
-```
+$$e^{i\pi} + 1 = 0$$ (euler)
 
 Euler's identity, equation {math:numref}`euler`, was elected one of the
 most beautiful mathematical formulas.
