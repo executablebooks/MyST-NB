@@ -61,7 +61,7 @@ class NotebookParser(MystParser):
             return
 
         # add outputs to notebook from the cache
-        if document.settings.env.config["jupyter_execute_notebooks"] != "off":
+        if self.env.config["jupyter_execute_notebooks"] != "off":
             ntbk = add_notebook_outputs(self.env, ntbk)
 
         # Parse the notebook content to a list of syntax tokens and an env
