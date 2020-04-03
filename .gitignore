@@ -131,3 +131,4 @@ dmypy.json
 
 # Jupyter Cache
 docs/.jupyter_cache
+jupyter_execute
