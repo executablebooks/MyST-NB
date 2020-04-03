@@ -38,7 +38,14 @@ Wow, a note!
 ```
 ````
 `````
-Other MyST features like **equation numbering** can be used in notebooks:
+
+Equations work as expected:
+
+\begin{equation}
+\frac {\partial u}{\partial x} + \frac{\partial v}{\partial y} = - \, \frac{\partial w}{\partial z}
+\end{equation}
+
+And some MyST-specific features like **equation numbering** can be used in notebooks:
 
 $$e^{i\pi} + 1 = 0$$ (euler)
 

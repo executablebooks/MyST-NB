@@ -126,6 +126,7 @@ def setup(app):
     app.connect("config-inited", update_togglebutton_classes)
     app.connect("env-updated", save_glue_cache)
     app.add_css_file("mystnb.css")
+    app.add_js_file("mystnb.js")
     app.setup_extension("jupyter_sphinx")
     app.add_domain(NbGlueDomain)
 
