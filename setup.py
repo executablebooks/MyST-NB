@@ -39,7 +39,7 @@ setup(
     ],
     keywords="markdown lexer parser development docutils sphinx",
     python_requires=">=3.6",
-    package_data={"myst_nb": ["_static/mystnb.css"]},
+    package_data={"myst_nb": ["_static/*"]},
     install_requires=[
         "myst-parser~=0.8",
         "docutils>=0.15",
