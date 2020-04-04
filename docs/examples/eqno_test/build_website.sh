@@ -6,6 +6,7 @@ mkdir -p _build
 #
 # build the website
 #
-sphinx-build -N -v -b html . _build
+sphinx-build -N -v -b html . _build/html
+
 
 
