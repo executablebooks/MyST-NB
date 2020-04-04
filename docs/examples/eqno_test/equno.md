@@ -1,8 +1,8 @@
 ---
 jupytext:
   cell_metadata_filter: all
+  formats: ipynb,md:myst,py:percent
   notebook_metadata_filter: all,-language_info,-toc,-latex_envs
-  formats: ipynb,md:myst
   text_representation:
     extension: .md
     format_name: myst
@@ -16,10 +16,9 @@ kernelspec:
 
 # Equation test
 
-
 +++
 
-## Source -- with \$\$
+## Source -- with $$
 ```
 $$
 \begin{align}
@@ -27,7 +26,7 @@ $$
 \dot{y} & = \rho x - y - xz \\
 \dot{z} & = -\beta z + xy
 \end{align}
-$$
+$$(eq:one)
 ```
 ## Display \$\$
 
@@ -49,7 +48,7 @@ $$(eq:one)
 \dot{z} & = -\beta z + xy
 \end{align}
 ```
-## Display no \$\$
+## Display no $$
 
 
 \begin{align}
