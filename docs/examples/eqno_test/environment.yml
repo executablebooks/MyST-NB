@@ -5,7 +5,6 @@ channels:
 dependencies:
   - python=3.7.*
   - jupyter
-  - jupytext
   - sphinx
   - pydata-sphinx-theme
   - ghp-import
@@ -14,5 +13,6 @@ dependencies:
   - pip:
     - git+https://github.com/ExecutableBookProject/MyST-NB.git
     - jupyter-cache[cli]
+    - git+https://github.com/mwouts/jupytext.git
     
     
