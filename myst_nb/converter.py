@@ -12,7 +12,6 @@ RAW_DIRECTIVE = "{raw-cell}"
 
 def string_to_notebook(inputstring, env, add_source_map=True):
     """de-serialize a notebook or text-based representation"""
-    print("hi")
     extension = os.path.splitext(env.doc2path(env.docname))[1]
     if extension == ".ipynb":
         return nbf.reads(inputstring, nbf.NO_CONVERT)
