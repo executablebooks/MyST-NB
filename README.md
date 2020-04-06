@@ -1,7 +1,7 @@
 # MyST-NB
 
 [![Github-CI][github-ci]][github-link]
-[![Coverage Status][coveralls-badge]][coveralls-link]
+[![Coverage Status][codecov-badge]][codecov-link]
 [![Documentation Status][rtd-badge]][rtd-link]
 [![PyPI][pypi-badge]][pypi-link]
 
@@ -22,7 +22,7 @@ For more information, [see the MyST-NB documentation](https://myst-nb.readthedoc
 [github-link]: https://github.com/ExecutableBookProject/MyST-NB
 [rtd-badge]: https://readthedocs.org/projects/myst-nb/badge/?version=latest
 [rtd-link]: https://myst-nb.readthedocs.io/en/latest/?badge=latest
-[coveralls-badge]: https://coveralls.io/repos/github/ExecutableBookProject/MyST-NB/badge.svg
-[coveralls-link]: https://coveralls.io/github/ExecutableBookProject/MyST-NB
+[codecov-badge]: https://codecov.io/gh/ExecutableBookProject/MyST-NB/branch/master/graph/badge.svg
+[codecov-link]: https://codecov.io/gh/ExecutableBookProject/MyST-NB
 [pypi-badge]: https://img.shields.io/pypi/v/myst-nb.svg
 [pypi-link]: https://pypi.org/project/myst-nb
