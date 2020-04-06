@@ -42,6 +42,7 @@ jobs:
     - name: Run pytest
       run: |
         pytest --durations=10 --cov=myst_nb --cov-report=xml --cov-report=term-missing
+        coverage xml
     # - name: Upload to coveralls
     #   run: |
     #     pip install coveralls
