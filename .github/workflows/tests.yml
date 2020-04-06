@@ -42,11 +42,15 @@ jobs:
     - name: Test with pytest
       run: |
         pip install pytest
-        pytest --cov=myst_nb --cov-report=
-    - name: Upload to coveralls
-      uses: coverallsapp/github-action@master
+        pytest --cov=myst_nb --cov-report=xml
+    - name: Upload to Codecov
+      if: matrix.python-version == 3.7 && github.repository == ' ExecutableBookProject/MyST-NB'
+      uses: codecov/codecov-action@v1
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+        name: myst-nb-pytests-py3.7
+        flags: pytests
+        file: ./coverage.xml
+        fail_ci_if_error: true
 
   publish:
 
