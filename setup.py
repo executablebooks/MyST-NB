@@ -60,7 +60,6 @@ setup(
             "pytest-cov~=2.8",
             "coverage<5.0",
             "pytest-regressions",
-            "beautifulsoup4",
             "matplotlib",
             "numpy",
             "sympy",
