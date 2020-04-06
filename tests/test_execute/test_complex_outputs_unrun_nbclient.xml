@@ -2,10 +2,11 @@
     <CellNode cell_type="code" classes="cell">
         <CellInputNode classes="cell_input">
             <literal_block xml:space="preserve">
-                from ipypublish import nb_setup
-                plt = nb_setup.setup_matplotlib(print_errors=True, output=('svg',))
-                pd = nb_setup.setup_pandas(escape_latex=True)
-                sym = nb_setup.setup_sympy()
+                import matplotlib.pyplot as plt
+                import pandas as pd
+                pd.set_option('display.latex.repr', True)
+                import sympy as sym
+                sym.init_printing(use_latex=True)
                 import numpy as np
                 from IPython.display import Image, Latex
         <CellOutputNode classes="cell_output">

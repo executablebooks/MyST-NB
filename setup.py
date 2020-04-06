@@ -65,7 +65,6 @@ setup(
             "numpy",
             "sympy",
             "pandas",
-            "ipypublish",
         ],
         "rtd": [
             "sphinxcontrib-bibtex",
