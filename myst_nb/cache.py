@@ -38,7 +38,6 @@ def execution_cache(app, builder, added, changed, removed):
     # all the added and changed notebooks should be operated on.
     # note docnames are paths relative to the sphinx root folder, with no extensions
     altered_docnames = added.union(changed)
-
     if app.config["jupyter_execute_notebooks"] not in ["force", "auto", "cache", "off"]:
         LOGGER.error(
             "Conf jupyter_execute_notebooks can either be `force`, `auto`, `cache` or `off`"  # noqa: E501
@@ -212,7 +211,12 @@ def execute_staged_nb(cache_base, pk_list):
 
 def _read_nb_output_cells(source_path, jupyter_execute_notebooks):
     has_outputs = False
-    if jupyter_execute_notebooks and jupyter_execute_notebooks == "auto":
+    ext = source_path[source_path.rfind(".") :]
+    if (
+        jupyter_execute_notebooks
+        and jupyter_execute_notebooks == "auto"
+        and "ipynb" in ext
+    ):
         with open(source_path, "r") as f:
             ntbk = nbf.read(f, as_version=4)
             has_outputs = all(
