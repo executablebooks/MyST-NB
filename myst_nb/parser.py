@@ -27,7 +27,7 @@ SPHINX_LOGGER = logging.getLogger(__name__)
 
 
 class NotebookParser(MystParser):
-    """Docutils parser for IPynb + CommonMark + Math + Tables + RST Extensions """
+    """Docutils parser for IPynb + CommonMark + Extensions """
 
     supported = ("myst-nb",)
     translate_section_name = None
