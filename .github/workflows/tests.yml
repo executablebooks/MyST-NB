@@ -44,11 +44,9 @@ jobs:
         pip install pytest
         pytest --cov=myst_nb --cov-report=
     - name: Upload to coveralls
-      run: |
-        pip install coveralls
-        coveralls
-      env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_KEY }}
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
 
   publish:
 
