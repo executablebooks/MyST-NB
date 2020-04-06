@@ -211,7 +211,8 @@ def execute_staged_nb(cache_base, pk_list):
 
 def _read_nb_output_cells(source_path, jupyter_execute_notebooks):
     has_outputs = False
-    ext = source_path[source_path.rfind(".") :]
+    ext = os.path.splitext(source_path)[1]
+
     if (
         jupyter_execute_notebooks
         and jupyter_execute_notebooks == "auto"
