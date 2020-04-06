@@ -2,7 +2,13 @@
     <CellNode cell_type="code" classes="cell">
         <CellInputNode classes="cell_input">
             <literal_block xml:space="preserve">
-                from ipypublish.scripts.ipynb_latex_setup import *
+                import matplotlib.pyplot as plt
+                import pandas as pd
+                pd.set_option('display.latex.repr', True)
+                import sympy as sym
+                sym.init_printing(use_latex=True)
+                import numpy as np
+                from IPython.display import Image, Latex
         <CellOutputNode classes="cell_output">
             <CellOutputBundleNode outputs="0">
     <section ids="markdown" names="markdown">
