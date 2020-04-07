@@ -43,12 +43,14 @@ def test_complex_outputs(sphinx_run, file_regression):
 
 
 @pytest.mark.sphinx_params(
-    "toctree.ipynb",
-    "basic_run.ipynb",
+    "latex_build/index.ipynb",
+    "latex_build/other.ipynb",
     conf={"jupyter_execute_notebooks": "off"},
+    buildername="latex",
     # working_dir="/Users/cjs14/GitHub/MyST-NB-actual/outputs"
 )
 def test_toctree_in_ipynb(sphinx_run):
     sphinx_run.build()
     print(sphinx_run.status())
+    print(sphinx_run.warnings())
     assert sphinx_run.warnings() == ""

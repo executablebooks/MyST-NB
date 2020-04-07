@@ -230,7 +230,7 @@ class SphinxNBRenderer(SphinxRenderer):
         # ==================
         # Cell output
         # ==================
-        if "remove_output" not in tags:
+        if "remove_output" not in tags and cell["outputs"]:
             cell_output = CellOutputNode(classes=["cell_output"])
             sphinx_cell += cell_output
 

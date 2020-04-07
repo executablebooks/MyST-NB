@@ -2,6 +2,7 @@ import json
 import os
 from pathlib import Path
 import pickle
+import uuid
 
 import pytest
 
@@ -134,6 +135,7 @@ def sphinx_run(sphinx_params, make_app, tempdir):
     """
     assert len(sphinx_params["files"]) > 0, sphinx_params["files"]
     conf = sphinx_params.get("conf", {})
+    buildername = sphinx_params.get("buildername", "html")
 
     confoverrides = {
         "extensions": ["myst_nb"],
@@ -146,11 +148,11 @@ def sphinx_run(sphinx_params, make_app, tempdir):
     if "working_dir" in sphinx_params:
         from sphinx.testing.path import path
 
-        base_dir = path(sphinx_params["working_dir"])
+        base_dir = path(sphinx_params["working_dir"]) / str(uuid.uuid4())
     else:
         base_dir = tempdir
     srcdir = base_dir / "source"
-    srcdir.makedirs()
+    srcdir.makedirs(exist_ok=True)
     os.chdir(base_dir)
     (srcdir / "conf.py").write_text(
         "# conf overrides (passed directly to sphinx):\n"
@@ -163,9 +165,10 @@ def sphinx_run(sphinx_params, make_app, tempdir):
     for nb_file in sphinx_params["files"]:
         nb_path = TEST_FILE_DIR.joinpath(nb_file)
         assert nb_path.exists(), nb_path
+        (srcdir / nb_file).parent.makedirs(exist_ok=True)
         (srcdir / nb_file).write_text(nb_path.read_text())
 
-    app = make_app(buildername="html", srcdir=srcdir, confoverrides=confoverrides)
+    app = make_app(buildername=buildername, srcdir=srcdir, confoverrides=confoverrides)
 
     yield SphinxFixture(app, sphinx_params["files"])
 
