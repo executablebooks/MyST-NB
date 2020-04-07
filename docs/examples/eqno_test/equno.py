@@ -88,23 +88,23 @@
 #
 # ```
 # $$
-# \begin{split}
+# \begin{align}
 # \mathrm{Var}(\hat{\beta}) & =\mathrm{Var}((X'X)^{-1}X'y)\\
-#  & =(X'X)^{-1}X'\mathrm{Var}(y)((X'X)^{-1}X')'  \label{eq:sub1}\\
+#  & =(X'X)^{-1}X'\mathrm{Var}(y)((X'X)^{-1}X')'  \tag{subtest1}\\
 #  & =(X'X)^{-1}X'\mathrm{Var}(y)X(X'X)^{-1}\notag\\
 #  & =(X'X)^{-1}X'\sigma^{2}IX(X'X)^{-1}\\
-#  & =(X'X)^{-1}\sigma^{2}\label{sub:2}
-#  \end{split}
+#  & =(X'X)^{-1}\sigma^{2}\tag{subtest2}
+# \end{align}
 #  $$
 # ```
 #
 #
 # $$
-# \begin{split}
+# \begin{align}
 # \mathrm{Var}(\hat{\beta}) & =\mathrm{Var}((X'X)^{-1}X'y)\\
-#  & =(X'X)^{-1}X'\mathrm{Var}(y)((X'X)^{-1}X')'  \label{eq:sub1}\\
+#  & =(X'X)^{-1}X'\mathrm{Var}(y)((X'X)^{-1}X')'  \tag{subtest1}\\
 #  & =(X'X)^{-1}X'\mathrm{Var}(y)X(X'X)^{-1}\notag\\
 #  & =(X'X)^{-1}X'\sigma^{2}IX(X'X)^{-1}\\
-#  & =(X'X)^{-1}\sigma^{2}\label{sub:2}
-#  \end{split}
+#  & =(X'X)^{-1}\sigma^{2}\tag{subtest2}
+#  \end{align}
 #  $$
