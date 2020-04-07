@@ -1,6 +1,7 @@
 /* Whole cell */
 div.container.cell {
   padding-left: 0;
+  margin-bottom: 1em;
 }
 
 /* Removing all background formatting so we can control at the div level */
@@ -34,7 +35,6 @@ div.cell_input > div, div.cell_output div.output > div.highlight {
 .cell_output {
   padding-left: 1em;
   padding-right: 0em;
-  margin-bottom: 1em;
   margin-top: 1em;
 }
 
