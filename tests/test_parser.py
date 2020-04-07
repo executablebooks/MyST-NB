@@ -40,3 +40,15 @@ def test_complex_outputs(sphinx_run, file_regression):
         "complex_outputs_24_0.png",
         "complex_outputs_13_0.jpg",
     }
+
+
+@pytest.mark.sphinx_params(
+    "toctree.ipynb",
+    "basic_run.ipynb",
+    conf={"jupyter_execute_notebooks": "off"},
+    # working_dir="/Users/cjs14/GitHub/MyST-NB-actual/outputs"
+)
+def test_toctree_in_ipynb(sphinx_run):
+    sphinx_run.build()
+    print(sphinx_run.status())
+    assert sphinx_run.warnings() == ""
