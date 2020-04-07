@@ -76,7 +76,7 @@ for example those discussed in {ref}`use/hiding/code`:
 
 ````md
 ```{code-cell} ipython3
-:tags: [hide_output]
+:tags: [hide-output]
 
 for i in range(20):
     print("Millhouse did not test cootie positive")
@@ -86,7 +86,7 @@ for i in range(20):
 Yields the following:
 
 ```{code-cell} ipython3
-:tags: [hide_output]
+:tags: [hide-output]
 
 for i in range(20):
     print("Millhouse did not test cootie positive")

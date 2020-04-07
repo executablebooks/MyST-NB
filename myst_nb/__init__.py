@@ -53,8 +53,11 @@ def set_valid_execution_paths(app):
 def update_togglebutton_classes(app, config):
     to_add = [
         ".tag_hide_input div.cell_input",
+        ".tag_hide-input div.cell_input",
         ".tag_hide_output div.cell_output",
+        ".tag_hide-output div.cell_output",
         ".tag_hide_cell.cell",
+        ".tag_hide-cell.cell",
     ]
     for selector in to_add:
         config.togglebutton_selector += f", {selector}"
