@@ -205,7 +205,7 @@ def execute_staged_nb(cache_base, pk_list):
         LOGGER.error(str(error))
         return 1
     result = executor.run_and_cache(
-        filter_pks=pk_list or None, converter=path_to_notebook
+        filter_pks=pk_list or None, converter=path_to_notebook, timeout=-1
     )
     return result
 
