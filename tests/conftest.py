@@ -1,3 +1,4 @@
+import json
 import os
 from pathlib import Path
 import pickle
@@ -111,6 +112,8 @@ def sphinx_params(request):
         @pytest.mark.sphinx_params("name.ipynb", conf={"option": "value"})
         def test_something(sphinx_run):
             ...
+
+    The first file specified here will be set as the master_doc
     """
     markers = request.node.iter_markers("sphinx_params")
     kwargs = {}
@@ -132,6 +135,13 @@ def sphinx_run(sphinx_params, make_app, tempdir):
     assert len(sphinx_params["files"]) > 0, sphinx_params["files"]
     conf = sphinx_params.get("conf", {})
 
+    confoverrides = {
+        "extensions": ["myst_nb"],
+        "master_doc": os.path.splitext(sphinx_params["files"][0])[0],
+        "exclude_patterns": ["_build"],
+    }
+    confoverrides.update(conf)
+
     current_dir = os.getcwd()
     if "working_dir" in sphinx_params:
         from sphinx.testing.path import path
@@ -142,19 +152,19 @@ def sphinx_run(sphinx_params, make_app, tempdir):
     srcdir = base_dir / "source"
     srcdir.makedirs()
     os.chdir(base_dir)
-    (srcdir / "conf.py").write_text("")
+    (srcdir / "conf.py").write_text(
+        "# conf overrides (passed directly to sphinx):\n"
+        + "\n".join(
+            ["# " + l for l in json.dumps(confoverrides, indent=2).splitlines()]
+        )
+        + "\n"
+    )
 
     for nb_file in sphinx_params["files"]:
         nb_path = TEST_FILE_DIR.joinpath(nb_file)
         assert nb_path.exists(), nb_path
         (srcdir / nb_file).write_text(nb_path.read_text())
 
-    confoverrides = {
-        "extensions": ["myst_nb"],
-        "master_doc": os.path.splitext(sphinx_params["files"][0])[0],
-        "exclude_patterns": ["_build"],
-    }
-    confoverrides.update(conf)
     app = make_app(buildername="html", srcdir=srcdir, confoverrides=confoverrides)
 
     yield SphinxFixture(app, sphinx_params["files"])
