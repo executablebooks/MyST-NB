@@ -8,7 +8,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.4.1+dev
+#       jupytext_version: 1.4.2
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -19,7 +19,9 @@
 # # Equation test
 
 # %% [markdown]
-# ## Source -- with $$
+# ## Delimiters
+#
+# ### Source -- with $$
 # ```
 # $$
 # \begin{align}
@@ -29,7 +31,7 @@
 # \end{align}
 # $$(eq:one)
 # ```
-# ## Display \$\$
+# ### Display \$\$
 #
 # $$
 # \begin{align}
@@ -40,22 +42,69 @@
 # $$(eq:one)
 
 # %% [markdown]
-# ## Source -- no \$\$
+# ### Source -- no \$\$
 # ```
-# \begin{align}
+# \begin{align*}
 # \dot{x} & = \sigma(y-x) \\
 # \dot{y} & = \rho x - y - xz \\
 # \dot{z} & = -\beta z + xy
-# \end{align}
+# \end{align*}
 # ```
-# ## Display no $$
+# ### Display no $$
 #
 #
-# \begin{align}
+# \begin{align*}
 # \dot{x} & = \sigma(y-x) \\
 # \dot{y} & = \rho x - y - xz \\
 # \dot{z} & = -\beta z + xy
-# \end{align}
+# \end{align*}
 
 # %% [markdown]
 # Reference {eq}`eq:one`
+#
+# ## aligned equations
+#
+# ### align numbering single
+#
+# ```
+# $$
+# \begin{align} 
+# g(X_{n}) &= g(\theta)+g'({\tilde{\theta}})(X_{n}-\theta) \notag \\
+# \sqrt{n}[g(X_{n})-g(\theta)] &= g'\left({\tilde{\theta}}\right)
+#   \sqrt{n}[X_{n}-\theta ] 
+# \end{align} 
+# $$(eq:align1)
+# ```
+#
+# $$
+# \begin{align} 
+# g(X_{n}) &= g(\theta)+g'({\tilde{\theta}})(X_{n}-\theta) \notag \\
+# \sqrt{n}[g(X_{n})-g(\theta)] &= g'\left({\tilde{\theta}}\right)
+#   \sqrt{n}[X_{n}-\theta ] 
+# \end{align} 
+# $$(eq:align1)
+#
+# ### align numbering multiple
+#
+# ```
+# $$
+# \begin{split}
+# \mathrm{Var}(\hat{\beta}) & =\mathrm{Var}((X'X)^{-1}X'y)\\
+#  & =(X'X)^{-1}X'\mathrm{Var}(y)((X'X)^{-1}X')'  \label{eq:sub1}\\
+#  & =(X'X)^{-1}X'\mathrm{Var}(y)X(X'X)^{-1}\notag\\
+#  & =(X'X)^{-1}X'\sigma^{2}IX(X'X)^{-1}\\
+#  & =(X'X)^{-1}\sigma^{2}\label{sub:2}
+#  \end{split}
+#  $$
+# ```
+#
+#
+# $$
+# \begin{split}
+# \mathrm{Var}(\hat{\beta}) & =\mathrm{Var}((X'X)^{-1}X'y)\\
+#  & =(X'X)^{-1}X'\mathrm{Var}(y)((X'X)^{-1}X')'  \label{eq:sub1}\\
+#  & =(X'X)^{-1}X'\mathrm{Var}(y)X(X'X)^{-1}\notag\\
+#  & =(X'X)^{-1}X'\sigma^{2}IX(X'X)^{-1}\\
+#  & =(X'X)^{-1}\sigma^{2}\label{sub:2}
+#  \end{split}
+#  $$
