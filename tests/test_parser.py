@@ -49,8 +49,9 @@ def test_complex_outputs(sphinx_run, file_regression):
     buildername="latex",
     # working_dir="/Users/cjs14/GitHub/MyST-NB-actual/outputs"
 )
-def test_toctree_in_ipynb(sphinx_run):
+def test_toctree_in_ipynb(sphinx_run, file_regression):
     sphinx_run.build()
     print(sphinx_run.status())
     print(sphinx_run.warnings())
+    file_regression.check(sphinx_run.get_doctree(1).pformat(), extension=".xml")
     assert sphinx_run.warnings() == ""
