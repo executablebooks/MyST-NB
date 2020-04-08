@@ -117,3 +117,36 @@ span.pasted-text {
 span.pasted-inline img {
   max-height: 2em;
 }
+
+/* Align figures */
+
+div.figure.align-right {
+  display: flex;
+  justify-content: flex-end;
+}
+
+div.figure.align-center {
+  display: flex;
+  justify-content: center;
+}
+
+/* Float figures */
+
+div.figure.float-left {
+  clear: left;
+  float: left;
+  margin-left: 1em;
+  margin-right: 2em;
+}
+
+div.figure.float-right {
+  clear: right;
+  float: right;
+  margin-left: 2em;
+  margin-right: 1em;
+}
+
+.highlight {
+  background: none;
+}
+
