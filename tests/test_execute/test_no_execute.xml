@@ -9,5 +9,3 @@
                 <literal_block xml:space="preserve">
                     a=1
                     print(a)
-            <CellOutputNode classes="cell_output">
-                <CellOutputBundleNode outputs="0">

@@ -264,7 +264,7 @@ class CellOutputBundleNode(nodes.container):
 
     def __init__(self, outputs, rawsource="", *children, **attributes):
         self.outputs = outputs
-        attributes["outputs"] = len(outputs)
+        attributes["output_count"] = len(outputs)
         super().__init__("", **attributes)
 
 

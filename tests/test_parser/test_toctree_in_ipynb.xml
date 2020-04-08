@@ -18,4 +18,4 @@
                 <literal_block xml:space="preserve">
                     print(1)
             <CellOutputNode classes="cell_output">
-                <CellOutputBundleNode outputs="1">
+                <CellOutputBundleNode output_count="1">

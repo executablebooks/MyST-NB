@@ -31,8 +31,6 @@ cells:
             <literal_block xml:space="preserve">
                 a=1
                 print(a)
-        <CellOutputNode classes="cell_output">
-            <CellOutputBundleNode outputs="0">
 .
 
 Code Cell (simple output):
@@ -57,7 +55,7 @@ cells:
                 a=1
                 print(a)
         <CellOutputNode classes="cell_output">
-            <CellOutputBundleNode outputs="1">
+            <CellOutputBundleNode output_count="1">
 .
 
 Mixed Cells:
@@ -89,8 +87,6 @@ cells:
                 <literal_block xml:space="preserve">
                     a=1
                     print(a)
-            <CellOutputNode classes="cell_output">
-                <CellOutputBundleNode outputs="0">
         <paragraph>
             b
 .

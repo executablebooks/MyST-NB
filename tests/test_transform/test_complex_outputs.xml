@@ -9,7 +9,6 @@
                 sym.init_printing(use_latex=True)
                 import numpy as np
                 from IPython.display import Image, Latex
-        <CellOutputNode classes="cell_output">
     <section ids="markdown" names="markdown">
         <title>
             Markdown

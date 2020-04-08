@@ -10,4 +10,4 @@
                     a=1
                     print(a)
             <CellOutputNode classes="cell_output">
-                <CellOutputBundleNode outputs="1">
+                <CellOutputBundleNode output_count="1">
