@@ -78,17 +78,17 @@ def test_glue_func_obj_no_display(mock_ipython):
     ]
 
 
-def test_find_glued_key(get_notebook):
+def test_find_glued_key(get_test_path):
 
-    bundle = utils.find_glued_key(get_notebook("with_glue.ipynb"), "key_text1")
+    bundle = utils.find_glued_key(get_test_path("with_glue.ipynb"), "key_text1")
     assert bundle == {"key_text1": "'text1'"}
 
     with pytest.raises(KeyError):
-        utils.find_glued_key(get_notebook("with_glue.ipynb"), "unknown")
+        utils.find_glued_key(get_test_path("with_glue.ipynb"), "unknown")
 
 
-def test_find_all_keys(get_notebook):
-    keys = utils.find_all_keys(get_notebook("with_glue.ipynb"))
+def test_find_all_keys(get_test_path):
+    keys = utils.find_all_keys(get_test_path("with_glue.ipynb"))
     assert set(keys) == {
         "key_text1",
         "key_float",
@@ -99,17 +99,17 @@ def test_find_all_keys(get_notebook):
     }
 
 
-@pytest.mark.nb_params(nb="with_glue.ipynb", conf={"jupyter_execute_notebooks": "off"})
-def test_parser(nb_run, file_regression):
-    nb_run.build()
-    # print(nb_run.status())
-    assert nb_run.warnings() == ""
-    document = nb_run.get_doctree()
+@pytest.mark.sphinx_params("with_glue.ipynb", conf={"jupyter_execute_notebooks": "off"})
+def test_parser(sphinx_run, file_regression):
+    sphinx_run.build()
+    # print(sphinx_run.status())
+    assert sphinx_run.warnings() == ""
+    document = sphinx_run.get_doctree()
     transformer = Transformer(document)
     transformer.add_transforms([CellOutputsToNodes, transform.PasteNodesToDocutils])
     transformer.apply_transforms()
     file_regression.check(document.pformat(), extension=".xml")
-    glue_domain = NbGlueDomain.from_env(nb_run.app.env)
+    glue_domain = NbGlueDomain.from_env(sphinx_run.app.env)
     assert set(glue_domain.cache) == {
         "key_text1",
         "key_float",

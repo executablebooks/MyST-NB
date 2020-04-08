@@ -230,7 +230,7 @@ class SphinxNBRenderer(SphinxRenderer):
         # ==================
         # Cell output
         # ==================
-        if "remove_output" not in tags:
+        if "remove_output" not in tags and cell["outputs"]:
             cell_output = CellOutputNode(classes=["cell_output"])
             sphinx_cell += cell_output
 
@@ -264,7 +264,7 @@ class CellOutputBundleNode(nodes.container):
 
     def __init__(self, outputs, rawsource="", *children, **attributes):
         self.outputs = outputs
-        attributes["outputs"] = len(outputs)
+        attributes["output_count"] = len(outputs)
         super().__init__("", **attributes)
 
 
