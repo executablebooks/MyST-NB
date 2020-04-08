@@ -130,7 +130,7 @@ def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Tok
         # skip cells tagged for removal
         # TODO this logic should be deferred to a transform
         tags = nb_cell.metadata.get("tags", [])
-        if "remove_cell" in tags:
+        if ("remove_cell" in tags) or ("remove-cell" in tags):
             continue
 
         if nb_cell["cell_type"] == "markdown":
@@ -219,7 +219,7 @@ class SphinxNBRenderer(SphinxRenderer):
             classes.append(f"tag_{tag}")
         sphinx_cell = CellNode(classes=classes, cell_type=cell["cell_type"])
         self.current_node += sphinx_cell
-        if "remove_input" not in tags:
+        if ("remove_input" not in tags) and ("remove-input" not in tags):
             cell_input = CellInputNode(classes=["cell_input"])
             sphinx_cell += cell_input
 
@@ -230,7 +230,11 @@ class SphinxNBRenderer(SphinxRenderer):
         # ==================
         # Cell output
         # ==================
-        if "remove_output" not in tags and cell["outputs"]:
+        if (
+            ("remove_output" not in tags)
+            and ("remove-output" not in tags)
+            and cell["outputs"]
+        ):
             cell_output = CellOutputNode(classes=["cell_output"])
             sphinx_cell += cell_output
 

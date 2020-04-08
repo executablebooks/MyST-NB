@@ -29,47 +29,47 @@ You can **cell tags** to control the content hidden with code cells.
 Add the following tags to a cell's metadata to control
 what to hide in code cells:
 
-* **`hide_input`** tag to hide the cell inputs
-* **`hide_output`** to hide the cell outputs
-* **`hide_cell`** to hide the entire cell
+* **`hide-input`** tag to hide the cell inputs
+* **`hide-output`** to hide the cell outputs
+* **`hide-cell`** to hide the entire cell
 
 For example, we'll show cells with each below.
 
 ```{code-cell} ipython3
-:tags: [remove_cell]
+:tags: [remove-cell]
 
 import matplotlib.pyplot as plt
 import numpy as np
 data = np.random.rand(2, 100) * 100
 ```
 
-Here is a cell with a `hide_input` tag. Click the "toggle" button to the
+Here is a cell with a `hide-input` tag. Click the "toggle" button to the
 right to show it.
 
 ```{code-cell} ipython3
-:tags: [hide_input]
+:tags: [hide-input]
 
-# This cell has a hide_input tag
+# This cell has a hide-input tag
 fig, ax = plt.subplots()
 ax.scatter(*data, c=data[0], s=data[0])
 ```
 
-Here's a cell with a `hide_output` tag:
+Here's a cell with a `hide-output` tag:
 
 ```{code-cell} ipython3
-:tags: [hide_output]
+:tags: [hide-output]
 
-# This cell has a hide_output tag
+# This cell has a hide-output tag
 fig, ax = plt.subplots()
 ax.scatter(*data, c=data[0], s=data[0])
 ```
 
-And the following cell has a `hide_cell` tag:
+And the following cell has a `hide-cell` tag:
 
 ```{code-cell} ipython3
-:tags: [hide_cell]
+:tags: [hide-cell]
 
-# This cell has a hide_cell tag
+# This cell has a hide-cell tag
 fig, ax = plt.subplots()
 ax.scatter(*data, c=data[0], s=data[0])
 ```
@@ -78,14 +78,14 @@ ax.scatter(*data, c=data[0], s=data[0])
 
 # Hiding markdown cells
 
-There are two ways to hide markdown cells. First, **you can add the `hide_input`**
+There are two ways to hide markdown cells. First, **you can add the `hide-input`**
 cell metadata. This triggers the same hiding behavior described above for
 code cells.
 
-+++ {"tags": ["hide_input"]}
++++ {"tags": ["hide-input"]}
 
 ```{note}
-This cell was hidden by adding a `hide_input` tag to it!
+This cell was hidden by adding a `hide-input` tag to it!
 ```
 
 +++
@@ -139,40 +139,40 @@ Sometimes, you want to entirely remove parts of a cell so that it doesn't make i
 into the output at all. To do this, you can use the same tag pattern described above,
 but with the word `remove_` instead of `hide_`. Use the following tags:
 
-* **`remove_input`** tag to remove the cell inputs
-* **`remove_output`** to remove the cell outputs
-* **`remove_cell`** to remove the entire cell
+* **`remove-input`** tag to remove the cell inputs
+* **`remove-output`** to remove the cell outputs
+* **`remove-cell`** to remove the entire cell
 
 +++
 
-Here is a cell with a `remove_input` tag. The inputs will not make it into
+Here is a cell with a `remove-input` tag. The inputs will not make it into
 the page at all.
 
 ```{code-cell} ipython3
-:tags: [remove_input]
+:tags: [remove-input]
 
-# This cell has a remove_input tag
+# This cell has a remove-input tag
 fig, ax = plt.subplots()
 ax.scatter(*data, c=data[0], s=data[0])
 ```
 
-Here's a cell with a `remove_output` tag:
+Here's a cell with a `remove-output` tag:
 
 ```{code-cell} ipython3
-:tags: [remove_output]
+:tags: [remove-output]
 
-# This cell has a remove_output tag
+# This cell has a remove-output tag
 fig, ax = plt.subplots()
 points = ax.scatter(*data, c=data[0], s=data[0])
 ```
 
-And the following cell has a `remove_cell` tag (there should be nothing
+And the following cell has a `remove-cell` tag (there should be nothing
 below, since the cell will be gone).
 
 ```{code-cell} ipython3
-:tags: [remove_cell]
+:tags: [remove-cell]
 
-# This cell has a remove_cell tag
+# This cell has a remove-cell tag
 fig, ax = plt.subplots()
 points = ax.scatter(*data, c=data[0], s=data[0])
 ```

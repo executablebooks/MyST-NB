@@ -61,7 +61,7 @@ to focus on the glueing part.
 +++
 
 ```{code-cell} ipython3
-:tags: [hide_cell]
+:tags: [hide-cell]
 
 # Simulate some data and bootstrap the mean of the data
 import numpy as np
@@ -128,7 +128,7 @@ glue("df_tbl", df)
 
 ```{tip}
 Since we are going to paste this figure into our document at a later point,
-you may wish to remove the output here, using the `remove_output` tag
+you may wish to remove the output here, using the `remove-output` tag
 (see {ref}`use/removing`).
 ```
 
