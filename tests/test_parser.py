@@ -6,7 +6,16 @@ def test_basic_run(sphinx_run, file_regression):
     sphinx_run.build()
     # print(sphinx_run.status())
     assert sphinx_run.warnings() == ""
-    assert sphinx_run.app.env.metadata == {"basic_run": {"test_name": "notebook1"}}
+    assert set(sphinx_run.app.env.metadata["basic_run"].keys()) == {
+        "test_name",
+        "kernelspec",
+        "language_info",
+    }
+    assert sphinx_run.app.env.metadata["basic_run"]["test_name"] == "notebook1"
+    assert (
+        sphinx_run.app.env.metadata["basic_run"]["kernelspec"]
+        == '{"display_name": "Python 3", "language": "python", "name": "python3"}'
+    )
     file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
 
     filenames = {
@@ -20,11 +29,28 @@ def test_basic_run(sphinx_run, file_regression):
 )
 def test_complex_outputs(sphinx_run, file_regression):
     sphinx_run.build()
-    # print(sphinx_run.status())
     assert sphinx_run.warnings() == ""
-    assert sphinx_run.app.env.metadata == {
-        "complex_outputs": {"celltoolbar": "Edit Metadata", "hide_input": "False"}
+
+    assert set(sphinx_run.app.env.metadata["complex_outputs"].keys()) == {
+        "ipub",
+        "hide_input",
+        "nav_menu",
+        "celltoolbar",
+        "latex_envs",
+        "kernelspec",
+        "language_info",
+        "jupytext",
+        "toc",
+        "varInspector",
     }
+    assert (
+        sphinx_run.app.env.metadata["complex_outputs"]["celltoolbar"] == "Edit Metadata"
+    )
+    assert sphinx_run.app.env.metadata["complex_outputs"]["hide_input"] == "False"
+    assert (
+        sphinx_run.app.env.metadata["complex_outputs"]["kernelspec"]
+        == '{"display_name": "Python 3", "language": "python", "name": "python3"}'
+    )
     file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
 
     filenames = {
