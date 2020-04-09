@@ -117,7 +117,7 @@ def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Tok
 
     for cell_index, nb_cell in enumerate(ntbk.cells):
 
-        # if the the source_map ahs been stored (for text-based notebooks),
+        # if the the source_map has been stored (for text-based notebooks),
         # we use that do define the starting line for each cell
         # otherwise, we set a pseudo base that represents the cell index
         start_line = source_map[cell_index] if source_map else (cell_index + 1) * 10000
@@ -130,7 +130,7 @@ def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Tok
         # skip cells tagged for removal
         # TODO this logic should be deferred to a transform
         tags = nb_cell.metadata.get("tags", [])
-        if "remove_cell" in tags:
+        if ("remove_cell" in tags) or ("remove-cell" in tags):
             continue
 
         if nb_cell["cell_type"] == "markdown":
@@ -162,22 +162,10 @@ def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Tok
         md.core.process(state)
 
     # Add the front matter.
-    # Note that myst_parser now serialises dict/list like keys, when rendering to
-    # docutils docinfo,
-    # so to stay consistent with the previous code (for now) we strip this data
+    # Note that myst_parser serialises dict/list like keys, when rendering to
+    # docutils docinfo. These could be read back with `json.loads`.
     state.tokens = [
-        Token(
-            "front_matter",
-            "",
-            0,
-            content=(
-                {
-                    k: v
-                    for k, v in ntbk.metadata.items()
-                    if isinstance(v, (str, int, float))
-                }
-            ),
-        )
+        Token("front_matter", "", 0, content=({k: v for k, v in ntbk.metadata.items()}))
     ] + state.tokens
 
     # If there are widgets, this will embed the state of all widgets in a script
@@ -219,7 +207,7 @@ class SphinxNBRenderer(SphinxRenderer):
             classes.append(f"tag_{tag}")
         sphinx_cell = CellNode(classes=classes, cell_type=cell["cell_type"])
         self.current_node += sphinx_cell
-        if "remove_input" not in tags:
+        if ("remove_input" not in tags) and ("remove-input" not in tags):
             cell_input = CellInputNode(classes=["cell_input"])
             sphinx_cell += cell_input
 
@@ -230,7 +218,11 @@ class SphinxNBRenderer(SphinxRenderer):
         # ==================
         # Cell output
         # ==================
-        if "remove_output" not in tags and cell["outputs"]:
+        if (
+            ("remove_output" not in tags)
+            and ("remove-output" not in tags)
+            and cell["outputs"]
+        ):
             cell_output = CellOutputNode(classes=["cell_output"])
             sphinx_cell += cell_output
 
