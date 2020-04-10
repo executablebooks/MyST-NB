@@ -5,7 +5,7 @@ channels:
 dependencies:
   - python=3.7.*
   - jupyter
-  - sphinx
+  - sphinx=2.4.4
   - pydata-sphinx-theme
   - ghp-import
   - nbsphinx
