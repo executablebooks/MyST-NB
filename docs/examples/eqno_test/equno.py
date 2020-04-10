@@ -15,6 +15,10 @@
 #     name: python3
 # ---
 
+# %%
+import numpy as np
+3.8*np.log(890/280)/np.log(2)
+
 # %% [markdown]
 # # Equation test
 
