@@ -78,7 +78,7 @@ def execution_cache(app, builder, added, changed, removed):
                 if not os.path.exists(docpath):
                     cache_base.discard_staged_notebook(docpath)
 
-        _stage_and_execute(app.env, exec_docnames, path_cache)
+        _stage_and_execute(app.env, exec_docnames, path_cache, app.config["execution_timeout"])
 
     elif jupyter_cache:
         LOGGER.error(
@@ -90,7 +90,7 @@ def execution_cache(app, builder, added, changed, removed):
     return altered_docnames
 
 
-def _stage_and_execute(env, exec_docnames, path_cache):
+def _stage_and_execute(env, exec_docnames, path_cache, timeout):
     pk_list = []
     cache_base = get_cache(path_cache)
 
@@ -102,7 +102,7 @@ def _stage_and_execute(env, exec_docnames, path_cache):
 
     # can leverage parallel execution implemented in jupyter-cache here
     try:
-        execute_staged_nb(cache_base, pk_list or None)
+        execute_staged_nb(cache_base, pk_list or None, timeout)
     except OSError as err:
         # This is a 'fix' for obscure cases, such as if you
         # remove name.ipynb and add name.md (i.e. same name, different extension)
@@ -195,7 +195,7 @@ def add_notebook_outputs(env, ntbk, file_path=None):
     return ntbk
 
 
-def execute_staged_nb(cache_base, pk_list):
+def execute_staged_nb(cache_base, pk_list, timeout):
     """
     executing the staged notebook
     """
@@ -205,7 +205,7 @@ def execute_staged_nb(cache_base, pk_list):
         LOGGER.error(str(error))
         return 1
     result = executor.run_and_cache(
-        filter_pks=pk_list or None, converter=path_to_notebook, timeout=-1
+        filter_pks=pk_list or None, converter=path_to_notebook, timeout=timeout
     )
     return result
 
