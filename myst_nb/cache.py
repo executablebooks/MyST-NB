@@ -155,7 +155,8 @@ def add_notebook_outputs(env, ntbk, file_path=None):
         return ntbk
 
     cache_base = get_cache(path_cache)
-    r_file_path = Path(file_path).relative_to(Path(file_path).cwd())
+    # Use relpath here in case Sphinx is building from a non-parent folder
+    r_file_path = Path(os.path.relpath(file_path, Path().resolve()))
 
     try:
         _, ntbk = cache_base.merge_match_into_notebook(ntbk)
