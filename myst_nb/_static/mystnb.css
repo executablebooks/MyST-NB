@@ -117,3 +117,7 @@ span.pasted-text {
 span.pasted-inline img {
   max-height: 2em;
 }
+
+tbody span.pasted-inline img {
+  max-height: none;
+}
