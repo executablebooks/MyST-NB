@@ -259,6 +259,11 @@ class CellOutputBundleNode(nodes.container):
         attributes["output_count"] = len(outputs)
         super().__init__("", **attributes)
 
+    def copy(self):
+        return self.__class__(
+            rawsource=self.rawsource, outputs=self.outputs, **self.attributes
+        )
+
 
 def nb_output_to_disc(ntbk: nbf.NotebookNode, document: nodes.document) -> Path:
     """Write the notebook's output to disk

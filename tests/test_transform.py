@@ -23,3 +23,17 @@ def test_complex_outputs(sphinx_run, file_regression):
     transform = CellOutputsToNodes(document)
     transform.apply()
     file_regression.check(document.pformat().replace(".jpeg", ".jpg"), extension=".xml")
+
+
+@pytest.mark.sphinx_params(
+    "complex_outputs.ipynb",
+    conf={"jupyter_execute_notebooks": "off"},
+    buildername="latex",
+)
+def test_complex_outputs_latex(sphinx_run, file_regression):
+    sphinx_run.build()
+    assert sphinx_run.warnings() == ""
+    document = sphinx_run.get_doctree()
+    transform = CellOutputsToNodes(document)
+    transform.apply()
+    file_regression.check(document.pformat().replace(".jpeg", ".jpg"), extension=".xml")
