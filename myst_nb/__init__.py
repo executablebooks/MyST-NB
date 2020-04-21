@@ -49,6 +49,12 @@ def set_valid_execution_paths(app):
         if parser_type in ("myst-nb",)
     }
 
+    
+def add_exclude_patterns(app, config):
+    """Add default exclude patterns (if not already present)."""
+    if "**.ipynb_checkpoints" not in config.exclude_patterns:
+        config.exclude_patterns.append("**.ipynb_checkpoints")
+
 
 def update_togglebutton_classes(app, config):
     to_add = [
@@ -126,6 +132,7 @@ def setup(app):
     app.connect("builder-inited", static_path)
     app.connect("builder-inited", set_valid_execution_paths)
     app.connect("env-get-outdated", execution_cache)
+    app.connect("config-inited", add_exclude_patterns)
     app.connect("config-inited", update_togglebutton_classes)
     app.connect("env-updated", save_glue_cache)
     app.add_css_file("mystnb.css")
