@@ -77,7 +77,7 @@ setup(
             "plotly",
             "matplotlib",
             "sphinx-copybutton",
-            "pydata-sphinx-theme",
+            "sphinx-book-theme",
         ],
     },
     zip_safe=True,
