@@ -41,7 +41,7 @@ setup(
     python_requires=">=3.6",
     package_data={"myst_nb": ["_static/*"]},
     install_requires=[
-        "myst-parser~=0.8",
+        "myst-parser==0.8.0",
         "docutils>=0.15",
         "sphinx>=2,<3",
         "jupyter_sphinx==0.2.4a1",
