@@ -49,7 +49,7 @@ def set_valid_execution_paths(app):
         if parser_type in ("myst-nb",)
     }
 
-    
+
 def add_exclude_patterns(app, config):
     """Add default exclude patterns (if not already present)."""
     if "**.ipynb_checkpoints" not in config.exclude_patterns:
