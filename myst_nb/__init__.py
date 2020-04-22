@@ -132,7 +132,7 @@ def setup(app):
     app.connect("builder-inited", static_path)
     app.connect("builder-inited", set_valid_execution_paths)
     app.connect("env-get-outdated", execution_cache)
-    app.connect("config-inited", add_exclude_patterns)
+    # app.connect("config-inited", add_exclude_patterns)
     app.connect("config-inited", update_togglebutton_classes)
     app.connect("env-updated", save_glue_cache)
     app.add_css_file("mystnb.css")
