@@ -14,40 +14,12 @@ kernelspec:
   name: python3
 ---
 
-```{code-cell} ipython3
-import numpy as np
-3.8*np.log(890/280)/np.log(2)
-```
-
 # Equation test
 
 +++
 
-## Delimiters
+## Source -- no $$
 
-### Source -- with $$
-```
-$$
-\begin{align}
-\dot{x} & = \sigma(y-x) \\
-\dot{y} & = \rho x - y - xz \\
-\dot{z} & = -\beta z + xy
-\end{align}
-$$(eq:one)
-```
-### Display \$\$
-
-$$
-\begin{align}
-\dot{x} & = \sigma(y-x) \\
-\dot{y} & = \rho x - y - xz \\
-\dot{z} & = -\beta z + xy
-\end{align}
-$$(eq:one)
-
-+++
-
-### Source -- no \$\$
 ```
 \begin{align*}
 \dot{x} & = \sigma(y-x) \\
@@ -55,7 +27,10 @@ $$(eq:one)
 \dot{z} & = -\beta z + xy
 \end{align*}
 ```
-### Display no $$
+
++++
+
+## first without, then with $$
 
 
 \begin{align*}
@@ -66,51 +41,14 @@ $$(eq:one)
 
 +++
 
-Reference {eq}`eq:one`
+$$
+\begin{align*}
+\dot{x} & = \sigma(y-x) \\
+\dot{y} & = \rho x - y - xz \\
+\dot{z} & = -\beta z + xy
+\end{align*}
+$$
 
-## aligned equations
-
-### align numbering single
+```{code-cell} ipython3
 
 ```
-$$
-\begin{align} 
-g(X_{n}) &= g(\theta)+g'({\tilde{\theta}})(X_{n}-\theta) \notag \\
-\sqrt{n}[g(X_{n})-g(\theta)] &= g'\left({\tilde{\theta}}\right)
-  \sqrt{n}[X_{n}-\theta ] 
-\end{align} 
-$$(eq:align1)
-```
-
-$$
-\begin{align} 
-g(X_{n}) &= g(\theta)+g'({\tilde{\theta}})(X_{n}-\theta) \notag \\
-\sqrt{n}[g(X_{n})-g(\theta)] &= g'\left({\tilde{\theta}}\right)
-  \sqrt{n}[X_{n}-\theta ] 
-\end{align} 
-$$(eq:align1)
-
-### align numbering multiple
-
-```
-$$
-\begin{align}
-\mathrm{Var}(\hat{\beta}) & =\mathrm{Var}((X'X)^{-1}X'y)\\
- & =(X'X)^{-1}X'\mathrm{Var}(y)((X'X)^{-1}X')'  \tag{subtest1}\\
- & =(X'X)^{-1}X'\mathrm{Var}(y)X(X'X)^{-1}\notag\\
- & =(X'X)^{-1}X'\sigma^{2}IX(X'X)^{-1}\\
- & =(X'X)^{-1}\sigma^{2}\tag{subtest2}
-\end{align}
- $$
-```
-
-
-$$
-\begin{align}
-\mathrm{Var}(\hat{\beta}) & =\mathrm{Var}((X'X)^{-1}X'y)\\
- & =(X'X)^{-1}X'\mathrm{Var}(y)((X'X)^{-1}X')'  \tag{subtest1}\\
- & =(X'X)^{-1}X'\mathrm{Var}(y)X(X'X)^{-1}\notag\\
- & =(X'X)^{-1}X'\sigma^{2}IX(X'X)^{-1}\\
- & =(X'X)^{-1}\sigma^{2}\tag{subtest2}
- \end{align}
- $$

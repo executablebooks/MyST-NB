@@ -1,18 +1,28 @@
-name: myst
+name: ebp
 channels:
   - conda-forge
   - defaults
 dependencies:
   - python=3.7.*
+  - git
   - jupyter
   - sphinx=2.4.4
   - pydata-sphinx-theme
   - ghp-import
+  - sphinx_rtd_theme
+  - matplotlib
+  - numpy
+  - scipy
+  - sympy
+  - pandas
+  - networkx
+  - numba
   - nbsphinx
   - pip
   - pip:
     - git+https://github.com/ExecutableBookProject/MyST-NB.git
     - jupyter-cache[cli]
     - git+https://github.com/mwouts/jupytext.git
-    
+    - git+https://github.com/ExecutableBookProject/cli
+    - git+https://github.com/ExecutableBookProject/sphinx-book-theme
     
