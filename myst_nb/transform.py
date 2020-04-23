@@ -1,8 +1,5 @@
 """Defines the MIMEtype docutils node."""
-import docutils
-import os
 from docutils import nodes
-from docutils.nodes import math_block
 from sphinx.transforms import SphinxTransform
 from sphinx.util import logging
 
@@ -65,6 +62,7 @@ class CellOutputsToNodes(SphinxTransform):
             col.process_doc(self.app, node)
 
 
+# TODO: changes to be added to jupyter-sphinx?
 def cell_output_to_nodes(cell, data_priority, write_stderr, dir, thebe_config):
     """Convert a jupyter cell with outputs and filenames to doctree nodes.
 
@@ -81,7 +79,9 @@ def cell_output_to_nodes(cell, data_priority, write_stderr, dir, thebe_config):
     thebe_config: dict
         Thebelab configuration object or None
     """
-
+    import docutils
+    import os
+    from docutils.nodes import math_block
     import nbconvert
 
     to_add = []
