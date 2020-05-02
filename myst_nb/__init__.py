@@ -19,6 +19,7 @@ from .parser import (
     CellOutputNode,
     CellOutputBundleNode,
 )
+from .directives import toc
 from .transform import CellOutputsToNodes
 from .nb_glue import glue  # noqa: F401
 from .nb_glue.domain import NbGlueDomain
@@ -120,6 +121,15 @@ def setup(app):
         man=(skip, None),
     )
 
+    app.add_node(
+        toc.TableOfContentsNode,
+        override=True,
+        html=(toc.visit_TableOfContentsNode, toc.depart_TableOfContentsNode),
+        latex=(toc.visit_TableOfContentsNode, toc.depart_TableOfContentsNode),
+        textinfo=(toc.visit_TableOfContentsNode, toc.depart_TableOfContentsNode),
+        text=(toc.visit_TableOfContentsNode, toc.depart_TableOfContentsNode),
+        man=(toc.visit_TableOfContentsNode, toc.depart_TableOfContentsNode),
+    )
     # Add configuration for the cache
     app.add_config_value("jupyter_cache", "", "env")
     app.add_config_value("execution_excludepatterns", [], "env")
@@ -139,6 +149,7 @@ def setup(app):
     app.add_js_file("mystnb.js")
     app.setup_extension("jupyter_sphinx")
     app.add_domain(NbGlueDomain)
+    app.add_directive("tableofcontents", toc.TableofContents)
 
     # TODO need to deal with key clashes in NbGlueDomain.merge_domaindata
     # before this is parallel_read_safe
