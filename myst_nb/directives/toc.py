@@ -40,14 +40,8 @@ class TableofContents(SphinxDirective):
             self._has_toc_yaml(subnode, self.config.globaltoc, depth)
         else:
             # case where _toc.yml is not present (Not sure if necessary)
-            all_docnames = self.env.found_docs.copy()
-            all_docnames.remove(self.env.docname)  # remove current document
-
-            for docname in all_docnames:
-                if "index" in docname:
-                    continue
-                subnode["entries"].append((None, docname))
-                subnode["includefiles"].append(docname)
+            # TODO: Implement after consulting with team
+            pass
 
         ret.append(wrappernode)
         return ret
