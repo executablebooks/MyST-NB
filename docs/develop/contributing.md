@@ -66,12 +66,12 @@ Merging pull requests: There are three ways of 'merging' pull requests on GitHub
 - Merge with merge commit: put all commits as they are on the base branch, with a merge commit on top
     Choose for collaborative PRs with many commits. Here, the merge commit provides actual benefits.
 
-[github-ci]: https://github.com/ExecutableBookProject/MyST-NB/workflows/continuous-integration/badge.svg?branch=master
-[github-link]: https://github.com/ExecutableBookProject/MyST-NB
-[codecov-badge]: https://codecov.io/gh/ExecutableBookProject/MyST-NB/branch/master/graph/badge.svg
-[codecov-link]: https://codecov.io/gh/ExecutableBookProject/MyST-NB
-[circleci-badge]: https://circleci.com/gh/ExecutableBookProject/MyST-NB.svg?style=shield
-[circleci-link]: https://circleci.com/gh/ExecutableBookProject/MyST-NB
+[github-ci]: https://github.com/executablebooks/MyST-NB/workflows/continuous-integration/badge.svg?branch=master
+[github-link]: https://github.com/executablebooks/MyST-NB
+[codecov-badge]: https://codecov.io/gh/executablebooks/MyST-NB/branch/master/graph/badge.svg
+[codecov-link]: https://codecov.io/gh/executablebooks/MyST-NB
+[circleci-badge]: https://circleci.com/gh/executablebooks/MyST-NB.svg?style=shield
+[circleci-link]: https://circleci.com/gh/executablebooks/MyST-NB
 [rtd-badge]: https://readthedocs.org/projects/myst-nb/badge/?version=latest
 [rtd-link]: https://myst-nb.readthedocs.io/en/latest/?badge=latest
 [black-badge]: https://img.shields.io/badge/code%20style-black-000000.svg
@@ -98,11 +98,11 @@ pytest -v --cov=myst_nb --cov-report=html
 
 ### Test File and Directory Naming Conventions
 
-Tests are found in the [tests](https://github.com/ExecutableBookProject/MyST-NB/tree/master/tests) directory. In order for `pytest` to find the test scripts correctly, the name of each test script should start with `test_` prefix.
+Tests are found in the [tests](https://github.com/executablebooks/MyST-NB/tree/master/tests) directory. In order for `pytest` to find the test scripts correctly, the name of each test script should start with `test_` prefix.
 
 ### How to Write Tests
 
-There are many examples of unit tests under the [tests](https://github.com/ExecutableBookProject/MyST-NB/tree/master/tests) directory, so reading some of them is a good and recommended way. Prefer using the `fixtures` and the classes defined in [conftest.py](https://github.com/ExecutableBookProject/MyST-NB/blob/master/tests/conftest.py) as much as possible.
+There are many examples of unit tests under the [tests](https://github.com/executablebooks/MyST-NB/tree/master/tests) directory, so reading some of them is a good and recommended way. Prefer using the `fixtures` and the classes defined in [conftest.py](https://github.com/executablebooks/MyST-NB/blob/master/tests/conftest.py) as much as possible.
 
 If using [pytest-regression](https://pytest-regressions.readthedocs.io/en/latest/), a new directory with `test_` prefix is expected to be created in the first test run. This will store your expected output against which subsequent test outputs will be compared.
 
@@ -112,7 +112,7 @@ If using [pytest-regression](https://pytest-regressions.readthedocs.io/en/latest
 
 ## Releases
 
-MyST-NB uses [a GitHub Action](https://github.com/ExecutableBookProject/MyST-NB/blob/master/.github/workflows/tests.yml#L57)
+MyST-NB uses [a GitHub Action](https://github.com/executablebooks/MyST-NB/blob/master/.github/workflows/tests.yml#L57)
 to automate as much of the release process as possible. There is a secret stored in
 the repository that can push new releases to PyPI when new tags are created.
 
