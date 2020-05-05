@@ -48,8 +48,8 @@ html_title = ""
 html_theme = "sphinx_book_theme"
 html_logo = "_static/logo.png"
 html_theme_options = {
-    "github_url": "https://github.com/ExecutableBookProject/myst-nb",
-    "repository_url": "https://github.com/ExecutableBookProject/myst-nb",
+    "github_url": "https://github.com/executablebooks/myst-nb",
+    "repository_url": "https://github.com/executablebooks/myst-nb",
     "expand_sections": ["use/index"],
 }
 
