@@ -1,22 +1,33 @@
 # MyST-NB
 
-A collection of tools for working with Jupyter Notebooks in Sphinx, using the
-Markedly Structured Text markdown language.
+**Read, write, and execute Jupyter Notebooks in Sphinx**
 
-The primary tool this package provides is a Sphinx parser for `ipynb` files.
-This allows you to directly convert Jupyter Notebooks into Sphinx documents.
-It relies heavily on the [`MyST` parser](https://github.com/ExecutableBookProject/myst_parser).
+`MyST-NB` is an open source tool for working with Jupyter Notebooks in the
+Sphinx ecosystem. It provides the following primary features:
 
-A secondary tool is the 'glue' functionality, outlined in the {ref}`Inserting variables with glue <glue>` section,
-which allows outputs of notebook code cells to be accessed and displayed anywhere within the documentation (even from different files).
+* **{ref}`Parse ipynb files in Sphinx<installation>`**. Directly convert Jupyter
+  Notebooks into Sphinx documents.
+* **{doc}`Execute and Cache your notebook content <use/execute>`**.
+  Save time building your documentation without needing to commit your notebook outputs
+  directly into `git`.
+* **{doc}`Write MyST Markdown<use/myst>`**. MyST Markdown
+  allows you to write Sphinx roles and directives in markdown.
+* **{doc}`Insert notebook outputs into your content <use/glue>`**. Generate outputs
+  as you build your documentation, and insert them across pages.
+* **{doc}`Write Jupyter Notebooks entirely with Markdown <use/markdown>`**. You can
+  define the structure of a notebook *in pure-text* making it more diff-able.
 
-```{warning}
-This project is in an alpha state. It may evolve rapidly and/or make breaking changes!
-Comments, requests, or bugreports are welcome and recommended! Please
-[open an issue here](https://github.com/ExecutableBookProject/myst-nb/issues)
+In addition, there are several options for controlling the look and feel of how your
+notebooks are used in your documentation. See the documentation pages to the left for
+more information.
+
+```{note}
+This project is in a beta state. Comments, requests, or bugreports are welcome and
+recommended! Please [open an issue here](https://github.com/executablebooks/myst-nb/issues)
 ```
 
-## Installation
+(installation)=
+## Installation and basic usage
 
 To install `myst-nb`, do the following:
 
@@ -24,15 +35,6 @@ To install `myst-nb`, do the following:
 
   ```bash
   pip install myst-nb
-  ```
-
-  Or for package development:
-
-  ```bash
-  git clone https://github.com/ExecutableBookProject/MyST-NB
-  cd MyST-NB
-  git checkout master
-  pip install -e .[code_style,testing,rtd]
   ```
 
 * Enable the `myst_nb` extension in your Sphinx repository's extensions:
@@ -44,46 +46,12 @@ To install `myst-nb`, do the following:
   ]
   ```
 
-By default, MyST-NB will parse both markdown (`.md`) and notebooks (`.ipynb`).
-You can also change which files are parsed by MyST-NB using
-the [source_suffix](https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-source_suffix)
-option in your `conf.py`, e.g.:
-
-```python
-extensions = ["myst_nb"]
-source_suffix = {
-    '.rst': 'restructuredtext',
-    '.ipynb': 'myst-nb',
-    '.myst': 'myst-nb',
-}
-```
+  By default, MyST-NB will parse both markdown (`.md`) and notebooks (`.ipynb`).
 
 * Write Jupyter Notebooks with your built documentation, and remember to include them
   in your `toctree`, and that's it!
 
-## How the Jupyter Notebook parser works
-
-MyST-NB is built on top of the MyST markdown parser. This is a flavor of markdown
-designed to work with the Sphinx ecosystem. It is a combination of CommonMark markdown,
-with a few extra syntax pieces added for use in Sphinx (for example, roles and
-directives).
-
-```{note}
-For more about MyST markdown, see
-[the MyST markdown documentation](https://myst-parser.readthedocs.io/en/latest/)
-```
-
-MyST-NB will do the following:
-
-* Check for any pages in your documentation folder that end in `.ipynb`. For each one:
-* Loop through the notebook's cells, converting cell contents into the Sphinx AST.
-  * If it finds executable code cells, include their outputs in-line with the code.
-  * If it finds markdown cells, use the MyST parser to convert them into Sphinx.
-
-Eventually, it will also provide support for writing pure-markdown versions of notebooks
-that can be executed and read into Sphinx.
-
-## Use and configure
+## Customize and configure
 
 For information on using and configuring MyST-NB, as well as some examples of notebook
 outputs, see the pages below:

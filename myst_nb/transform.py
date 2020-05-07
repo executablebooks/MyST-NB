@@ -30,6 +30,7 @@ RENDER_PRIORITY = {
 }
 RENDER_PRIORITY["readthedocs"] = RENDER_PRIORITY["html"]
 RENDER_PRIORITY["singlehtml"] = RENDER_PRIORITY["html"]
+RENDER_PRIORITY["linkcheck"] = RENDER_PRIORITY["html"]
 
 
 class CellOutputsToNodes(SphinxTransform):
@@ -42,13 +43,14 @@ class CellOutputsToNodes(SphinxTransform):
         output_dir = sphinx_abs_dir(self.env)
         for node in self.document.traverse(CellOutputBundleNode):
             cell = {"outputs": node.outputs}
+            outputs = cell.get("outputs", [])
             if node.get("inline", False):
                 output_nodes = cell_output_to_nodes_inline(
-                    cell, RENDER_PRIORITY[builder], True, output_dir, None
+                    outputs, RENDER_PRIORITY[builder], True, output_dir, None
                 )
             else:
                 output_nodes = cell_output_to_nodes(
-                    cell, RENDER_PRIORITY[builder], True, output_dir, None
+                    outputs, RENDER_PRIORITY[builder], True, output_dir, None
                 )
             # TODO add warning if output_nodes is empty
             node.replace_self(output_nodes)
@@ -64,12 +66,14 @@ class CellOutputsToNodes(SphinxTransform):
 
 
 # TODO this needs to be upstreamed to jupyter-sphinx
-def cell_output_to_nodes_inline(cell, data_priority, write_stderr, dir, thebe_config):
-    """Convert a jupyter cell with outputs and filenames to doctree nodes.
+def cell_output_to_nodes_inline(
+    outputs, data_priority, write_stderr, dir, thebe_config
+):
+    """Convert jupyter cell outputs and filenames to doctree nodes.
 
     Parameters
     ----------
-    cell : jupyter cell
+    outputs : jupyter cell outputs
     data_priority : list of mime types
         Which media types to prioritize.
     write_stderr : bool
@@ -85,7 +89,7 @@ def cell_output_to_nodes_inline(cell, data_priority, write_stderr, dir, thebe_co
     import nbconvert
 
     to_add = []
-    for _, output in enumerate(cell.get("outputs", [])):
+    for _, output in enumerate(outputs):
         output_type = output["output_type"]
         if output_type == "stream":
             if output["name"] == "stderr":
