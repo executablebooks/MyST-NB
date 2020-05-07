@@ -147,6 +147,14 @@ def cell_output_to_nodes_inline(
                 # directory, so make a relative path, which Sphinx treats
                 # as being relative to the current working directory.
                 filename = os.path.basename(output.metadata["filenames"][mime_type])
+
+                # checks if path in cell has a subpath inside of dir
+                filedir = os.path.dirname(output.metadata["filenames"][mime_type])
+                subpaths = filedir.split(dir)
+                if subpaths and len(subpaths) > 1:
+                    subpath = subpaths[1]
+                    dir += subpath
+
                 uri = os.path.join(dir, filename)
                 to_add.append(docutils.nodes.image(uri=uri))
             elif mime_type == "text/html":
