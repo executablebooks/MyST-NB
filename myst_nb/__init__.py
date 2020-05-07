@@ -1,15 +1,17 @@
-__version__ = "0.4.0"
+__version__ = "0.8.1"
+
+from pathlib import Path
 
 from docutils import nodes
-from myst_nb.cache import execution_cache
+from sphinx.util import logging
+
 from jupyter_sphinx.ast import (  # noqa: F401
     JupyterWidgetStateNode,
     JupyterWidgetViewNode,
     JupyterCell,
 )
 
-from pathlib import Path
-
+from .cache import execution_cache
 from .parser import (
     NotebookParser,
     CellNode,
@@ -22,17 +24,46 @@ from .nb_glue import glue  # noqa: F401
 from .nb_glue.domain import NbGlueDomain
 from .nb_glue.transform import PasteNodesToDocutils
 
+LOGGER = logging.getLogger(__name__)
+
 
 def static_path(app):
     static_path = Path(__file__).absolute().with_name("_static")
     app.config.html_static_path.append(str(static_path))
 
 
+def set_valid_execution_paths(app):
+    """Set files excluded from execution, and valid file suffixes
+
+    Patterns given in execution_excludepatterns conf variable from executing.
+    """
+    app.env.excluded_nb_exec_paths = {
+        str(path)
+        for pat in app.config["execution_excludepatterns"]
+        for path in Path().cwd().rglob(pat)
+    }
+    LOGGER.verbose("MyST-NB: Excluded Paths: %s", app.env.excluded_nb_exec_paths)
+    app.env.allowed_nb_exec_suffixes = {
+        suffix
+        for suffix, parser_type in app.config["source_suffix"].items()
+        if parser_type in ("myst-nb",)
+    }
+
+
+def add_exclude_patterns(app, config):
+    """Add default exclude patterns (if not already present)."""
+    if "**.ipynb_checkpoints" not in config.exclude_patterns:
+        config.exclude_patterns.append("**.ipynb_checkpoints")
+
+
 def update_togglebutton_classes(app, config):
     to_add = [
         ".tag_hide_input div.cell_input",
+        ".tag_hide-input div.cell_input",
         ".tag_hide_output div.cell_output",
+        ".tag_hide-output div.cell_output",
         ".tag_hide_cell.cell",
+        ".tag_hide-cell.cell",
     ]
     for selector in to_add:
         config.togglebutton_selector += f", {selector}"
@@ -44,8 +75,9 @@ def save_glue_cache(app, env):
 
 def setup(app):
     """Initialize Sphinx extension."""
-    # Sllow parsing ipynb files
-    app.add_source_suffix(".ipynb", "ipynb")
+    # Allow parsing ipynb files
+    app.add_source_suffix(".md", "myst-nb")
+    app.add_source_suffix(".ipynb", "myst-nb")
     app.add_source_parser(NotebookParser)
     app.setup_extension("sphinx_togglebutton")
 
@@ -98,12 +130,13 @@ def setup(app):
     app.add_post_transform(CellOutputsToNodes)
 
     app.connect("builder-inited", static_path)
+    app.connect("builder-inited", set_valid_execution_paths)
     app.connect("env-get-outdated", execution_cache)
+    app.connect("config-inited", add_exclude_patterns)
     app.connect("config-inited", update_togglebutton_classes)
     app.connect("env-updated", save_glue_cache)
     app.add_css_file("mystnb.css")
-    # We use `execute` here instead of `jupyter-execute`
-    app.add_directive("execute", JupyterCell)
+    app.add_js_file("mystnb.js")
     app.setup_extension("jupyter_sphinx")
     app.add_domain(NbGlueDomain)
 

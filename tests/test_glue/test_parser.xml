@@ -1,10 +1,4 @@
-<document source="notset">
-    <docinfo>
-        <field>
-            <field_name>
-                test_name
-            <field_body>
-                notebook1
+<document source="with_glue">
     <section ids="glue-tests" names="glue\ tests">
         <title>
             Glue Tests
@@ -12,7 +6,6 @@
             <CellInputNode classes="cell_input">
                 <literal_block xml:space="preserve">
                     from myst_nb import glue
-            <CellOutputNode classes="cell_output">
         <CellNode cell_type="code" classes="cell">
             <CellInputNode classes="cell_input">
                 <literal_block xml:space="preserve">
@@ -80,7 +73,7 @@
                     plt.plot([1, 2, 3])
                     glue("key_plt", plt.gcf(), display=False)
             <CellOutputNode classes="cell_output">
-                <image candidates="{'*': 'image.png'}" uri="image.png">
+                <image candidates="{'*': '_build/jupyter_execute/with_glue_5_1.png'}" uri="_build/jupyter_execute/with_glue_5_1.png">
         <section ids="referencing-the-figs" names="referencing\ the\ figs">
             <title>
                 Referencing the figs
@@ -90,7 +83,7 @@
                         'text1'
                 , 
                 <inline classes="pasted-inline">
-                    <image candidates="{'*': 'image.png'}" uri="image.png">
+                    <image candidates="{'*': '_build/jupyter_execute/with_glue_5_0.png'}" uri="_build/jupyter_execute/with_glue_5_0.png">
             <CellOutputNode classes="cell_output">
                 <raw classes="output text_html" format="html" xml:space="preserve">
                     <div>
@@ -134,23 +127,23 @@
                 and 
                 <inline classes="pasted-text">
                     text1
-                 inline...
+                 inline…
             <paragraph>
                 and formatted 
                 <inline classes="pasted-text">
                     3.14
             <CellOutputNode classes="cell_output">
-                <image candidates="{'*': 'image.png'}" uri="image.png">
+                <image candidates="{'*': '_build/jupyter_execute/with_glue_5_0.png'}" uri="_build/jupyter_execute/with_glue_5_0.png">
             <paragraph>
                 and 
                 <inline classes="pasted-text">
                     undisplayed
-                 inline...
-            <figure ids="abc" names="abc">
+                 inline…
+            <figure align="default" ids="abc" names="abc">
                 <CellOutputNode classes="cell_output">
-                    <image candidates="{'*': 'image.png'}" uri="image.png">
+                    <image candidates="{'*': '_build/jupyter_execute/with_glue_5_0.png'}" uri="_build/jupyter_execute/with_glue_5_0.png">
                 <caption>
-                    A caption....
+                    A caption….
         <section ids="math" names="math">
             <title>
                 Math
@@ -166,6 +159,6 @@
                 <CellOutputNode classes="cell_output">
                     <math_block classes="output text_latex" nowrap="False" number="True" xml:space="preserve">
                         \displaystyle \left(\sqrt{5} i\right)^{\alpha} \left(\frac{1}{2} - \frac{2 \sqrt{5} i}{5}\right) + \left(- \sqrt{5} i\right)^{\alpha} \left(\frac{1}{2} + \frac{2 \sqrt{5} i}{5}\right)
-            <target ids="equation-eq-sym">
-            <math_block classes="pasted-math" docname="source/nb" label="eq-sym" nowrap="False" number="2" xml:space="preserve">
+            <target refid="equation-eq-sym">
+            <math_block classes="pasted-math" docname="with_glue" ids="equation-eq-sym" label="eq-sym" nowrap="False" number="1" xml:space="preserve">
                 \displaystyle \left(\sqrt{5} i\right)^{\alpha} \left(\frac{1}{2} - \frac{2 \sqrt{5} i}{5}\right) + \left(- \sqrt{5} i\right)^{\alpha} \left(\frac{1}{2} + \frac{2 \sqrt{5} i}{5}\right)

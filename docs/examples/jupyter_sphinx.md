@@ -1,15 +1,13 @@
 # A Jupyter Sphinx example
 
-```{toctree}
-:maxdepth: 2
-:caption: "Contents:"
-```
-
 Jupyter-sphinx is a Sphinx extension that executes embedded code in a Jupyter
 kernel, and embeds outputs of that code in the document. It has support
 for rich output such as images, Latex math and even javascript widgets, and
 it allows to enable [thebelab](https://thebelab.readthedocs.io/) for live
 code execution with minimal effort.
+
+This page describes some jupyter-sphinx functionality and displays it below
+for comparison to MyST-NB output.
 
 
 ## Basic Usage
@@ -17,7 +15,7 @@ code execution with minimal effort.
 You can use the `jupyter-execute` directive to embed code into the document
 
 ````
-```{execute}
+```{jupyter-execute}
 name = 'world'
 print('hello ' + name + '!')
 ```
@@ -25,7 +23,7 @@ print('hello ' + name + '!')
 
 The above is rendered as follows:
 
-```{execute}
+```{jupyter-execute}
 name = 'world'
 print('hello ' + name + '!')
 ```
@@ -36,11 +34,11 @@ is rendered directly after the code snippet.
 Because all code cells in a document are run in the same kernel, cells later in the document
 can use variables and functions defined in cells earlier in the document:
 
-```{execute}
+```{jupyter-execute}
 a = 1
 print('first cell: a = {}'.format(a))
 ```
-```{execute}
+```{jupyter-execute}
 a += 1
 print('second cell: a = {}'.format(a))
 ```
@@ -48,7 +46,7 @@ print('second cell: a = {}'.format(a))
 Because jupyter-sphinx uses the machinery of `nbconvert`, it is capable of rendering
 any rich output, for example plots:
 
-```{execute}
+```{jupyter-execute}
 
 import numpy as np
 from matplotlib import pyplot
@@ -63,14 +61,14 @@ pyplot.grid()
 
 LaTeX output:
 
-```{execute}
+```{jupyter-execute}
 
   from IPython.display import Latex
   Latex('∫_{-∞}^∞ e^{-x²}dx = \sqrt{π}')
 ```
 or even full-blown javascript widgets:
 
-```{execute}
+```{jupyter-execute}
 
 import ipywidgets as w
 from IPython.display import display
@@ -87,7 +85,7 @@ display(a, b)
 You may choose to hide the code of a cell, but keep its output visible using `:hide-code:`
 
 ````
-```{execute}
+```{jupyter-execute}
 :hide-code:
 
 print('this code is invisible')
@@ -96,7 +94,7 @@ print('this code is invisible')
 
 produces:
 
-```{execute}
+```{jupyter-execute}
 :hide-code:
 
 print('this code is invisible')
@@ -105,14 +103,14 @@ print('this code is invisible')
 or vice versa with ``:hide-output:``::
 
 ````
-```{execute}
+```{jupyter-execute}
 :hide-output:
 
 print('this output is invisible')
 ```
 ````
 
-```{execute}
+```{jupyter-execute}
 :hide-output:
 
 print('this output is invisible')
@@ -120,14 +118,14 @@ print('this output is invisible')
 
 You may also display the code *below* the output with ``:code-below:``::
 
-```{execute}
+```{jupyter-execute}
 :code-below:
 print('this output is above the code')
 ```
 
 You may also add *line numbers* to the source code with ``:linenos:``::
 
-```{execute}
+```{jupyter-execute}
 :linenos:
 
 print('A')

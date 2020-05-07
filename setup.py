@@ -1,9 +1,8 @@
 """MyST-NB package setup."""
-from pathlib import Path
 from setuptools import find_packages, setup
 
 # Manually finding the version so we don't need to import our module
-text = path = Path("./myst_nb/__init__.py").read_text()
+text = open("./myst_nb/__init__.py").read()
 for line in text.split("\n"):
     if "__version__" in line:
         break
@@ -17,7 +16,7 @@ setup(
     ),
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    url="https://github.com/ExecutableBookProject/myst_nb",
+    url="https://github.com/executablebooks/myst_nb",
     author="ExecutableBookProject",
     author_email="choldgraf@berkeley.edu",
     license="BSD-3",
@@ -36,36 +35,35 @@ setup(
         "Programming Language :: Python :: Implementation :: PyPy",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Text Processing :: Markup",
+        "Framework :: Sphinx :: Extension",
     ],
     keywords="markdown lexer parser development docutils sphinx",
     python_requires=">=3.6",
-    package_data={"myst_nb": ["_static/mystnb.css"]},
+    package_data={"myst_nb": ["_static/*"]},
     install_requires=[
-        "myst-parser~=0.7.1",
+        "myst-parser~=0.8",
         "docutils>=0.15",
         "sphinx>=2,<3",
-        "jupyter_sphinx==0.2.4a1",
+        "jupyter_sphinx>=0.2.4",
         "ipython",
         "nbformat",
         "nbconvert",
         "nbclient",
-        "jupyter-cache~=0.1",
+        "jupyter-cache~=0.2.1",
         "pyyaml",
         "sphinx-togglebutton",
     ],
     extras_require={
         "code_style": ["flake8<3.8.0,>=3.7.0", "black", "pre-commit==1.17.0"],
         "testing": [
-            "coverage",
-            "pytest>=3.6,<4",
-            "pytest-cov",
+            "pytest~=5.4",
+            "pytest-cov~=2.8",
+            "coverage<5.0",
             "pytest-regressions",
-            "beautifulsoup4",
             "matplotlib",
             "numpy",
             "sympy",
             "pandas",
-            "ipypublish",
         ],
         "rtd": [
             "sphinxcontrib-bibtex",
@@ -79,7 +77,7 @@ setup(
             "plotly",
             "matplotlib",
             "sphinx-copybutton",
-            "pydata-sphinx-theme",
+            "sphinx-book-theme",
         ],
     },
     zip_safe=True,

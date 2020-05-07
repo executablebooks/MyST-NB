@@ -1,91 +1,209 @@
-from collections import defaultdict
+import json
+import os
 from pathlib import Path
-
-from docutils import nodes
-from docutils.frontend import OptionParser
-from docutils.parsers.rst import Parser as RSTParser
-from docutils.utils import new_document
-
-from sphinx.domains.math import MathDomain
-from sphinx.util.docutils import sphinx_domains
-
-from myst_nb.nb_glue.domain import NbGlueDomain
+import pickle
+import uuid
 
 import pytest
 
-NB_DIR = Path(__file__).parent.joinpath("notebooks")
+from docutils.utils import Reporter
+from nbdime.diffing.notebooks import (
+    diff_notebooks,
+    set_notebook_diff_targets,
+    set_notebook_diff_ignores,
+)
+from nbdime.prettyprint import pretty_print_diff
+import nbformat as nbf
 
 
-class MockEnv:
-    def __init__(self, tmp_path):
-        self.docname = "source/nb"
-        self.dependencies = defaultdict(set)
-        self.domaindata = {}
-        self.domains = {
-            NbGlueDomain.name: NbGlueDomain(self),
-            MathDomain.name: MathDomain(self),
-        }
-        self._tmp_path = tmp_path
-        self.path_cache = str(tmp_path) + "/.jupyter_cache"
+# -Diff Configuration-#
+NB_VERSION = 4
+set_notebook_diff_ignores({"/nbformat_minor": True})
+set_notebook_diff_targets(metadata=False)
 
-        class app:
-            class builder:
-                name = "html"
+TEST_FILE_DIR = Path(__file__).parent.joinpath("notebooks")
 
-            class config:
-                language = None
 
-            env = self
-            srcdir = tmp_path / "source"
-            outdir = tmp_path / "build" / "outdir"
+@pytest.fixture()
+def get_test_path():
+    def _get_test_path(name):
+        return TEST_FILE_DIR.joinpath(name)
 
-        class env:
-            srcdir = str(tmp_path) + "/source"
-            outdir = str(tmp_path) + "/build" + "/outdir"
-            config = {
-                "jupyter_execute_notebooks": "off",
-                "execution_excludepatterns": [],
-                "jupyter_cache": "",
-            }
+    return _get_test_path
 
+
+class SphinxFixture:
+    """A class returned by the ``sphinx_run`` fixture, to run sphinx,
+    and retrieve aspects of the build.
+    """
+
+    def __init__(self, app, filenames):
         self.app = app
-        self.env = env
-        self.env.app = app
-        self.config = env.config
+        self.env = app.env
+        self.files = [os.path.splitext(f) for f in filenames]
 
-    def get_domain(self, name):
-        return self.domains[name]
+        # self.nb_file = nb_file
+        # self.nb_name = os.path.splitext(nb_file)[0]
 
-    def relfn2path(self, imguri, docname):
-        return ("image.png", self._tmp_path / "build" / "image.png")
+    def build(self):
+        """Run the sphinx build."""
+        # reset streams before each build
+        self.app._status.truncate(0)
+        self.app._status.seek(0)
+        self.app._warning.truncate(0)
+        self.app._warning.seek(0)
+        self.app.build()
 
-    def new_serialno(self, name):
-        return 1
+    def status(self):
+        """Return the stdout stream of the sphinx build."""
+        return self.app._status.getvalue().strip()
 
-    def set_config(self, config_val):
-        for key, val in self.env.config.items():
-            if config_val[0] == key:
-                self.env.config[key] = config_val[1]
+    def warnings(self):
+        """Return the stderr stream of the sphinx build."""
+        return self.app._warning.getvalue().strip()
 
-    def set_srcdir(self, srcdir):
-        self.env.srcdir = srcdir
+    def invalidate_files(self):
+        """Invalidate the files, such that it will be flagged for a re-read."""
+        for name, _ in self.files:
+            self.env.all_docs.pop(name)
 
-    def set_docname(self, docname):
-        self.docname = docname
+    def get_doctree(self, index=0):
+        """Load and return the built docutils.document."""
+        name = self.files[index][0]
+        _path = self.app.doctreedir / (name + ".doctree")
+        if not _path.exists():
+            pytest.fail("doctree not output")
+        doctree = pickle.loads(_path.bytes())
+        doctree["source"] = name
+        doctree.reporter = Reporter(name, 1, 5)
+        self.app.env.temp_data["docname"] = name
+        doctree.settings.env = self.app.env
+        return doctree
+
+    def get_html(self, index=0):
+        """Return the built HTML file."""
+        name = self.files[index][0]
+        _path = self.app.outdir / (name + ".html")
+        if not _path.exists():
+            pytest.fail("html not output")
+        return _path.text()
+
+    def get_nb(self, index=0):
+        """Return the output notebook (after any execution)."""
+        name = self.files[index][0]
+        _path = self.app.srcdir / "_build" / "jupyter_execute" / (name + ".ipynb")
+        if not _path.exists():
+            pytest.fail("notebook not output")
+        return _path.text()
+
+    def get_report_file(self, index=0):
+        """Return the report file for a failed execution."""
+        name = self.files[index][0]
+        _path = self.app.outdir / "reports" / (name + ".log")
+        if not _path.exists():
+            pytest.fail("report log not output")
+        return _path.text()
 
 
 @pytest.fixture()
-def mock_document(tmp_path) -> nodes.document:
-    settings = OptionParser(components=(RSTParser,)).get_default_values()
-    document = new_document("notset", settings=settings)
-    document.settings.env = MockEnv(tmp_path)
-    with sphinx_domains(document.settings.env):
-        yield document
+def sphinx_params(request):
+    """Parameters that are specified by 'pytest.mark.sphinx_params'
+    are passed to the ``sphinx_run`` fixture::
+
+        @pytest.mark.sphinx_params("name.ipynb", conf={"option": "value"})
+        def test_something(sphinx_run):
+            ...
+
+    The first file specified here will be set as the master_doc
+    """
+    markers = request.node.iter_markers("sphinx_params")
+    kwargs = {}
+    if markers is not None:
+        for info in reversed(list(markers)):
+            kwargs.update(info.kwargs)
+            kwargs["files"] = info.args
+    return kwargs
 
 
 @pytest.fixture()
-def get_notebook():
-    def _get_notebook(name):
-        return NB_DIR.joinpath(name)
+def sphinx_run(sphinx_params, make_app, tempdir):
+    """A fixture to setup and run a sphinx build, in a sandboxed folder.
 
-    return _get_notebook
+    The `myst_nb` extension ius added by default,
+    and the first file will be set as the materdoc
+
+    """
+    assert len(sphinx_params["files"]) > 0, sphinx_params["files"]
+    conf = sphinx_params.get("conf", {})
+    buildername = sphinx_params.get("buildername", "html")
+
+    confoverrides = {
+        "extensions": ["myst_nb"],
+        "master_doc": os.path.splitext(sphinx_params["files"][0])[0],
+        "exclude_patterns": ["_build"],
+    }
+    confoverrides.update(conf)
+
+    current_dir = os.getcwd()
+    if "working_dir" in sphinx_params:
+        from sphinx.testing.path import path
+
+        base_dir = path(sphinx_params["working_dir"]) / str(uuid.uuid4())
+    else:
+        base_dir = tempdir
+    srcdir = base_dir / "source"
+    srcdir.makedirs(exist_ok=True)
+    os.chdir(base_dir)
+    (srcdir / "conf.py").write_text(
+        "# conf overrides (passed directly to sphinx):\n"
+        + "\n".join(
+            ["# " + l for l in json.dumps(confoverrides, indent=2).splitlines()]
+        )
+        + "\n"
+    )
+
+    for nb_file in sphinx_params["files"]:
+        nb_path = TEST_FILE_DIR.joinpath(nb_file)
+        assert nb_path.exists(), nb_path
+        (srcdir / nb_file).parent.makedirs(exist_ok=True)
+        (srcdir / nb_file).write_text(nb_path.read_text())
+
+    app = make_app(buildername=buildername, srcdir=srcdir, confoverrides=confoverrides)
+
+    yield SphinxFixture(app, sphinx_params["files"])
+
+    # reset working directory
+    os.chdir(current_dir)
+
+
+def empty_non_deterministic_outputs(cell):
+    if "outputs" in cell and len(cell.outputs):
+        for item in cell.outputs:
+            if "data" in item and "image/png" in item.data:
+                item.data["image/png"] = ""
+            if "filenames" in item.get("metadata", {}):
+                item["metadata"]["filenames"] = {
+                    k: os.path.basename(v)
+                    for k, v in item["metadata"]["filenames"].items()
+                }
+
+
+@pytest.fixture()
+def check_nbs():
+    def _check_nbs(obtained_filename, expected_filename):
+        obtained_nb = nbf.read(str(obtained_filename), nbf.NO_CONVERT)
+        expect_nb = nbf.read(str(expected_filename), nbf.NO_CONVERT)
+        for cell in expect_nb.cells:
+            empty_non_deterministic_outputs(cell)
+        for cell in obtained_nb.cells:
+            empty_non_deterministic_outputs(cell)
+        diff = diff_notebooks(obtained_nb, expect_nb)
+        filename_without_path = str(expected_filename)[
+            str(expected_filename).rfind("/") + 1 :
+        ]
+        if diff:
+            raise AssertionError(
+                pretty_print_diff(obtained_nb, diff, str(filename_without_path))
+            )
+
+    return _check_nbs

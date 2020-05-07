@@ -1,0 +1,151 @@
+Markdown Cell:
+.
+cells:
+  - cell_type: markdown
+    metadata: {}
+    source: |
+        # A Title
+.
+<document source="notset">
+    <docinfo>
+    <section ids="a-title" names="a\ title">
+        <title>
+            A Title
+.
+
+Code Cell (no output):
+.
+cells:
+  - cell_type: code
+    metadata: {}
+    execution_count: null
+    source: |
+        a=1
+        print(a)
+    outputs: []
+.
+<document source="notset">
+    <docinfo>
+    <CellNode cell_type="code" classes="cell">
+        <CellInputNode classes="cell_input">
+            <literal_block xml:space="preserve">
+                a=1
+                print(a)
+.
+
+Code Cell (simple output):
+.
+cells:
+  - cell_type: code
+    metadata: {}
+    execution_count: 1
+    source: |
+        a=1
+        print(a)
+    outputs:
+      - name: stdout
+        output_type: stream
+        text: 1
+.
+<document source="notset">
+    <docinfo>
+    <CellNode cell_type="code" classes="cell">
+        <CellInputNode classes="cell_input">
+            <literal_block xml:space="preserve">
+                a=1
+                print(a)
+        <CellOutputNode classes="cell_output">
+            <CellOutputBundleNode output_count="1">
+.
+
+Mixed Cells:
+.
+cells:
+  - cell_type: markdown
+    metadata: {}
+    source: |
+        # A Title
+  - cell_type: code
+    metadata: {}
+    execution_count: null
+    source: |
+        a=1
+        print(a)
+    outputs: []
+  - cell_type: markdown
+    metadata: {}
+    source: |
+        b
+.
+<document source="notset">
+    <docinfo>
+    <section ids="a-title" names="a\ title">
+        <title>
+            A Title
+        <CellNode cell_type="code" classes="cell">
+            <CellInputNode classes="cell_input">
+                <literal_block xml:space="preserve">
+                    a=1
+                    print(a)
+        <paragraph>
+            b
+.
+
+Reference definitions defined in different cells:
+.
+cells:
+  - cell_type: markdown
+    metadata: {}
+    source: |
+        [a]: before
+  - cell_type: markdown
+    metadata: {}
+    source: |
+        [a] [b]
+  - cell_type: markdown
+    metadata: {}
+    source: |
+        [b]: after
+.
+<document source="notset">
+    <docinfo>
+    <paragraph>
+        <pending_xref refdomain="True" refexplicit="True" reftarget="before" reftype="any" refwarn="True">
+            <literal classes="xref any">
+                a
+         
+        <pending_xref refdomain="True" refexplicit="True" reftarget="after" reftype="any" refwarn="True">
+            <literal classes="xref any">
+                b
+.
+
+Footnote definitions defined in different cells:
+.
+cells:
+  - cell_type: markdown
+    metadata: {}
+    source: |
+        [^a]: before
+  - cell_type: markdown
+    metadata: {}
+    source: |
+        [^a] [^b]
+  - cell_type: markdown
+    metadata: {}
+    source: |
+        [^b]: after
+.
+<document source="notset">
+    <docinfo>
+    <paragraph>
+        <footnote_reference auto="1" ids="id1" refname="a">
+         
+        <footnote_reference auto="1" ids="id2" refname="b">
+    <transition>
+    <footnote auto="1" ids="a" names="a">
+        <paragraph>
+            before
+    <footnote auto="1" ids="b" names="b">
+        <paragraph>
+            after
+.

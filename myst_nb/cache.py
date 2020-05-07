@@ -9,105 +9,112 @@ from pathlib import Path
 from sphinx.util import logging
 from sphinx.util.osutil import ensuredir
 
-from jupyter_cache.cache.db import NbCacheRecord
 from jupyter_cache import get_cache
 from jupyter_cache.executors import load_executor
 
-logger = logging.getLogger(__name__)
+from .converter import path_to_notebook, is_myst_file
 
-filtered_nb_list = set()
+LOGGER = logging.getLogger(__name__)
 
 
-def execution_cache(app, env, added, changed, removed, path_cache=None):
+def is_valid_exec_file(env, docname):
+    """Check if the docname refers to a file that should be executed."""
+    doc_path = env.doc2path(docname)
+    if doc_path in env.excluded_nb_exec_paths:
+        return False
+    extension = os.path.splitext(doc_path)[1]
+    if extension not in env.allowed_nb_exec_suffixes:
+        return False
+    return True
+
+
+def execution_cache(app, builder, added, changed, removed):
     """
-    If cacheing is required, stages and executes the added or modified notebooks,
+    If caching is required, stages and executes the added or modified notebooks,
     and caches them for further use.
     """
     jupyter_cache = False
-    exclude_files = []
-    nb_list = added.union(
-        changed
-    )  # all the added and changed notebooks should be operated on.
 
-    if env.config["jupyter_execute_notebooks"] not in ["force", "auto", "cache", "off"]:
-        logger.error(
+    # all the added and changed notebooks should be operated on.
+    # note docnames are paths relative to the sphinx root folder, with no extensions
+    altered_docnames = added.union(changed)
+    if app.config["jupyter_execute_notebooks"] not in ["force", "auto", "cache", "off"]:
+        LOGGER.error(
             "Conf jupyter_execute_notebooks can either be `force`, `auto`, `cache` or `off`"  # noqa: E501
         )
         exit(1)
 
-    jupyter_cache = env.config["jupyter_cache"]
+    jupyter_cache = app.config["jupyter_cache"]
 
-    # excludes the file with patterns given in execution_excludepatterns
-    # conf variable from executing, like index.rst
-    for path in env.config["execution_excludepatterns"]:
-        exclude_files.extend(Path().cwd().rglob(path))
+    exec_docnames = [
+        docname for docname in altered_docnames if is_valid_exec_file(app.env, docname)
+    ]
+    LOGGER.verbose("MyST-NB: Potential docnames to execute: %s", exec_docnames)
 
-    for nb in nb_list:
-        exclude = False
-        for files in exclude_files:
-            if nb in str(files):
-                exclude = True
-        if not exclude:
-            filtered_nb_list.add(nb)
-
-    if "cache" in env.config["jupyter_execute_notebooks"]:
+    if "cache" in app.config["jupyter_execute_notebooks"]:
         if jupyter_cache:
             if os.path.isdir(jupyter_cache):
                 path_cache = jupyter_cache
             else:
-                logger.error("Path to jupyter_cache is not a directory")
+                LOGGER.error(
+                    f"Path to jupyter_cache is not a directory: {jupyter_cache}"
+                )
                 exit(1)
         else:
-            path_cache = path_cache or Path(env.outdir).parent.joinpath(
-                ".jupyter_cache"
-            )
+            path_cache = Path(app.outdir).parent.joinpath(".jupyter_cache")
 
         app.env.path_cache = str(
             path_cache
         )  # TODO: is there a better way to make it accessible?
 
-        _stage_and_execute(env, filtered_nb_list, path_cache)
+        cache_base = get_cache(path_cache)
+        for path in removed:
+            docpath = app.env.doc2path(path)
+            # there is an issue in sphinx doc2path, whereby if the path does not
+            # exist then it will be assigned the default source_suffix (usually .rst)
+            # therefore, to be safe here, we run through all possible suffixes
+            for suffix in app.env.allowed_nb_exec_suffixes:
+                docpath = os.path.splitext(docpath)[0] + suffix
+                if not os.path.exists(docpath):
+                    cache_base.discard_staged_notebook(docpath)
+
+        _stage_and_execute(app.env, exec_docnames, path_cache)
 
     elif jupyter_cache:
-        logger.error(
+        LOGGER.error(
             "If using conf jupyter_cache, please set jupyter_execute_notebooks"  # noqa: E501
             " to `cache`"
         )
         exit(1)
 
-    return nb_list  # TODO: can also compare timestamps for inputs outputs
+    return altered_docnames
 
 
-def _stage_and_execute(env, nb_list, path_cache):
-    pk_list = None
-
-    try:
-        from jupyter_cache.cache.main import JupyterCacheBase  # noqa: F401
-    except ImportError:
-        logger.error(
-            "Using caching requires that jupyter_cache is installed."  # noqa: E501
-        )
-
+def _stage_and_execute(env, exec_docnames, path_cache):
+    pk_list = []
     cache_base = get_cache(path_cache)
 
-    for nb in nb_list:
-        if "." in nb:  # nb includes the path to notebook
-            source_path = nb
-        else:
-            source_path = env.env.doc2path(nb)
+    for nb in exec_docnames:
+        source_path = env.doc2path(nb)
+        if is_myst_file(source_path):
+            stage_record = cache_base.stage_notebook_file(source_path)
+            pk_list.append(stage_record.pk)
 
-        # prevents execution of other formats like .md
-        if ".ipynb" not in source_path:
-            continue
-
-        if pk_list is None:
-            pk_list = []
-        stage_record = cache_base.stage_notebook_file(source_path)
-        pk_list.append(stage_record.pk)
-
-    execute_staged_nb(
-        cache_base, pk_list
-    )  # can leverage parallel execution implemented in jupyter-cache here
+    # can leverage parallel execution implemented in jupyter-cache here
+    try:
+        execute_staged_nb(cache_base, pk_list or None)
+    except OSError as err:
+        # This is a 'fix' for obscure cases, such as if you
+        # remove name.ipynb and add name.md (i.e. same name, different extension)
+        # and then name.ipynb isn't flagged for removal.
+        # Normally we want to keep the stage records available, so that we can retrieve
+        # execution tracebacks at the `add_notebook_outputs` stage,
+        # but we need to flush if it becomes 'corrupted'
+        LOGGER.error(
+            "Execution failed in an unexpected way, clearing staged notebooks: %s", err
+        )
+        for record in cache_base.list_staged_records():
+            cache_base.discard_staged_notebook(record.pk)
 
 
 def add_notebook_outputs(env, ntbk, file_path=None):
@@ -124,9 +131,7 @@ def add_notebook_outputs(env, ntbk, file_path=None):
     reports_dir = str(dest_path) + "/reports"
     path_cache = False
 
-    # checking if filename in execute_excludepattern
-    file_present = [env.docname in nb for nb in filtered_nb_list]
-    if True not in file_present:
+    if not is_valid_exec_file(env, env.docname):
         return ntbk
 
     if "cache" in env.config["jupyter_execute_notebooks"]:
@@ -138,10 +143,10 @@ def add_notebook_outputs(env, ntbk, file_path=None):
                 file_path, env.config["jupyter_execute_notebooks"]
             )
             if not has_outputs:
-                logger.info("Executing: {}".format(env.docname))
+                LOGGER.info("Executing: {}".format(env.docname))
                 ntbk = execute(ntbk)
             else:
-                logger.info(
+                LOGGER.info(
                     "Did not execute {}. "
                     "Set jupyter_execute_notebooks to `force` to execute".format(
                         env.docname
@@ -150,31 +155,16 @@ def add_notebook_outputs(env, ntbk, file_path=None):
         return ntbk
 
     cache_base = get_cache(path_cache)
-    db = cache_base.db
-    cache_record = None
-    r_file_path = Path(file_path).relative_to(Path(file_path).cwd())
+    # Use relpath here in case Sphinx is building from a non-parent folder
+    r_file_path = Path(os.path.relpath(file_path, Path().resolve()))
 
     try:
-        cache_list = NbCacheRecord.records_from_uri(file_path, db)
-        if len(cache_list):
-            latest = None
-            for item in cache_list:
-                if latest is None or (latest < item.created):
-                    latest = item.created
-                    latest_record = item
-            cache_record = latest_record
-    except KeyError:
-        cache_record = None
-        logger.error(
-            (
-                f"Couldn't find cache key for notebook file {str(r_file_path)}. "
-                "Outputs will not be inserted"
-            )
-        )
-
-    if cache_record:
         _, ntbk = cache_base.merge_match_into_notebook(ntbk)
-    else:
+    except KeyError:
+        message = (
+            f"Couldn't find cache key for notebook file {str(r_file_path)}. "
+            "Outputs will not be inserted."
+        )
         try:
             stage_record = cache_base.get_staged_record(file_path)
         except KeyError:
@@ -186,9 +176,21 @@ def add_notebook_outputs(env, ntbk, file_path=None):
             full_path = reports_dir + "/{}.log".format(file_name)
             with open(full_path, "w") as log_file:
                 log_file.write(stage_record.traceback)
-            logger.info(
-                "Execution traceback for {} is saved in {}".format(file_name, full_path)
+            message += "\n  Last execution failed with traceback saved in {}".format(
+                full_path
             )
+
+        LOGGER.error(message)
+
+        # This is a 'fix' for jupyter_sphinx, which requires this value for dumping the
+        # script file, to stop it from raising an exception if not found:
+        # Normally it would be added from the executed notebook but,
+        # since we are already logging an error, we don't want to block the whole build.
+        # So here we just add a dummy .txt extension
+        if "language_info" not in ntbk.metadata:
+            ntbk.metadata["language_info"] = nbf.from_dict({"file_extension": ".txt"})
+    else:
+        LOGGER.verbose("Merged cached outputs into %s", str(r_file_path))
 
     return ntbk
 
@@ -198,17 +200,25 @@ def execute_staged_nb(cache_base, pk_list):
     executing the staged notebook
     """
     try:
-        executor = load_executor("basic", cache_base, logger=logger)
+        executor = load_executor("basic", cache_base, logger=LOGGER)
     except ImportError as error:
-        logger.error(str(error))
+        LOGGER.error(str(error))
         return 1
-    result = executor.run_and_cache(filter_pks=pk_list or None)
+    result = executor.run_and_cache(
+        filter_pks=pk_list or None, converter=path_to_notebook
+    )
     return result
 
 
 def _read_nb_output_cells(source_path, jupyter_execute_notebooks):
     has_outputs = False
-    if jupyter_execute_notebooks and jupyter_execute_notebooks == "auto":
+    ext = os.path.splitext(source_path)[1]
+
+    if (
+        jupyter_execute_notebooks
+        and jupyter_execute_notebooks == "auto"
+        and "ipynb" in ext
+    ):
         with open(source_path, "r") as f:
             ntbk = nbf.read(f, as_version=4)
             has_outputs = all(

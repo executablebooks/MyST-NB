@@ -22,3 +22,7 @@ help:
 # raise warnings to errors
 html-strict:
 	@$(SPHINXBUILD) -b html -nW --keep-going "$(SOURCEDIR)" "$(BUILDDIR)/html" $(SPHINXOPTS) $(O)
+
+# increase logging level to verbose
+html-verbose:
+	@$(SPHINXBUILD) -b html -v "$(SOURCEDIR)" "$(BUILDDIR)/html" $(SPHINXOPTS) $(O)

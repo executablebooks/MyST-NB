@@ -5,7 +5,8 @@ exclude: >
     (?x)^(
       \.vscode/settings\.json|
       tests/commonmark/commonmark\.json|
-      .*\.xml
+      .*\.xml|
+      tests/.*\.txt
     )$
 
 repos:

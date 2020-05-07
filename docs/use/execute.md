@@ -87,4 +87,4 @@ jupyter_cache = path/to/mycache
 The path should point to an **empty folder**, or a folder where a
 **jupyter cache already exists**.
 
-[jupyter-cache]: https://github.com/executablebookproject/jupyter-cache "the Jupyter Cache Project"
+[jupyter-cache]: https://github.com/executablebooks/jupyter-cache "the Jupyter Cache Project"

@@ -1,10 +1,4 @@
-<document source="notset">
-    <docinfo>
-        <field>
-            <field_name>
-                test_name
-            <field_body>
-                notebook1
+<document source="basic_unrun">
     <section ids="a-title" names="a\ title">
         <title>
             a title
@@ -16,4 +10,4 @@
                     a=1
                     print(a)
             <CellOutputNode classes="cell_output">
-                <CellOutputBundleNode>
+                <CellOutputBundleNode output_count="1">

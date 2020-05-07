@@ -1,46 +1,83 @@
-from myst_nb.parser import NotebookParser
-import myst_nb
+import pytest
 
 
-def test_basic_run(mock_document, get_notebook, file_regression):
-    parser = NotebookParser()
-    parser.parse(get_notebook("basic_run.ipynb").read_text(), mock_document)
-    file_regression.check(mock_document.pformat(), extension=".xml")
-    filenames = {
-        p.name for p in mock_document.settings.env.app.outdir.parent.glob("**/*")
+@pytest.mark.sphinx_params("basic_run.ipynb", conf={"jupyter_execute_notebooks": "off"})
+def test_basic_run(sphinx_run, file_regression):
+    sphinx_run.build()
+    # print(sphinx_run.status())
+    assert sphinx_run.warnings() == ""
+    assert set(sphinx_run.app.env.metadata["basic_run"].keys()) == {
+        "test_name",
+        "kernelspec",
+        "language_info",
     }
-    assert filenames == {"nb.py", "nb.ipynb", "source", "jupyter_execute"}
+    assert sphinx_run.app.env.metadata["basic_run"]["test_name"] == "notebook1"
+    assert (
+        sphinx_run.app.env.metadata["basic_run"]["kernelspec"]
+        == '{"display_name": "Python 3", "language": "python", "name": "python3"}'
+    )
+    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
 
-
-def test_complex_outputs(mock_document, get_notebook, file_regression):
-    parser = NotebookParser()
-    parser.parse(get_notebook("complex_outputs.ipynb").read_text(), mock_document)
-    file_regression.check(mock_document.pformat(), extension=".xml")
     filenames = {
-        p.name.replace(".jpeg", ".jpg")
-        for p in mock_document.settings.env.app.outdir.parent.glob("**/*")
+        p for p in (sphinx_run.app.srcdir / "_build" / "jupyter_execute").listdir()
     }
+    assert filenames == {"basic_run.py", "basic_run.ipynb"}
+
+
+@pytest.mark.sphinx_params(
+    "complex_outputs.ipynb", conf={"jupyter_execute_notebooks": "off"}
+)
+def test_complex_outputs(sphinx_run, file_regression):
+    sphinx_run.build()
+    assert sphinx_run.warnings() == ""
+
+    assert set(sphinx_run.app.env.metadata["complex_outputs"].keys()) == {
+        "ipub",
+        "hide_input",
+        "nav_menu",
+        "celltoolbar",
+        "latex_envs",
+        "kernelspec",
+        "language_info",
+        "jupytext",
+        "toc",
+        "varInspector",
+    }
+    assert (
+        sphinx_run.app.env.metadata["complex_outputs"]["celltoolbar"] == "Edit Metadata"
+    )
+    assert sphinx_run.app.env.metadata["complex_outputs"]["hide_input"] == "False"
+    assert (
+        sphinx_run.app.env.metadata["complex_outputs"]["kernelspec"]
+        == '{"display_name": "Python 3", "language": "python", "name": "python3"}'
+    )
+    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
+
+    filenames = {
+        p.replace(".jpeg", ".jpg")
+        for p in (sphinx_run.app.srcdir / "_build" / "jupyter_execute").listdir()
+    }
+    print(filenames)
     assert filenames == {
-        "source",
-        "jupyter_execute",
-        "nb.ipynb",
-        "nb.py",
-        "nb_13_0.jpg",
-        "nb_17_0.pdf",
-        "nb_17_0.svg",
-        "nb_24_0.png",
+        "complex_outputs_17_0.svg",
+        "complex_outputs.ipynb",
+        "complex_outputs_17_0.pdf",
+        "complex_outputs.py",
+        "complex_outputs_24_0.png",
+        "complex_outputs_13_0.jpg",
     }
 
 
-class MockApp:
-    def mock_method(self, *args, **kwargs):
-        pass
-
-    def __getattr__(self, name):
-        print(name)
-        return self.mock_method
-
-
-def test_sphinx_setup():
-    app = MockApp()
-    myst_nb.setup(app)
+@pytest.mark.sphinx_params(
+    "latex_build/index.ipynb",
+    "latex_build/other.ipynb",
+    conf={"jupyter_execute_notebooks": "off"},
+    buildername="latex",
+    # working_dir="/Users/cjs14/GitHub/MyST-NB-actual/outputs"
+)
+def test_toctree_in_ipynb(sphinx_run, file_regression):
+    sphinx_run.build()
+    print(sphinx_run.status())
+    print(sphinx_run.warnings())
+    file_regression.check(sphinx_run.get_doctree(1).pformat(), extension=".xml")
+    assert sphinx_run.warnings() == ""

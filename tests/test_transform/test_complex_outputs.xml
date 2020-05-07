@@ -1,20 +1,14 @@
-<document source="notset">
-    <docinfo>
-        <field>
-            <field_name>
-                celltoolbar
-            <field_body>
-                Edit Metadata
-        <field>
-            <field_name>
-                hide_input
-            <field_body>
-                False
+<document source="complex_outputs">
     <CellNode cell_type="code" classes="cell">
         <CellInputNode classes="cell_input">
             <literal_block xml:space="preserve">
-                from ipypublish.scripts.ipynb_latex_setup import *
-        <CellOutputNode classes="cell_output">
+                import matplotlib.pyplot as plt
+                import pandas as pd
+                pd.set_option('display.latex.repr', True)
+                import sympy as sym
+                sym.init_printing(use_latex=True)
+                import numpy as np
+                from IPython.display import Image, Latex
     <section ids="markdown" names="markdown">
         <title>
             Markdown
@@ -114,7 +108,7 @@
                 <literal_block xml:space="preserve">
                     Image('example.jpg',height=400)
             <CellOutputNode classes="cell_output">
-                <image candidates="{'*': 'image.png'}" uri="image.png">
+                <image candidates="{'*': '_build/jupyter_execute/complex_outputs_13_0.jpg'}" uri="_build/jupyter_execute/complex_outputs_13_0.jpg">
         <section ids="displaying-a-plot-with-its-code" names="displaying\ a\ plot\ with\ its\ code">
             <title>
                 Displaying a plot with its code
@@ -130,7 +124,7 @@
                         plt.ylabel(r'a y label with latex $\alpha$')
                         plt.legend();
                 <CellOutputNode classes="cell_output">
-                    <image candidates="{'*': 'image.png'}" uri="image.png">
+                    <image candidates="{'*': '_build/jupyter_execute/complex_outputs_17_0.svg'}" uri="_build/jupyter_execute/complex_outputs_17_0.svg">
     <section ids="tables-with-pandas" names="tables\ (with\ pandas)">
         <title>
             Tables (with pandas)
@@ -215,4 +209,4 @@
                     f = y(n)-2*y(n-1/sym.pi)-5*y(n-2)
                     sym.rsolve(f,y(n),[1,4])
             <CellOutputNode classes="cell_output">
-                <image candidates="{'*': 'image.png'}" uri="image.png">
+                <image candidates="{'*': '_build/jupyter_execute/complex_outputs_24_0.png'}" uri="_build/jupyter_execute/complex_outputs_24_0.png">

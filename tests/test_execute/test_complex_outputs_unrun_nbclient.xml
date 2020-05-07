@@ -1,26 +1,14 @@
-<document source="notset">
-    <docinfo>
-        <field>
-            <field_name>
-                celltoolbar
-            <field_body>
-                Edit Metadata
-        <field>
-            <field_name>
-                hide_input
-            <field_body>
-                False
+<document source="complex_outputs_unrun">
     <CellNode cell_type="code" classes="cell">
         <CellInputNode classes="cell_input">
             <literal_block xml:space="preserve">
-                from ipypublish import nb_setup
-                plt = nb_setup.setup_matplotlib(print_errors=True, output=('svg',))
-                pd = nb_setup.setup_pandas(escape_latex=True)
-                sym = nb_setup.setup_sympy()
+                import matplotlib.pyplot as plt
+                import pandas as pd
+                pd.set_option('display.latex.repr', True)
+                import sympy as sym
+                sym.init_printing(use_latex=True)
                 import numpy as np
                 from IPython.display import Image, Latex
-        <CellOutputNode classes="cell_output">
-            <CellOutputBundleNode>
     <section ids="markdown" names="markdown">
         <title>
             Markdown
@@ -107,7 +95,7 @@
                     with a nicely formatted output.
                     """)
             <CellOutputNode classes="cell_output">
-                <CellOutputBundleNode>
+                <CellOutputBundleNode output_count="1">
     <section ids="images-and-figures" names="images\ and\ figures">
         <title>
             Images and Figures
@@ -133,7 +121,7 @@
                     df.set_index(['a','b'])
                     df.round(3)
             <CellOutputNode classes="cell_output">
-                <CellOutputBundleNode>
+                <CellOutputBundleNode output_count="1">
     <section ids="equations-with-ipython-or-sympy" names="equations\ (with\ ipython\ or\ sympy)">
         <title>
             Equations (with ipython or sympy)
@@ -142,7 +130,7 @@
                 <literal_block xml:space="preserve">
                     Latex('$$ a = b+c $$')
             <CellOutputNode classes="cell_output">
-                <CellOutputBundleNode>
+                <CellOutputBundleNode output_count="1">
         <paragraph>
             The plotting code for a sympy equation (=@eqn:example_sympy).
         <CellNode cell_type="code" classes="cell">
@@ -153,4 +141,4 @@
                     f = y(n)-2*y(n-1/sym.pi)-5*y(n-2)
                     sym.rsolve(f,y(n),[1,4])
             <CellOutputNode classes="cell_output">
-                <CellOutputBundleNode>
+                <CellOutputBundleNode output_count="1">

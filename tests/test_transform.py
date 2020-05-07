@@ -1,18 +1,39 @@
-from myst_nb.parser import NotebookParser
+import pytest
+
 from myst_nb.transform import CellOutputsToNodes
 
 
-def test_basic_run(mock_document, get_notebook, file_regression):
-    parser = NotebookParser()
-    parser.parse(get_notebook("basic_run.ipynb").read_text(), mock_document)
-    transform = CellOutputsToNodes(mock_document)
+@pytest.mark.sphinx_params("basic_run.ipynb", conf={"jupyter_execute_notebooks": "off"})
+def test_basic_run(sphinx_run, file_regression):
+    sphinx_run.build()
+    assert sphinx_run.warnings() == ""
+    document = sphinx_run.get_doctree()
+    transform = CellOutputsToNodes(document)
     transform.apply()
-    file_regression.check(mock_document.pformat(), extension=".xml")
+    file_regression.check(document.pformat(), extension=".xml")
 
 
-def test_complex_outputs(mock_document, get_notebook, file_regression):
-    parser = NotebookParser()
-    parser.parse(get_notebook("complex_outputs.ipynb").read_text(), mock_document)
-    transform = CellOutputsToNodes(mock_document)
+@pytest.mark.sphinx_params(
+    "complex_outputs.ipynb", conf={"jupyter_execute_notebooks": "off"}
+)
+def test_complex_outputs(sphinx_run, file_regression):
+    sphinx_run.build()
+    assert sphinx_run.warnings() == ""
+    document = sphinx_run.get_doctree()
+    transform = CellOutputsToNodes(document)
     transform.apply()
-    file_regression.check(mock_document.pformat(), extension=".xml")
+    file_regression.check(document.pformat().replace(".jpeg", ".jpg"), extension=".xml")
+
+
+@pytest.mark.sphinx_params(
+    "complex_outputs.ipynb",
+    conf={"jupyter_execute_notebooks": "off"},
+    buildername="latex",
+)
+def test_complex_outputs_latex(sphinx_run, file_regression):
+    sphinx_run.build()
+    assert sphinx_run.warnings() == ""
+    document = sphinx_run.get_doctree()
+    transform = CellOutputsToNodes(document)
+    transform.apply()
+    file_regression.check(document.pformat().replace(".jpeg", ".jpg"), extension=".xml")

@@ -5,7 +5,6 @@ from docutils.transforms import Transformer
 
 from myst_nb.nb_glue import glue, transform, utils
 from myst_nb.nb_glue.domain import NbGlueDomain
-from myst_nb.parser import NotebookParser
 from myst_nb.transform import CellOutputsToNodes
 
 
@@ -79,17 +78,17 @@ def test_glue_func_obj_no_display(mock_ipython):
     ]
 
 
-def test_find_glued_key(get_notebook):
+def test_find_glued_key(get_test_path):
 
-    bundle = utils.find_glued_key(get_notebook("with_glue.ipynb"), "key_text1")
+    bundle = utils.find_glued_key(get_test_path("with_glue.ipynb"), "key_text1")
     assert bundle == {"key_text1": "'text1'"}
 
     with pytest.raises(KeyError):
-        utils.find_glued_key(get_notebook("with_glue.ipynb"), "unknown")
+        utils.find_glued_key(get_test_path("with_glue.ipynb"), "unknown")
 
 
-def test_find_all_keys(get_notebook):
-    keys = utils.find_all_keys(get_notebook("with_glue.ipynb"))
+def test_find_all_keys(get_test_path):
+    keys = utils.find_all_keys(get_test_path("with_glue.ipynb"))
     assert set(keys) == {
         "key_text1",
         "key_float",
@@ -100,16 +99,17 @@ def test_find_all_keys(get_notebook):
     }
 
 
-def test_parser(mock_document, get_notebook, file_regression):
-    parser = NotebookParser()
-    parser.parse(get_notebook("with_glue.ipynb").read_text(), mock_document)
-
-    transformer = Transformer(mock_document)
+@pytest.mark.sphinx_params("with_glue.ipynb", conf={"jupyter_execute_notebooks": "off"})
+def test_parser(sphinx_run, file_regression):
+    sphinx_run.build()
+    # print(sphinx_run.status())
+    assert sphinx_run.warnings() == ""
+    document = sphinx_run.get_doctree()
+    transformer = Transformer(document)
     transformer.add_transforms([CellOutputsToNodes, transform.PasteNodesToDocutils])
     transformer.apply_transforms()
-
-    file_regression.check(mock_document.pformat(), extension=".xml")
-    glue_domain = NbGlueDomain.from_env(mock_document.document.settings.env)
+    file_regression.check(document.pformat(), extension=".xml")
+    glue_domain = NbGlueDomain.from_env(sphinx_run.app.env)
     assert set(glue_domain.cache) == {
         "key_text1",
         "key_float",
@@ -118,6 +118,6 @@ def test_parser(mock_document, get_notebook, file_regression):
         "key_plt",
         "sym_eq",
     }
-    glue_domain.clear_doc(mock_document.settings.env.docname)
+    glue_domain.clear_doc("with_glue")
     assert glue_domain.cache == {}
     assert glue_domain.docmap == {}
