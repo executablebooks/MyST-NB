@@ -44,7 +44,7 @@ setup(
         "myst-parser~=0.8",
         "docutils>=0.15",
         "sphinx>=2,<3",
-        "jupyter_sphinx==0.2.4a1",
+        "jupyter_sphinx>=0.2.4",
         "ipython",
         "nbformat",
         "nbconvert",
