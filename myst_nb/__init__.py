@@ -21,7 +21,14 @@ from .parser import (
 )
 from .transform import CellOutputsToNodes
 from .nb_glue import glue  # noqa: F401
-from .nb_glue.domain import NbGlueDomain
+
+from .nb_glue.domain import (
+    NbGlueDomain,
+    PasteMathNode,
+    PasteNode,
+    PasteTextNode,
+    PasteInlineNode,
+)
 from .nb_glue.transform import PasteNodesToDocutils
 
 LOGGER = logging.getLogger(__name__)
@@ -119,6 +126,19 @@ def setup(app):
         text=(skip, None),
         man=(skip, None),
     )
+
+    # Register our inline nodes so they can be parsed as a part of titles
+    # No translators should touch these nodes because we'll replace them in a transform
+    for node in [PasteMathNode, PasteNode, PasteTextNode, PasteInlineNode]:
+        app.add_node(
+            node,
+            override=True,
+            html=(skip, None),
+            latex=(skip, None),
+            textinfo=(skip, None),
+            text=(skip, None),
+            man=(skip, None),
+        )
 
     # Add configuration for the cache
     app.add_config_value("jupyter_cache", "", "env")

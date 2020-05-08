@@ -144,6 +144,11 @@
                     <image candidates="{'*': '_build/jupyter_execute/with_glue_5_0.png'}" uri="_build/jupyter_execute/with_glue_5_0.png">
                 <caption>
                     A caption….
+                    
+                    ```## A test title 
+                    <inline classes="pasted-inline">
+                        <literal classes="output text_plain" language="none">
+                            'text1'
         <section ids="math" names="math">
             <title>
                 Math
