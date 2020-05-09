@@ -1,0 +1,18 @@
+name: myst
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.7.*
+  - jupyter
+  - sphinx=2.4.4
+  - pydata-sphinx-theme
+  - sphinx_rtd_theme
+  - ghp-import
+  - pip
+  - pip:
+    - git+https://github.com/ExecutableBookProject/MyST-NB.git
+    - jupyter-cache[cli]
+    - git+https://github.com/mwouts/jupytext.git
+    - git+https://github.com/phaustin/jupyter-sphinx.git@debug
+    
