@@ -12,7 +12,7 @@ dependencies:
   - ghp-import
   - pip
   - pip:
-    - git+https://github.com/ExecutableBookProject/MyST-NB.git
+    - git+https://github.com/executablebooks/MyST-NB.git
     - jupyter-cache[cli]
     - git+https://github.com/mwouts/jupytext.git
     - git+https://github.com/phaustin/jupyter-sphinx.git@debug
