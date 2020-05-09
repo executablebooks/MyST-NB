@@ -3,6 +3,7 @@ channels:
   - conda-forge
   - defaults
 dependencies:
+  - git
   - python=3.7.*
   - jupyter
   - sphinx=2.4.4
