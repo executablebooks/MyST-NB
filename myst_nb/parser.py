@@ -293,6 +293,14 @@ def nb_output_to_disc(ntbk: nbf.NotebookNode, document: nodes.document) -> Path:
     doc_filename = path_doc.name
     build_dir = Path(document.settings.env.app.outdir).parent
     output_dir = build_dir.joinpath("jupyter_execute", doc_relpath)
+
+    # Write a script too.
+    if not ntbk.metadata.get("language_info"):
+        ntbk.metadata["language_info"] = {"file_extension": ".py"}
+        SPHINX_LOGGER.warning(
+            "Notebook code has no file extension metadata, " "defaulting to `.py`",
+            location=document.settings.env.docname,
+        )
     write_notebook_output(ntbk, str(output_dir), doc_filename)
 
     # Now add back the mime prefixes to the right outputs so they aren't rendered
