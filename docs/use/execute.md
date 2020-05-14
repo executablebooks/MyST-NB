@@ -1,8 +1,8 @@
 # Executing and cacheing your content
 
-MyST-NB can automatically run and cache any notebook pages. Notebooks can either
-be run each time the documentation is build, or cached locally so that notebooks
-will only be re-run when the code cells in a notebook have changed.
+MyST-NB can automatically run and cache notebooks contained in your project using [jupyter-cache].
+Notebooks can either be run each time the documentation is built, or cached
+locally so that re-runs occur only when code cells have changed.
 
 Cacheing behavior is controlled with configuration in your `conf.py` file. See
 the sections below for each configuration option and its effect.
@@ -16,7 +16,7 @@ jupyter_execute_notebooks = "auto"
 ```
 
 By default, this will only execute notebooks that are missing at least one output. If
-the notebook has *all* of its outputs populated, then it will not be executed.
+a notebook has *all* of its outputs populated, then it will not be executed.
 
 **To force the execution of all notebooks, regardless of their outputs**, change the
 above configuration value to:
@@ -34,7 +34,7 @@ jupyter_execute_notebooks = "cache"
 
 See {ref}`execute/cache` for more information.
 
-**To turn off notebook execution**,change the
+**To turn off notebook execution**, change the
 above configuration value to:
 
 ```
@@ -54,12 +54,18 @@ executed.
 (execute/cache)=
 ## Cacheing the notebook execution
 
-You may also **cache the results of executing a notebook page** using [jupyter-cache]. In
-this case, when a page is executed, its outputs will be stored in a local database.
-This allows you to be sure that the outputs in your documentation are up-to-date,
-while saving time avoiding unnecessary re-execution. It also allows you to store your
-`.ipynb` files in your `git` repository *without their outputs*, but still leverage
-a cache to save time when building your site.
+As mentioned above, you can **cache the results of executing a notebook page** by setting 
+
+```
+jupyter_execute_notebooks = "cache"
+```
+
+in your conf.py file.   In this case, when a page is executed, its outputs
+will be stored in a local database.  This allows you to be sure that the
+outputs in your documentation are up-to-date, while saving time avoiding
+unnecessary re-execution. It also allows you to store your `.ipynb` files in
+your `git` repository *without their outputs*, but still leverage a cache to
+save time when building your site.
 
 When you re-build your site, the following will happen:
 
@@ -68,12 +74,6 @@ When you re-build your site, the following will happen:
   and inserted into your site.
 * Notebooks that **have any change to their code cells** will be re-executed, and the
   cache will be updated with the new outputs.
-
-To enable cacheing of notebook outputs, use the following configuration:
-
-```
-jupyter_execute_notebooks = "cache"
-```
 
 By default, the cache will be placed in the parent of your build folder. Generally,
 this is in `_build/.jupyter_cache`.
