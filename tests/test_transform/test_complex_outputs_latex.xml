@@ -124,7 +124,7 @@
                         plt.ylabel(r'a y label with latex $\alpha$')
                         plt.legend();
                 <CellOutputNode classes="cell_output">
-                    <image candidates="{'*': '_build/jupyter_execute/complex_outputs_17_0.svg'}" uri="_build/jupyter_execute/complex_outputs_17_0.svg">
+                    <image candidates="{'*': '_build/jupyter_execute/complex_outputs_17_0.png'}" uri="_build/jupyter_execute/complex_outputs_17_0.png">
     <section ids="tables-with-pandas" names="tables\ (with\ pandas)">
         <title>
             Tables (with pandas)
