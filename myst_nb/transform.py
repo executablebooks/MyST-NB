@@ -26,7 +26,7 @@ RENDER_PRIORITY = {
         "text/latex",
         "text/plain",
     ],
-    #TODO: add support for  "image/svg+xml"
+    # TODO: add support for  "image/svg+xml"
     "latex": ["image/png", "image/jpeg", "text/latex", "text/plain"],
 }
 RENDER_PRIORITY["readthedocs"] = RENDER_PRIORITY["html"]

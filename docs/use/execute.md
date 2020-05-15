@@ -54,7 +54,7 @@ executed.
 (execute/cache)=
 ## Cacheing the notebook execution
 
-As mentioned above, you can **cache the results of executing a notebook page** by setting 
+As mentioned above, you can **cache the results of executing a notebook page** by setting
 
 ```
 jupyter_execute_notebooks = "cache"
