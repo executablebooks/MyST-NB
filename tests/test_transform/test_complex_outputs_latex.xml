@@ -144,9 +144,9 @@
                     \toprule
                     {} &         a &  b &      c &      d \\
                     \midrule
-                    0 &  $\delta$ &  l &  0.583 &  0.279 \\
-                    1 &         x &  m &  0.914 &  0.021 \\
-                    2 &         y &  n &  0.333 &  0.116 \\
+                    0 &  \$\textbackslash delta\$ &  l &  0.391 &  0.607 \\
+                    1 &         x &  m &  0.132 &  0.205 \\
+                    2 &         y &  n &  0.969 &  0.726 \\
                     \bottomrule
                     \end{tabular}
     <section ids="equations-with-ipython-or-sympy" names="equations\ (with\ ipython\ or\ sympy)">
