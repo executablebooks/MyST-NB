@@ -59,9 +59,8 @@ def test_complex_outputs(sphinx_run, file_regression):
     }
     print(filenames)
     assert filenames == {
-        "complex_outputs_17_0.svg",
+        "complex_outputs_17_0.png",
         "complex_outputs.ipynb",
-        "complex_outputs_17_0.pdf",
         "complex_outputs.py",
         "complex_outputs_24_0.png",
         "complex_outputs_13_0.jpg",
