@@ -2,11 +2,11 @@
 jupytext:
   cell_metadata_filter: all
   encoding: '# -*- coding: utf-8 -*-'
-  formats: ipynb,myst
+  formats: ipynb,md
   notebook_metadata_filter: all,-language_info
   text_representation:
     extension: .md
-    format_name: myst
+    format_name: markdown
     format_version: '0.8'
     jupytext_version: 1.4.2
 kernelspec:
@@ -14,9 +14,6 @@ kernelspec:
   language: python
   name: python3
 ---
-
-
-+++
 
 
 # Getting started
