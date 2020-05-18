@@ -61,7 +61,6 @@ language = None
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path .
 exclude_patterns = [
-    "*.md",
     "_build",
     "Thumbs.db",
     ".DS_Store",
@@ -82,4 +81,4 @@ html_static_path = ["_static"]
 
 # -- Extension configuration -------------------------------------------------
 nbsphinx_allow_errors = True
-jupyter_execute_notebooks = "cache"
+#jupyter_execute_notebooks = "cache"
