@@ -1,19 +1,22 @@
 name: myst
 channels:
+  - eoas_ubc
   - conda-forge
   - defaults
 dependencies:
   - git
   - python=3.7.*
   - jupyter
+  - runjb
   - sphinx=2.4.4
   - pydata-sphinx-theme
-  - sphinx_rtd_theme
   - ghp-import
   - pip
   - pip:
+    - sphinx_rtd_theme
+    - myst_nb
     - git+https://github.com/executablebooks/MyST-NB.git
     - jupyter-cache[cli]
     - git+https://github.com/mwouts/jupytext.git
-    - git+https://github.com/phaustin/jupyter-sphinx.git@debug
+   
     
