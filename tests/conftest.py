@@ -157,7 +157,7 @@ def sphinx_run(sphinx_params, make_app, tempdir):
     (srcdir / "conf.py").write_text(
         "# conf overrides (passed directly to sphinx):\n"
         + "\n".join(
-            ["# " + l for l in json.dumps(confoverrides, indent=2).splitlines()]
+            ["# " + item for item in json.dumps(confoverrides, indent=2).splitlines()]
         )
         + "\n"
     )
