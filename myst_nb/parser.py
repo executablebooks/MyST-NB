@@ -42,7 +42,6 @@ class NotebookParser(MystParser):
         self.reporter = document.reporter
         self.env = document.settings.env
         self.config = self.default_config.copy()
-
         try:
             new_cfg = document.settings.env.config.myst_config
             self.config.update(new_cfg)

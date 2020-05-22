@@ -144,7 +144,7 @@ def setup(app):
     app.add_config_value("jupyter_cache", "", "env")
     app.add_config_value("execution_excludepatterns", [], "env")
     app.add_config_value("jupyter_execute_notebooks", "auto", "env")
-    app.add_config_value("execution_timeout",30, "env")
+    app.add_config_value("execution_timeout", 30, "env")
 
     # Register our post-transform which will convert output bundles to nodes
     app.add_post_transform(PasteNodesToDocutils)

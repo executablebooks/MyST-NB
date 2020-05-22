@@ -78,7 +78,9 @@ def execution_cache(app, builder, added, changed, removed):
                 if not os.path.exists(docpath):
                     cache_base.discard_staged_notebook(docpath)
 
-        _stage_and_execute(app.env, exec_docnames, path_cache, app.config["execution_timeout"])
+        _stage_and_execute(
+            app.env, exec_docnames, path_cache, app.config["execution_timeout"]
+        )
 
     elif jupyter_cache:
         LOGGER.error(
