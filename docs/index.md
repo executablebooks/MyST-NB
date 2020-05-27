@@ -76,7 +76,9 @@ examples/index.md
 Finally, here is documentation on contributing to the development of MySt-NB
 
 ```{toctree}
+:titlesonly:
 develop/index.md
+GitHub Repo <https://github.com/executablebooks/myst-nb>
 ```
 
 [github-ci]: https://github.com/executablebooks/MyST-NB/workflows/continuous-integration/badge.svg?branch=master

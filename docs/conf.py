@@ -50,7 +50,10 @@ html_logo = "_static/logo.png"
 html_theme_options = {
     "github_url": "https://github.com/executablebooks/myst-nb",
     "repository_url": "https://github.com/executablebooks/myst-nb",
+    "repository_branch": "master",
     "expand_sections": ["use/index"],
+    "use_edit_page_button": True,
+    "path_to_docs": "docs/",
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
