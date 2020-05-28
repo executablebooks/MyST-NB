@@ -296,6 +296,8 @@ def nb_output_to_disc(ntbk: nbf.NotebookNode, document: nodes.document) -> Path:
 
     # Write a script too.
     if not ntbk.metadata.get("language_info"):
+        # TODO: we can remove this
+        # once https://github.com/executablebooks/MyST-NB/issues/177 is merged
         ntbk.metadata["language_info"] = {"file_extension": ".txt"}
         SPHINX_LOGGER.warning(
             "Notebook code has no file extension metadata, " "defaulting to `.txt`",
