@@ -1,5 +1,11 @@
 # MyST-NB
 
+[![Github-CI][github-badge]][github-link]
+[![Github-CI][github-ci]][github-link]
+[![Coverage Status][codecov-badge]][codecov-link]
+[![Documentation Status][rtd-badge]][rtd-link]
+[![PyPI][pypi-badge]][pypi-link]
+
 **Read, write, and execute Jupyter Notebooks in Sphinx**
 
 `MyST-NB` is an open source tool for working with Jupyter Notebooks in the
@@ -72,3 +78,13 @@ Finally, here is documentation on contributing to the development of MySt-NB
 ```{toctree}
 develop/index.md
 ```
+
+[github-ci]: https://github.com/executablebooks/MyST-NB/workflows/continuous-integration/badge.svg?branch=master
+[github-link]: https://github.com/executablebooks/MyST-NB
+[rtd-badge]: https://readthedocs.org/projects/myst-nb/badge/?version=latest
+[rtd-link]: https://myst-nb.readthedocs.io/en/latest/?badge=latest
+[codecov-badge]: https://codecov.io/gh/executablebooks/MyST-NB/branch/master/graph/badge.svg
+[codecov-link]: https://codecov.io/gh/executablebooks/MyST-NB
+[pypi-badge]: https://img.shields.io/pypi/v/myst-nb.svg
+[pypi-link]: https://pypi.org/project/myst-nb
+[github-badge]: https://img.shields.io/github/stars/executablebooks/myst-nb?label=github

@@ -124,7 +124,7 @@
                         plt.ylabel(r'a y label with latex $\alpha$')
                         plt.legend();
                 <CellOutputNode classes="cell_output">
-                    <image candidates="{'*': '_build/jupyter_execute/complex_outputs_17_0.svg'}" uri="_build/jupyter_execute/complex_outputs_17_0.svg">
+                    <image candidates="{'*': '_build/jupyter_execute/complex_outputs_17_0.png'}" uri="_build/jupyter_execute/complex_outputs_17_0.png">
     <section ids="tables-with-pandas" names="tables\ (with\ pandas)">
         <title>
             Tables (with pandas)
@@ -141,17 +141,17 @@
             <CellOutputNode classes="cell_output">
                 <raw classes="output text_html" format="html" xml:space="preserve">
                     <div>
-                    <style>
-                        .dataframe thead tr:only-child th {
-                            text-align: right;
-                        }
-                    
-                        .dataframe thead th {
-                            text-align: left;
+                    <style scoped>
+                        .dataframe tbody tr th:only-of-type {
+                            vertical-align: middle;
                         }
                     
                         .dataframe tbody tr th {
                             vertical-align: top;
+                        }
+                    
+                        .dataframe thead th {
+                            text-align: right;
                         }
                     </style>
                     <table border="1" class="dataframe">
@@ -169,22 +169,22 @@
                           <th>0</th>
                           <td>$\delta$</td>
                           <td>l</td>
-                          <td>0.583</td>
-                          <td>0.279</td>
+                          <td>0.391</td>
+                          <td>0.607</td>
                         </tr>
                         <tr>
                           <th>1</th>
                           <td>x</td>
                           <td>m</td>
-                          <td>0.914</td>
-                          <td>0.021</td>
+                          <td>0.132</td>
+                          <td>0.205</td>
                         </tr>
                         <tr>
                           <th>2</th>
                           <td>y</td>
                           <td>n</td>
-                          <td>0.333</td>
-                          <td>0.116</td>
+                          <td>0.969</td>
+                          <td>0.726</td>
                         </tr>
                       </tbody>
                     </table>

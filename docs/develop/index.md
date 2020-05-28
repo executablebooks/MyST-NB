@@ -36,3 +36,8 @@ MyST-NB will do the following:
 
 Eventually, it will also provide support for writing pure-markdown versions of notebooks
 that can be executed and read into Sphinx.
+
+## Code of Conduct
+
+The MyST-NB project follows the
+[Executable Book Project code of conduct](https://executablebooks.org/en/latest/about.html#code-of-conduct).
