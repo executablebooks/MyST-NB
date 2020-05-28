@@ -40,7 +40,7 @@ class SphinxFixture:
     def __init__(self, app, filenames):
         self.app = app
         self.env = app.env
-        self.files = [os.path.splitext(f) for f in filenames]
+        self.files = [os.path.splitext(ff) for ff in filenames]
 
         # self.nb_file = nb_file
         # self.nb_name = os.path.splitext(nb_file)[0]
@@ -157,7 +157,7 @@ def sphinx_run(sphinx_params, make_app, tempdir):
     (srcdir / "conf.py").write_text(
         "# conf overrides (passed directly to sphinx):\n"
         + "\n".join(
-            ["# " + item for item in json.dumps(confoverrides, indent=2).splitlines()]
+            ["# " + ll for ll in json.dumps(confoverrides, indent=2).splitlines()]
         )
         + "\n"
     )
