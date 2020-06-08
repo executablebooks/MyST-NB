@@ -170,9 +170,9 @@ def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Tok
 
     # If there are widgets, this will embed the state of all widgets in a script
     if contains_widgets(ntbk):
-        state.tokens = [
+        state.tokens.append(
             Token("jupyter_widget_state", "", 0, meta={"state": get_widgets(ntbk)})
-        ] + state.tokens
+        )
 
     return md, env, state.tokens
 
