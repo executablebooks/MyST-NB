@@ -38,3 +38,14 @@ def test_basic_run_exec_off(sphinx_run, file_regression, check_nbs):
 
     file_regression.check(sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
     file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
+
+
+@pytest.mark.sphinx_params(
+    "basic_nometadata.md",
+    conf={"jupyter_execute_notebooks": "off", "source_suffix": {".md": "myst-nb"}},
+)
+def test_basic_nometadata(sphinx_run, file_regression, check_nbs):
+    """A myst-markdown notebook with no jupytext metadata should raise a warning."""
+    sphinx_run.build()
+    # print(sphinx_run.status())
+    assert "Found a `code-cell` directive." in sphinx_run.warnings()

@@ -3,6 +3,7 @@ __version__ = "0.8.1"
 from pathlib import Path
 
 from docutils import nodes
+from sphinx.util.docutils import SphinxDirective
 from sphinx.util import logging
 
 from jupyter_sphinx.ast import (  # noqa: F401
@@ -78,6 +79,26 @@ def update_togglebutton_classes(app, config):
 
 def save_glue_cache(app, env):
     NbGlueDomain.from_env(env).write_cache()
+
+
+class CodeCell(SphinxDirective):
+    """Raises a warning if it is triggered, it should not make it to the doctree."""
+
+    optional_arguments = 1
+    final_argument_whitespace = True
+    has_content = True
+
+    def run(self):
+        LOGGER.warning(
+            (
+                "Found a `code-cell` directive. To execute the `code-cell`, you must "
+                "add Jupytext header content to the page. See "
+                "https://myst-nb.readthedocs.io/en/latest/use/markdown.html "
+                "for more information."
+            ),
+            location=(self.env.docname, self.lineno),
+        )
+        return []
 
 
 def setup(app):
@@ -160,6 +181,7 @@ def setup(app):
     app.add_js_file("mystnb.js")
     app.setup_extension("jupyter_sphinx")
     app.add_domain(NbGlueDomain)
+    app.add_directive("code-cell", CodeCell)
 
     # TODO need to deal with key clashes in NbGlueDomain.merge_domaindata
     # before this is parallel_read_safe
