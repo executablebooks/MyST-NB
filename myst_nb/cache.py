@@ -146,7 +146,7 @@ def add_notebook_outputs(env, ntbk, file_path=None):
             )
             if not has_outputs:
                 LOGGER.info("Executing: {}".format(env.docname))
-                ntbk = execute(ntbk)
+                ntbk = execute(ntbk, cwd=Path(file_path).parent)
             else:
                 LOGGER.info(
                     "Did not execute {}. "

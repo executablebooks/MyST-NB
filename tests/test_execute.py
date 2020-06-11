@@ -146,6 +146,24 @@ def test_jupyter_cache_path(sphinx_run, file_regression, check_nbs):
     file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
 
 
+# Testing relative paths within the notebook
+@pytest.mark.sphinx_params(
+    "basic_relative.ipynb", conf={"jupyter_execute_notebooks": "cache"}
+)
+def test_relative_path_cache(sphinx_run, file_regression, check_nbs):
+    sphinx_run.build()
+    assert "Executing" in sphinx_run.status(), sphinx_run.status()
+
+
+@pytest.mark.sphinx_params(
+    "basic_relative.ipynb", conf={"jupyter_execute_notebooks": "force"}
+)
+def test_relative_path_force(sphinx_run, file_regression, check_nbs):
+    sphinx_run.build()
+    assert "Executing" in sphinx_run.status(), sphinx_run.status()
+
+
+# Execution timeout configuration
 @pytest.mark.sphinx_params(
     "complex_outputs_unrun.ipynb",
     conf={"jupyter_execute_notebooks": "cache", "execution_timeout": 1},
