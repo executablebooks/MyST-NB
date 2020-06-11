@@ -55,20 +55,12 @@ Plotly is another interactive plotting library that provides a high-level API fo
 visualization. See the [Plotly JupyterLab documentation](https://plotly.com/python/getting-started/#jupyterlab-support-python-35)
 to get started with Plotly in the notebook.
 
-```{note}
-Plotly uses renderers to output different kinds of information when you display a plot. Using the
-`plotly_mimetype` renderer as below will cause the HTML to have a static PNG. Experiment with
-the renderer option to get the output you want.
-```
-
 Below is some example output.
 
 ```{code-cell} ipython3
 import plotly.io as pio
 import plotly.express as px
 import plotly.offline as py
-
-pio.renderers.default = "plotly_mimetype"
 
 df = px.data.iris()
 fig = px.scatter(df, x="sepal_width", y="sepal_length", color="species", size="sepal_length")
