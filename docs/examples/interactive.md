@@ -4,7 +4,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: '0.8'
-    jupytext_version: '1.4.1'
+    jupytext_version: 1.4.2
 kernelspec:
   display_name: Python 3
   language: python
@@ -62,7 +62,6 @@ the renderer option to get the output you want.
 ```
 
 Below is some example output.
-
 
 ```{code-cell} ipython3
 import plotly.io as pio
@@ -134,7 +133,8 @@ tab_contents = ['P0', 'P1', 'P2', 'P3', 'P4']
 children = [widgets.Text(description=name) for name in tab_contents]
 tab = widgets.Tab()
 tab.children = children
-tab.titles = [str(i) for i in range(len(children))]
+for ii in range(len(children)):
+    tab.set_title(ii, f"tab_{ii}")
 tab
 ```
 
