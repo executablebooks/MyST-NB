@@ -4,7 +4,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: '0.8'
-    jupytext_version: '1.4.1'
+    jupytext_version: 1.4.2
 kernelspec:
   display_name: Python 3
   language: python
@@ -63,7 +63,6 @@ the renderer option to get the output you want.
 
 Below is some example output.
 
-
 ```{code-cell} ipython3
 import plotly.io as pio
 import plotly.express as px
@@ -104,6 +103,13 @@ You may also run code for Jupyter Widgets in your document, and the interactive 
 outputs will embed themselves in your side. See [the ipywidgets documentation](https://ipywidgets.readthedocs.io/en/latest/user_install.html)
 for how to get set up in your own environment.
 
+```{admonition} Widgets often need a kernel
+Note that `ipywidgets` tend to behave differently from other interactive viz libraries. They
+interact both with Javascript, and with Python. Some functionality in `ipywidgets` may not
+work in default Jupyter Book pages (because no Python kernel is running). You may be able to
+get around this with [tools for remote kernels, like thebelab](https://thebelab.readthedocs.org).
+```
+
 Here are some simple widget elements rendered below.
 
 ```{code-cell} ipython3
@@ -127,10 +133,10 @@ tab_contents = ['P0', 'P1', 'P2', 'P3', 'P4']
 children = [widgets.Text(description=name) for name in tab_contents]
 tab = widgets.Tab()
 tab.children = children
-tab.titles = [str(i) for i in range(len(children))]
+for ii in range(len(children)):
+    tab.set_title(ii, f"tab_{ii}")
 tab
 ```
 
-```{code-cell} ipython3
-
-```
+You can find [a list of possible Jupyter Widgets](https://ipywidgets.readthedocs.io/en/latest/examples/Widget%20List.html)
+in the jupyter-widgets documentation.

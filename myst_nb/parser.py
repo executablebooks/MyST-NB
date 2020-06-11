@@ -170,9 +170,9 @@ def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Tok
 
     # If there are widgets, this will embed the state of all widgets in a script
     if contains_widgets(ntbk):
-        state.tokens = [
+        state.tokens.append(
             Token("jupyter_widget_state", "", 0, meta={"state": get_widgets(ntbk)})
-        ] + state.tokens
+        )
 
     return md, env, state.tokens
 
@@ -293,6 +293,16 @@ def nb_output_to_disc(ntbk: nbf.NotebookNode, document: nodes.document) -> Path:
     doc_filename = path_doc.name
     build_dir = Path(document.settings.env.app.outdir).parent
     output_dir = build_dir.joinpath("jupyter_execute", doc_relpath)
+
+    # Write a script too.
+    if not ntbk.metadata.get("language_info"):
+        # TODO: we can remove this
+        # once https://github.com/executablebooks/MyST-NB/issues/177 is merged
+        ntbk.metadata["language_info"] = {"file_extension": ".txt"}
+        SPHINX_LOGGER.warning(
+            "Notebook code has no file extension metadata, " "defaulting to `.txt`",
+            location=document.settings.env.docname,
+        )
     write_notebook_output(ntbk, str(output_dir), doc_filename)
 
     # Now add back the mime prefixes to the right outputs so they aren't rendered

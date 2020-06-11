@@ -21,7 +21,12 @@ directly into the {ref}`Execution and Caching <execute/cache>` machinery!
 [^download]: This notebook can be downloaded as
             **{jupyter-download:notebook}`markdown`** and {download}`markdown.md`
 
-They are distinguished from standard Markdown files by adding this top matter to the first line of you file (or the relevant `kernelspec` for your code):
+
+(myst-nb/jupytext-metadata)
+## Jupytext metadata
+
+In order to signal MyST-NB that it should treat your markdown file as a notebook,
+add the following Jupytext front-matter to the beginnign of the markdown file.
 
 ```md
 ---
@@ -34,9 +39,19 @@ kernelspec:
 ---
 ```
 
+Note that `kernelspec:` should map on to the kernel you wish to use to run your
+notebook's code. It must be installed on the machine and registered with Jupyter to
+be used.
+
 ```{tip}
-You can also create the file from an existing notebook: `jupytext notebook.ipynb --to myst`
+Jupytext allows you to convert back-and-forth between `.ipynb` and MyST-markdown
+notebooks.
+
+* To convert `.ipynb` to MyST-markdown, run: `jupytext notebook.ipynb --to myst`
+* To convert MyST-markdown to `.ipynb`, run: `jupytext mystfile.md --to ipynb`
 ```
+
+## Supported source files
 
 By default the `myst_nb` extension will look for both `.ipynb` and `.md` file extensions,
 treating markdown files with the above front matter as notebooks, and as standard
@@ -53,7 +68,9 @@ source_suffix = {
 }
 ```
 
-The following syntax can then be used to define a code cell:
+## Syntax for code cells
+
+When writing notebooks in pure-markdown, use the following syntax to define a code cell:
 
 ````md
 ```{code-cell} ipython3
@@ -63,7 +80,11 @@ print(f"{a} {b}")
 ```
 ````
 
-Yielding the following:
+The argument after `{code-cell}` (above, `ipython3`) is optional, and is used for
+readability purposes. The content inside `{code-cell}` makes up the content of the cell,
+and will be executed at build time.
+
+This will result in the following output after building your site:
 
 ```{code-cell} ipython3
 a = "This is some"
@@ -71,6 +92,10 @@ b = "Python code!"
 print(f"{a} {b}")
 ```
 
+## Parameterizing your code cell
+
+You can begin your `code-cell` block with front-matter metadata. These will be used
+as **cell-level metadata** in the resulting notebook cell.
 The same metadata tags can be used as you would in a normal notebook,
 for example those discussed in {ref}`use/hiding/code`:
 

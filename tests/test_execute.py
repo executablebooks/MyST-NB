@@ -102,6 +102,11 @@ def test_complex_outputs_unrun(sphinx_run, file_regression, check_nbs):
     file_regression.check(sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
     file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
 
+    # Widget view and widget state should make it into the HTML
+    html = sphinx_run.get_html()
+    assert '<script type="application/vnd.jupyter.widget-view+json">' in html
+    assert '<script type="application/vnd.jupyter.widget-state+json">' in html
+
 
 @pytest.mark.sphinx_params(
     "complex_outputs_unrun.ipynb", conf={"jupyter_execute_notebooks": "auto"}
@@ -112,6 +117,11 @@ def test_complex_outputs_unrun_nbclient(sphinx_run, file_regression, check_nbs):
     assert sphinx_run.warnings() == ""
     file_regression.check(sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
     file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
+
+    # Widget view and widget state should make it into the HTML
+    html = sphinx_run.get_html()
+    assert '<script type="application/vnd.jupyter.widget-view+json">' in html
+    assert '<script type="application/vnd.jupyter.widget-state+json">' in html
 
 
 @pytest.mark.sphinx_params(
@@ -151,3 +161,24 @@ def test_relative_path_cache(sphinx_run, file_regression, check_nbs):
 def test_relative_path_force(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
     assert "Executing" in sphinx_run.status(), sphinx_run.status()
+
+
+# Execution timeout configuration
+@pytest.mark.sphinx_params(
+    "complex_outputs_unrun.ipynb",
+    conf={"jupyter_execute_notebooks": "cache", "execution_timeout": 1},
+)
+def test_execution_timeout(sphinx_run, file_regression, check_nbs):
+    """ execution should fail given the low timeout value"""
+    sphinx_run.build()
+    assert "execution failed" in sphinx_run.warnings()
+
+
+@pytest.mark.sphinx_params(
+    "complex_outputs_unrun_timeout.ipynb",
+    conf={"jupyter_execute_notebooks": "cache", "execution_timeout": 60},
+)
+def test_execution_metadata_timeout(sphinx_run, file_regression, check_nbs):
+    """ notebook timeout metadata has higher preference then execution_timeout config"""
+    sphinx_run.build()
+    assert "execution failed" in sphinx_run.warnings()
