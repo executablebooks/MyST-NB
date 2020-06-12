@@ -13,7 +13,7 @@ Sphinx ecosystem. It provides the following primary features:
 
 * **{ref}`Parse ipynb files in Sphinx<installation>`**. Directly convert Jupyter
   Notebooks into Sphinx documents.
-* **{doc}`Execute and Cache your notebook content <use/execute>`**.
+* [**Execute and Cache your notebook content**](use/execute.md).
   Save time building your documentation without needing to commit your notebook outputs
   directly into `git`.
 * **{doc}`Write MyST Markdown<use/myst>`**. MyST Markdown

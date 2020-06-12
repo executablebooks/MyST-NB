@@ -110,12 +110,12 @@ cells:
 <document source="notset">
     <docinfo>
     <paragraph>
-        <pending_xref refdomain="True" refexplicit="True" reftarget="before" reftype="any" refwarn="True">
-            <literal classes="xref any">
+        <pending_xref refdomain="True" refexplicit="True" reftarget="before" reftype="myst" refwarn="True">
+            <inline classes="xref myst">
                 a
          
-        <pending_xref refdomain="True" refexplicit="True" reftarget="after" reftype="any" refwarn="True">
-            <literal classes="xref any">
+        <pending_xref refdomain="True" refexplicit="True" reftarget="after" reftype="myst" refwarn="True">
+            <inline classes="xref myst">
                 b
 .
 

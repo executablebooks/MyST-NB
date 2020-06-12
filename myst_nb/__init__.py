@@ -6,6 +6,8 @@ from docutils import nodes
 from sphinx.util.docutils import SphinxDirective
 from sphinx.util import logging
 
+from myst_parser.myst_refs import MystReferenceResolver
+
 from jupyter_sphinx.ast import (  # noqa: F401
     JupyterWidgetStateNode,
     JupyterWidgetViewNode,
@@ -171,12 +173,18 @@ def setup(app):
     app.add_post_transform(PasteNodesToDocutils)
     app.add_post_transform(CellOutputsToNodes)
 
+    # Myst transforms
+    app.add_post_transform(MystReferenceResolver)
+
+    # Events
     app.connect("builder-inited", static_path)
     app.connect("builder-inited", set_valid_execution_paths)
     app.connect("env-get-outdated", execution_cache)
     app.connect("config-inited", add_exclude_patterns)
     app.connect("config-inited", update_togglebutton_classes)
     app.connect("env-updated", save_glue_cache)
+
+    # Misc
     app.add_css_file("mystnb.css")
     app.add_js_file("mystnb.js")
     app.setup_extension("jupyter_sphinx")
