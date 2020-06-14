@@ -23,6 +23,7 @@ RENDER_PRIORITY = {
         "image/svg+xml",
         "image/png",
         "image/jpeg",
+        "text/markdown",
         "text/latex",
         "text/plain",
     ],
@@ -137,11 +138,8 @@ def cell_output_to_nodes_inline(
                 )
             )
         elif output_type in ("display_data", "execute_result"):
-            try:
-                # First mime_type by priority that occurs in output.
-                mime_type = next(x for x in data_priority if x in output["data"])
-            except StopIteration:
-                continue
+            mime_type = infer_mimetype(output, data_priority)
+            if  mime_type is None: continue
             data = output["data"][mime_type]
             if mime_type.startswith("image"):
                 # Sphinx treats absolute paths as being rooted at the source
@@ -195,3 +193,10 @@ def cell_output_to_nodes_inline(
                 to_add.append(JupyterWidgetViewNode(view_spec=data))
 
     return to_add
+
+def infer_mimetype(output, data_priority):
+    try:
+        # First mime_type by priority that occurs in output.
+        return next(x for x in data_priority if x in output["data"])
+    except StopIteration: 
+        return
