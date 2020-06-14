@@ -1,3 +1,4 @@
+from copy import deepcopy
 from pathlib import Path
 from typing import List, Tuple
 
@@ -66,7 +67,7 @@ class NotebookParser(MystParser):
 
         # Parse the notebook content to a list of syntax tokens and an env
         # containing global data like reference definitions
-        md_parser, env, tokens = nb_to_tokens(ntbk)
+        md_parser, env, tokens = nb_to_tokens(ntbk, self.app.builder.name)
 
         # Write the notebook's output to disk
         path_doc = nb_output_to_disc(ntbk, document)
@@ -79,7 +80,7 @@ class NotebookParser(MystParser):
         tokens_to_docutils(md_parser, env, tokens, document)
 
 
-def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Token]]:
+def nb_to_tokens(ntbk: nbf.NotebookNode, builder="html") -> Tuple[MarkdownIt, AttrDict, List[Token]]:
     """Parse the notebook content to a list of syntax tokens and an env,
     containing global data like reference definitions.
     """
@@ -112,6 +113,30 @@ def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Tok
                 dup_ref["fixed"] = True
         return tokens
 
+    def parse_code_cell(cell, start_line):
+        from myst_nb.transform import infer_mimetype, RENDER_PRIORITY
+        tokens = [
+            Token(
+                "nb_code_cell",
+                "",
+                0,
+                meta={"cell": cell},
+                map=[start_line, start_line],
+            )
+        ]
+        for i, output in enumerate(cell['outputs']):
+            if output['output_type'] == 'display_data':
+                if infer_mimetype(output, RENDER_PRIORITY[builder]) == 'text/markdown':
+                    new_code_cell = deepcopy(cell)
+                    new_code_cell['metadata']['tags'] = new_code_cell['metadata'].get('tags', []) + ['remove-input'] 
+                    cell['outputs'] = cell['outputs'][:i]
+                    new_code_cell['outputs'] = new_code_cell['outputs'][i+1:]
+                    tokens.extend(parse_block(output['data']['text/markdown'], start_line))
+                    if new_code_cell['outputs']:
+                        tokens.extend(parse_code_cell(new_code_cell, start_line))
+                    break
+        return tokens
+
     block_tokens = []
     source_map = ntbk.metadata.get("source_map", None)
 
@@ -142,15 +167,7 @@ def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Tok
 
         elif nb_cell["cell_type"] == "code":
             # here we do nothing but store the cell as a custom token
-            block_tokens.append(
-                Token(
-                    "nb_code_cell",
-                    "",
-                    0,
-                    meta={"cell": nb_cell},
-                    map=[start_line, start_line],
-                )
-            )
+            block_tokens.extend(parse_code_cell(nb_cell, start_line))
 
     # Now all definitions have been gathered,
     # we run inline and post-inline chains, to expand the text.
