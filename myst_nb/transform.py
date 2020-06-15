@@ -139,7 +139,8 @@ def cell_output_to_nodes_inline(
             )
         elif output_type in ("display_data", "execute_result"):
             mime_type = infer_mimetype(output, data_priority)
-            if  mime_type is None: continue
+            if mime_type is None:
+                continue
             data = output["data"][mime_type]
             if mime_type.startswith("image"):
                 # Sphinx treats absolute paths as being rooted at the source
@@ -194,9 +195,10 @@ def cell_output_to_nodes_inline(
 
     return to_add
 
+
 def infer_mimetype(output, data_priority):
     try:
         # First mime_type by priority that occurs in output.
         return next(x for x in data_priority if x in output["data"])
-    except StopIteration: 
+    except StopIteration:
         return

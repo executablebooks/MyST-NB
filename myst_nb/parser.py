@@ -80,7 +80,9 @@ class NotebookParser(MystParser):
         tokens_to_docutils(md_parser, env, tokens, document)
 
 
-def nb_to_tokens(ntbk: nbf.NotebookNode, builder="html") -> Tuple[MarkdownIt, AttrDict, List[Token]]:
+def nb_to_tokens(
+    ntbk: nbf.NotebookNode, builder="html"
+) -> Tuple[MarkdownIt, AttrDict, List[Token]]:
     """Parse the notebook content to a list of syntax tokens and an env,
     containing global data like reference definitions.
     """
@@ -115,6 +117,7 @@ def nb_to_tokens(ntbk: nbf.NotebookNode, builder="html") -> Tuple[MarkdownIt, At
 
     def parse_code_cell(cell, start_line):
         from myst_nb.transform import infer_mimetype, RENDER_PRIORITY
+
         tokens = [
             Token(
                 "nb_code_cell",
@@ -124,15 +127,19 @@ def nb_to_tokens(ntbk: nbf.NotebookNode, builder="html") -> Tuple[MarkdownIt, At
                 map=[start_line, start_line],
             )
         ]
-        for i, output in enumerate(cell['outputs']):
-            if output['output_type'] == 'display_data':
-                if infer_mimetype(output, RENDER_PRIORITY[builder]) == 'text/markdown':
+        for i, output in enumerate(cell["outputs"]):
+            if output["output_type"] == "display_data":
+                if infer_mimetype(output, RENDER_PRIORITY[builder]) == "text/markdown":
                     new_code_cell = deepcopy(cell)
-                    new_code_cell['metadata']['tags'] = new_code_cell['metadata'].get('tags', []) + ['remove-input'] 
-                    cell['outputs'] = cell['outputs'][:i]
-                    new_code_cell['outputs'] = new_code_cell['outputs'][i+1:]
-                    tokens.extend(parse_block(output['data']['text/markdown'], start_line))
-                    if new_code_cell['outputs']:
+                    new_code_cell["metadata"]["tags"] = new_code_cell["metadata"].get(
+                        "tags", []
+                    ) + ["remove-input"]
+                    cell["outputs"] = cell["outputs"][:i]
+                    new_code_cell["outputs"] = new_code_cell["outputs"][i + 1 :]
+                    tokens.extend(
+                        parse_block(output["data"]["text/markdown"], start_line)
+                    )
+                    if new_code_cell["outputs"]:
                         tokens.extend(parse_code_cell(new_code_cell, start_line))
                     break
         return tokens
