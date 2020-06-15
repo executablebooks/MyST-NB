@@ -152,7 +152,7 @@ def test_jupyter_cache_path(sphinx_run, file_regression, check_nbs):
 )
 def test_relative_path_cache(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
-    assert "Executing" in sphinx_run.status(), sphinx_run.status()
+    assert "Execution Succeeded" in sphinx_run.status(), sphinx_run.status()
 
 
 @pytest.mark.sphinx_params(
@@ -160,7 +160,7 @@ def test_relative_path_cache(sphinx_run, file_regression, check_nbs):
 )
 def test_relative_path_force(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
-    assert "Executing" in sphinx_run.status(), sphinx_run.status()
+    assert "Execution Succeeded" in sphinx_run.status(), sphinx_run.status()
 
 
 # Execution timeout configuration
