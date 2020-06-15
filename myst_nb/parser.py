@@ -67,7 +67,7 @@ class NotebookParser(MystParser):
 
         # Parse the notebook content to a list of syntax tokens and an env
         # containing global data like reference definitions
-        md_parser, env, tokens = nb_to_tokens(ntbk, self.app.builder.name)
+        md_parser, env, tokens = nb_to_tokens(ntbk)
 
         # Write the notebook's output to disk
         path_doc = nb_output_to_disc(ntbk, document)
@@ -80,9 +80,7 @@ class NotebookParser(MystParser):
         tokens_to_docutils(md_parser, env, tokens, document)
 
 
-def nb_to_tokens(
-    ntbk: nbf.NotebookNode, builder="html"
-) -> Tuple[MarkdownIt, AttrDict, List[Token]]:
+def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Token]]:
     """Parse the notebook content to a list of syntax tokens and an env,
     containing global data like reference definitions.
     """
@@ -116,8 +114,6 @@ def nb_to_tokens(
         return tokens
 
     def parse_code_cell(cell, start_line):
-        from myst_nb.transform import infer_mimetype, RENDER_PRIORITY
-
         tokens = [
             Token(
                 "nb_code_cell",
@@ -129,7 +125,7 @@ def nb_to_tokens(
         ]
         for i, output in enumerate(cell["outputs"]):
             if output["output_type"] == "display_data":
-                if infer_mimetype(output, RENDER_PRIORITY[builder]) == "text/markdown":
+                if "text/markdown" in output["data"]:
                     new_code_cell = deepcopy(cell)
                     new_code_cell["metadata"]["tags"] = new_code_cell["metadata"].get(
                         "tags", []
