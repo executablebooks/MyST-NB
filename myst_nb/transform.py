@@ -4,7 +4,6 @@ from sphinx.transforms import SphinxTransform
 from sphinx.util import logging
 
 from jupyter_sphinx.ast import (
-    cell_output_to_nodes,
     JupyterWidgetViewNode,
     strip_latex_delimiters,
 )
@@ -23,7 +22,6 @@ RENDER_PRIORITY = {
         "image/svg+xml",
         "image/png",
         "image/jpeg",
-        "text/markdown",
         "text/latex",
         "text/plain",
     ],
@@ -138,7 +136,12 @@ def cell_output_to_nodes_inline(
                 )
             )
         elif output_type in ("display_data", "execute_result"):
-            mime_type = infer_mimetype(output, data_priority)
+            try:
+                # First mime_type by priority that occurs in output.
+                mime_type = next(x for x in data_priority if x in output["data"])
+            except StopIteration:
+                continue
+
             if mime_type is None:
                 continue
             data = output["data"][mime_type]
@@ -196,9 +199,17 @@ def cell_output_to_nodes_inline(
     return to_add
 
 
-def infer_mimetype(output, data_priority):
-    try:
-        # First mime_type by priority that occurs in output.
-        return next(x for x in data_priority if x in output["data"])
-    except StopIteration:
-        return
+def cell_output_to_nodes(outputs, data_priority, write_stderr, dir, thebe_config):
+    from jupyter_sphinx.ast import cell_output_to_nodes
+
+    to_add = []
+    for _, output in enumerate(outputs):
+        if output["output_type"] == "display_data":
+            if "text/markdown" in output["data"]:
+                continue  # because we had to deal with the markdown earlier on.
+        to_add.extend(
+            cell_output_to_nodes(
+                outputs, data_priority, write_stderr, dir, thebe_config
+            )
+        )
+    return to_add
