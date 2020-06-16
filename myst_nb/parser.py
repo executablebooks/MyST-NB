@@ -1,3 +1,4 @@
+from copy import deepcopy
 from pathlib import Path
 from typing import List, Tuple
 
@@ -112,6 +113,33 @@ def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Tok
                 dup_ref["fixed"] = True
         return tokens
 
+    def parse_code_cell(cell, start_line):
+        tokens = [
+            Token(
+                "nb_code_cell",
+                "",
+                0,
+                meta={"cell": cell},
+                map=[start_line, start_line],
+            )
+        ]
+        for i, output in enumerate(cell["outputs"]):
+            if output["output_type"] == "display_data":
+                if "text/markdown" in output["data"]:
+                    new_code_cell = deepcopy(cell)
+                    new_code_cell["metadata"]["tags"] = new_code_cell["metadata"].get(
+                        "tags", []
+                    ) + ["remove-input"]
+                    cell["outputs"] = cell["outputs"][:i]
+                    new_code_cell["outputs"] = new_code_cell["outputs"][i + 1 :]
+                    tokens.extend(
+                        parse_block(output["data"]["text/markdown"], start_line)
+                    )
+                    if new_code_cell["outputs"]:
+                        tokens.extend(parse_code_cell(new_code_cell, start_line))
+                    break
+        return tokens
+
     block_tokens = []
     source_map = ntbk.metadata.get("source_map", None)
 
@@ -142,15 +170,7 @@ def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Tok
 
         elif nb_cell["cell_type"] == "code":
             # here we do nothing but store the cell as a custom token
-            block_tokens.append(
-                Token(
-                    "nb_code_cell",
-                    "",
-                    0,
-                    meta={"cell": nb_cell},
-                    map=[start_line, start_line],
-                )
-            )
+            block_tokens.extend(parse_code_cell(nb_cell, start_line))
 
     # Now all definitions have been gathered,
     # we run inline and post-inline chains, to expand the text.

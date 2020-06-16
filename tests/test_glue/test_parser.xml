@@ -16,6 +16,10 @@
                     'text1'
                 <literal_block classes="output text_plain" language="none" xml:space="preserve">
                     3.14159
+                <literal_block classes="output text_plain" language="none" xml:space="preserve">
+                    'text1'
+                <literal_block classes="output text_plain" language="none" xml:space="preserve">
+                    3.14159
         <CellNode cell_type="code" classes="cell">
             <CellInputNode classes="cell_input">
                 <literal_block xml:space="preserve">
@@ -73,6 +77,7 @@
                     plt.plot([1, 2, 3])
                     glue("key_plt", plt.gcf(), display=False)
             <CellOutputNode classes="cell_output">
+                <image candidates="{'*': '_build/jupyter_execute/with_glue_5_1.png'}" uri="_build/jupyter_execute/with_glue_5_1.png">
                 <image candidates="{'*': '_build/jupyter_execute/with_glue_5_1.png'}" uri="_build/jupyter_execute/with_glue_5_1.png">
         <section ids="referencing-the-figs" names="referencing\ the\ figs">
             <title>
