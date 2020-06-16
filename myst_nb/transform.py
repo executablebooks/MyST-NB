@@ -30,7 +30,11 @@ RENDER_PRIORITY = {
 }
 RENDER_PRIORITY["readthedocs"] = RENDER_PRIORITY["html"]
 RENDER_PRIORITY["singlehtml"] = RENDER_PRIORITY["html"]
+RENDER_PRIORITY["dirhtml"] = RENDER_PRIORITY["html"]
 RENDER_PRIORITY["linkcheck"] = RENDER_PRIORITY["html"]
+RENDER_PRIORITY["readthedocsdirhtml"] = RENDER_PRIORITY["html"]
+RENDER_PRIORITY["readthedocssinglehtml"] = RENDER_PRIORITY["html"]
+RENDER_PRIORITY["readthedocssinglehtmllocalmedia"] = RENDER_PRIORITY["html"]
 
 
 class CellOutputsToNodes(SphinxTransform):
