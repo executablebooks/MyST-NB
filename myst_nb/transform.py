@@ -51,11 +51,11 @@ class CellOutputsToNodes(SphinxTransform):
             outputs = cell.get("outputs", [])
             if node.get("inline", False):
                 output_nodes = cell_output_to_nodes_inline(
-                    outputs, RENDER_PRIORITY[builder], True, output_dir, None
+                    outputs, RENDER_PRIORITY.get(builder, 'html'), True, output_dir, None
                 )
             else:
                 output_nodes = cell_output_to_nodes(
-                    outputs, RENDER_PRIORITY[builder], True, output_dir, None
+                    outputs, RENDER_PRIORITY.get(builder, 'html'), True, output_dir, None
                 )
             # TODO add warning if output_nodes is empty
             node.replace_self(output_nodes)
