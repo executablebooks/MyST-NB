@@ -113,33 +113,6 @@ def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Tok
                 dup_ref["fixed"] = True
         return tokens
 
-    def parse_code_cell(cell, start_line):
-        tokens = [
-            Token(
-                "nb_code_cell",
-                "",
-                0,
-                meta={"cell": cell},
-                map=[start_line, start_line],
-            )
-        ]
-        for i, output in enumerate(cell["outputs"]):
-            if output["output_type"] == "display_data":
-                if "text/markdown" in output["data"]:
-                    new_code_cell = deepcopy(cell)
-                    new_code_cell["metadata"]["tags"] = new_code_cell["metadata"].get(
-                        "tags", []
-                    ) + ["remove-input"]
-                    cell["outputs"] = cell["outputs"][:i]
-                    new_code_cell["outputs"] = new_code_cell["outputs"][i + 1 :]
-                    tokens.extend(
-                        parse_block(output["data"]["text/markdown"], start_line)
-                    )
-                    if new_code_cell["outputs"]:
-                        tokens.extend(parse_code_cell(new_code_cell, start_line))
-                    break
-        return tokens
-
     block_tokens = []
     source_map = ntbk.metadata.get("source_map", None)
 
@@ -170,7 +143,7 @@ def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Tok
 
         elif nb_cell["cell_type"] == "code":
             # here we do nothing but store the cell as a custom token
-            block_tokens.extend(parse_code_cell(nb_cell, start_line))
+            block_tokens.extend(_parse_code_cell(nb_cell, start_line, parse_block))
 
     # Now all definitions have been gathered,
     # we run inline and post-inline chains, to expand the text.
@@ -331,3 +304,31 @@ def nb_output_to_disc(ntbk: nbf.NotebookNode, document: nodes.document) -> Path:
         out["data"] = {f"{GLUE_PREFIX}{key}": val for key, val in out["data"].items()}
 
     return path_doc
+
+
+def _parse_code_cell(cell, start_line, parse_block):
+    """Split a code cell on its markdown displays.
+
+    This function is used in the scope of nb_to_tokens.
+
+    This function only effects code cells with text/markdown.
+    """
+    tokens = [
+        Token("nb_code_cell", "", 0, meta={"cell": cell}, map=[start_line, start_line],)
+    ]
+    for i, output in enumerate(cell["outputs"]):
+        if output["output_type"] == "display_data":
+            if "text/markdown" in output["data"]:
+                new_code_cell = deepcopy(cell)
+                new_code_cell["metadata"]["tags"] = new_code_cell["metadata"].get(
+                    "tags", []
+                ) + ["remove-input"]
+                cell["outputs"] = cell["outputs"][:i]
+                new_code_cell["outputs"] = new_code_cell["outputs"][i + 1 :]
+                tokens.extend(parse_block(output["data"]["text/markdown"], start_line))
+                if new_code_cell["outputs"]:
+                    tokens.extend(
+                        _parse_code_cell(new_code_cell, start_line, parse_block)
+                    )
+                break
+    return tokens
