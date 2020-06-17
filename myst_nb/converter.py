@@ -26,7 +26,7 @@ def path_to_notebook(path):
     if extension == ".ipynb":
         return nbf.read(path, nbf.NO_CONVERT)
     else:
-        return myst_to_notebook(Path(path).read_text())
+        return myst_to_notebook(Path(path).read_text(encoding="utf8"))
 
 
 def is_myst_file(path):
@@ -36,7 +36,7 @@ def is_myst_file(path):
     if not os.path.exists(path):
         return False
 
-    with open(path) as handle:
+    with open(path, encoding="utf8") as handle:
         # here we use an iterator, so that only the required lines are read
         is_myst = is_myst_notebook((line for line in handle))
 

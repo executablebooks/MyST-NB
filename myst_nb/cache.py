@@ -176,7 +176,7 @@ def add_notebook_outputs(env, ntbk, file_path=None):
             ensuredir(reports_dir)
             file_name = os.path.splitext(r_file_path.name)[0]
             full_path = reports_dir + "/{}.log".format(file_name)
-            with open(full_path, "w") as log_file:
+            with open(full_path, "w", encoding="utf8") as log_file:
                 log_file.write(stage_record.traceback)
             message += "\n  Last execution failed with traceback saved in {}".format(
                 full_path
@@ -221,7 +221,7 @@ def _read_nb_output_cells(source_path, jupyter_execute_notebooks):
         and jupyter_execute_notebooks == "auto"
         and "ipynb" in ext
     ):
-        with open(source_path, "r") as f:
+        with open(source_path, "r", enconding="utf8") as f:
             ntbk = nbf.read(f, as_version=4)
             has_outputs = all(
                 len(cell.outputs) != 0
