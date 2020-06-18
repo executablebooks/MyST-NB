@@ -221,7 +221,7 @@ def _read_nb_output_cells(source_path, jupyter_execute_notebooks):
         and jupyter_execute_notebooks == "auto"
         and "ipynb" in ext
     ):
-        with open(source_path, "r", enconding="utf8") as f:
+        with open(source_path, "r", encoding="utf8") as f:
             ntbk = nbf.read(f, as_version=4)
             has_outputs = all(
                 len(cell.outputs) != 0
