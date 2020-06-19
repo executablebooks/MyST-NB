@@ -1,0 +1,42 @@
+<document source="complex_markdown_displays">
+    <CellNode cell_type="code" classes="cell">
+        <CellInputNode classes="cell_input">
+            <literal_block xml:space="preserve">
+                from IPython.display import Markdown, display
+    <section ids="test-different-markdown-scenarios-for-notebooks" names="test\ different\ markdown\ scenarios\ for\ notebooks.">
+        <title>
+            Test different markdown scenarios for notebooks.
+        <paragraph>
+            This notebook verifies the markdown heuristics.
+        <CellNode cell_type="code" classes="cell">
+            <CellInputNode classes="cell_input">
+                <literal_block xml:space="preserve">
+                    print('Display before')
+                    Markdown('## A Markdown display')
+            <CellOutputNode classes="cell_output">
+                <CellOutputBundleNode output_count="2">
+        <CellNode cell_type="code" classes="cell">
+            <CellInputNode classes="cell_input">
+                <literal_block xml:space="preserve">
+                    display(Markdown('## A Markdown display'))
+                    print('Display after')
+        <section dupnames="a\ markdown\ display" ids="a-markdown-display">
+            <title>
+                A Markdown display
+            <CellNode cell_type="code" classes="cell tag_remove-input">
+                <CellOutputNode classes="cell_output">
+                    <CellOutputBundleNode output_count="1">
+            <CellNode cell_type="code" classes="cell">
+                <CellInputNode classes="cell_input">
+                    <literal_block xml:space="preserve">
+                        print('Display before')
+                        display(Markdown('## A Markdown display'))
+                        print('Display after')
+                <CellOutputNode classes="cell_output">
+                    <CellOutputBundleNode output_count="1">
+        <section dupnames="a\ markdown\ display" ids="id1">
+            <title>
+                A Markdown display
+            <CellNode cell_type="code" classes="cell tag_remove-input">
+                <CellOutputNode classes="cell_output">
+                    <CellOutputBundleNode output_count="1">
