@@ -80,3 +80,14 @@ def test_toctree_in_ipynb(sphinx_run, file_regression):
     print(sphinx_run.warnings())
     file_regression.check(sphinx_run.get_doctree(1).pformat(), extension=".xml")
     assert sphinx_run.warnings() == ""
+
+
+@pytest.mark.sphinx_params(
+    "complex_markdown_displays.ipynb", conf={"jupyter_execute_notebooks": "off"}
+)
+def test_complex_markdown(sphinx_run, file_regression, check_nbs):
+    sphinx_run.build()
+    # print(sphinx_run.status())
+    assert sphinx_run.warnings() == ""
+    file_regression.check(sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
+    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
