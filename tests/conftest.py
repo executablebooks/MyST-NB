@@ -166,7 +166,7 @@ def sphinx_run(sphinx_params, make_app, tempdir):
         nb_path = TEST_FILE_DIR.joinpath(nb_file)
         assert nb_path.exists(), nb_path
         (srcdir / nb_file).parent.makedirs(exist_ok=True)
-        (srcdir / nb_file).write_text(nb_path.read_text())
+        (srcdir / nb_file).write_text(nb_path.read_text(encoding="utf8"))
 
     app = make_app(buildername=buildername, srcdir=srcdir, confoverrides=confoverrides)
 
