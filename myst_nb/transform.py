@@ -4,6 +4,7 @@ from sphinx.transforms import SphinxTransform
 from sphinx.util import logging
 
 from jupyter_sphinx.ast import (
+    cell_output_to_nodes,
     JupyterWidgetViewNode,
     strip_latex_delimiters,
 )
@@ -196,20 +197,4 @@ def cell_output_to_nodes_inline(
             elif mime_type == WIDGET_VIEW_MIMETYPE:
                 to_add.append(JupyterWidgetViewNode(view_spec=data))
 
-    return to_add
-
-
-def cell_output_to_nodes(outputs, data_priority, write_stderr, dir, thebe_config):
-    from jupyter_sphinx.ast import cell_output_to_nodes
-
-    to_add = []
-    for _, output in enumerate(outputs):
-        if output["output_type"] == "display_data":
-            if "text/markdown" in output["data"]:
-                continue  # because we had to deal with the markdown earlier on.
-        to_add.extend(
-            cell_output_to_nodes(
-                outputs, data_priority, write_stderr, dir, thebe_config
-            )
-        )
     return to_add
