@@ -81,7 +81,7 @@ def test_basic_unrun_nbclient(sphinx_run, file_regression, check_nbs):
 
 
 @pytest.mark.sphinx_params(
-    "complex_markdown_displays.ipynb", conf={"jupyter_execute_notebooks": "force"}
+    "complex_markdown_displays.ipynb", conf={"jupyter_execute_notebooks": "off"}
 )
 def test_complex_markdown(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
