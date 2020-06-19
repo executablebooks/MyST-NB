@@ -26,7 +26,7 @@ def read_glue_cache(path):
     if not path.exists():
         raise FileNotFoundError(f"A glue cache was not found at: {path}")
 
-    data = json.load(path.open())
+    data = json.load(path.open(encoding="utf8"))
     return data
 
 

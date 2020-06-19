@@ -307,7 +307,7 @@ class NbGlueDomain(Domain):
             path = Path(self.env.doctreedir).joinpath("glue_cache.json")
         if isinstance(path, str):
             path = Path(path)
-        with path.open("w") as handle:
+        with path.open("w", encoding="utf8") as handle:
             json.dump(
                 {
                     d: {k: self.cache[k] for k in vs if k in self.cache}

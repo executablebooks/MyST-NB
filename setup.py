@@ -14,7 +14,7 @@ setup(
     description=(
         "A Jupyter Notebook Sphinx reader built on top of the MyST markdown parser."
     ),
-    long_description=open("README.md").read(),
+    long_description=open("README.md", encoding="utf8").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/executablebooks/myst_nb",
     author="ExecutableBookProject",
