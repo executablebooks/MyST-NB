@@ -306,7 +306,7 @@ def nb_output_to_disc(ntbk: nbf.NotebookNode, document: nodes.document) -> Path:
     return path_doc
 
 
-def _parse_code_cell(cell, start_line, parse_block):
+def _parse_code_cell(cell: nbf.NotebookNode, start_line: int, parse_block: callable):
     """Split a code cell on its markdown displays.
 
     This function is used in the scope of nb_to_tokens.
