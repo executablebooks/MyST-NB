@@ -323,6 +323,7 @@ def _parse_code_cell(cell, start_line, parse_block):
                 new_code_cell["metadata"]["tags"] = new_code_cell["metadata"].get(
                     "tags", []
                 ) + ["remove-input"]
+                new_code_cell.metadata.pop("scrapbook", None)
                 cell["outputs"] = cell["outputs"][:i]
                 new_code_cell["outputs"] = new_code_cell["outputs"][i + 1 :]
                 tokens.extend(parse_block(output["data"]["text/markdown"], start_line))
