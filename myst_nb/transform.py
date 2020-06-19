@@ -29,14 +29,11 @@ RENDER_PRIORITY = {
     # TODO: add support for  "image/svg+xml"
     "latex": ["application/pdf", "image/png", "image/jpeg", "text/latex", "text/plain"],
 }
-RENDER_PRIORITY["readthedocs"] = RENDER_PRIORITY["html"]
-RENDER_PRIORITY["singlehtml"] = RENDER_PRIORITY["html"]
-RENDER_PRIORITY["dirhtml"] = RENDER_PRIORITY["html"]
-RENDER_PRIORITY["linkcheck"] = RENDER_PRIORITY["html"]
-RENDER_PRIORITY["readthedocsdirhtml"] = RENDER_PRIORITY["html"]
-RENDER_PRIORITY["readthedocssinglehtml"] = RENDER_PRIORITY["html"]
-RENDER_PRIORITY["readthedocssinglehtmllocalmedia"] = RENDER_PRIORITY["html"]
 
+_implicit_builders = """readthedocs singlehtml dirhtml linkcheck readthedocsdirhtml
+readthedocssinglehtml readthedocssinglehtmllocalmedia epub""".split()
+
+RENDER_PRIORITY.update({builder: "html" for builder in _implicit_builders})
 
 class CellOutputsToNodes(SphinxTransform):
     """Use the builder context to transform a CellOutputNode into Sphinx nodes."""
