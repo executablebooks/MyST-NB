@@ -22,7 +22,7 @@ directly into the {ref}`Execution and Caching <execute/cache>` machinery!
             **{jupyter-download:notebook}`markdown`** and {download}`markdown.md`
 
 
-(myst-nb/jupytext-metadata)
+(myst-nb/jupytext-metadata)=
 ## Jupytext metadata
 
 In order to signal MyST-NB that it should treat your markdown file as a notebook,
