@@ -24,7 +24,7 @@ package to add a little button that toggles the visibility of content.[^download
 
 ## Hiding code cells
 
-You can **cell tags** to control the content hidden with code cells.
+You can use **cell tags** to control the content hidden with code cells.
 Add the following tags to a cell's metadata to control
 what to hide in code cells:
 
