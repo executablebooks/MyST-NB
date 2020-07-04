@@ -187,7 +187,6 @@ def setup(app):
     # Misc
     app.add_css_file("mystnb.css")
     app.add_js_file("mystnb.js")
-    app.setup_extension("jupyter_sphinx")
     app.add_domain(NbGlueDomain)
     app.add_directive("code-cell", CodeCell)
 
