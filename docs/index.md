@@ -8,7 +8,8 @@
 
 **Read, write, and execute Jupyter Notebooks in Sphinx**
 
-`MyST-NB` is an open source tool for working with Jupyter Notebooks in the
+`MyST-NB` is a reference implementation of MyST Markdown Notebooks, and
+an open source tool for working with Jupyter Notebooks in the
 Sphinx ecosystem. It provides the following primary features:
 
 * **{ref}`Parse ipynb files in Sphinx<installation>`**. Directly convert Jupyter
@@ -63,21 +64,22 @@ For information on using and configuring MyST-NB, as well as some examples of no
 outputs, see the pages below:
 
 ```{toctree}
-use/index.ipynb
+use/index
+use/markdown
 ```
 
 In addition, here is a reference page that uses the `jupyter-sphinx` package to create
 outputs, to compare how these outputs look relative to the MyST-NB style.
 
 ```{toctree}
-examples/index.md
+examples/index
 ```
 
 Finally, here is documentation on contributing to the development of MySt-NB
 
 ```{toctree}
 :titlesonly:
-develop/index.md
+develop/index
 GitHub Repo <https://github.com/executablebooks/myst-nb>
 ```
 

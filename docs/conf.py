@@ -28,7 +28,12 @@ master_doc = "index"
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ["myst_nb", "sphinx_togglebutton", "sphinx_copybutton"]
+extensions = [
+    "myst_nb",
+    "sphinx_togglebutton",
+    "sphinx_copybutton",
+    "sphinx.ext.intersphinx",
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -51,10 +56,16 @@ html_theme_options = {
     "github_url": "https://github.com/executablebooks/myst-nb",
     "repository_url": "https://github.com/executablebooks/myst-nb",
     "repository_branch": "master",
-    "expand_sections": ["use/index"],
     "use_edit_page_button": True,
     "path_to_docs": "docs/",
 }
+
+intersphinx_mapping = {
+    "jb": ("https://jupyterbook.org/", None),
+    "myst": ("https://myst-parser.readthedocs.io/en/latest/", None),
+}
+
+intersphinx_cache_limit = 5
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
