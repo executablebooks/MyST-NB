@@ -119,7 +119,7 @@ def _stage_and_execute(env, exec_docnames, path_cache, timeout):
             cache_base.discard_staged_notebook(record.pk)
 
 
-def add_notebook_outputs(env, ntbk, file_path=None):
+def add_notebook_outputs(env, ntbk, file_path=None, show_traceback=True):
     """
     Add outputs to a NotebookNode by pulling from cache.
 
@@ -181,7 +181,8 @@ def add_notebook_outputs(env, ntbk, file_path=None):
             message += "\n  Last execution failed with traceback saved in {}".format(
                 full_path
             )
-            message += "\n" + stage_record.traceback
+            if show_traceback:
+                message += "\n" + stage_record.traceback
 
         LOGGER.error(message)
 
