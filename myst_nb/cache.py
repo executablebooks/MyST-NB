@@ -181,6 +181,7 @@ def add_notebook_outputs(env, ntbk, file_path=None):
             message += "\n  Last execution failed with traceback saved in {}".format(
                 full_path
             )
+            message += "\n" + stage_record.traceback
 
         LOGGER.error(message)
 
