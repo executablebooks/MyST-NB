@@ -62,7 +62,9 @@ class NotebookParser(MystParser):
 
         # add outputs to notebook from the cache
         if self.env.config["jupyter_execute_notebooks"] != "off":
-            ntbk = add_notebook_outputs(self.env, ntbk)
+            ntbk = add_notebook_outputs(
+                self.env, ntbk, show_traceback=self.env.config["execution_show_tb"]
+            )
 
         # Parse the notebook content to a list of syntax tokens and an env
         # containing global data like reference definitions
