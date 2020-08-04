@@ -10,7 +10,8 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
+import os
+
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
@@ -75,3 +76,5 @@ html_static_path = ["_static"]
 copybutton_selector = "div:not(.output) > div.highlight pre"
 
 jupyter_execute_notebooks = "cache"
+execution_show_tb = "READTHEDOCS" in os.environ
+execution_timeout = 60  # Note: 30 was timing out on RTD

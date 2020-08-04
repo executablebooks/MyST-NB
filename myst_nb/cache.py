@@ -119,7 +119,7 @@ def _stage_and_execute(env, exec_docnames, path_cache, timeout):
             cache_base.discard_staged_notebook(record.pk)
 
 
-def add_notebook_outputs(env, ntbk, file_path=None, show_traceback=True):
+def add_notebook_outputs(env, ntbk, file_path=None, show_traceback=False):
     """
     Add outputs to a NotebookNode by pulling from cache.
 

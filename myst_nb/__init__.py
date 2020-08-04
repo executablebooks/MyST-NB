@@ -3,6 +3,7 @@ __version__ = "0.8.4"
 from pathlib import Path
 
 from docutils import nodes
+from sphinx.application import Sphinx
 from sphinx.util.docutils import SphinxDirective
 from sphinx.util import logging
 
@@ -103,7 +104,7 @@ class CodeCell(SphinxDirective):
         return []
 
 
-def setup(app):
+def setup(app: Sphinx):
     """Initialize Sphinx extension."""
     # Allow parsing ipynb files
     app.add_source_suffix(".md", "myst-nb")
@@ -168,6 +169,9 @@ def setup(app):
     app.add_config_value("execution_excludepatterns", [], "env")
     app.add_config_value("jupyter_execute_notebooks", "auto", "env")
     app.add_config_value("execution_timeout", 30, "env")
+    # show traceback in stdout (in addition to writing to file)
+    # this is useful in e.g. RTD where one cannot inspect a file
+    app.add_config_value("execution_show_tb", False, "")
 
     # Register our post-transform which will convert output bundles to nodes
     app.add_post_transform(PasteNodesToDocutils)
