@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 WIDGET_VIEW_MIMETYPE = "application/vnd.jupyter.widget-view+json"
 RENDER_PRIORITY = {
-    "html": [
+    builder: (
         WIDGET_VIEW_MIMETYPE,
         "application/javascript",
         "text/html",
@@ -25,14 +25,27 @@ RENDER_PRIORITY = {
         "image/jpeg",
         "text/latex",
         "text/plain",
-    ],
-    # TODO: add support for  "image/svg+xml"
-    "latex": ["application/pdf", "image/png", "image/jpeg", "text/latex", "text/plain"],
+    )
+    for builder in (
+        "html",
+        "readthedocs",
+        "singlehtml",
+        "dirhtml",
+        "linkcheck",
+        "readthedocsdirhtml",
+        "readthedocssinglehtml",
+        "readthedocssinglehtmllocalmedia",
+        "epub",
+    )
 }
-_implicit_builders = """readthedocs singlehtml dirhtml linkcheck readthedocsdirhtml
-readthedocssinglehtml readthedocssinglehtmllocalmedia epub""".split()
-
-RENDER_PRIORITY.update({builder: "html" for builder in _implicit_builders})
+# TODO: add support for  "image/svg+xml"
+RENDER_PRIORITY["latex"] = (
+    "application/pdf",
+    "image/png",
+    "image/jpeg",
+    "text/latex",
+    "text/plain",
+)
 
 
 class CellOutputsToNodes(SphinxTransform):
