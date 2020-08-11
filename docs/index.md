@@ -79,7 +79,7 @@ Finally, here is documentation on contributing to the development of MySt-NB
 
 ```{toctree}
 :titlesonly:
-develop/index
+develop/contributing
 GitHub Repo <https://github.com/executablebooks/myst-nb>
 ```
 
