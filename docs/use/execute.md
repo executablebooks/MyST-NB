@@ -22,6 +22,8 @@ locally so that re-runs occur only when code cells have changed.
 Cacheing behavior is controlled with configuration in your `conf.py` file. See
 the sections below for each configuration option and its effect.
 
+(execute/config)=
+
 ## Triggering notebook execution
 
 To trigger the execution of notebook pages, use the following configuration in `conf.py`
@@ -103,6 +105,26 @@ The path should point to an **empty folder**, or a folder where a
 **jupyter cache already exists**.
 
 [jupyter-cache]: https://github.com/executablebooks/jupyter-cache "the Jupyter Cache Project"
+
+(execute/timeout)=
+## Execution Timeout
+
+The execution of notebooks is managed by {doc}`nbclient <nbclient:client>`.
+
+The `execution_timeout` sphinx option defines the maximum time (in seconds) each notebook cell is allowed to run, if the execution takes longer an exception will be raised.
+The default is 30 s, so in cases of long-running cells you may want to specify an higher value.
+The timeout option can also be set to None or -1 to remove any restriction on execution time.
+
+This global value can also be overridden per notebook by adding this to you notebooks metadata:
+
+```json
+{
+ "metadata": {
+  "execution": {
+      "timeout": 30
+  }
+}
+```
 
 ## Execution FAQs
 

@@ -78,6 +78,7 @@ setup(
             "matplotlib",
             "sphinx-copybutton",
             "sphinx-book-theme",
+            "sphinx-panels~=0.4.1",
         ],
     },
     zip_safe=True,

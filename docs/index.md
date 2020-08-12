@@ -28,10 +28,10 @@ In addition, there are several options for controlling the look and feel of how 
 notebooks are used in your documentation. See the documentation pages to the left for
 more information.
 
-```{note}
+:::{note}
 This project is in a beta state. Comments, requests, or bugreports are welcome and
 recommended! Please [open an issue here](https://github.com/executablebooks/myst-nb/issues)
-```
+:::
 
 (installation)=
 ## Installation and basic usage

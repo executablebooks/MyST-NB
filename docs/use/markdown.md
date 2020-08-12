@@ -73,11 +73,11 @@ print("Another code cell with a second optional metadata syntax")
 ```
 ````
 
-```{note}
+:::{note}
 The kernel that your code cells use is determined by the notebook-level
 metadata for your MyST Notebook file. If no kernel is given, then the default kernel
 will be used.
-```
+:::
 
 ### Syntax for code cells
 

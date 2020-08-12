@@ -19,10 +19,10 @@ Sphinx extension that MyST-NB depends on.
 You can write your MyST markdown in either regular markdown files (`.md`) or in
 the markdown cells of Jupyter Notebooks (`.ipynb`).
 
-```{warning}
+:::{warning}
 If you are using MyST-NB in your documentation, do not activate `myst-parser`. It will
 be automatically activated by `myst-nb`.
-```
+:::
 
 For more information about what you can write with MyST Markdown, see the
 [MyST Parser syntax guide](https://myst-parser.readthedocs.io/en/latest/using/syntax.html).
