@@ -82,3 +82,4 @@ execution_show_tb = "READTHEDOCS" in os.environ
 execution_timeout = 60  # Note: 30 was timing out on RTD
 
 myst_admonition_enable = True
+myst_amsmath_enable = True
