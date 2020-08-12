@@ -7,7 +7,7 @@ from sphinx.application import Sphinx
 from sphinx.util.docutils import SphinxDirective
 from sphinx.util import logging
 
-from myst_parser.myst_refs import MystReferenceResolver
+from myst_parser import setup_sphinx as setup_myst_parser
 
 from jupyter_sphinx.ast import (  # noqa: F401
     JupyterWidgetStateNode,
@@ -178,7 +178,7 @@ def setup(app: Sphinx):
     app.add_post_transform(CellOutputsToNodes)
 
     # Myst transforms
-    app.add_post_transform(MystReferenceResolver)
+    setup_myst_parser(app)
 
     # Events
     app.connect("builder-inited", static_path)
