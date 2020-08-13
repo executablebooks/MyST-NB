@@ -13,7 +13,6 @@ from markdown_it.token import Token
 from markdown_it.rules_core import StateCore
 from markdown_it.utils import AttrDict
 
-from myst_parser.main import default_parser
 from myst_parser.sphinx_renderer import SphinxRenderer
 from myst_parser.sphinx_parser import MystParser
 
@@ -27,12 +26,10 @@ SPHINX_LOGGER = logging.getLogger(__name__)
 
 
 class NotebookParser(MystParser):
-    """Docutils parser for IPynb + CommonMark + Extensions."""
+    """Docutils parser for Markedly Structured Text (MyST) and Jupyter Notebooks."""
 
     supported = ("myst-nb",)
     translate_section_name = None
-
-    default_config = {"known_url_schemes": None}
 
     config_section = "myst-nb parser"
     config_section_dependencies = ("parsers",)
@@ -41,7 +38,6 @@ class NotebookParser(MystParser):
 
         self.reporter = document.reporter
         self.env = document.settings.env
-        self.config = self.default_config.copy()
 
         try:
             ntbk = string_to_notebook(inputstring, self.env)
@@ -77,18 +73,12 @@ class NotebookParser(MystParser):
 
 
 def nb_to_tokens(
-    ntbk: nbf.NotebookNode, config
+    ntbk: nbf.NotebookNode, config: dict
 ) -> Tuple[MarkdownIt, AttrDict, List[Token]]:
     """Parse the notebook content to a list of syntax tokens and an env,
     containing global data like reference definitions.
     """
-    # TODO this should be created by MystParser, to ensure consistency of sphinx options
-    md = default_parser(
-        disable_syntax=config.myst_disable_syntax,
-        math_delimiters=config.myst_math_delimiters,
-        enable_amsmath=config.myst_amsmath_enable,
-        enable_admonitions=config.myst_admonition_enable,
-    )
+    md = NotebookParser.get_markdown_parser(config)
     # setup the markdown parser
     # Note we disable front matter parsing,
     # because this is taken from the actual notebook metadata

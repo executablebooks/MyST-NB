@@ -83,3 +83,5 @@ execution_timeout = 60  # Note: 30 was timing out on RTD
 
 myst_admonition_enable = True
 myst_amsmath_enable = True
+myst_html_img = True
+myst_url_schemes = ("http", "https", "mailto")

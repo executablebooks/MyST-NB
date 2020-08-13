@@ -171,6 +171,7 @@ def test_relative_path_force(sphinx_run, file_regression, check_nbs):
 def test_execution_timeout(sphinx_run, file_regression, check_nbs):
     """ execution should fail given the low timeout value"""
     sphinx_run.build()
+    # print(sphinx_run.status())
     assert "execution failed" in sphinx_run.warnings()
 
 
