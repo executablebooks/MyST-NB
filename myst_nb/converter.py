@@ -18,6 +18,10 @@ def string_to_notebook(inputstring, env, add_source_map=True):
     elif is_myst_notebook(inputstring.splitlines(keepends=True)):
         # return jupytext.reads(inputstring, fmt="myst")
         return myst_to_notebook(inputstring, add_source_map=add_source_map)
+    elif extension == ".Rmd":
+        import jupytext
+
+        return jupytext.reads(inputstring, fmt="Rmd")
     return None
 
 
