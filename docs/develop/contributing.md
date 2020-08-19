@@ -66,11 +66,18 @@ All functions and class methods should be annotated with types and include a doc
 
 ## Testing
 
-For code tests:
+For code tests, MyST-NB uses [pytest](https://docs.pytest.org)):
 
 ```shell
 >> cd MyST-NB
 >> pytest
+```
+
+You can also use [tox](https://tox.readthedocs.io), to run the tests in multiple isolated environments (see the `tox.ini` file for available test environments):
+
+```shell
+>> cd MyST-NB
+>> tox
 ```
 
 For documentation build tests:
