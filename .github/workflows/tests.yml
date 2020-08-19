@@ -49,7 +49,7 @@ jobs:
       # for some reason the tests/conftest.py::check_nbs fixture breaks pytest-cov's cov-report outputting
       # this is why we run `coverage xml` afterwards (required by codecov)
     - name: Upload to Codecov
-      if: matrix.python-version == 3.7 && sphinx == '>=3,<4' && github.repository == 'executablebooks/MyST-NB'
+      if: matrix.python-version == 3.7 && matrix.sphinx == '>=3,<4' && github.repository == 'executablebooks/MyST-NB'
       uses: codecov/codecov-action@v1
       with:
         name: myst-nb-pytests-py3.7
