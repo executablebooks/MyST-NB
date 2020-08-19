@@ -11,23 +11,33 @@ kernelspec:
   name: coconut
 ---
 
-# Notebooks in other languages
+# Other Programming Languages
 
-<http://coconut-lang.org/>
+A Jupyter Notebook can utilise any program kernel that implements the [Jupyter messaging protocol](http://jupyter-client.readthedocs.io/en/latest/messaging.html) for executing code.
+There are kernels available for [Python](http://ipython.org/notebook.html), [Julia](https://github.com/JuliaLang/IJulia.jl), [Ruby](https://github.com/minad/iruby), [Haskell](https://github.com/gibiansky/IHaskell) and [many other languages](https://github.com/jupyter/jupyter/wiki/Jupyter-kernels).
+
+In this notebook we demonstrate executing code with the [Coconut Programming Language](http://coconut-lang.org), a variant of Python built for *simple, elegant, Pythonic functional programming*.
+
+In the first example we will define a recursive `factorial` function, a fundamentally functional approach that doesn’t involve any state changes or loops:
 
 ```{code-cell} coconut
 def factorial(n):
     """Compute n! where n is an integer >= 0."""
-    if n `isinstance` int and n >= 0:
-        acc = 1
-        for x in range(1, n+1):
-            acc *= x
-        return acc
+    case n:
+        match 0:
+            return 1
+        match x is int if x > 0:
+            return x * factorial(x-1)
     else:
         raise TypeError("the argument to factorial must be an integer >= 0")
 
 3 |> factorial |> print
 ```
+
+Although this example is very basic, pattern-matching is both one of Coconut’s most powerful and most complicated features.
+
+In the second example, we implement the quick sort algorithm.
+This quick_sort algorithm works using a bunch of new constructs:
 
 ```{code-cell} coconut
 def quick_sort(l):
@@ -41,6 +51,8 @@ def quick_sort(l):
 
 [3,0,4,2,1] |> quick_sort |> list |> print
 ```
+
+Finally, we see that exceptions are raised as one would expect:
 
 ```{code-cell} coconut
 :tags: [raises-exception]

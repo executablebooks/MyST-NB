@@ -13,6 +13,7 @@ jobs:
             - cache-pip
 
       - run: |
+          pip install --user "ipython<=7.11.0"
           pip install --user .[rtd]
 
       - save_cache:
