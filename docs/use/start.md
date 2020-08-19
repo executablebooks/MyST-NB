@@ -32,7 +32,10 @@ Jupyter notebooks (`.ipynb`) into your Sphinx site.
 
 ## MyST-NB configuration options
 
-The MyST-NB parser derives from {doc}`the base MyST-Parser <myst:using/intro>`, and so all the same configuration options are available. MyST-NB then adds some additional configuration, specific to notebooks:
+The MyST-NB parser derives from {ref}`the base MyST-Parser <myst:intro/get-started>`, and so all the same configuration options are available.
+See the {ref}`MyST configuration options <myst:intro/config-options>` for the full set of options.
+
+MyST-NB then adds some additional configuration, specific to notebooks:
 
 `````{list-table}
 :header-rows: 1
@@ -40,25 +43,6 @@ The MyST-NB parser derives from {doc}`the base MyST-Parser <myst:using/intro>`, 
 * - Option
   - Default
   - Description
-* - `myst_disable_syntax`
-  - ()
-  - List of markdown syntax elements to disable, see the {doc}`markdown-it parser guide <markdown_it:using>`.
-* - `myst_url_schemes`
-  - `None`
-  - [URI schemes](https://en.wikipedia.org/wiki/List_of_URI_schemes) that will be recognised as external URLs in `[](scheme:loc)` syntax, or set `None` to recognise all.
-    Other links will be resolved as internal cross-references.
-* - `myst_html_img`
-  - `False`
-  - Convert HTML `<img>` elements to sphinx image nodes, see the [image syntax](myst:syntax/images) for details
-* - `myst_math_delimiters`
-  - "dollars"
-  - Delimiters for parsing math, see the [Math syntax](myst:syntax/math) for details
-* - `myst_amsmath_enable`
-  - `False`
-  - Enable direct parsing of [amsmath LaTeX environments](https://ctan.org/pkg/amsmath), [see here](myst:syntax/amsmath)  for details.
-* - `myst_admonition_enable`
-  - `False`
-  - Enable admonition style directives, [see here](myst:syntax/admonitions) for details.
 * - `jupyter_cache`
   - ""
   - Path to jupyter_cache, [see here](execute/cache) for details.
