@@ -59,6 +59,7 @@ html_theme_options = {
     "repository_branch": "master",
     "use_edit_page_button": True,
     "path_to_docs": "docs/",
+    "expand_sections": ["use/index", "examples/index"],
 }
 
 intersphinx_mapping = {
@@ -85,3 +86,11 @@ myst_admonition_enable = True
 myst_amsmath_enable = True
 myst_html_img_enable = True
 myst_url_schemes = ("http", "https", "mailto")
+
+
+def setup(app):
+    import subprocess
+
+    # this is required to register the coconut kernel with Jupyter,
+    # to execute docs/examples/coconut-lang.md
+    subprocess.check_call(["coconut", "--jupyter"])

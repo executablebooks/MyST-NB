@@ -64,6 +64,7 @@ For information on using and configuring MyST-NB, as well as some examples of no
 outputs, see the pages below:
 
 ```{toctree}
+:maxdepth: 2
 use/index
 use/markdown
 ```
@@ -72,6 +73,7 @@ In addition, here is a reference page that uses the `jupyter-sphinx` package to 
 outputs, to compare how these outputs look relative to the MyST-NB style.
 
 ```{toctree}
+:maxdepth: 2
 examples/index
 ```
 
