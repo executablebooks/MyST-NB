@@ -1,5 +1,6 @@
 __version__ = "0.8.5"
 
+import os
 from pathlib import Path
 
 from docutils import nodes
@@ -15,7 +16,7 @@ from jupyter_sphinx.ast import (  # noqa: F401
     JupyterCell,
 )
 
-from .cache import execution_cache
+from .cache import update_execution_cache
 from .parser import (
     NotebookParser,
     CellNode,
@@ -36,72 +37,6 @@ from .nb_glue.domain import (
 from .nb_glue.transform import PasteNodesToDocutils
 
 LOGGER = logging.getLogger(__name__)
-
-
-def static_path(app):
-    static_path = Path(__file__).absolute().with_name("_static")
-    app.config.html_static_path.append(str(static_path))
-
-
-def set_valid_execution_paths(app):
-    """Set files excluded from execution, and valid file suffixes
-
-    Patterns given in execution_excludepatterns conf variable from executing.
-    """
-    app.env.excluded_nb_exec_paths = {
-        str(path)
-        for pat in app.config["execution_excludepatterns"]
-        for path in Path().cwd().rglob(pat)
-    }
-    LOGGER.verbose("MyST-NB: Excluded Paths: %s", app.env.excluded_nb_exec_paths)
-    app.env.allowed_nb_exec_suffixes = {
-        suffix
-        for suffix, parser_type in app.config["source_suffix"].items()
-        if parser_type in ("myst-nb",)
-    }
-
-
-def add_exclude_patterns(app, config):
-    """Add default exclude patterns (if not already present)."""
-    if "**.ipynb_checkpoints" not in config.exclude_patterns:
-        config.exclude_patterns.append("**.ipynb_checkpoints")
-
-
-def update_togglebutton_classes(app, config):
-    to_add = [
-        ".tag_hide_input div.cell_input",
-        ".tag_hide-input div.cell_input",
-        ".tag_hide_output div.cell_output",
-        ".tag_hide-output div.cell_output",
-        ".tag_hide_cell.cell",
-        ".tag_hide-cell.cell",
-    ]
-    for selector in to_add:
-        config.togglebutton_selector += f", {selector}"
-
-
-def save_glue_cache(app, env):
-    NbGlueDomain.from_env(env).write_cache()
-
-
-class CodeCell(SphinxDirective):
-    """Raises a warning if it is triggered, it should not make it to the doctree."""
-
-    optional_arguments = 1
-    final_argument_whitespace = True
-    has_content = True
-
-    def run(self):
-        LOGGER.warning(
-            (
-                "Found a `code-cell` directive. To execute the `code-cell`, you must "
-                "add Jupytext header content to the page. See "
-                "https://myst-nb.readthedocs.io/en/latest/use/markdown.html "
-                "for more information."
-            ),
-            location=(self.env.docname, self.lineno),
-        )
-        return []
 
 
 def setup(app: Sphinx):
@@ -177,13 +112,14 @@ def setup(app: Sphinx):
     app.add_post_transform(PasteNodesToDocutils)
     app.add_post_transform(CellOutputsToNodes)
 
-    # Myst transforms
+    # Add myst-parser transforms and configuration
     setup_myst_parser(app)
 
     # Events
+    app.connect("config-inited", validate_config_values)
     app.connect("builder-inited", static_path)
     app.connect("builder-inited", set_valid_execution_paths)
-    app.connect("env-get-outdated", execution_cache)
+    app.connect("env-get-outdated", update_execution_cache)
     app.connect("config-inited", add_exclude_patterns)
     app.connect("config-inited", update_togglebutton_classes)
     app.connect("env-updated", save_glue_cache)
@@ -197,3 +133,93 @@ def setup(app: Sphinx):
     # TODO need to deal with key clashes in NbGlueDomain.merge_domaindata
     # before this is parallel_read_safe
     return {"version": __version__, "parallel_read_safe": False}
+
+
+def validate_config_values(app, config):
+    execute_mode = app.config["jupyter_execute_notebooks"]
+    if execute_mode not in ["force", "auto", "cache", "off"]:
+        LOGGER.critical(
+            "Conf 'jupyter_execute_notebooks' can be: "
+            "`force`, `auto`, `cache` or `off`, but got: %s",
+            execute_mode,
+        )
+        exit(1)
+    if app.config["jupyter_cache"] and execute_mode != "cache":
+        LOGGER.critical(
+            "If using conf jupyter_cache, "
+            "please set jupyter_execute_notebooks to `cache`"
+        )
+        exit(1)
+    if app.config["jupyter_cache"] and not os.path.isdir(app.config["jupyter_cache"]):
+        LOGGER.critical(
+            "Path to jupyter_cache is not a directory: %s", app.config["jupyter_cache"]
+        )
+        exit(1)
+
+
+def static_path(app):
+    static_path = Path(__file__).absolute().with_name("_static")
+    app.config.html_static_path.append(str(static_path))
+
+
+def set_valid_execution_paths(app):
+    """Set files excluded from execution, and valid file suffixes
+
+    Patterns given in execution_excludepatterns conf variable from executing.
+    """
+    app.env.nb_excluded_exec_paths = {
+        str(path)
+        for pat in app.config["execution_excludepatterns"]
+        for path in Path().cwd().rglob(pat)
+    }
+    LOGGER.verbose("MyST-NB: Excluded Paths: %s", app.env.nb_excluded_exec_paths)
+    app.env.nb_allowed_exec_suffixes = {
+        suffix
+        for suffix, parser_type in app.config["source_suffix"].items()
+        if parser_type in ("myst-nb",)
+    }
+
+
+def add_exclude_patterns(app, config):
+    """Add default exclude patterns (if not already present)."""
+    if "**.ipynb_checkpoints" not in config.exclude_patterns:
+        config.exclude_patterns.append("**.ipynb_checkpoints")
+
+
+def update_togglebutton_classes(app, config):
+    to_add = [
+        ".tag_hide_input div.cell_input",
+        ".tag_hide-input div.cell_input",
+        ".tag_hide_output div.cell_output",
+        ".tag_hide-output div.cell_output",
+        ".tag_hide_cell.cell",
+        ".tag_hide-cell.cell",
+    ]
+    for selector in to_add:
+        config.togglebutton_selector += f", {selector}"
+
+
+def save_glue_cache(app, env):
+    NbGlueDomain.from_env(env).write_cache()
+
+
+class CodeCell(SphinxDirective):
+    """Raises a warning if it is triggered, it should not make it to the doctree."""
+
+    optional_arguments = 1
+    final_argument_whitespace = True
+    has_content = True
+
+    def run(self):
+        LOGGER.warning(
+            (
+                "Found an unexpected `code-cell` directive. "
+                "Either this file was not converted to a notebook, "
+                "because Jupytext header content was missing, "
+                "or the `code-cell` was not converted, because it is nested. "
+                "See https://myst-nb.readthedocs.io/en/latest/use/markdown.html "
+                "for more information."
+            ),
+            location=(self.env.docname, self.lineno),
+        )
+        return []

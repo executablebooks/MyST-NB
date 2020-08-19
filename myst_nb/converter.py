@@ -1,11 +1,13 @@
 import json
 import os
 from pathlib import Path
+from typing import Iterable, Optional
 
 import attr
 
 # import jupytext
 import nbformat as nbf
+from sphinx.environment import BuildEnvironment
 import yaml
 
 from myst_parser.main import MdParserConfig
@@ -14,8 +16,10 @@ CODE_DIRECTIVE = "{code-cell}"
 RAW_DIRECTIVE = "{raw-cell}"
 
 
-def string_to_notebook(inputstring, env, add_source_map=True):
-    """de-serialize a notebook or text-based representation"""
+def string_to_notebook(
+    inputstring: str, env: BuildEnvironment, add_source_map: bool = True
+) -> Optional[nbf.NotebookNode]:
+    """De-serialize a notebook or text-based representation."""
     extension = os.path.splitext(env.doc2path(env.docname))[1]
     if extension == ".ipynb":
         return nbf.reads(inputstring, nbf.NO_CONVERT)
@@ -27,7 +31,8 @@ def string_to_notebook(inputstring, env, add_source_map=True):
     return None
 
 
-def path_to_notebook(path, config: MdParserConfig):
+def path_to_notebook(path: str, config: MdParserConfig) -> nbf.NotebookNode:
+    """De-serialize a notebook or text-based representation."""
     extension = os.path.splitext(path)[1]
     if extension == ".ipynb":
         return nbf.read(path, nbf.NO_CONVERT)
@@ -35,7 +40,7 @@ def path_to_notebook(path, config: MdParserConfig):
         return myst_to_notebook(Path(path).read_text(encoding="utf8"), config)
 
 
-def is_myst_file(path):
+def is_myst_file(path: str) -> bool:
     extension = os.path.splitext(path)[1]
     if extension == ".ipynb":
         return True
@@ -49,7 +54,7 @@ def is_myst_file(path):
     return is_myst
 
 
-def is_myst_notebook(line_iter):
+def is_myst_notebook(line_iter: Iterable[str]) -> bool:
     """Is the text file a MyST based notebook representation?"""
     # we need to distinguish between markdown representing notebooks
     # and standard notebooks.

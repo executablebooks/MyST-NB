@@ -51,4 +51,4 @@ def test_basic_nometadata(sphinx_run, file_regression, check_nbs):
     """A myst-markdown notebook with no jupytext metadata should raise a warning."""
     sphinx_run.build()
     # print(sphinx_run.status())
-    assert "Found a `code-cell` directive." in sphinx_run.warnings()
+    assert "Found an unexpected `code-cell` directive." in sphinx_run.warnings()
