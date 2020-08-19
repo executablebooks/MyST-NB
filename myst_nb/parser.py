@@ -13,6 +13,7 @@ from markdown_it.token import Token
 from markdown_it.rules_core import StateCore
 from markdown_it.utils import AttrDict
 
+from myst_parser.main import default_parser, MdParserConfig
 from myst_parser.sphinx_renderer import SphinxRenderer
 from myst_parser.sphinx_parser import MystParser
 
@@ -59,7 +60,7 @@ class NotebookParser(MystParser):
 
         # Parse the notebook content to a list of syntax tokens and an env
         # containing global data like reference definitions
-        md_parser, env, tokens = nb_to_tokens(ntbk, document.settings.env.app.config)
+        md_parser, env, tokens = nb_to_tokens(ntbk, document.settings.env.myst_config)
 
         # Write the notebook's output to disk
         path_doc = nb_output_to_disc(ntbk, document)
@@ -73,12 +74,12 @@ class NotebookParser(MystParser):
 
 
 def nb_to_tokens(
-    ntbk: nbf.NotebookNode, config: dict
+    ntbk: nbf.NotebookNode, config: MdParserConfig
 ) -> Tuple[MarkdownIt, AttrDict, List[Token]]:
     """Parse the notebook content to a list of syntax tokens and an env,
     containing global data like reference definitions.
     """
-    md = NotebookParser.get_markdown_parser(config)
+    md = default_parser(config)
     # setup the markdown parser
     # Note we disable front matter parsing,
     # because this is taken from the actual notebook metadata

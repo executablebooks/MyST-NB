@@ -12,7 +12,7 @@ from sphinx.util.osutil import ensuredir
 from jupyter_cache import get_cache
 from jupyter_cache.executors import load_executor
 
-from .converter import path_to_notebook, is_myst_file
+from .converter import path_to_notebook, is_myst_file, MdParserConfig
 
 LOGGER = logging.getLogger(__name__)
 
@@ -104,7 +104,7 @@ def _stage_and_execute(env, exec_docnames, path_cache, timeout):
 
     # can leverage parallel execution implemented in jupyter-cache here
     try:
-        execute_staged_nb(cache_base, pk_list or None, timeout)
+        execute_staged_nb(cache_base, pk_list or None, timeout, env.myst_config)
     except OSError as err:
         # This is a 'fix' for obscure cases, such as if you
         # remove name.ipynb and add name.md (i.e. same name, different extension)
@@ -199,7 +199,7 @@ def add_notebook_outputs(env, ntbk, file_path=None, show_traceback=False):
     return ntbk
 
 
-def execute_staged_nb(cache_base, pk_list, timeout):
+def execute_staged_nb(cache_base, pk_list, timeout, config: MdParserConfig):
     """
     executing the staged notebook
     """
@@ -209,7 +209,9 @@ def execute_staged_nb(cache_base, pk_list, timeout):
         LOGGER.error(str(error))
         return 1
     result = executor.run_and_cache(
-        filter_pks=pk_list or None, converter=path_to_notebook, timeout=timeout
+        filter_pks=pk_list or None,
+        converter=lambda p: path_to_notebook(p, config),
+        timeout=timeout,
     )
     return result
 

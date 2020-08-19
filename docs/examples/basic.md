@@ -45,7 +45,7 @@ It was generated with this code ({ref}`as explained here <myst:syntax/admonition
 
 :::::
 
-If you wish to use "bare" LaTeX equations, then it is advised you set `myst_amsmath_enable = True` in the sphinx configuration.
+If you wish to use "bare" LaTeX equations, then you should set `myst_amsmath_enable = True` in the sphinx configuration.
 This is {ref}`explained here <myst:syntax/amsmath>`, and works as such:
 
 ```latex

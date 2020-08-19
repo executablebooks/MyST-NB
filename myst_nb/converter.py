@@ -2,9 +2,13 @@ import json
 import os
 from pathlib import Path
 
+import attr
+
 # import jupytext
 import nbformat as nbf
 import yaml
+
+from myst_parser.main import MdParserConfig
 
 CODE_DIRECTIVE = "{code-cell}"
 RAW_DIRECTIVE = "{raw-cell}"
@@ -17,16 +21,18 @@ def string_to_notebook(inputstring, env, add_source_map=True):
         return nbf.reads(inputstring, nbf.NO_CONVERT)
     elif is_myst_notebook(inputstring.splitlines(keepends=True)):
         # return jupytext.reads(inputstring, fmt="myst")
-        return myst_to_notebook(inputstring, add_source_map=add_source_map)
+        return myst_to_notebook(
+            inputstring, env.myst_config, add_source_map=add_source_map
+        )
     return None
 
 
-def path_to_notebook(path):
+def path_to_notebook(path, config: MdParserConfig):
     extension = os.path.splitext(path)[1]
     if extension == ".ipynb":
         return nbf.read(path, nbf.NO_CONVERT)
     else:
-        return myst_to_notebook(Path(path).read_text(encoding="utf8"))
+        return myst_to_notebook(Path(path).read_text(encoding="utf8"), config)
 
 
 def is_myst_file(path):
@@ -141,6 +147,7 @@ def read_cell_metadata(token, cell_index):
 
 def myst_to_notebook(
     text,
+    config: MdParserConfig,
     code_directive=CODE_DIRECTIVE,
     raw_directive=RAW_DIRECTIVE,
     add_source_map=False,
@@ -158,10 +165,14 @@ def myst_to_notebook(
     NOTE: we assume here that all of these directives are at the top-level,
     i.e. not nested in other directives.
     """
+    # TODO warn about nested code-cells
     from myst_parser.main import default_parser
 
     # parse markdown file up to the block level (i.e. don't worry about inline text)
-    parser = default_parser("html", disable_syntax=["inline"])
+    inline_config = attr.evolve(
+        config, renderer="html", disable_syntax=(config.disable_syntax + ["inline"])
+    )
+    parser = default_parser(inline_config)
     tokens = parser.parse(text + "\n")
     lines = text.splitlines()
     md_start_line = 0
