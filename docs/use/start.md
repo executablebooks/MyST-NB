@@ -27,3 +27,36 @@ To install `myst-nb`, do the following:
 
 Once you do this, MyST-NB will now parse both markdown (`.md`) and
 Jupyter notebooks (`.ipynb`) into your Sphinx site.
+
+(start/config-options)=
+
+## MyST-NB configuration options
+
+The MyST-NB parser derives from {ref}`the base MyST-Parser <myst:intro/get-started>`, and so all the same configuration options are available.
+See the {ref}`MyST configuration options <myst:intro/config-options>` for the full set of options.
+
+MyST-NB then adds some additional configuration, specific to notebooks:
+
+`````{list-table}
+:header-rows: 1
+
+* - Option
+  - Default
+  - Description
+* - `jupyter_cache`
+  - ""
+  - Path to jupyter_cache, [see here](execute/cache) for details.
+* - `execution_excludepatterns`
+  - ()
+  - Exclude certain file patterns from execution, [see here](execute/config) for details.
+* - `jupyter_execute_notebooks`
+  - "auto"
+  - The logic for executing notebooks, [see here](execute/config) for details.
+* - `execution_timeout`
+  - 30
+  - The maximum time (in seconds) each notebook cell is allowed to run.
+    This can be overridden by metadata in a notebook, [see here](execute/timeout) for detail.
+* - `execution_show_tb`
+  - `False`
+  - Show failed notebook tracebacks in stdout (in addition to writing to file).
+`````

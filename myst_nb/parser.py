@@ -13,7 +13,7 @@ from markdown_it.token import Token
 from markdown_it.rules_core import StateCore
 from markdown_it.utils import AttrDict
 
-from myst_parser.main import default_parser, to_docutils
+from myst_parser.main import default_parser, MdParserConfig
 from myst_parser.sphinx_renderer import SphinxRenderer
 from myst_parser.sphinx_parser import MystParser
 
@@ -27,12 +27,10 @@ SPHINX_LOGGER = logging.getLogger(__name__)
 
 
 class NotebookParser(MystParser):
-    """Docutils parser for IPynb + CommonMark + Extensions."""
+    """Docutils parser for Markedly Structured Text (MyST) and Jupyter Notebooks."""
 
     supported = ("myst-nb",)
     translate_section_name = None
-
-    default_config = {"known_url_schemes": None}
 
     config_section = "myst-nb parser"
     config_section_dependencies = ("parsers",)
@@ -41,12 +39,6 @@ class NotebookParser(MystParser):
 
         self.reporter = document.reporter
         self.env = document.settings.env
-        self.config = self.default_config.copy()
-        try:
-            new_cfg = document.settings.env.config.myst_config
-            self.config.update(new_cfg)
-        except AttributeError:
-            pass
 
         try:
             ntbk = string_to_notebook(inputstring, self.env)
@@ -57,7 +49,7 @@ class NotebookParser(MystParser):
             return
         if not ntbk:
             # Read the notebook as a text-document
-            to_docutils(inputstring, options=self.config, document=document)
+            super().parse(inputstring, document=document)
             return
 
         # add outputs to notebook from the cache
@@ -68,7 +60,7 @@ class NotebookParser(MystParser):
 
         # Parse the notebook content to a list of syntax tokens and an env
         # containing global data like reference definitions
-        md_parser, env, tokens = nb_to_tokens(ntbk)
+        md_parser, env, tokens = nb_to_tokens(ntbk, document.settings.env.myst_config)
 
         # Write the notebook's output to disk
         path_doc = nb_output_to_disc(ntbk, document)
@@ -81,14 +73,17 @@ class NotebookParser(MystParser):
         tokens_to_docutils(md_parser, env, tokens, document)
 
 
-def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Token]]:
+def nb_to_tokens(
+    ntbk: nbf.NotebookNode, config: MdParserConfig
+) -> Tuple[MarkdownIt, AttrDict, List[Token]]:
     """Parse the notebook content to a list of syntax tokens and an env,
     containing global data like reference definitions.
     """
+    md = default_parser(config)
     # setup the markdown parser
     # Note we disable front matter parsing,
     # because this is taken from the actual notebook metadata
-    md = default_parser().disable("front_matter", ignoreInvalid=True)
+    md.disable("front_matter", ignoreInvalid=True)
     md.renderer = SphinxNBRenderer(md)
     # make a sandbox where all the parsing global data,
     # like reference definitions will be stored
