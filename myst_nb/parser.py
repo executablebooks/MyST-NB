@@ -3,6 +3,7 @@ from typing import List, Tuple
 
 from docutils import nodes
 import nbformat as nbf
+from sphinx.environment import BuildEnvironment
 from sphinx.util import logging
 
 from jupyter_sphinx.ast import get_widgets, JupyterWidgetStateNode
@@ -17,7 +18,7 @@ from myst_parser.main import default_parser, MdParserConfig
 from myst_parser.sphinx_renderer import SphinxRenderer
 from myst_parser.sphinx_parser import MystParser
 
-from myst_nb.cache import add_notebook_outputs
+from myst_nb.cache import generate_notebook_outputs
 from myst_nb.converter import string_to_notebook
 from myst_nb.nb_glue import GLUE_PREFIX
 from myst_nb.nb_glue.domain import NbGlueDomain
@@ -38,7 +39,7 @@ class NotebookParser(MystParser):
     def parse(self, inputstring: str, document: nodes.document):
 
         self.reporter = document.reporter
-        self.env = document.settings.env
+        self.env = document.settings.env  # type: BuildEnvironment
 
         try:
             ntbk = string_to_notebook(inputstring, self.env)
@@ -54,7 +55,7 @@ class NotebookParser(MystParser):
 
         # add outputs to notebook from the cache
         if self.env.config["jupyter_execute_notebooks"] != "off":
-            ntbk = add_notebook_outputs(
+            ntbk = generate_notebook_outputs(
                 self.env, ntbk, show_traceback=self.env.config["execution_show_tb"]
             )
 

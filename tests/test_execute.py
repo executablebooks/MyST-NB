@@ -47,7 +47,7 @@ def test_rebuild_force(sphinx_run):
 def test_exclude_path(sphinx_run, file_regression):
     """The notebook should not be executed."""
     sphinx_run.build()
-    assert len(sphinx_run.app.env.excluded_nb_exec_paths) == 1
+    assert len(sphinx_run.app.env.nb_excluded_exec_paths) == 1
     assert "Executing" not in sphinx_run.status(), sphinx_run.status()
     file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
 
