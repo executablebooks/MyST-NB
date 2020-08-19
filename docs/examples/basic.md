@@ -21,6 +21,23 @@ Sphinx using the MyST parser.[^download]
 
 ## Markdown
 
+
+### Configuration
+
+The MyST-NB parser derives from [the base MyST-Parser](myst:intro/get-started>, and so all the same configuration options are available.
+See the [MyST configuration options](myst:intro/config-options) for the full set of options, and [MyST syntax guide](myst:example_syntax) for all the syntax options.
+
+To build documentation from this notebook, the following options are set:
+
+```python
+myst_admonition_enable = True
+myst_amsmath_enable = True
+myst_html_img_enable = True
+myst_url_schemes = ("http", "https", "mailto")
+```
+
+### Syntax
+
 As you can see, markdown is parsed as expected. Embedding images should work as expected.
 For example, here's the MyST-NB logo:
 
@@ -30,12 +47,20 @@ For example, here's the MyST-NB logo:
 
 ![myst-nb logo](../_static/logo.png)
 
-because MyST-NB is using the MyST-markdown parser, you can include rich markdown with Sphinx
-in your notebook. For example, here's a note admonition block:
+With the `myst_html_img_enable=True` ([see here](myst:syntax/images)), you can even add HTML img tags with attributes:
+
+```html
+<img src="../_static/logo.png" alt="logo" width="200px" class="shadow mb-2">
+```
+
+<img src="../_static/logo.png" alt="logo" width="200px"  class="shadow mb-2">
+
+Because MyST-NB is using the MyST-markdown parser, you can include rich markdown with Sphinx in your notebook.
+For example, here's a note admonition block:
 
 :::::{note}
 **Wow**, a note!
-It was generated with this code ({ref}`as explained here <myst:syntax/admonitions>`):
+It was generated with this code ([as explained here](myst:syntax/admonitions)):
 
 ````md
 :::{note}
@@ -46,7 +71,7 @@ It was generated with this code ({ref}`as explained here <myst:syntax/admonition
 :::::
 
 If you wish to use "bare" LaTeX equations, then you should set `myst_amsmath_enable = True` in the sphinx configuration.
-This is {ref}`explained here <myst:syntax/amsmath>`, and works as such:
+This is [explained here](myst:syntax/amsmath), and works as such:
 
 ```latex
 \begin{equation}
@@ -79,7 +104,7 @@ $$e^{i\pi} + 1 = 0$$ (euler)
 Euler's identity, equation {math:numref}`euler`, was elected one of the
 most beautiful mathematical formulas.
 
-You can see the syntax used for this example {ref}`here in the MyST documentation <myst:syntax/math>`.
+You can see the syntax used for this example [here in the MyST documentation](myst:syntax/math).
 
 ## Code cells and outputs
 
