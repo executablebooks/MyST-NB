@@ -66,6 +66,7 @@ setup(
             "pandas",
         ],
         "rtd": [
+            "coconut~=1.4.3",
             "sphinxcontrib-bibtex",
             "ipywidgets",
             "pandas",

@@ -37,7 +37,10 @@ def test_basic_run_exec_off(sphinx_run, file_regression, check_nbs):
     assert sphinx_run.app.env.metadata["basic_unrun"]["author"] == "Chris"
 
     file_regression.check(sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
-    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
+    file_regression.check(
+        sphinx_run.get_doctree().pformat().replace('"True"', '"ipython3"'),
+        extension=".xml",
+    )
 
 
 @pytest.mark.sphinx_params(

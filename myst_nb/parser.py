@@ -112,6 +112,11 @@ def nb_to_tokens(
     block_tokens = []
     source_map = ntbk.metadata.get("source_map", None)
 
+    # get language lexer name
+    langinfo = ntbk.metadata.get("language_info", {})
+    lexer = langinfo.get("pygments_lexer", langinfo.get("name", None))
+    # TODO log warning if lexer is still None
+
     for cell_index, nb_cell in enumerate(ntbk.cells):
 
         # if the the source_map has been stored (for text-based notebooks),
@@ -144,7 +149,7 @@ def nb_to_tokens(
                     "nb_code_cell",
                     "",
                     0,
-                    meta={"cell": nb_cell},
+                    meta={"cell": nb_cell, "lexer": lexer},
                     map=[start_line, start_line],
                 )
             )
@@ -209,7 +214,9 @@ class SphinxNBRenderer(SphinxRenderer):
             sphinx_cell += cell_input
 
             # Input block
-            code_block = nodes.literal_block(text=cell["source"])
+            code_block = nodes.literal_block(
+                text=cell["source"], language=token.meta["lexer"]
+            )
             cell_input += code_block
 
         # ==================

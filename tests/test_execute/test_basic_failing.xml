@@ -6,5 +6,5 @@
             some text
         <CellNode cell_type="code" classes="cell">
             <CellInputNode classes="cell_input">
-                <literal_block xml:space="preserve">
+                <literal_block language="ipython3" xml:space="preserve">
                     raise Exception('oopsie!')

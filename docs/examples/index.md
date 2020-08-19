@@ -5,6 +5,7 @@ and reference.
 
 ```{toctree}
 basic
+coconut-lang
 interactive
 jupyter_sphinx
 ```
