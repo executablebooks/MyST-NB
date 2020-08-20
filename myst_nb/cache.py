@@ -9,7 +9,7 @@ The primary methods in this module are:
   or if 'auto' / 'force' is set, will execute the notebook.
 
 """
-import datetime
+from datetime import datetime
 import os
 import tempfile
 from typing import List, Optional, Set
@@ -57,6 +57,7 @@ def update_execution_cache(
 
         cache_base = get_cache(app.env.nb_path_to_cache)
         for path in removed:
+            app.env.nb_execution_data.pop(path, None)
             docpath = app.env.doc2path(path)
             # there is an issue in sphinx doc2path, whereby if the path does not
             # exist then it will be assigned the default source_suffix (usually .rst)
@@ -148,7 +149,7 @@ def generate_notebook_outputs(
             ntbk = result.nb
 
             env.nb_execution_data[env.docname] = {
-                "mtime": datetime.datetime.utcnow().isoformat(),
+                "mtime": datetime.utcnow().timestamp(),
                 "runtime": result.time,
                 "method": execution_method,
                 "succeeded": False if result.err else True,
@@ -208,7 +209,7 @@ def generate_notebook_outputs(
             pass
 
     env.nb_execution_data[env.docname] = {
-        "mtime": datetime.datetime.utcnow().isoformat(),
+        "mtime": datetime.utcnow().timestamp(),
         "runtime": runtime,
         "method": execution_method,
         "succeeded": succeeded,

@@ -35,6 +35,7 @@ from .nb_glue.domain import (
     PasteInlineNode,
 )
 from .nb_glue.transform import PasteNodesToDocutils
+from .exec_table import setup_exec_table
 
 LOGGER = logging.getLogger(__name__)
 
@@ -132,6 +133,9 @@ def setup(app: Sphinx):
     app.add_domain(NbGlueDomain)
     app.add_directive("code-cell", CodeCell)
 
+    # execution statistics table
+    setup_exec_table(app)
+
     # TODO need to deal with key clashes in NbGlueDomain.merge_domaindata
     # before this is parallel_read_safe
     return {"version": __version__, "parallel_read_safe": False}
@@ -180,7 +184,8 @@ def set_valid_execution_paths(app):
         for suffix, parser_type in app.config["source_suffix"].items()
         if parser_type in ("myst-nb",)
     }
-    app.env.nb_execution_data = {}
+    if not hasattr(app.env, "nb_execution_data"):
+        app.env.nb_execution_data = {}
 
 
 def add_exclude_patterns(app, config):
