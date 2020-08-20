@@ -52,10 +52,17 @@ MyST-NB then adds some additional configuration, specific to notebooks:
 * - `jupyter_execute_notebooks`
   - "auto"
   - The logic for executing notebooks, [see here](execute/config) for details.
+* - `execution_in_temp`
+  - `False`
+  - If `True`, then a temporary directory will be created and used as the command working directory (cwd), if `False` then the notebook's parent directory will be the cwd.
+* - `execution_allow_errors`
+  - `False`
+  - If `False`, when a code cell raises an error the execution is stopped, if `True` then all cells are always run.
+    This can also be overridden by metadata in a notebook, [see here](execute/allow_errors) for details.
 * - `execution_timeout`
   - 30
   - The maximum time (in seconds) each notebook cell is allowed to run.
-    This can be overridden by metadata in a notebook, [see here](execute/timeout) for detail.
+    This can also be overridden by metadata in a notebook, [see here](execute/timeout) for details.
 * - `execution_show_tb`
   - `False`
   - Show failed notebook tracebacks in stdout (in addition to writing to file).

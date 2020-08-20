@@ -16,7 +16,7 @@ from jupyter_sphinx.ast import (  # noqa: F401
     JupyterCell,
 )
 
-from .cache import update_execution_cache
+from .execution import update_execution_cache
 from .parser import (
     NotebookParser,
     CellNode,
@@ -35,6 +35,7 @@ from .nb_glue.domain import (
     PasteInlineNode,
 )
 from .nb_glue.transform import PasteNodesToDocutils
+from .exec_table import setup_exec_table
 
 LOGGER = logging.getLogger(__name__)
 
@@ -104,6 +105,8 @@ def setup(app: Sphinx):
     app.add_config_value("execution_excludepatterns", [], "env")
     app.add_config_value("jupyter_execute_notebooks", "auto", "env")
     app.add_config_value("execution_timeout", 30, "env")
+    app.add_config_value("execution_allow_errors", False, "env")
+    app.add_config_value("execution_in_temp", False, "env")
     # show traceback in stdout (in addition to writing to file)
     # this is useful in e.g. RTD where one cannot inspect a file
     app.add_config_value("execution_show_tb", False, "")
@@ -129,6 +132,9 @@ def setup(app: Sphinx):
     app.setup_extension("jupyter_sphinx")
     app.add_domain(NbGlueDomain)
     app.add_directive("code-cell", CodeCell)
+
+    # execution statistics table
+    setup_exec_table(app)
 
     # TODO need to deal with key clashes in NbGlueDomain.merge_domaindata
     # before this is parallel_read_safe
@@ -178,6 +184,8 @@ def set_valid_execution_paths(app):
         for suffix, parser_type in app.config["source_suffix"].items()
         if parser_type in ("myst-nb",)
     }
+    if not hasattr(app.env, "nb_execution_data"):
+        app.env.nb_execution_data = {}
 
 
 def add_exclude_patterns(app, config):

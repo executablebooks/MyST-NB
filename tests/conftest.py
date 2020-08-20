@@ -24,6 +24,16 @@ set_notebook_diff_targets(metadata=False)
 TEST_FILE_DIR = Path(__file__).parent.joinpath("notebooks")
 
 
+@pytest.fixture(autouse=True, scope="session")
+def build_matplotlib_font_cache():
+    """This is to mitigate errors on CI VMs, where you can get the message:
+    "Matplotlib is building the font cache" in output notebooks
+    """
+    from matplotlib.font_manager import FontManager
+
+    FontManager()
+
+
 @pytest.fixture()
 def get_test_path():
     def _get_test_path(name):
