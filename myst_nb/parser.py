@@ -18,7 +18,7 @@ from myst_parser.main import default_parser, MdParserConfig
 from myst_parser.sphinx_renderer import SphinxRenderer
 from myst_parser.sphinx_parser import MystParser
 
-from myst_nb.cache import generate_notebook_outputs
+from myst_nb.execution import generate_notebook_outputs
 from myst_nb.converter import string_to_notebook
 from myst_nb.nb_glue import GLUE_PREFIX
 from myst_nb.nb_glue.domain import NbGlueDomain

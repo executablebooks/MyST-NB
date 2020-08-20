@@ -109,7 +109,7 @@ def generate_notebook_outputs(
 
     if not path_to_cache:
 
-        if execution_method == "auto" and is_nb_with_outputs(file_path):
+        if execution_method == "auto" and nb_has_all_output(file_path):
             LOGGER.info(
                 "Did not execute %s. "
                 "Set jupyter_execute_notebooks to `force` to execute",
@@ -310,8 +310,8 @@ def execute_staged_nb(
     return result
 
 
-def is_nb_with_outputs(source_path: str, nb_extensions: List[str] = ["ipynb"]) -> bool:
-    """Determine if the path contains a notebook with outputs."""
+def nb_has_all_output(source_path: str, nb_extensions: List[str] = ["ipynb"]) -> bool:
+    """Determine if the path contains a notebook with at least one output."""
     has_outputs = False
     ext = os.path.splitext(source_path)[1]
 

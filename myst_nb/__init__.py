@@ -16,7 +16,7 @@ from jupyter_sphinx.ast import (  # noqa: F401
     JupyterCell,
 )
 
-from .cache import update_execution_cache
+from .execution import update_execution_cache
 from .parser import (
     NotebookParser,
     CellNode,
@@ -106,7 +106,7 @@ def setup(app: Sphinx):
     app.add_config_value("jupyter_execute_notebooks", "auto", "env")
     app.add_config_value("execution_timeout", 30, "env")
     app.add_config_value("execution_allow_errors", False, "env")
-    app.add_config_value("execution_in_temp", True, "env")
+    app.add_config_value("execution_in_temp", False, "env")
     # show traceback in stdout (in addition to writing to file)
     # this is useful in e.g. RTD where one cannot inspect a file
     app.add_config_value("execution_show_tb", False, "")
