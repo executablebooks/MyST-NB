@@ -2,9 +2,21 @@ import pytest
 
 
 @pytest.mark.sphinx_params(
+    "basic_unrun.ipynb", conf={"jupyter_execute_notebooks": "auto"}
+)
+def test_basic_unrun_auto(sphinx_run, file_regression, check_nbs):
+    sphinx_run.build()
+    # print(sphinx_run.status())
+    assert sphinx_run.warnings() == ""
+    assert "test_name" in sphinx_run.app.env.metadata["basic_unrun"]
+    file_regression.check(sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
+    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
+
+
+@pytest.mark.sphinx_params(
     "basic_unrun.ipynb", conf={"jupyter_execute_notebooks": "cache"}
 )
-def test_basic_unrun(sphinx_run, file_regression, check_nbs):
+def test_basic_unrun_cache(sphinx_run, file_regression, check_nbs):
     """The outputs should be populated."""
     sphinx_run.build()
     assert sphinx_run.warnings() == ""
@@ -55,7 +67,7 @@ def test_exclude_path(sphinx_run, file_regression):
 @pytest.mark.sphinx_params(
     "basic_failing.ipynb", conf={"jupyter_execute_notebooks": "cache"}
 )
-def test_basic_failing(sphinx_run, file_regression, check_nbs):
+def test_basic_failing_cache(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
     # print(sphinx_run.status())
     assert "Execution Failed" in sphinx_run.warnings()
@@ -69,13 +81,38 @@ def test_basic_failing(sphinx_run, file_regression, check_nbs):
 
 
 @pytest.mark.sphinx_params(
-    "basic_unrun.ipynb", conf={"jupyter_execute_notebooks": "auto"}
+    "basic_failing.ipynb", conf={"jupyter_execute_notebooks": "auto"}
 )
-def test_basic_unrun_nbclient(sphinx_run, file_regression, check_nbs):
+def test_basic_failing_auto(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
     # print(sphinx_run.status())
-    assert sphinx_run.warnings() == ""
-    assert "test_name" in sphinx_run.app.env.metadata["basic_unrun"]
+    assert "Execution Failed" in sphinx_run.warnings()
+    assert "Execution Failed with traceback saved in" in sphinx_run.warnings()
+    file_regression.check(sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
+    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
+    sphinx_run.get_report_file()
+
+
+@pytest.mark.sphinx_params(
+    "basic_failing.ipynb",
+    conf={"jupyter_execute_notebooks": "cache", "execution_allow_errors": True},
+)
+def test_allow_errors_cache(sphinx_run, file_regression, check_nbs):
+    sphinx_run.build()
+    # print(sphinx_run.status())
+    assert not sphinx_run.warnings()
+    file_regression.check(sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
+    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
+
+
+@pytest.mark.sphinx_params(
+    "basic_failing.ipynb",
+    conf={"jupyter_execute_notebooks": "auto", "execution_allow_errors": True},
+)
+def test_allow_errors_auto(sphinx_run, file_regression, check_nbs):
+    sphinx_run.build()
+    # print(sphinx_run.status())
+    assert not sphinx_run.warnings()
     file_regression.check(sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
     file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
 
@@ -95,7 +132,7 @@ def test_outputs_present(sphinx_run, file_regression, check_nbs):
 @pytest.mark.sphinx_params(
     "complex_outputs_unrun.ipynb", conf={"jupyter_execute_notebooks": "cache"}
 )
-def test_complex_outputs_unrun(sphinx_run, file_regression, check_nbs):
+def test_complex_outputs_unrun_cache(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
     # print(sphinx_run.status())
     assert sphinx_run.warnings() == ""
@@ -111,7 +148,7 @@ def test_complex_outputs_unrun(sphinx_run, file_regression, check_nbs):
 @pytest.mark.sphinx_params(
     "complex_outputs_unrun.ipynb", conf={"jupyter_execute_notebooks": "auto"}
 )
-def test_complex_outputs_unrun_nbclient(sphinx_run, file_regression, check_nbs):
+def test_complex_outputs_unrun_auto(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
     # print(sphinx_run.status())
     assert sphinx_run.warnings() == ""

@@ -10,20 +10,20 @@ The primary methods in this module are:
 
 """
 import os
+import tempfile
 from typing import List, Optional, Set
 
 import nbformat as nbf
-from nbclient import execute
 from pathlib import Path
 
 from sphinx.application import Sphinx
 from sphinx.builders import Builder
 from sphinx.environment import BuildEnvironment
 from sphinx.util import logging
-from sphinx.util.osutil import ensuredir
 
 from jupyter_cache import get_cache
 from jupyter_cache.executors import load_executor
+from jupyter_cache.executors.utils import single_nb_execution
 
 from myst_parser.main import MdParserConfig
 
@@ -66,10 +66,12 @@ def update_execution_cache(
                     cache_base.discard_staged_notebook(docpath)
 
         _stage_and_execute(
-            app.env,
-            exec_docnames,
-            app.env.nb_path_to_cache,
-            app.config["execution_timeout"],
+            env=app.env,
+            exec_docnames=exec_docnames,
+            path_to_cache=app.env.nb_path_to_cache,
+            timeout=app.config["execution_timeout"],
+            allow_errors=app.config["execution_allow_errors"],
+            exec_in_temp=app.config["execution_in_temp"],
         )
 
     return altered_docnames
@@ -95,8 +97,6 @@ def generate_notebook_outputs(
 
     # If we have a jupyter_cache, see if there's a cache for this notebook
     file_path = file_path or env.doc2path(env.docname)
-    dest_path = Path(env.app.outdir)
-    reports_dir = str(dest_path) + "/reports"
 
     execution_method = env.config["jupyter_execute_notebooks"]  # type: str
 
@@ -109,14 +109,41 @@ def generate_notebook_outputs(
 
         if execution_method == "auto" and is_nb_with_outputs(file_path):
             LOGGER.info(
-                "Did not execute {}. "
-                "Set jupyter_execute_notebooks to `force` to execute".format(
-                    env.docname
-                )
+                "Did not execute %s. "
+                "Set jupyter_execute_notebooks to `force` to execute",
+                env.docname,
             )
         else:
-            LOGGER.info("Executing: {}".format(env.docname))
-            ntbk = execute(ntbk, cwd=Path(file_path).parent)
+            if env.config["execution_in_temp"]:
+                with tempfile.TemporaryDirectory() as tmpdirname:
+                    LOGGER.info("Executing: %s in temporary directory", env.docname)
+                    result = single_nb_execution(
+                        ntbk,
+                        cwd=tmpdirname,
+                        timeout=env.config["execution_timeout"],
+                        allow_errors=env.config["execution_allow_errors"],
+                    )
+            else:
+                cwd = Path(file_path).parent
+                LOGGER.info("Executing: %s in: %s", env.docname, cwd)
+                result = single_nb_execution(
+                    ntbk,
+                    cwd=cwd,
+                    timeout=env.config["execution_timeout"],
+                    allow_errors=env.config["execution_allow_errors"],
+                )
+
+            if result.err:
+                message = _report_exec_fail(
+                    env,
+                    Path(file_path).name,
+                    result.exc_string,
+                    show_traceback,
+                    "Execution Failed with traceback saved in {}",
+                )
+                LOGGER.error(message)
+
+            ntbk = result.nb
 
         return ntbk
 
@@ -136,17 +163,13 @@ def generate_notebook_outputs(
         except KeyError:
             stage_record = None
         if stage_record and stage_record.traceback:
-            # save the traceback to a log file
-            ensuredir(reports_dir)
-            file_name = os.path.splitext(r_file_path.name)[0]
-            full_path = reports_dir + "/{}.log".format(file_name)
-            with open(full_path, "w", encoding="utf8") as log_file:
-                log_file.write(stage_record.traceback)
-            message += "\n  Last execution failed with traceback saved in {}".format(
-                full_path
+            message += _report_exec_fail(
+                env,
+                r_file_path.name,
+                stage_record.traceback,
+                show_traceback,
+                "\n  Last execution failed with traceback saved in {}",
             )
-            if show_traceback:
-                message += "\n" + stage_record.traceback
 
         LOGGER.error(message)
 
@@ -174,11 +197,27 @@ def is_valid_exec_file(env: BuildEnvironment, docname: str) -> bool:
     return True
 
 
+def _report_exec_fail(
+    env, file_name: str, traceback: str, show_traceback: bool, template: str,
+):
+    """Save the traceback to a log file, and create log message."""
+    reports_dir = Path(env.app.outdir).joinpath("reports")
+    reports_dir.mkdir(exist_ok=True)
+    full_path = reports_dir.joinpath(os.path.splitext(file_name)[0] + ".log")
+    full_path.write_text(traceback, encoding="utf8")
+    message = template.format(full_path)
+    if show_traceback:
+        message += "\n" + traceback
+    return message
+
+
 def _stage_and_execute(
     env: BuildEnvironment,
     exec_docnames: List[str],
     path_to_cache: str,
     timeout: Optional[int],
+    allow_errors: bool,
+    exec_in_temp: bool,
 ):
     pk_list = []
     cache_base = get_cache(path_to_cache)
@@ -191,7 +230,14 @@ def _stage_and_execute(
 
     # can leverage parallel execution implemented in jupyter-cache here
     try:
-        execute_staged_nb(cache_base, pk_list or None, timeout, env.myst_config)
+        execute_staged_nb(
+            cache_base,
+            pk_list or None,
+            timeout=timeout,
+            exec_in_temp=exec_in_temp,
+            allow_errors=allow_errors,
+            config=env.myst_config,
+        )
     except OSError as err:
         # This is a 'fix' for obscure cases, such as if you
         # remove name.ipynb and add name.md (i.e. same name, different extension)
@@ -207,7 +253,12 @@ def _stage_and_execute(
 
 
 def execute_staged_nb(
-    cache_base, pk_list, timeout: Optional[int], config: MdParserConfig
+    cache_base,
+    pk_list,
+    timeout: Optional[int],
+    exec_in_temp: bool,
+    allow_errors: bool,
+    config: MdParserConfig,
 ):
     """Executing the staged notebook."""
     try:
@@ -219,6 +270,8 @@ def execute_staged_nb(
         filter_pks=pk_list or None,
         converter=lambda p: path_to_notebook(p, config),
         timeout=timeout,
+        allow_errors=allow_errors,
+        run_in_temp=exec_in_temp,
     )
     return result
 
