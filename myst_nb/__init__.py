@@ -180,6 +180,7 @@ def set_valid_execution_paths(app):
         for suffix, parser_type in app.config["source_suffix"].items()
         if parser_type in ("myst-nb",)
     }
+    app.env.nb_execution_data = {}
 
 
 def add_exclude_patterns(app, config):

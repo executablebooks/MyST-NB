@@ -9,6 +9,7 @@ The primary methods in this module are:
   or if 'auto' / 'force' is set, will execute the notebook.
 
 """
+import datetime
 import os
 import tempfile
 from typing import List, Optional, Set
@@ -145,14 +146,24 @@ def generate_notebook_outputs(
 
             ntbk = result.nb
 
+            env.nb_execution_data[env.docname] = {
+                "mtime": datetime.datetime.utcnow().isoformat(),
+                "runtime": result.time,
+                "method": execution_method,
+                "succeeded": False if result.err else True,
+            }
+
         return ntbk
 
     cache_base = get_cache(path_to_cache)
     # Use relpath here in case Sphinx is building from a non-parent folder
     r_file_path = Path(os.path.relpath(file_path, Path().resolve()))
 
+    runtime = None
+    succeeded = False
+
     try:
-        _, ntbk = cache_base.merge_match_into_notebook(ntbk)
+        pk, ntbk = cache_base.merge_match_into_notebook(ntbk)
     except KeyError:
         message = (
             f"Couldn't find cache key for notebook file {str(r_file_path)}. "
@@ -182,6 +193,20 @@ def generate_notebook_outputs(
             ntbk.metadata["language_info"] = nbf.from_dict({"file_extension": ".txt"})
     else:
         LOGGER.verbose("Merged cached outputs into %s", str(r_file_path))
+        succeeded = True
+        try:
+            runtime = cache_base.get_cache_record(pk).data.get(
+                "execution_seconds", None
+            )
+        except Exception:
+            pass
+
+    env.nb_execution_data[env.docname] = {
+        "mtime": datetime.datetime.utcnow().isoformat(),
+        "runtime": runtime,
+        "method": execution_method,
+        "succeeded": succeeded,
+    }
 
     return ntbk
 

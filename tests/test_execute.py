@@ -12,6 +12,13 @@ def test_basic_unrun_auto(sphinx_run, file_regression, check_nbs):
     file_regression.check(sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
     file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
 
+    # Test execution statistics, should look like:
+    # {'basic_unrun': {'mtime': '2020-08-20T03:32:27.061454', 'runtime': 0.964572671,
+    #                  'method': 'auto', 'succeeded': True}}
+    assert "basic_unrun" in sphinx_run.env.nb_execution_data
+    assert sphinx_run.env.nb_execution_data["basic_unrun"]["method"] == "auto"
+    assert sphinx_run.env.nb_execution_data["basic_unrun"]["succeeded"] is True
+
 
 @pytest.mark.sphinx_params(
     "basic_unrun.ipynb", conf={"jupyter_execute_notebooks": "cache"}
@@ -23,6 +30,13 @@ def test_basic_unrun_cache(sphinx_run, file_regression, check_nbs):
     assert "test_name" in sphinx_run.app.env.metadata["basic_unrun"]
     file_regression.check(sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
     file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
+
+    # Test execution statistics, should look like:
+    # {'basic_unrun': {'mtime': '2020-08-20T03:32:27.061454', 'runtime': 0.964572671,
+    #                  'method': 'cache', 'succeeded': True}}
+    assert "basic_unrun" in sphinx_run.env.nb_execution_data
+    assert sphinx_run.env.nb_execution_data["basic_unrun"]["method"] == "cache"
+    assert sphinx_run.env.nb_execution_data["basic_unrun"]["succeeded"] is True
 
 
 @pytest.mark.sphinx_params(
@@ -79,6 +93,10 @@ def test_basic_failing_cache(sphinx_run, file_regression, check_nbs):
     file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
     sphinx_run.get_report_file()
 
+    assert "basic_failing" in sphinx_run.env.nb_execution_data
+    assert sphinx_run.env.nb_execution_data["basic_failing"]["method"] == "cache"
+    assert sphinx_run.env.nb_execution_data["basic_failing"]["succeeded"] is False
+
 
 @pytest.mark.sphinx_params(
     "basic_failing.ipynb", conf={"jupyter_execute_notebooks": "auto"}
@@ -91,6 +109,10 @@ def test_basic_failing_auto(sphinx_run, file_regression, check_nbs):
     file_regression.check(sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
     file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
     sphinx_run.get_report_file()
+
+    assert "basic_failing" in sphinx_run.env.nb_execution_data
+    assert sphinx_run.env.nb_execution_data["basic_failing"]["method"] == "auto"
+    assert sphinx_run.env.nb_execution_data["basic_failing"]["succeeded"] is False
 
 
 @pytest.mark.sphinx_params(
