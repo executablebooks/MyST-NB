@@ -96,6 +96,7 @@ def test_basic_failing_cache(sphinx_run, file_regression, check_nbs):
     assert "basic_failing" in sphinx_run.env.nb_execution_data
     assert sphinx_run.env.nb_execution_data["basic_failing"]["method"] == "cache"
     assert sphinx_run.env.nb_execution_data["basic_failing"]["succeeded"] is False
+    assert "error_log" in sphinx_run.env.nb_execution_data["basic_failing"]
 
 
 @pytest.mark.sphinx_params(
@@ -113,6 +114,7 @@ def test_basic_failing_auto(sphinx_run, file_regression, check_nbs):
     assert "basic_failing" in sphinx_run.env.nb_execution_data
     assert sphinx_run.env.nb_execution_data["basic_failing"]["method"] == "auto"
     assert sphinx_run.env.nb_execution_data["basic_failing"]["succeeded"] is False
+    assert "error_log" in sphinx_run.env.nb_execution_data["basic_failing"]
 
 
 @pytest.mark.sphinx_params(

@@ -134,8 +134,9 @@ def generate_notebook_outputs(
                     allow_errors=env.config["execution_allow_errors"],
                 )
 
+            report_path = None
             if result.err:
-                message = _report_exec_fail(
+                report_path, message = _report_exec_fail(
                     env,
                     Path(file_path).name,
                     result.exc_string,
@@ -152,6 +153,8 @@ def generate_notebook_outputs(
                 "method": execution_method,
                 "succeeded": False if result.err else True,
             }
+            if report_path:
+                env.nb_execution_data[env.docname]["error_log"] = report_path
 
         return ntbk
 
@@ -159,8 +162,10 @@ def generate_notebook_outputs(
     # Use relpath here in case Sphinx is building from a non-parent folder
     r_file_path = Path(os.path.relpath(file_path, Path().resolve()))
 
+    # default execution data
     runtime = None
     succeeded = False
+    report_path = None
 
     try:
         pk, ntbk = cache_base.merge_match_into_notebook(ntbk)
@@ -174,13 +179,14 @@ def generate_notebook_outputs(
         except KeyError:
             stage_record = None
         if stage_record and stage_record.traceback:
-            message += _report_exec_fail(
+            report_path, suffix = _report_exec_fail(
                 env,
                 r_file_path.name,
                 stage_record.traceback,
                 show_traceback,
                 "\n  Last execution failed with traceback saved in {}",
             )
+            message += suffix
 
         LOGGER.error(message)
 
@@ -207,6 +213,8 @@ def generate_notebook_outputs(
         "method": execution_method,
         "succeeded": succeeded,
     }
+    if report_path:
+        env.nb_execution_data[env.docname]["error_log"] = report_path
 
     return ntbk
 
@@ -233,7 +241,7 @@ def _report_exec_fail(
     message = template.format(full_path)
     if show_traceback:
         message += "\n" + traceback
-    return message
+    return str(full_path), message
 
 
 def _stage_and_execute(
