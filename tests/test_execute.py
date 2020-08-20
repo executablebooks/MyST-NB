@@ -244,3 +244,16 @@ def test_execution_metadata_timeout(sphinx_run, file_regression, check_nbs):
     """ notebook timeout metadata has higher preference then execution_timeout config"""
     sphinx_run.build()
     assert "execution failed" in sphinx_run.warnings()
+
+
+@pytest.mark.sphinx_params(
+    "nb_exec_table.md", conf={"jupyter_execute_notebooks": "auto"},
+)
+def test_nb_exec_table(sphinx_run, file_regression, check_nbs):
+    """Test that the table gets output into the HTML,
+    including a row for the executed notebook.
+    """
+    sphinx_run.build()
+    assert not sphinx_run.warnings()
+    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
+    assert '<tr class="row-even"><td><p>nb_exec_table</p></td>' in sphinx_run.get_html()

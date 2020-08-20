@@ -48,10 +48,12 @@ def make_stat_table(nb_execution_data):
     }
 
     key2transform = {
-        "mtime": lambda x: datetime.fromtimestamp(x).strftime("%Y-%m-%d %H:%M"),
+        "mtime": lambda x: datetime.fromtimestamp(x).strftime("%Y-%m-%d %H:%M")
+        if x
+        else "",
         "method": str,
-        "runtime": lambda x: str(round(x, 2)),
-        "succeeded": lambda x: "✅" if x else "❌",
+        "runtime": lambda x: "-" if x is None else str(round(x, 2)),
+        "succeeded": lambda x: "✅" if x is True else "❌",
     }
 
     # top-level element
@@ -86,8 +88,7 @@ def make_stat_table(nb_execution_data):
         tbody += row
         row.append(nodes.entry("", nodes.paragraph(text=doc)))
         for name in key2header.keys():
-            row.append(
-                nodes.entry("", nodes.paragraph(text=key2transform[name](data[name])))
-            )
+            text = key2transform[name](data[name])
+            row.append(nodes.entry("", nodes.paragraph(text=text)))
 
     return table
