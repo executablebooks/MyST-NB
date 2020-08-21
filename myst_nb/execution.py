@@ -35,9 +35,14 @@ LOGGER = logging.getLogger(__name__)
 
 def update_execution_cache(
     app: Sphinx, builder: Builder, added: Set[str], changed: Set[str], removed: Set[str]
-) -> Set[str]:
+):
     """If caching is required, stage and execute the added or modified notebooks,
     and cache them for later retrieval.
+
+    This is called by sphinx as an `env-get-outdated` event,
+    which is emitted when the environment determines which source files have changed
+    and should be re-read.
+
     """
     # all the added and changed notebooks should be operated on.
     # note docnames are paths relative to the sphinx root folder, with no extensions
@@ -57,7 +62,11 @@ def update_execution_cache(
 
         cache_base = get_cache(app.env.nb_path_to_cache)
         for path in removed:
-            app.env.nb_execution_data.pop(path, None)
+
+            if path in app.env.nb_execution_data:
+                app.env.nb_execution_data_changed = True
+                app.env.nb_execution_data.pop(path, None)
+
             docpath = app.env.doc2path(path)
             # there is an issue in sphinx doc2path, whereby if the path does not
             # exist then it will be assigned the default source_suffix (usually .rst)
@@ -76,7 +85,7 @@ def update_execution_cache(
             exec_in_temp=app.config["execution_in_temp"],
         )
 
-    return altered_docnames
+    return []
 
 
 def generate_notebook_outputs(
@@ -148,8 +157,9 @@ def generate_notebook_outputs(
 
             ntbk = result.nb
 
+            env.nb_execution_data_changed = True
             env.nb_execution_data[env.docname] = {
-                "mtime": datetime.utcnow().timestamp(),
+                "mtime": datetime.now().timestamp(),
                 "runtime": result.time,
                 "method": execution_method,
                 "succeeded": False if result.err else True,
@@ -208,8 +218,9 @@ def generate_notebook_outputs(
         except Exception:
             pass
 
+    env.nb_execution_data_changed = True
     env.nb_execution_data[env.docname] = {
-        "mtime": datetime.utcnow().timestamp(),
+        "mtime": datetime.now().timestamp(),
         "runtime": runtime,
         "method": execution_method,
         "succeeded": succeeded,

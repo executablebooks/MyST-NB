@@ -15,6 +15,7 @@ def test_basic_unrun_auto(sphinx_run, file_regression, check_nbs):
     # Test execution statistics, should look like:
     # {'basic_unrun': {'mtime': '2020-08-20T03:32:27.061454', 'runtime': 0.964572671,
     #                  'method': 'auto', 'succeeded': True}}
+    assert sphinx_run.env.nb_execution_data_changed is True
     assert "basic_unrun" in sphinx_run.env.nb_execution_data
     assert sphinx_run.env.nb_execution_data["basic_unrun"]["method"] == "auto"
     assert sphinx_run.env.nb_execution_data["basic_unrun"]["succeeded"] is True
@@ -34,6 +35,7 @@ def test_basic_unrun_cache(sphinx_run, file_regression, check_nbs):
     # Test execution statistics, should look like:
     # {'basic_unrun': {'mtime': '2020-08-20T03:32:27.061454', 'runtime': 0.964572671,
     #                  'method': 'cache', 'succeeded': True}}
+    assert sphinx_run.env.nb_execution_data_changed is True
     assert "basic_unrun" in sphinx_run.env.nb_execution_data
     assert sphinx_run.env.nb_execution_data["basic_unrun"]["method"] == "cache"
     assert sphinx_run.env.nb_execution_data["basic_unrun"]["succeeded"] is True
