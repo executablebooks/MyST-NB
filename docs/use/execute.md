@@ -13,7 +13,7 @@ kernelspec:
   name: python3
 ---
 
-# Executing and cacheing your content
+# Executing and caching your content
 
 MyST-NB can automatically run and cache notebooks contained in your project using [jupyter-cache].
 Notebooks can either be run each time the documentation is built, or cached locally so that re-runs occur only when code cells have changed.
@@ -63,7 +63,7 @@ execution_excludepatterns = ['list', 'of', '*patterns']
 Any file that matches one of the items in `execution_excludepatterns` will not be executed.
 
 (execute/cache)=
-## Cacheing the notebook execution
+## Caching the notebook execution
 
 As mentioned above, you can **cache the results of executing a notebook page** by setting:
 
