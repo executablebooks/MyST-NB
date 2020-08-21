@@ -38,8 +38,7 @@ def test_basic_run_exec_off(sphinx_run, file_regression, check_nbs):
 
     file_regression.check(sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
     file_regression.check(
-        sphinx_run.get_doctree().pformat().replace('"True"', '"ipython3"'),
-        extension=".xml",
+        sphinx_run.get_doctree().pformat(), extension=".xml",
     )
 
 

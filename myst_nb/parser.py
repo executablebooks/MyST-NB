@@ -215,9 +215,9 @@ class SphinxNBRenderer(SphinxRenderer):
             sphinx_cell += cell_input
 
             # Input block
-            code_block = nodes.literal_block(
-                text=cell["source"], language=token.meta["lexer"]
-            )
+            code_block = nodes.literal_block(text=cell["source"])
+            if token.meta.get("lexer", None) is not None:
+                code_block["language"] = token.meta["lexer"]
             cell_input += code_block
 
         # ==================

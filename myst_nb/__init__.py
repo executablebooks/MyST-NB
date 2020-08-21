@@ -5,6 +5,7 @@ from pathlib import Path
 
 from docutils import nodes
 from sphinx.application import Sphinx
+from sphinx.errors import SphinxError
 from sphinx.util.docutils import SphinxDirective
 from sphinx.util import logging
 
@@ -122,6 +123,8 @@ def setup(app: Sphinx):
     app.connect("config-inited", validate_config_values)
     app.connect("builder-inited", static_path)
     app.connect("builder-inited", set_valid_execution_paths)
+    app.connect("builder-inited", set_up_execution_data)
+    app.connect("env-purge-doc", remove_execution_data)
     app.connect("env-get-outdated", update_execution_cache)
     app.connect("config-inited", add_exclude_patterns)
     app.connect("config-inited", update_togglebutton_classes)
@@ -141,26 +144,31 @@ def setup(app: Sphinx):
     return {"version": __version__, "parallel_read_safe": False}
 
 
-def validate_config_values(app, config):
+class MystNbConfigError(SphinxError):
+    """Error specific to MyST-NB."""
+
+    category = "MyST NB Configuration Error"
+
+
+def validate_config_values(app: Sphinx, config):
+    """Validate configuration values."""
     execute_mode = app.config["jupyter_execute_notebooks"]
     if execute_mode not in ["force", "auto", "cache", "off"]:
-        LOGGER.critical(
-            "Conf 'jupyter_execute_notebooks' can be: "
-            "`force`, `auto`, `cache` or `off`, but got: %s",
-            execute_mode,
+        raise MystNbConfigError(
+            "'jupyter_execute_notebooks' can be: "
+            f"`force`, `auto`, `cache` or `off`, but got: {execute_mode}",
         )
-        exit(1)
+
     if app.config["jupyter_cache"] and execute_mode != "cache":
-        LOGGER.critical(
-            "If using conf jupyter_cache, "
-            "please set jupyter_execute_notebooks to `cache`"
+        raise MystNbConfigError(
+            "'jupyter_cache' is set, "
+            f"but 'jupyter_execute_notebooks' is not `cache`: {execute_mode}"
         )
-        exit(1)
+
     if app.config["jupyter_cache"] and not os.path.isdir(app.config["jupyter_cache"]):
-        LOGGER.critical(
-            "Path to jupyter_cache is not a directory: %s", app.config["jupyter_cache"]
+        raise MystNbConfigError(
+            f"'jupyter_cache' is not a directory: {app.config['jupyter_cache']}",
         )
-        exit(1)
 
 
 def static_path(app):
@@ -184,8 +192,20 @@ def set_valid_execution_paths(app):
         for suffix, parser_type in app.config["source_suffix"].items()
         if parser_type in ("myst-nb",)
     }
+
+
+def set_up_execution_data(app):
     if not hasattr(app.env, "nb_execution_data"):
         app.env.nb_execution_data = {}
+    if not hasattr(app.env, "nb_execution_data_changed"):
+        app.env.nb_execution_data_changed = False
+    app.env.nb_execution_data_changed = False
+
+
+def remove_execution_data(app, env, docname):
+    if docname in app.env.nb_execution_data:
+        app.env.nb_execution_data.pop(docname)
+        app.env.nb_execution_data_changed = True
 
 
 def add_exclude_patterns(app, config):
