@@ -162,7 +162,7 @@ print(thisvariabledoesntexist)
 ```
 
 (execute/statistics)=
-## Execution Statistics
+## Execution statistics
 
 As notebooks are executed, certain statistics are stored in a dictionary (`{docname:data}`), and saved on the [sphinx environment object](https://www.sphinx-doc.org/en/master/extdev/envapi.html#sphinx.environment.BuildEnvironment) as `env.nb_execution_data`.
 

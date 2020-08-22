@@ -83,6 +83,13 @@ You can also use [tox](https://tox.readthedocs.io), to run the tests in multiple
 For documentation build tests:
 
 ```shell
+>> cd MyST-NB
+>> tox
+```
+
+or
+
+```shell
 >> cd MyST-NB/docs
 >> make clean
 >> make html-strict

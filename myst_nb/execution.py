@@ -26,9 +26,7 @@ from jupyter_cache import get_cache
 from jupyter_cache.executors import load_executor
 from jupyter_cache.executors.utils import single_nb_execution
 
-from myst_parser.main import MdParserConfig
-
-from .converter import path_to_notebook, is_myst_file
+from .converter import get_nb_converter
 
 LOGGER = logging.getLogger(__name__)
 
@@ -269,7 +267,10 @@ def _stage_and_execute(
 
     for nb in exec_docnames:
         source_path = env.doc2path(nb)
-        if is_myst_file(source_path):
+        with open(source_path, encoding="utf8") as handle:
+            # here we pass an iterator, so that only the required lines are read
+            converter = get_nb_converter(source_path, env, (line for line in handle))
+        if converter is not None:
             stage_record = cache_base.stage_notebook_file(source_path)
             pk_list.append(stage_record.pk)
 
@@ -281,7 +282,7 @@ def _stage_and_execute(
             timeout=timeout,
             exec_in_temp=exec_in_temp,
             allow_errors=allow_errors,
-            config=env.myst_config,
+            env=env,
         )
     except OSError as err:
         # This is a 'fix' for obscure cases, such as if you
@@ -303,7 +304,7 @@ def execute_staged_nb(
     timeout: Optional[int],
     exec_in_temp: bool,
     allow_errors: bool,
-    config: MdParserConfig,
+    env: BuildEnvironment,
 ):
     """Executing the staged notebook."""
     try:
@@ -311,9 +312,14 @@ def execute_staged_nb(
     except ImportError as error:
         LOGGER.error(str(error))
         return 1
+
+    def _converter(path):
+        text = Path(path).read_text(encoding="utf8")
+        return get_nb_converter(path, env).func(text)
+
     result = executor.run_and_cache(
         filter_pks=pk_list or None,
-        converter=lambda p: path_to_notebook(p, config),
+        converter=_converter,
         timeout=timeout,
         allow_errors=allow_errors,
         run_in_temp=exec_in_temp,

@@ -67,6 +67,7 @@ intersphinx_mapping = {
     "myst": ("https://myst-parser.readthedocs.io/en/latest/", None),
     "markdown_it": ("https://markdown-it-py.readthedocs.io/en/latest", None),
     "nbclient": ("https://nbclient.readthedocs.io/en/latest", None),
+    "nbformat": ("https://nbformat.readthedocs.io/en/latest", None),
 }
 
 intersphinx_cache_limit = 5
@@ -78,6 +79,7 @@ html_static_path = ["_static"]
 
 copybutton_selector = "div:not(.output) > div.highlight pre"
 
+execution_custom_formats = {".Rmd": ["jupytext.reads", {"fmt": "Rmd"}]}
 jupyter_execute_notebooks = "cache"
 execution_show_tb = "READTHEDOCS" in os.environ
 execution_timeout = 60  # Note: 30 was timing out on RTD

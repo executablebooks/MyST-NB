@@ -6,6 +6,7 @@ and reference.
 ```{toctree}
 basic
 coconut-lang
+custom-formats
 interactive
 jupyter_sphinx
 ```

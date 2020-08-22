@@ -41,7 +41,7 @@ setup(
     python_requires=">=3.6",
     package_data={"myst_nb": ["_static/*"]},
     install_requires=[
-        "myst-parser~=0.12.0",
+        "myst-parser~=0.12.1",
         "docutils>=0.15",
         "sphinx>=2,<4",
         "jupyter_sphinx~=0.2.4",
@@ -63,8 +63,11 @@ setup(
             "numpy",
             "sympy",
             "pandas",
+            # greater versions currently have a version conflict with myst-parser
+            "jupytext<=1.4.0",
         ],
         "rtd": [
+            "jupytext<=1.4.0",
             "coconut~=1.4.3",
             "sphinxcontrib-bibtex",
             "ipywidgets",
