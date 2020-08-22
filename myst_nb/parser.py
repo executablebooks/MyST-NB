@@ -3,6 +3,7 @@ from typing import List, Tuple
 
 from docutils import nodes
 import nbformat as nbf
+
 from sphinx.environment import BuildEnvironment
 from sphinx.util import logging
 
@@ -19,7 +20,7 @@ from myst_parser.sphinx_renderer import SphinxRenderer
 from myst_parser.sphinx_parser import MystParser
 
 from myst_nb.execution import generate_notebook_outputs
-from myst_nb.converter import string_to_notebook
+from myst_nb.converter import get_nb_converter
 from myst_nb.nb_glue import GLUE_PREFIX
 from myst_nb.nb_glue.domain import NbGlueDomain
 
@@ -41,16 +42,26 @@ class NotebookParser(MystParser):
         self.reporter = document.reporter
         self.env = document.settings.env  # type: BuildEnvironment
 
-        try:
-            ntbk = string_to_notebook(inputstring, self.env)
-        except Exception as err:
-            SPHINX_LOGGER.error(
-                "Notebook load failed for %s: %s", self.env.docname, err
-            )
-            return
-        if not ntbk:
+        converter = get_nb_converter(
+            self.env.doc2path(self.env.docname, False),
+            self.env,
+            inputstring.splitlines(keepends=True),
+        )
+
+        if converter is None:
             # Read the notebook as a text-document
             super().parse(inputstring, document=document)
+            return
+
+        try:
+            ntbk = converter.func(inputstring)
+        except Exception as error:
+            SPHINX_LOGGER.error(
+                "MyST-NB: Conversion to notebook failed: %s",
+                error,
+                # exc_info=True,
+                location=(self.env.docname, 1),
+            )
             return
 
         # add outputs to notebook from the cache
@@ -61,7 +72,9 @@ class NotebookParser(MystParser):
 
         # Parse the notebook content to a list of syntax tokens and an env
         # containing global data like reference definitions
-        md_parser, env, tokens = nb_to_tokens(ntbk, document.settings.env.myst_config)
+        md_parser, env, tokens = nb_to_tokens(
+            ntbk, self.env.myst_config if converter is None else converter.config,
+        )
 
         # Write the notebook's output to disk
         path_doc = nb_output_to_disc(ntbk, document)

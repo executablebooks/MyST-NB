@@ -1,57 +1,77 @@
 import json
-import os
-from pathlib import Path
-from typing import Iterable, Optional
+from typing import Callable, Iterable, Optional
 
 import attr
 
-# import jupytext
 import nbformat as nbf
 from sphinx.environment import BuildEnvironment
+from sphinx.util import import_object
 import yaml
 
 from myst_parser.main import MdParserConfig
 
+NOTEBOOK_VERSION = 4
 CODE_DIRECTIVE = "{code-cell}"
 RAW_DIRECTIVE = "{raw-cell}"
 
 
-def string_to_notebook(
-    inputstring: str, env: BuildEnvironment, add_source_map: bool = True
-) -> Optional[nbf.NotebookNode]:
-    """De-serialize a notebook or text-based representation."""
-    extension = os.path.splitext(env.doc2path(env.docname))[1]
-    if extension == ".ipynb":
-        return nbf.reads(inputstring, nbf.NO_CONVERT)
-    elif is_myst_notebook(inputstring.splitlines(keepends=True)):
-        # return jupytext.reads(inputstring, fmt="myst")
-        return myst_to_notebook(
-            inputstring, env.myst_config, add_source_map=add_source_map
+@attr.s
+class NbConverter:
+    func: Callable[[str], nbf.NotebookNode] = attr.ib()
+    config: MdParserConfig = attr.ib()
+
+
+def get_nb_converter(
+    path: str, env: BuildEnvironment, source_iter: Optional[Iterable[str]] = None,
+) -> Optional[NbConverter]:
+    """Get function, to convert a source string to a Notebook."""
+
+    # Standard notebooks take priority
+    if path.endswith(".ipynb"):
+        return NbConverter(
+            lambda text: nbf.reads(text, as_version=NOTEBOOK_VERSION), env.myst_config
         )
+
+    # we check suffixes ordered by longest first, to ensure we get the "closest" match
+    for source_suffix in sorted(
+        env.config.execution_custom_formats.keys(), key=len, reverse=True
+    ):
+        if path.endswith(source_suffix):
+            (
+                converter,
+                converter_kwargs,
+                commonmark_only,
+            ) = env.config.execution_custom_formats[source_suffix]
+            converter = import_object(converter)
+            a = NbConverter(
+                lambda text: converter(text, **(converter_kwargs or {})),
+                env.myst_config
+                if commonmark_only is None
+                else attr.evolve(env.myst_config, commonmark_only=commonmark_only),
+            )
+            return a
+
+    # If there is no source text then we assume a MyST Notebook
+    if source_iter is None:
+        return NbConverter(
+            lambda text: myst_to_notebook(
+                text, config=env.myst_config, add_source_map=True
+            ),
+            env.myst_config,
+        )
+
+    # Given the source lines, we check it can be recognised as a MyST Notebook
+    if is_myst_notebook(source_iter):
+        return NbConverter(
+            lambda text: myst_to_notebook(
+                text, config=env.myst_config, add_source_map=True
+            ),
+            env.myst_config,
+        )
+
+    # Otherwise, we return None,
+    # to imply that it should be parsed as as standard Markdown file
     return None
-
-
-def path_to_notebook(path: str, config: MdParserConfig) -> nbf.NotebookNode:
-    """De-serialize a notebook or text-based representation."""
-    extension = os.path.splitext(path)[1]
-    if extension == ".ipynb":
-        return nbf.read(path, nbf.NO_CONVERT)
-    else:
-        return myst_to_notebook(Path(path).read_text(encoding="utf8"), config)
-
-
-def is_myst_file(path: str) -> bool:
-    extension = os.path.splitext(path)[1]
-    if extension == ".ipynb":
-        return True
-    if not os.path.exists(path):
-        return False
-
-    with open(path, encoding="utf8") as handle:
-        # here we use an iterator, so that only the required lines are read
-        is_myst = is_myst_notebook((line for line in handle))
-
-    return is_myst
 
 
 def is_myst_notebook(line_iter: Iterable[str]) -> bool:

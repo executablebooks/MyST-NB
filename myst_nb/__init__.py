@@ -1,5 +1,6 @@
 __version__ = "0.8.5"
 
+from collections.abc import Sequence
 import os
 from pathlib import Path
 
@@ -7,7 +8,7 @@ from docutils import nodes
 from sphinx.application import Sphinx
 from sphinx.errors import SphinxError
 from sphinx.util.docutils import SphinxDirective
-from sphinx.util import logging
+from sphinx.util import logging, import_object
 
 from myst_parser import setup_sphinx as setup_myst_parser
 
@@ -111,6 +112,7 @@ def setup(app: Sphinx):
     # show traceback in stdout (in addition to writing to file)
     # this is useful in e.g. RTD where one cannot inspect a file
     app.add_config_value("execution_show_tb", False, "")
+    app.add_config_value("execution_custom_formats", {}, "env")
 
     # Register our post-transform which will convert output bundles to nodes
     app.add_post_transform(PasteNodesToDocutils)
@@ -129,6 +131,7 @@ def setup(app: Sphinx):
     app.connect("config-inited", add_exclude_patterns)
     app.connect("config-inited", update_togglebutton_classes)
     app.connect("env-updated", save_glue_cache)
+    app.connect("config-inited", add_nb_custom_formats)
 
     # Misc
     app.add_css_file("mystnb.css")
@@ -170,13 +173,46 @@ def validate_config_values(app: Sphinx, config):
             f"'jupyter_cache' is not a directory: {app.config['jupyter_cache']}",
         )
 
+    if not isinstance(app.config["execution_custom_formats"], dict):
+        raise MystNbConfigError(
+            "'execution_custom_formats' should be a dictionary: "
+            f"{app.config['execution_custom_formats']}"
+        )
+    for name, converter in app.config["execution_custom_formats"].items():
+        if not isinstance(name, str):
+            raise MystNbConfigError(
+                f"'execution_custom_formats' keys should br a string: {name}"
+            )
+        if isinstance(converter, str):
+            app.config["execution_custom_formats"][name] = (converter, {})
+        elif not (isinstance(converter, Sequence) and len(converter) in [2, 3]):
+            raise MystNbConfigError(
+                "'execution_custom_formats' values must be "
+                f"either strings or 2/3-element sequences, got: {converter}"
+            )
 
-def static_path(app):
+        converter_str = app.config["execution_custom_formats"][name][0]
+        caller = import_object(
+            converter_str, f"MyST-NB execution_custom_formats: {name}",
+        )
+        if not callable(caller):
+            raise MystNbConfigError(
+                f"`execution_custom_formats.{name}` converter is not callable: {caller}"
+            )
+        if len(app.config["execution_custom_formats"][name]) == 2:
+            app.config["execution_custom_formats"][name].append(None)
+        elif not isinstance(app.config["execution_custom_formats"][name][2], bool):
+            raise MystNbConfigError(
+                f"`execution_custom_formats.{name}.commonmark_only` arg is not boolean"
+            )
+
+
+def static_path(app: Sphinx):
     static_path = Path(__file__).absolute().with_name("_static")
     app.config.html_static_path.append(str(static_path))
 
 
-def set_valid_execution_paths(app):
+def set_valid_execution_paths(app: Sphinx):
     """Set files excluded from execution, and valid file suffixes
 
     Patterns given in execution_excludepatterns conf variable from executing.
@@ -194,7 +230,7 @@ def set_valid_execution_paths(app):
     }
 
 
-def set_up_execution_data(app):
+def set_up_execution_data(app: Sphinx):
     if not hasattr(app.env, "nb_execution_data"):
         app.env.nb_execution_data = {}
     if not hasattr(app.env, "nb_execution_data_changed"):
@@ -202,19 +238,25 @@ def set_up_execution_data(app):
     app.env.nb_execution_data_changed = False
 
 
-def remove_execution_data(app, env, docname):
+def remove_execution_data(app: Sphinx, env, docname):
     if docname in app.env.nb_execution_data:
         app.env.nb_execution_data.pop(docname)
         app.env.nb_execution_data_changed = True
 
 
-def add_exclude_patterns(app, config):
+def add_nb_custom_formats(app: Sphinx, config):
+    """Add custom conversion formats."""
+    for suffix in config.execution_custom_formats:
+        app.add_source_suffix(suffix, "myst-nb")
+
+
+def add_exclude_patterns(app: Sphinx, config):
     """Add default exclude patterns (if not already present)."""
     if "**.ipynb_checkpoints" not in config.exclude_patterns:
         config.exclude_patterns.append("**.ipynb_checkpoints")
 
 
-def update_togglebutton_classes(app, config):
+def update_togglebutton_classes(app: Sphinx, config):
     to_add = [
         ".tag_hide_input div.cell_input",
         ".tag_hide-input div.cell_input",
@@ -227,7 +269,7 @@ def update_togglebutton_classes(app, config):
         config.togglebutton_selector += f", {selector}"
 
 
-def save_glue_cache(app, env):
+def save_glue_cache(app: Sphinx, env):
     NbGlueDomain.from_env(env).write_cache()
 
 

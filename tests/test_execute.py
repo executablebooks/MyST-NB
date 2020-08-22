@@ -259,3 +259,44 @@ def test_nb_exec_table(sphinx_run, file_regression, check_nbs):
     assert not sphinx_run.warnings()
     file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
     assert '<tr class="row-even"><td><p>nb_exec_table</p></td>' in sphinx_run.get_html()
+
+
+@pytest.mark.sphinx_params(
+    "custom-formats.Rmd",
+    conf={
+        "jupyter_execute_notebooks": "auto",
+        "execution_custom_formats": {".Rmd": ["jupytext.reads", {"fmt": "Rmd"}]},
+    },
+)
+def test_custom_convert_auto(sphinx_run, file_regression, check_nbs):
+    sphinx_run.build()
+    # print(sphinx_run.status())
+    assert sphinx_run.warnings() == ""
+
+    file_regression.check(sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
+    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
+
+    assert sphinx_run.env.nb_execution_data_changed is True
+    assert "custom-formats" in sphinx_run.env.nb_execution_data
+    assert sphinx_run.env.nb_execution_data["custom-formats"]["method"] == "auto"
+    assert sphinx_run.env.nb_execution_data["custom-formats"]["succeeded"] is True
+
+
+@pytest.mark.sphinx_params(
+    "custom-formats.Rmd",
+    conf={
+        "jupyter_execute_notebooks": "cache",
+        "execution_custom_formats": {".Rmd": ["jupytext.reads", {"fmt": "Rmd"}]},
+    },
+)
+def test_custom_convert_cache(sphinx_run, file_regression, check_nbs):
+    """The outputs should be populated."""
+    sphinx_run.build()
+    assert sphinx_run.warnings() == ""
+    file_regression.check(sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
+    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
+
+    assert sphinx_run.env.nb_execution_data_changed is True
+    assert "custom-formats" in sphinx_run.env.nb_execution_data
+    assert sphinx_run.env.nb_execution_data["custom-formats"]["method"] == "cache"
+    assert sphinx_run.env.nb_execution_data["custom-formats"]["succeeded"] is True

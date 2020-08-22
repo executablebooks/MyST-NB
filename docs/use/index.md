@@ -8,7 +8,7 @@ They cover how to use Jupyter Notebooks with MyST markdown, as well as
 :maxdepth: 1
 start
 myst
-hiding
 execute
+hiding
 glue
 ```

@@ -25,8 +25,25 @@ To install `myst-nb`, do the following:
   ]
   ```
 
-Once you do this, MyST-NB will now parse both markdown (`.md`) and
-Jupyter notebooks (`.ipynb`) into your Sphinx site.
+Once you do this, MyST-NB will now parse both markdown (`.md`), Jupyter notebooks (`.ipynb`), and even [text-based Notebooks](markdown.md) (`.md`) into your Sphinx site
+(see also ).
+
+(start/error-reporting)=
+
+## Sphinx Error Reporting
+
+For `.md` files, sphinx will correctly report the line number that the error or warning is associated with:
+
+```
+source/path:4: (WARNING/2) Duplicate reference definition: abc
+```
+
+For `.ipynb` files, these errors also correspond to a cell index.
+To allow for this, we use a special format of line number corresponding to: `<CELL_INDEX> * 10000 + LINE_NUMBER`, for example:
+
+```
+source/path:10004: (WARNING/2) Duplicate reference definition: abc
+```
 
 (start/config-options)=
 
