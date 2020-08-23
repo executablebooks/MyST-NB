@@ -104,16 +104,17 @@ def cell_output_to_nodes(
 
     """
     location = (node.source, node.line)
+    tags = node.metadata.get("tags", [])
 
     output_nodes = []
     for idx, output in enumerate(node.outputs):
         output_type = output["output_type"]
         if output_type == "stream":
-            if output["name"] == "stderr":
+            if output["name"] == "stderr" and "remove-stderr" not in tags:
                 output_nodes.extend(
                     renderer.get_renderer("stderr", location)(output, idx, output_dir)
                 )
-            else:
+            elif "remove-stdout" not in tags:
                 output_nodes.extend(
                     renderer.get_renderer("stdout", location)(output, idx, output_dir)
                 )
