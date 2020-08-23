@@ -1,11 +1,9 @@
 import pytest
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.core.displaypub import DisplayPublisher
-from docutils.transforms import Transformer
 
-from myst_nb.nb_glue import glue, transform, utils
+from myst_nb.nb_glue import glue, utils
 from myst_nb.nb_glue.domain import NbGlueDomain
-from myst_nb.transform import CellOutputsToNodes
 
 
 class MockDisplayPublisher(DisplayPublisher):
@@ -104,11 +102,8 @@ def test_parser(sphinx_run, file_regression):
     sphinx_run.build()
     # print(sphinx_run.status())
     assert sphinx_run.warnings() == ""
-    document = sphinx_run.get_doctree()
-    transformer = Transformer(document)
-    transformer.add_transforms([CellOutputsToNodes, transform.PasteNodesToDocutils])
-    transformer.apply_transforms()
-    file_regression.check(document.pformat(), extension=".xml")
+    doctree = sphinx_run.get_resolved_doctree("with_glue")
+    file_regression.check(doctree.pformat(), extension=".xml")
     glue_domain = NbGlueDomain.from_env(sphinx_run.app.env)
     assert set(glue_domain.cache) == {
         "key_text1",

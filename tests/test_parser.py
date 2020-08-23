@@ -78,5 +78,7 @@ def test_toctree_in_ipynb(sphinx_run, file_regression):
     sphinx_run.build()
     print(sphinx_run.status())
     print(sphinx_run.warnings())
-    file_regression.check(sphinx_run.get_doctree(1).pformat(), extension=".xml")
+    file_regression.check(
+        sphinx_run.get_doctree("latex_build/other").pformat(), extension=".xml"
+    )
     assert sphinx_run.warnings() == ""

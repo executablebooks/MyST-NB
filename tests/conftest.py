@@ -1,12 +1,10 @@
 import json
 import os
 from pathlib import Path
-import pickle
 import uuid
 
 import pytest
 
-from docutils.utils import Reporter
 from nbdime.diffing.notebooks import (
     diff_notebooks,
     set_notebook_diff_targets,
@@ -77,17 +75,17 @@ class SphinxFixture:
         for name, _ in self.files:
             self.env.all_docs.pop(name)
 
-    def get_doctree(self, index=0):
+    def get_resolved_doctree(self, docname):
+        """Load and return the built docutils.document, after post-transforms."""
+        doctree = self.env.get_and_resolve_doctree(docname, self.app.builder)
+        doctree["source"] = docname
+        return doctree
+
+    def get_doctree(self, docname=None):
         """Load and return the built docutils.document."""
-        name = self.files[index][0]
-        _path = self.app.doctreedir / (name + ".doctree")
-        if not _path.exists():
-            pytest.fail("doctree not output")
-        doctree = pickle.loads(_path.bytes())
-        doctree["source"] = name
-        doctree.reporter = Reporter(name, 1, 5)
-        self.app.env.temp_data["docname"] = name
-        doctree.settings.env = self.app.env
+        docname = docname or self.files[0][0]
+        doctree = self.env.get_doctree(docname)
+        doctree["source"] = docname
         return doctree
 
     def get_html(self, index=0):

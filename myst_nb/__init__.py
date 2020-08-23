@@ -12,12 +12,6 @@ from sphinx.util import logging, import_object
 
 from myst_parser import setup_sphinx as setup_myst_parser
 
-from jupyter_sphinx.ast import (  # noqa: F401
-    JupyterWidgetStateNode,
-    JupyterWidgetViewNode,
-    JupyterCell,
-)
-
 from .execution import update_execution_cache
 from .parser import (
     NotebookParser,
@@ -26,7 +20,7 @@ from .parser import (
     CellOutputNode,
     CellOutputBundleNode,
 )
-from .transform import CellOutputsToNodes
+from .render_outputs import CellOutputsToNodes
 from .nb_glue import glue  # noqa: F401
 
 from .nb_glue.domain import (

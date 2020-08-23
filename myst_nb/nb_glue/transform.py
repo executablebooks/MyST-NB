@@ -22,7 +22,7 @@ class PasteNodesToDocutils(SphinxTransform):
                         f"Couldn't find key `{paste_node.key}` "
                         "in keys defined across all pages."
                     ),
-                    location=paste_node.location,
+                    location=(paste_node.source, paste_node.line),
                 )
                 continue
 
@@ -38,7 +38,7 @@ class PasteNodesToDocutils(SphinxTransform):
                         "Couldn't find compatible output format for key "
                         f"`{paste_node.key}`"
                     ),
-                    location=paste_node.location,
+                    location=(paste_node.source, paste_node.line),
                 )
             else:
                 paste_node.replace_self(out_node)

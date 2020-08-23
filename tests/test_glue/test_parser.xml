@@ -4,11 +4,11 @@
             Glue Tests
         <CellNode cell_type="code" classes="cell">
             <CellInputNode classes="cell_input">
-                <literal_block language="ipython3" xml:space="preserve">
+                <literal_block language="ipython3" linenos="False" xml:space="preserve">
                     from myst_nb import glue
         <CellNode cell_type="code" classes="cell">
             <CellInputNode classes="cell_input">
-                <literal_block language="ipython3" xml:space="preserve">
+                <literal_block language="ipython3" linenos="False" xml:space="preserve">
                     glue("key_text1", "text1")
                     glue("key_float", 3.14159)
             <CellOutputNode classes="cell_output">
@@ -18,12 +18,12 @@
                     3.14159
         <CellNode cell_type="code" classes="cell">
             <CellInputNode classes="cell_input">
-                <literal_block language="ipython3" xml:space="preserve">
+                <literal_block language="ipython3" linenos="False" xml:space="preserve">
                     glue("key_undisplayed", "undisplayed", display=False)
             <CellOutputNode classes="cell_output">
         <CellNode cell_type="code" classes="cell">
             <CellInputNode classes="cell_input">
-                <literal_block language="ipython3" xml:space="preserve">
+                <literal_block language="ipython3" linenos="False" xml:space="preserve">
                     import pandas as pd
                     df = pd.DataFrame({"header": [1, 2, 3]})
                     glue("key_df", df)
@@ -68,7 +68,7 @@
                     </div>
         <CellNode cell_type="code" classes="cell">
             <CellInputNode classes="cell_input">
-                <literal_block language="ipython3" xml:space="preserve">
+                <literal_block language="ipython3" linenos="False" xml:space="preserve">
                     import matplotlib.pyplot as plt
                     plt.plot([1, 2, 3])
                     glue("key_plt", plt.gcf(), display=False)
@@ -154,7 +154,7 @@
                 Math
             <CellNode cell_type="code" classes="cell">
                 <CellInputNode classes="cell_input">
-                    <literal_block language="ipython3" xml:space="preserve">
+                    <literal_block language="ipython3" linenos="False" xml:space="preserve">
                         import sympy as sym
                         f = sym.Function('f')
                         y = sym.Function('y')

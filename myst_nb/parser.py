@@ -153,7 +153,6 @@ def nb_to_tokens(
 
             # we add the cell index to tokens,
             # so they can be included in the error logging,
-            # although note this logic isn't currently implemented in SphinxRenderer
             block_tokens.extend(parse_block(nb_cell["source"], start_line))
 
         elif nb_cell["cell_type"] == "code":
@@ -213,7 +212,8 @@ class SphinxNBRenderer(SphinxRenderer):
 
     def render_nb_code_cell(self, token: Token):
         """Render a Jupyter notebook cell."""
-        cell = token.meta["cell"]
+        cell = token.meta["cell"]  # type: nbf.NotebookNode
+
         # TODO logic involving tags should be deferred to a transform
         tags = cell.metadata.get("tags", [])
 
@@ -225,6 +225,7 @@ class SphinxNBRenderer(SphinxRenderer):
         self.current_node += sphinx_cell
         if ("remove_input" not in tags) and ("remove-input" not in tags):
             cell_input = CellInputNode(classes=["cell_input"])
+            self.add_line_and_source_path(cell_input, token)
             sphinx_cell += cell_input
 
             # Input block
@@ -244,7 +245,8 @@ class SphinxNBRenderer(SphinxRenderer):
             cell_output = CellOutputNode(classes=["cell_output"])
             sphinx_cell += cell_output
 
-            outputs = CellOutputBundleNode(cell["outputs"])
+            outputs = CellOutputBundleNode(cell["outputs"], cell.metadata)
+            self.add_line_and_source_path(outputs, token)
             cell_output += outputs
 
 
@@ -272,14 +274,25 @@ class CellOutputNode(nodes.container):
 class CellOutputBundleNode(nodes.container):
     """Represent a MimeBundle in the Sphinx AST, to be transformed later."""
 
-    def __init__(self, outputs, rawsource="", *children, **attributes):
-        self.outputs = outputs
-        attributes["output_count"] = len(outputs)
+    def __init__(self, outputs, metadata=None, **attributes):
+        self._outputs = outputs
+        self._metadata = metadata or nbf.NotebookNode()
+        attributes["output_count"] = len(outputs)  # for debugging with pformat
         super().__init__("", **attributes)
+
+    @property
+    def outputs(self) -> List[nbf.NotebookNode]:
+        """The outputs associated with this cell."""
+        return self._outputs
+
+    @property
+    def metadata(self) -> nbf.NotebookNode:
+        """The cell level metadata for this output."""
+        return self._metadata
 
     def copy(self):
         return self.__class__(
-            rawsource=self.rawsource, outputs=self.outputs, **self.attributes
+            outputs=self._outputs, metadata=self._metadata, **self.attributes,
         )
 
 
