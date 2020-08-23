@@ -5,6 +5,9 @@ from IPython.core.displaypub import DisplayPublisher
 from myst_nb.nb_glue import glue, utils
 from myst_nb.nb_glue.domain import NbGlueDomain
 
+from myst_nb.render_outputs import CellOutputsToNodes
+from myst_nb.nb_glue.transform import PasteNodesToDocutils
+
 
 class MockDisplayPublisher(DisplayPublisher):
     def __init__(self, *args, **kwargs):
@@ -22,6 +25,11 @@ def mock_ipython():
     shell.display_pub = MockDisplayPublisher()
     yield shell.display_pub
     InteractiveShell.clear_instance()
+
+
+def test_check_priority():
+    """Assert that the default transform priority is less than CellOutputsToNodes"""
+    assert PasteNodesToDocutils.default_priority < CellOutputsToNodes.default_priority
 
 
 def test_glue_func_text(mock_ipython):

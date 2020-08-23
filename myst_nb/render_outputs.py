@@ -61,7 +61,9 @@ def get_default_render_priority(builder: str) -> Optional[List[str]]:
 class CellOutputsToNodes(SphinxPostTransform):
     """Use the builder context to transform a CellOutputNode into Sphinx nodes."""
 
-    default_priority = 700
+    # process very early, before CitationReferenceTransform (5), ReferencesResolver (10)
+    # https://www.sphinx-doc.org/en/master/extdev/appapi.html#sphinx.application.Sphinx.add_transform
+    default_priority = 4
 
     def run(self):
         abs_dir = sphinx_abs_dir(self.env)
@@ -77,6 +79,7 @@ class CellOutputsToNodes(SphinxPostTransform):
             node.replace_self(output_nodes)
 
         # Image collect extra nodes from cell outputs that we need to process
+        # this normally gets called as a `doctree-read` event
         for node in self.document.traverse(nodes.image):
             # If the image node has `candidates` then it's already been processed
             # as in-line markdown, so skip it

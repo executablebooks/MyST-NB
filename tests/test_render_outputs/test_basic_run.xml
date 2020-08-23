@@ -10,5 +10,5 @@
                     a=1
                     print(a)
             <CellOutputNode classes="cell_output">
-                <literal_block classes="output stream" language="none" xml:space="preserve">
+                <literal_block classes="output stream" language="none" linenos="False" xml:space="preserve">
                     1
