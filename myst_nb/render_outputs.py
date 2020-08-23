@@ -1,9 +1,13 @@
 """A Sphinx post-transform, to convert notebook outpus to AST nodes."""
+from abc import ABC, abstractmethod
 import os
-from typing import Callable, List, Optional, Tuple
+from typing import List, Optional
 
+from importlib_metadata import entry_points
 from docutils import nodes
+from sphinx.environment import BuildEnvironment
 from sphinx.environment.collectors.asset import ImageCollector
+from sphinx.errors import SphinxError
 from sphinx.transforms.post_transforms import SphinxPostTransform
 from sphinx.util import logging
 
@@ -16,7 +20,7 @@ from jupyter_sphinx.ast import (
 )
 from jupyter_sphinx.utils import sphinx_abs_dir
 
-from .parser import CellOutputBundleNode
+from .nodes import CellOutputBundleNode
 
 LOGGER = logging.getLogger(__name__)
 
@@ -58,6 +62,29 @@ def get_default_render_priority(builder: str) -> Optional[List[str]]:
     return priority.get(builder, None)
 
 
+class MystNbEntryPointError(SphinxError):
+    category = "MyST NB Renderer Load"
+
+
+def load_renderer(name) -> "CellOutputRendererBase":
+    ep_list = set(ep for ep in entry_points()["myst_nb.mime_render"] if ep.name == name)
+    if len(ep_list) == 1:
+        klass = ep_list.pop().load()
+        if not issubclass(klass, CellOutputRendererBase):
+            raise MystNbEntryPointError(
+                f"Entry Point for myst_nb.mime_render:{name} "
+                f"is not a subclass of `CellOutputRendererBase`: {klass}"
+            )
+        return klass
+    elif not ep_list:
+        raise MystNbEntryPointError(
+            f"No Entry Point found for myst_nb.mime_render:{name}"
+        )
+    raise MystNbEntryPointError(
+        f"Multiple Entry Points found for myst_nb.mime_render:{name}: {ep_list}"
+    )
+
+
 class CellOutputsToNodes(SphinxPostTransform):
     """Use the builder context to transform a CellOutputNode into Sphinx nodes."""
 
@@ -67,15 +94,16 @@ class CellOutputsToNodes(SphinxPostTransform):
 
     def run(self):
         abs_dir = sphinx_abs_dir(self.env)
-        renderer = CellOutputRenderer()
-        renderer_inline = CellOutputRendererInline()
+        renderers = {}  # cache renderers
+
         for node in self.document.traverse(CellOutputBundleNode):
-            output_nodes = cell_output_to_nodes(
-                node,
-                self.env.nb_render_priority,
-                renderer_inline if node.get("inline", False) else renderer,
-                abs_dir,
-            )
+            try:
+                renderer_cls = renderers[node.renderer]
+            except KeyError:
+                renderer_cls = load_renderer(node.renderer)
+                renderers[node.renderer] = renderer_cls
+            renderer = renderer_cls(self.env, node, abs_dir)
+            output_nodes = renderer.cell_output_to_nodes(self.env.nb_render_priority)
             node.replace_self(output_nodes)
 
         # Image collect extra nodes from cell outputs that we need to process
@@ -89,67 +117,78 @@ class CellOutputsToNodes(SphinxPostTransform):
             col.process_doc(self.app, node)
 
 
-def cell_output_to_nodes(
-    node: CellOutputBundleNode,
-    data_priority: List[str],
-    renderer: "CellOutputRenderer",
-    output_dir: str,
-) -> List[nodes.Node]:
-    """Convert a jupyter cell with outputs and filenames to doctree nodes.
+class CellOutputRendererBase(ABC):
+    """An abstract base class for rendering Notebook outputs to docutils nodes.
 
-    :param outputs: a list of outputs from a Jupyter cell
-    :param data_priority: media type by priority.
-    :param abs_dir: Sphinx "absolute path" to the output folder,
-        so it is a relative path to the source folder prefixed with ``/``.
-     :param location: (docname, lineno)
-
-    :returns: list of docutils nodes
-
+    Subclasses should implement the ``render`` method.
     """
-    location = (node.source, node.line)
-    tags = node.metadata.get("tags", [])
 
-    output_nodes = []
-    for idx, output in enumerate(node.outputs):
-        output_type = output["output_type"]
-        if output_type == "stream":
-            if output["name"] == "stderr" and "remove-stderr" not in tags:
-                output_nodes.extend(
-                    renderer.get_renderer("stderr", location)(output, idx, output_dir)
-                )
-            elif "remove-stdout" not in tags:
-                output_nodes.extend(
-                    renderer.get_renderer("stdout", location)(output, idx, output_dir)
-                )
-        elif output_type == "error":
-            output_nodes.extend(
-                renderer.get_renderer("traceback", location)(output, idx, output_dir)
-            )
+    def __init__(
+        self, env: BuildEnvironment, node: CellOutputBundleNode, sphinx_dir: str
+    ):
+        """
+        :param sphinx_dir: Sphinx "absolute path" to the output folder,
+            so it is a relative path to the source folder prefixed with ``/``.
+        """
+        self.env = env
+        self.node = node
+        self.sphinx_dir = sphinx_dir
 
-        elif output_type in ("display_data", "execute_result"):
-            try:
-                # First mime_type by priority that occurs in output.
-                mime_type = next(x for x in data_priority if x in output["data"])
-            except StopIteration:
-                # TODO this is incompatible with glue outputs
-                # perhaps have sphinx config to turn on/off this error reporting?
-                # and/or only warn if "scrapbook" not in output.metadata
-                # (then can enable tests/test_render_outputs.py::test_unknown_mimetype)
-                # LOGGER.warning(
-                #     "MyST-NB: output contains no MIME type in priority list: %s",
-                #     list(output["data"].keys()),
-                #     location=location,
-                # )
-                continue
-            output_nodes.extend(
-                renderer.get_renderer(mime_type, location)(output, idx, output_dir)
-            )
+    def cell_output_to_nodes(self, data_priority: List[str]) -> List[nodes.Node]:
+        """Convert a jupyter cell with outputs and filenames to doctree nodes.
 
-    return output_nodes
+        :param outputs: a list of outputs from a Jupyter cell
+        :param data_priority: media type by priority.
+
+        :returns: list of docutils nodes
+
+        """
+        output_nodes = []
+        for idx, output in enumerate(self.node.outputs):
+            output_type = output["output_type"]
+            if output_type == "stream":
+                if output["name"] == "stderr":
+                    output_nodes.extend(self.render("stderr", output, idx))
+                else:
+                    output_nodes.extend(self.render("stdout", output, idx))
+            elif output_type == "error":
+                output_nodes.extend(self.render("traceback", output, idx))
+
+            elif output_type in ("display_data", "execute_result"):
+                try:
+                    # First mime_type by priority that occurs in output.
+                    mime_type = next(x for x in data_priority if x in output["data"])
+                except StopIteration:
+                    # TODO this is incompatible with glue outputs
+                    # perhaps have sphinx config to turn on/off this error reporting?
+                    # and/or only warn if "scrapbook" not in output.metadata
+                    # (then enable tests/test_render_outputs.py::test_unknown_mimetype)
+                    # LOGGER.warning(
+                    #     "MyST-NB: output contains no MIME type in priority list: %s",
+                    #     list(output["data"].keys()),
+                    #     location=location,
+                    # )
+                    continue
+                output_nodes.extend(self.render(mime_type, output, idx))
+
+        return output_nodes
+
+    @abstractmethod
+    def render(
+        self, mime_type: str, output: NotebookNode, index: int
+    ) -> List[nodes.Node]:
+        pass
 
 
-class CellOutputRenderer:
-    def __init__(self):
+class CellOutputRenderer(CellOutputRendererBase):
+    def __init__(
+        self, env: BuildEnvironment, node: CellOutputBundleNode, sphinx_dir: str
+    ):
+        """
+        :param sphinx_dir: Sphinx "absolute path" to the output folder,
+            so it is a relative path to the source folder prefixed with ``/``.
+        """
+        super().__init__(env, node, sphinx_dir)
         self._render_map = {
             "stderr": self.render_stderr,
             "stdout": self.render_stdout,
@@ -161,26 +200,27 @@ class CellOutputRenderer:
             WIDGET_VIEW_MIMETYPE: self.render_widget,
         }
 
-    def get_renderer(
-        self, mime_type: str, location: Tuple[str, int]
-    ) -> Callable[[NotebookNode, int, str], List[nodes.Node]]:
+    def render(
+        self, mime_type: str, output: NotebookNode, index: int
+    ) -> List[nodes.Node]:
         if mime_type.startswith("image"):
-            return self.create_render_image(mime_type)
+            return self.create_render_image(mime_type)(output, index)
         if mime_type in self._render_map:
-            return self._render_map[mime_type]
-        else:
-            LOGGER.warning(
-                "MyST-NB: No renderer found for output MIME: %s",
-                mime_type,
-                location=location,
-            )
-            return self.render_default
+            return self._render_map[mime_type](output, index)
 
-    def render_default(self, output: NotebookNode, index: int, abs_dir: str):
+        LOGGER.warning(
+            "MyST-NB: No renderer found for output MIME: %s",
+            mime_type,
+            location=(self.node.source, self.node.line),
+        )
         return []
 
-    def render_stderr(self, output: NotebookNode, index: int, abs_dir: str):
+    def render_stderr(self, output: NotebookNode, index: int):
         """Output a container with an unhighlighted literal block."""
+
+        if "remove-stderr" in self.node.metadata.get("tags", []):
+            return []
+
         container = nodes.container(classes=["stderr"])
         container.append(
             nodes.literal_block(
@@ -192,7 +232,11 @@ class CellOutputRenderer:
         )
         return [container]
 
-    def render_stdout(self, output: NotebookNode, index: int, abs_dir: str):
+    def render_stdout(self, output: NotebookNode, index: int):
+
+        if "remove-stdout" in self.node.metadata.get("tags", []):
+            return []
+
         return [
             nodes.literal_block(
                 text=output["text"],
@@ -202,7 +246,7 @@ class CellOutputRenderer:
             )
         ]
 
-    def render_traceback(self, output: NotebookNode, index: int, abs_dir: str):
+    def render_traceback(self, output: NotebookNode, index: int):
         traceback = "\n".join(output["traceback"])
         text = nbconvert.filters.strip_ansi(traceback)
         return [
@@ -214,11 +258,11 @@ class CellOutputRenderer:
             )
         ]
 
-    def render_text_html(self, output: NotebookNode, index: int, abs_dir: str):
+    def render_text_html(self, output: NotebookNode, index: int):
         data = output["data"]["text/html"]
         return [nodes.raw(text=data, format="html", classes=["output", "text_html"])]
 
-    def render_text_latex(self, output: NotebookNode, index: int, abs_dir: str):
+    def render_text_latex(self, output: NotebookNode, index: int):
         data = output["data"]["text/latex"]
         return [
             nodes.math_block(
@@ -229,7 +273,7 @@ class CellOutputRenderer:
             )
         ]
 
-    def render_text_plain(self, output: NotebookNode, index: int, abs_dir: str):
+    def render_text_plain(self, output: NotebookNode, index: int):
         data = output["data"]["text/plain"]
         return [
             nodes.literal_block(
@@ -240,9 +284,7 @@ class CellOutputRenderer:
             )
         ]
 
-    def render_application_javascript(
-        self, output: NotebookNode, index: int, abs_dir: str
-    ):
+    def render_application_javascript(self, output: NotebookNode, index: int):
         data = output["data"]["application/javascript"]
         return [
             nodes.raw(
@@ -253,12 +295,12 @@ class CellOutputRenderer:
             )
         ]
 
-    def render_widget(self, output: NotebookNode, index: int, abs_dir: str):
+    def render_widget(self, output: NotebookNode, index: int):
         data = output["data"][WIDGET_VIEW_MIMETYPE]
         return [JupyterWidgetViewNode(view_spec=data)]
 
     def create_render_image(self, mime_type: str):
-        def _render_image(output: NotebookNode, index: int, abs_dir: str):
+        def _render_image(output: NotebookNode, index: int):
             # Sphinx treats absolute paths as being rooted at the source
             # directory, so make a relative path, which Sphinx treats
             # as being relative to the current working directory.
@@ -266,12 +308,13 @@ class CellOutputRenderer:
 
             # checks if file dir path is inside a subdir of dir
             filedir = os.path.dirname(output.metadata["filenames"][mime_type])
-            subpaths = filedir.split(abs_dir)
+            subpaths = filedir.split(self.sphinx_dir)
+            final_dir = self.sphinx_dir
             if subpaths and len(subpaths) > 1:
                 subpath = subpaths[1]
-                abs_dir += subpath
+                final_dir += subpath
 
-            uri = os.path.join(abs_dir, filename)
+            uri = os.path.join(final_dir, filename)
             return [nodes.image(uri=uri)]
 
         return _render_image
@@ -280,7 +323,7 @@ class CellOutputRenderer:
 class CellOutputRendererInline(CellOutputRenderer):
     """Replaces literal/math blocks with non-block versions"""
 
-    def render_stderr(self, output: NotebookNode, index: int, abs_dir: str):
+    def render_stderr(self, output: NotebookNode, index: int):
         """Output a container with an unhighlighted literal"""
         return [
             nodes.literal(
@@ -291,7 +334,7 @@ class CellOutputRendererInline(CellOutputRenderer):
             )
         ]
 
-    def render_stdout(self, output: NotebookNode, index: int, abs_dir: str):
+    def render_stdout(self, output: NotebookNode, index: int):
         """Output a container with an unhighlighted literal"""
         return [
             nodes.literal(
@@ -302,7 +345,7 @@ class CellOutputRendererInline(CellOutputRenderer):
             )
         ]
 
-    def render_traceback(self, output: NotebookNode, index: int, abs_dir: str):
+    def render_traceback(self, output: NotebookNode, index: int):
         traceback = "\n".join(output["traceback"])
         text = nbconvert.filters.strip_ansi(traceback)
         return [
@@ -314,7 +357,7 @@ class CellOutputRendererInline(CellOutputRenderer):
             )
         ]
 
-    def render_text_latex(self, output: NotebookNode, index: int, abs_dir: str):
+    def render_text_latex(self, output: NotebookNode, index: int):
         data = output["data"]["text/latex"]
         return [
             nodes.math(
@@ -325,7 +368,7 @@ class CellOutputRendererInline(CellOutputRenderer):
             )
         ]
 
-    def render_text_plain(self, output: NotebookNode, index: int, abs_dir: str):
+    def render_text_plain(self, output: NotebookNode, index: int):
         data = output["data"]["text/plain"]
         return [
             nodes.literal(

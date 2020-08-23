@@ -19,10 +19,11 @@ from myst_parser.main import default_parser, MdParserConfig
 from myst_parser.sphinx_renderer import SphinxRenderer
 from myst_parser.sphinx_parser import MystParser
 
-from myst_nb.execution import generate_notebook_outputs
 from myst_nb.converter import get_nb_converter
+from myst_nb.execution import generate_notebook_outputs
 from myst_nb.nb_glue import GLUE_PREFIX
 from myst_nb.nb_glue.domain import NbGlueDomain
+from myst_nb.nodes import CellNode, CellInputNode, CellOutputNode, CellOutputBundleNode
 
 
 SPHINX_LOGGER = logging.getLogger(__name__)
@@ -73,7 +74,9 @@ class NotebookParser(MystParser):
         # Parse the notebook content to a list of syntax tokens and an env
         # containing global data like reference definitions
         md_parser, env, tokens = nb_to_tokens(
-            ntbk, self.env.myst_config if converter is None else converter.config,
+            ntbk,
+            self.env.myst_config if converter is None else converter.config,
+            self.env.config["nb_render_plugin"],
         )
 
         # Write the notebook's output to disk
@@ -88,7 +91,7 @@ class NotebookParser(MystParser):
 
 
 def nb_to_tokens(
-    ntbk: nbf.NotebookNode, config: MdParserConfig
+    ntbk: nbf.NotebookNode, config: MdParserConfig, renderer_plugin: str
 ) -> Tuple[MarkdownIt, AttrDict, List[Token]]:
     """Parse the notebook content to a list of syntax tokens and an env,
     containing global data like reference definitions.
@@ -162,7 +165,7 @@ def nb_to_tokens(
                     "nb_code_cell",
                     "",
                     0,
-                    meta={"cell": nb_cell, "lexer": lexer},
+                    meta={"cell": nb_cell, "lexer": lexer, "renderer": renderer_plugin},
                     map=[start_line, start_line],
                 )
             )
@@ -245,55 +248,11 @@ class SphinxNBRenderer(SphinxRenderer):
             cell_output = CellOutputNode(classes=["cell_output"])
             sphinx_cell += cell_output
 
-            outputs = CellOutputBundleNode(cell["outputs"], cell.metadata)
+            outputs = CellOutputBundleNode(
+                cell["outputs"], token.meta["renderer"], cell.metadata
+            )
             self.add_line_and_source_path(outputs, token)
             cell_output += outputs
-
-
-class CellNode(nodes.container):
-    """Represent a cell in the Sphinx AST."""
-
-    def __init__(self, rawsource="", *children, **attributes):
-        super().__init__("", **attributes)
-
-
-class CellInputNode(nodes.container):
-    """Represent an input cell in the Sphinx AST."""
-
-    def __init__(self, rawsource="", *children, **attributes):
-        super().__init__("", **attributes)
-
-
-class CellOutputNode(nodes.container):
-    """Represent an output cell in the Sphinx AST."""
-
-    def __init__(self, rawsource="", *children, **attributes):
-        super().__init__("", **attributes)
-
-
-class CellOutputBundleNode(nodes.container):
-    """Represent a MimeBundle in the Sphinx AST, to be transformed later."""
-
-    def __init__(self, outputs, metadata=None, **attributes):
-        self._outputs = outputs
-        self._metadata = metadata or nbf.NotebookNode()
-        attributes["output_count"] = len(outputs)  # for debugging with pformat
-        super().__init__("", **attributes)
-
-    @property
-    def outputs(self) -> List[nbf.NotebookNode]:
-        """The outputs associated with this cell."""
-        return self._outputs
-
-    @property
-    def metadata(self) -> nbf.NotebookNode:
-        """The cell level metadata for this output."""
-        return self._metadata
-
-    def copy(self):
-        return self.__class__(
-            outputs=self._outputs, metadata=self._metadata, **self.attributes,
-        )
 
 
 def nb_output_to_disc(ntbk: nbf.NotebookNode, document: nodes.document) -> Path:

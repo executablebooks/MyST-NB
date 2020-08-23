@@ -1,4 +1,20 @@
+from unittest.mock import patch
+
+from importlib_metadata import EntryPoint
 import pytest
+
+from myst_nb.render_outputs import load_renderer, MystNbEntryPointError
+
+
+def test_load_renderer_not_found():
+    with pytest.raises(MystNbEntryPointError):
+        load_renderer("other")
+
+
+@patch.object(EntryPoint, "load", lambda self: EntryPoint)
+def test_load_renderer_not_subclass():
+    with pytest.raises(MystNbEntryPointError):
+        load_renderer("default")
 
 
 @pytest.mark.sphinx_params("basic_run.ipynb", conf={"jupyter_execute_notebooks": "off"})

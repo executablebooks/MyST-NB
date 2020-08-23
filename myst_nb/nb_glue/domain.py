@@ -13,6 +13,7 @@ from sphinx.util import logging
 
 from myst_nb.nb_glue import GLUE_PREFIX
 from myst_nb.nb_glue.utils import find_all_keys
+from myst_nb.nodes import CellOutputNode, CellOutputBundleNode
 
 SPHINX_LOGGER = logging.getLogger(__name__)
 
@@ -37,9 +38,7 @@ class PasteNode(nodes.container):
         """Create the output node, give the cell output."""
         # the whole output chunk is deposited and rendered later
         # TODO move these nodes to separate module, to avoid cyclic imports
-        from myst_nb.parser import CellOutputNode, CellOutputBundleNode
-
-        output_node = CellOutputBundleNode(outputs=[output])
+        output_node = CellOutputBundleNode([output], "default")
         out_node = CellOutputNode(classes=["cell_output"])
         out_node.source, out_node.line = self.source, self.line
         out_node += output_node
@@ -50,9 +49,7 @@ class PasteInlineNode(PasteNode):
     def create_node(self, output: dict, document, env):
         """Create the output node, give the cell output."""
         # the whole output chunk is deposited and rendered later
-        from myst_nb.parser import CellOutputBundleNode
-
-        bundle_node = CellOutputBundleNode(outputs=[output], inline=True)
+        bundle_node = CellOutputBundleNode([output], "inline")
         inline_node = nodes.inline("", "", bundle_node, classes=["pasted-inline"])
         inline_node.source, inline_node.line = self.source, self.line
         return inline_node

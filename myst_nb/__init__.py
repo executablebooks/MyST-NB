@@ -13,8 +13,8 @@ from sphinx.util import logging, import_object
 from myst_parser import setup_sphinx as setup_myst_parser
 
 from .execution import update_execution_cache
-from .parser import (
-    NotebookParser,
+from .parser import NotebookParser
+from .nodes import (
     CellNode,
     CellInputNode,
     CellOutputNode,
@@ -32,6 +32,7 @@ from .nb_glue.domain import (
 )
 from .nb_glue.transform import PasteNodesToDocutils
 from .exec_table import setup_exec_table
+from .render_outputs import load_renderer
 
 LOGGER = logging.getLogger(__name__)
 
@@ -110,6 +111,7 @@ def setup(app: Sphinx):
 
     # render config
     app.add_config_value("nb_render_priority", {}, "env")
+    app.add_config_value("nb_render_plugin", "default", "env")
 
     # Register our post-transform which will convert output bundles to nodes
     app.add_post_transform(PasteNodesToDocutils)
@@ -203,6 +205,8 @@ def validate_config_values(app: Sphinx, config):
             raise MystNbConfigError(
                 f"`execution_custom_formats.{name}.commonmark_only` arg is not boolean"
             )
+    # try loading notebook output renderer
+    load_renderer(app.config["nb_render_plugin"])
 
 
 def static_path(app: Sphinx):
