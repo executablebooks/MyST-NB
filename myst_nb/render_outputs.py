@@ -20,6 +20,9 @@ from jupyter_sphinx.ast import (
 )
 from jupyter_sphinx.utils import sphinx_abs_dir
 
+from myst_parser.main import default_parser, MdParserConfig
+from myst_parser.docutils_renderer import make_document
+
 from .nodes import CellOutputBundleNode
 
 LOGGER = logging.getLogger(__name__)
@@ -36,6 +39,7 @@ def get_default_render_priority(builder: str) -> Optional[List[str]]:
             "image/svg+xml",
             "image/png",
             "image/jpeg",
+            "text/markdown",
             "text/latex",
             "text/plain",
         )
@@ -57,6 +61,7 @@ def get_default_render_priority(builder: str) -> Optional[List[str]]:
         "image/png",
         "image/jpeg",
         "text/latex",
+        "text/markdown",
         "text/plain",
     )
     return priority.get(builder, None)
@@ -102,7 +107,7 @@ class CellOutputsToNodes(SphinxPostTransform):
             except KeyError:
                 renderer_cls = load_renderer(node.renderer)
                 renderers[node.renderer] = renderer_cls
-            renderer = renderer_cls(self.env, node, abs_dir)
+            renderer = renderer_cls(self.document, node, abs_dir)
             output_nodes = renderer.cell_output_to_nodes(self.env.nb_render_priority)
             node.replace_self(output_nodes)
 
@@ -124,13 +129,14 @@ class CellOutputRendererBase(ABC):
     """
 
     def __init__(
-        self, env: BuildEnvironment, node: CellOutputBundleNode, sphinx_dir: str
+        self, document: nodes.document, node: CellOutputBundleNode, sphinx_dir: str
     ):
         """
         :param sphinx_dir: Sphinx "absolute path" to the output folder,
             so it is a relative path to the source folder prefixed with ``/``.
         """
-        self.env = env
+        self.document = document
+        self.env = document.settings.env  # type: BuildEnvironment
         self.node = node
         self.sphinx_dir = sphinx_dir
 
@@ -182,18 +188,19 @@ class CellOutputRendererBase(ABC):
 
 class CellOutputRenderer(CellOutputRendererBase):
     def __init__(
-        self, env: BuildEnvironment, node: CellOutputBundleNode, sphinx_dir: str
+        self, document: nodes.document, node: CellOutputBundleNode, sphinx_dir: str
     ):
         """
         :param sphinx_dir: Sphinx "absolute path" to the output folder,
             so it is a relative path to the source folder prefixed with ``/``.
         """
-        super().__init__(env, node, sphinx_dir)
+        super().__init__(document, node, sphinx_dir)
         self._render_map = {
             "stderr": self.render_stderr,
             "stdout": self.render_stdout,
             "traceback": self.render_traceback,
             "text/plain": self.render_text_plain,
+            "text/markdown": self.render_text_markdown,
             "text/html": self.render_text_html,
             "text/latex": self.render_text_latex,
             "application/javascript": self.render_application_javascript,
@@ -258,15 +265,31 @@ class CellOutputRenderer(CellOutputRendererBase):
             )
         ]
 
+    def render_text_markdown(self, output: NotebookNode, index: int):
+        text = output["data"]["text/markdown"]
+        parser = default_parser(MdParserConfig(commonmark_only=True))
+
+        # use an isolated AST
+        document = make_document()
+        document["source"] = self.document["source"] + ":cell_output"
+        top_node = nodes.container()
+        parser.options["document"] = document
+        parser.options["current_node"] = top_node
+        parser.render(text)
+        for node in top_node.traverse():
+            # TODO fix line number
+            node.line = None
+        return top_node.children
+
     def render_text_html(self, output: NotebookNode, index: int):
-        data = output["data"]["text/html"]
-        return [nodes.raw(text=data, format="html", classes=["output", "text_html"])]
+        text = output["data"]["text/html"]
+        return [nodes.raw(text=text, format="html", classes=["output", "text_html"])]
 
     def render_text_latex(self, output: NotebookNode, index: int):
-        data = output["data"]["text/latex"]
+        text = output["data"]["text/latex"]
         return [
             nodes.math_block(
-                text=strip_latex_delimiters(data),
+                text=strip_latex_delimiters(text),
                 nowrap=False,
                 number=None,
                 classes=["output", "text_latex"],

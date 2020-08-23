@@ -210,3 +210,14 @@
                     sym.rsolve(f,y(n),[1,4])
             <CellOutputNode classes="cell_output">
                 <image candidates="{'*': '_build/jupyter_execute/complex_outputs_24_0.png'}" uri="_build/jupyter_execute/complex_outputs_24_0.png">
+        <CellNode cell_type="code" classes="cell">
+            <CellInputNode classes="cell_input">
+                <literal_block language="ipython3" linenos="False" xml:space="preserve">
+                    from IPython.display import display, Markdown
+                    display(Markdown('**_some_ markdown**'))
+            <CellOutputNode classes="cell_output">
+                <paragraph>
+                    <strong>
+                        <emphasis>
+                            some
+                         markdown
