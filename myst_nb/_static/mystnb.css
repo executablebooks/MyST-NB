@@ -121,3 +121,56 @@ span.pasted-inline img {
 tbody span.pasted-inline img {
   max-height: none;
 }
+
+/* ansi pygments */
+div.highlight .-Color-Bold {
+  font-weight: bold;
+}
+div.highlight .-Color[class*=-Black] {
+  color: black
+}
+div.highlight .-Color[class*=-Red] {
+  color: red
+}
+div.highlight .-Color[class*=-Green] {
+  color: green
+}
+div.highlight .-Color[class*=-Yellow] {
+  color: yellow
+}
+div.highlight .-Color[class*=-Blue] {
+  color: blue
+}
+div.highlight .-Color[class*=-Magenta] {
+  color: magenta
+}
+div.highlight .-Color[class*=-Cyan] {
+  color: cyan
+}
+div.highlight .-Color[class*=-White] {
+  color: white
+}
+div.highlight .-Color[class*=-BGBlack] {
+  background-color: black
+}
+div.highlight .-Color[class*=-BGRed] {
+  background-color: red
+}
+div.highlight .-Color[class*=-BGGreen] {
+  background-color: green
+}
+div.highlight .-Color[class*=-BGYellow] {
+  background-color: yellow
+}
+div.highlight .-Color[class*=-BGBlue] {
+  background-color: blue
+}
+div.highlight .-Color[class*=-BGMagenta] {
+  background-color: magenta
+}
+div.highlight .-Color[class*=-BGCyan] {
+  background-color: cyan
+}
+div.highlight .-Color[class*=-BGWhite] {
+  background-color: white
+}

@@ -95,7 +95,7 @@
                     with a nicely formatted output.
                     """)
             <CellOutputNode classes="cell_output">
-                <literal_block classes="output stream" language="none" linenos="False" xml:space="preserve">
+                <literal_block classes="output stream" language="myst-ansi" linenos="False" xml:space="preserve">
                     
                     This is some printed text,
                     with a nicely formatted output.

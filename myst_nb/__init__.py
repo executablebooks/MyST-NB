@@ -112,6 +112,7 @@ def setup(app: Sphinx):
     # render config
     app.add_config_value("nb_render_priority", {}, "env")
     app.add_config_value("nb_render_plugin", "default", "env")
+    app.add_config_value("nb_render_text_lexer", "myst-ansi", "env")
 
     # Register our post-transform which will convert output bundles to nodes
     app.add_post_transform(PasteNodesToDocutils)
@@ -132,6 +133,10 @@ def setup(app: Sphinx):
     app.connect("config-inited", update_togglebutton_classes)
     app.connect("env-updated", save_glue_cache)
     app.connect("config-inited", add_nb_custom_formats)
+
+    from myst_nb.ansi_lexer import AnsiColorLexer
+
+    app.add_lexer("myst-ansi", AnsiColorLexer)
 
     # Misc
     app.add_css_file("mystnb.css")

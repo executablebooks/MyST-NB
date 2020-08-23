@@ -23,10 +23,13 @@ setup(
     packages=find_packages(),
     entry_points={
         "myst_nb.mime_render": [
-            "default=myst_nb.render_outputs:CellOutputRenderer",
-            "inline=myst_nb.render_outputs:CellOutputRendererInline",
-        ]
-    },  # entry_points()["myst_nb.mime_render"][0].load()
+            "default = myst_nb.render_outputs:CellOutputRenderer",
+            "inline = myst_nb.render_outputs:CellOutputRendererInline",
+        ],
+        # 'pygments.lexers': [
+        #     'myst_ansi = myst_nb.ansi_lexer:AnsiColorLexer',
+        # ],
+    },
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",

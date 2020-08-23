@@ -50,7 +50,7 @@ right to show it.
 
 # This cell has a hide-input tag
 fig, ax = plt.subplots()
-ax.scatter(*data, c=data[0], s=data[0])
+points =ax.scatter(*data, c=data[0], s=data[0])
 ```
 
 Here's a cell with a `hide-output` tag:
@@ -60,7 +60,7 @@ Here's a cell with a `hide-output` tag:
 
 # This cell has a hide-output tag
 fig, ax = plt.subplots()
-ax.scatter(*data, c=data[0], s=data[0])
+points =ax.scatter(*data, c=data[0], s=data[0])
 ```
 
 And the following cell has a `hide-cell` tag:
@@ -70,7 +70,7 @@ And the following cell has a `hide-cell` tag:
 
 # This cell has a hide-cell tag
 fig, ax = plt.subplots()
-ax.scatter(*data, c=data[0], s=data[0])
+points =ax.scatter(*data, c=data[0], s=data[0])
 ```
 
 (use/hiding/markdown)=
@@ -152,7 +152,7 @@ the page at all.
 
 # This cell has a remove-input tag
 fig, ax = plt.subplots()
-ax.scatter(*data, c=data[0], s=data[0])
+points =ax.scatter(*data, c=data[0], s=data[0])
 ```
 
 Here's a cell with a `remove-output` tag:

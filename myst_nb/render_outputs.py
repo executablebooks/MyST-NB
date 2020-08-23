@@ -225,8 +225,8 @@ class CellOutputRenderer(CellOutputRendererBase):
         container.append(
             nodes.literal_block(
                 text=output["text"],
-                rawsource="",  # disables Pygment highlighting
-                language="none",
+                rawsource=output["text"],
+                language=self.env.config.nb_render_text_lexer,
                 classes=["stderr"],
             )
         )
@@ -241,7 +241,7 @@ class CellOutputRenderer(CellOutputRendererBase):
             nodes.literal_block(
                 text=output["text"],
                 rawsource=output["text"],
-                language="none",
+                language=self.env.config.nb_render_text_lexer,
                 classes=["output", "stream"],
             )
         ]
@@ -274,12 +274,12 @@ class CellOutputRenderer(CellOutputRendererBase):
         ]
 
     def render_text_plain(self, output: NotebookNode, index: int):
-        data = output["data"]["text/plain"]
+        text = output["data"]["text/plain"]
         return [
             nodes.literal_block(
-                text=data,
-                rawsource=data,
-                language="none",
+                text=text,
+                rawsource=text,
+                language=self.env.config.nb_render_text_lexer,
                 classes=["output", "text_plain"],
             )
         ]
