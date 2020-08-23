@@ -20,7 +20,7 @@ from .parser import (
     CellOutputNode,
     CellOutputBundleNode,
 )
-from .render_outputs import CellOutputsToNodes
+from .render_outputs import CellOutputsToNodes, get_default_render_priority
 from .nb_glue import glue  # noqa: F401
 
 from .nb_glue.domain import (
@@ -108,6 +108,9 @@ def setup(app: Sphinx):
     app.add_config_value("execution_show_tb", False, "")
     app.add_config_value("execution_custom_formats", {}, "env")
 
+    # render config
+    app.add_config_value("nb_render_priority", {}, "env")
+
     # Register our post-transform which will convert output bundles to nodes
     app.add_post_transform(PasteNodesToDocutils)
     app.add_post_transform(CellOutputsToNodes)
@@ -120,6 +123,7 @@ def setup(app: Sphinx):
     app.connect("builder-inited", static_path)
     app.connect("builder-inited", set_valid_execution_paths)
     app.connect("builder-inited", set_up_execution_data)
+    app.connect("builder-inited", set_render_priority)
     app.connect("env-purge-doc", remove_execution_data)
     app.connect("env-get-outdated", update_execution_cache)
     app.connect("config-inited", add_exclude_patterns)
@@ -204,6 +208,25 @@ def validate_config_values(app: Sphinx, config):
 def static_path(app: Sphinx):
     static_path = Path(__file__).absolute().with_name("_static")
     app.config.html_static_path.append(str(static_path))
+
+
+def set_render_priority(app: Sphinx):
+    """Set the render priority for the particular builder."""
+    builder = app.builder.name
+    if app.config.nb_render_priority and builder in app.config.nb_render_priority:
+        app.env.nb_render_priority = app.config.nb_render_priority[builder]
+    else:
+        app.env.nb_render_priority = get_default_render_priority(builder)
+
+    if app.env.nb_render_priority is None:
+        raise MystNbConfigError(f"`nb_render_priority` not set for builder: {builder}")
+    try:
+        for item in app.env.nb_render_priority:
+            assert isinstance(item, str)
+    except Exception:
+        raise MystNbConfigError(
+            f"`nb_render_priority` is not a list of str: {app.env.nb_render_priority}"
+        )
 
 
 def set_valid_execution_paths(app: Sphinx):

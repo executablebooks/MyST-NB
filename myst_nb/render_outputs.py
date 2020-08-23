@@ -1,6 +1,6 @@
 """A Sphinx post-transform, to convert notebook outpus to AST nodes."""
 import os
-from typing import Callable, List, Tuple
+from typing import Callable, List, Optional, Tuple
 
 from docutils import nodes
 from sphinx.environment.collectors.asset import ImageCollector
@@ -21,37 +21,41 @@ from .parser import CellOutputBundleNode
 LOGGER = logging.getLogger(__name__)
 
 WIDGET_VIEW_MIMETYPE = "application/vnd.jupyter.widget-view+json"
-RENDER_PRIORITY = {
-    builder: (
-        WIDGET_VIEW_MIMETYPE,
-        "application/javascript",
-        "text/html",
-        "image/svg+xml",
+
+
+def get_default_render_priority(builder: str) -> Optional[List[str]]:
+    priority = {
+        builder: (
+            WIDGET_VIEW_MIMETYPE,
+            "application/javascript",
+            "text/html",
+            "image/svg+xml",
+            "image/png",
+            "image/jpeg",
+            "text/latex",
+            "text/plain",
+        )
+        for builder in (
+            "html",
+            "readthedocs",
+            "singlehtml",
+            "dirhtml",
+            "linkcheck",
+            "readthedocsdirhtml",
+            "readthedocssinglehtml",
+            "readthedocssinglehtmllocalmedia",
+            "epub",
+        )
+    }
+    # TODO: add support for "image/svg+xml"
+    priority["latex"] = (
+        "application/pdf",
         "image/png",
         "image/jpeg",
         "text/latex",
         "text/plain",
     )
-    for builder in (
-        "html",
-        "readthedocs",
-        "singlehtml",
-        "dirhtml",
-        "linkcheck",
-        "readthedocsdirhtml",
-        "readthedocssinglehtml",
-        "readthedocssinglehtmllocalmedia",
-        "epub",
-    )
-}
-# TODO: add support for  "image/svg+xml"
-RENDER_PRIORITY["latex"] = (
-    "application/pdf",
-    "image/png",
-    "image/jpeg",
-    "text/latex",
-    "text/plain",
-)
+    return priority.get(builder, None)
 
 
 class CellOutputsToNodes(SphinxPostTransform):
@@ -60,16 +64,13 @@ class CellOutputsToNodes(SphinxPostTransform):
     default_priority = 700
 
     def run(self):
-        builder = self.app.builder.name
         abs_dir = sphinx_abs_dir(self.env)
         renderer = CellOutputRenderer()
         renderer_inline = CellOutputRendererInline()
-        for node in self.document.traverse(
-            CellOutputBundleNode
-        ):  # type: CellOutputBundleNode
+        for node in self.document.traverse(CellOutputBundleNode):
             output_nodes = cell_output_to_nodes(
                 node,
-                RENDER_PRIORITY[builder],
+                self.env.nb_render_priority,
                 renderer_inline if node.get("inline", False) else renderer,
                 abs_dir,
             )
