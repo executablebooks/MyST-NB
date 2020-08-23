@@ -72,6 +72,9 @@ class MystNbEntryPointError(SphinxError):
 
 
 def load_renderer(name) -> "CellOutputRendererBase":
+    """Load a renderer,
+    given a name within the ``myst_nb.mime_render`` entry point group
+    """
     ep_list = set(ep for ep in entry_points()["myst_nb.mime_render"] if ep.name == name)
     if len(ep_list) == 1:
         klass = ep_list.pop().load()

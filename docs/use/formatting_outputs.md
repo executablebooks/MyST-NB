@@ -100,7 +100,7 @@ print("AB\x1b[43mCD\x1b[35mEF\x1b[1mGH\x1b[4mIJ\x1b[7m"
       "KL\x1b[49mMN\x1b[39mOP\x1b[22mQR\x1b[24mST\x1b[27mUV")
 ```
 
-This uses the built-in `AnsiColorLexer` [pygments](https://pygments.org/) lexer.
+This uses the built-in {py:class}`~myst_nb.ansi_lexer.AnsiColorLexer` [pygments lexer](https://pygments.org/).
 You can change the lexer used in the `conf.py`, for example to turn off lexing:
 
 ```python
@@ -140,6 +140,26 @@ This is currently not supported, but we hope to introduce it at a later date
 :::
 
 (use/format/cutomise)=
-## Customising the rendering process
+## Customise the render process
 
-TODO
+The render process is goverened by subclasses of {py:class}`myst_nb.render_outputs.CellOutputRendererBase`, which dictate how to create the `docutils` AST nodes for a particular MIME type. the default implementation is {py:class}`~myst_nb.render_outputs.CellOutputRenderer`.
+
+Implementations are loaded *via* Python [entry points](https://packaging.python.org/guides/distributing-packages-using-setuptools/#entry-points), in the `myst_nb.mime_render` group.
+So it is possible to inject your own subclass to handle rendering.
+
+For example, the renderers loaded in this package are:
+
+```python
+entry_points={
+    "myst_nb.mime_render": [
+        "default = myst_nb.render_outputs:CellOutputRenderer",
+        "inline = myst_nb.render_outputs:CellOutputRendererInline",
+    ],
+}
+```
+
+You can then select the renderer plugin in your `conf.py`:
+
+```python
+nb_render_plugin = "default"
+```
