@@ -5,6 +5,7 @@ from typing import List, Optional
 
 from importlib_metadata import entry_points
 from docutils import nodes
+from docutils.parsers.rst import directives
 from sphinx.environment import BuildEnvironment
 from sphinx.environment.collectors.asset import ImageCollector
 from sphinx.errors import SphinxError
@@ -21,13 +22,13 @@ from jupyter_sphinx.ast import (
 from jupyter_sphinx.utils import sphinx_abs_dir
 
 from myst_parser.main import default_parser, MdParserConfig
-from myst_parser.docutils_renderer import make_document
 
 from .nodes import CellOutputBundleNode
 
 LOGGER = logging.getLogger(__name__)
 
 WIDGET_VIEW_MIMETYPE = "application/vnd.jupyter.widget-view+json"
+MYST_META_KEY = "myst"
 
 
 def get_default_render_priority(builder: str) -> Optional[List[str]]:
@@ -103,7 +104,6 @@ class CellOutputsToNodes(SphinxPostTransform):
     def run(self):
         abs_dir = sphinx_abs_dir(self.env)
         renderers = {}  # cache renderers
-
         for node in self.document.traverse(CellOutputBundleNode):
             try:
                 renderer_cls = renderers[node.renderer]
@@ -161,6 +161,7 @@ class CellOutputRendererBase(ABC):
                 else:
                     output_nodes.extend(self.render("stdout", output, idx))
             elif output_type == "error":
+                print("traceback", idx)
                 output_nodes.extend(self.render("traceback", output, idx))
 
             elif output_type in ("display_data", "execute_result"):
@@ -181,6 +182,38 @@ class CellOutputRendererBase(ABC):
                 output_nodes.extend(self.render(mime_type, output, idx))
 
         return output_nodes
+
+    def add_source_and_line(self, *nodes: List[nodes.Node]):
+        """Add the source and line recursively to all nodes """
+        location = self.node.source, self.node.line
+        for node in nodes:
+            node.source, node.line = location
+            for child in node.traverse():
+                child.source, child.line = location
+
+    def make_error(self, error_msg):
+        return self.document.reporter.error(
+            "output render: {}".format(error_msg), line=self.node.line,
+        )
+
+    def add_name(self, node: nodes.Node, name: str):
+        """Append name to node['names'].
+
+        Also normalize the name string and register it as explicit target.
+        """
+        name = nodes.fully_normalize_name(name)
+        if "name" in node:
+            del node["name"]
+        node["names"].append(name)
+        self.document.note_explicit_target(node, node)
+        return name
+
+    def parse_markdown(self, text: str, parent: Optional[nodes.Node] = None):
+        parser = default_parser(MdParserConfig(commonmark_only=True))
+        parent = parent or nodes.container()
+        parser.options["current_node"] = parent
+        parser.render(text)
+        return parent.children
 
     @abstractmethod
     def render(
@@ -214,9 +247,13 @@ class CellOutputRenderer(CellOutputRendererBase):
         self, mime_type: str, output: NotebookNode, index: int
     ) -> List[nodes.Node]:
         if mime_type.startswith("image"):
-            return self.create_render_image(mime_type)(output, index)
+            nodes = self.create_render_image(mime_type)(output, index)
+            self.add_source_and_line(*nodes)
+            return nodes
         if mime_type in self._render_map:
-            return self._render_map[mime_type](output, index)
+            nodes = self._render_map[mime_type](output, index)
+            self.add_source_and_line(*nodes)
+            return nodes
 
         LOGGER.warning(
             "MyST-NB: No renderer found for output MIME: %s",
@@ -270,19 +307,7 @@ class CellOutputRenderer(CellOutputRendererBase):
 
     def render_text_markdown(self, output: NotebookNode, index: int):
         text = output["data"]["text/markdown"]
-        parser = default_parser(MdParserConfig(commonmark_only=True))
-
-        # use an isolated AST
-        document = make_document()
-        document["source"] = self.document["source"] + ":cell_output"
-        top_node = nodes.container()
-        parser.options["document"] = document
-        parser.options["current_node"] = top_node
-        parser.render(text)
-        for node in top_node.traverse():
-            # TODO fix line number
-            node.line = None
-        return top_node.children
+        return self.parse_markdown(text)
 
     def render_text_html(self, output: NotebookNode, index: int):
         text = output["data"]["text/html"]
@@ -341,9 +366,63 @@ class CellOutputRenderer(CellOutputRendererBase):
                 final_dir += subpath
 
             uri = os.path.join(final_dir, filename)
-            return [nodes.image(uri=uri)]
+            # TODO I'm not quite sure why, but as soon as you give it a width,
+            # it becomes clickable?! (i.e. will open the image in the browser)
+            image_node = nodes.image(uri=uri)
+
+            myst_meta_img = self.node.metadata.get(MYST_META_KEY, {}).get("image", {})
+
+            for key, spec in [
+                ("classes", directives.class_option),
+                ("alt", directives.unchanged),
+                ("height", directives.length_or_unitless),
+                ("width", directives.length_or_percentage_or_unitless),
+                ("scale", directives.percentage),
+                ("align", align),
+            ]:
+                if key in myst_meta_img:
+                    value = myst_meta_img[key]
+                    try:
+                        image_node[key] = spec(value)
+                    except (ValueError, TypeError) as error:
+                        error_msg = (
+                            "Invalid image attribute: "
+                            "(key: '{}'; value: {})\n{}".format(key, value, error)
+                        )
+                        return self.make_error(error_msg)
+
+            myst_meta_fig = self.node.metadata.get(MYST_META_KEY, {}).get("figure", {})
+            if "caption" not in myst_meta_fig:
+                return [image_node]
+
+            figure_node = nodes.figure("", image_node)
+            caption = nodes.caption(myst_meta_fig["caption"], "")
+            figure_node += caption
+            # TODO only contents of one paragraph? (and second should be a legend)
+            self.parse_markdown(myst_meta_fig["caption"], caption)
+            if "name" in myst_meta_fig:
+                name = myst_meta_fig["name"]
+                self.add_source_and_line(figure_node)
+                self.add_name(figure_node, name)
+                # The target will have already been processed by now, with
+                # sphinx.transforms.references.SphinxDomains, which calls
+                # sphinx.domains.std.StandardDomain.process_doc,
+                # so we have to replicate that
+                std = self.env.get_domain("std")
+                nametypes = self.document.nametypes.items()
+                self.document.nametypes = {name: True}
+                try:
+                    std.process_doc(self.env, self.env.docname, self.document)
+                finally:
+                    self.document.nametypes = nametypes
+
+            return [figure_node]
 
         return _render_image
+
+
+def align(argument):
+    return directives.choice(argument, ("left", "center", "right"))
 
 
 class CellOutputRendererInline(CellOutputRenderer):

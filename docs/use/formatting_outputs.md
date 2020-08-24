@@ -70,6 +70,59 @@ print("this is some stderr", file=sys.stderr)
 pandas.DataFrame({"column 1": [1, 2, 3]})
 ```
 
+(use/format/images)=
+## Images
+
+With the default renderer, for any image types output by the code, we can apply formatting *via* cell metadata.
+The keys should be placed under `myst`, then for the image we can apply all the variables of the standard [image directive](https://docutils.sourceforge.io/docs/ref/rst/directives.html#image):
+
+- **width**: length or percentage (%) of the current line width
+- **height**: length
+- **scale**: integer percentage (the "%" symbol is optional)
+- **align**: "top", "middle", "bottom", "left", "center", or "right"
+- **classes**: space separated strings
+- **alt**: string
+
+Units of length are: 'em', 'ex', 'px', 'in', 'cm', 'mm', 'pt', 'pc'
+
+We can also set a caption (which is rendered as [CommonMark](https://commonmark.org/)) and name, by which to reference the figure:
+
+````md
+```{code-cell} ipython3
+---
+myst:
+  image:
+    width: 200px
+    alt: fun-fish
+    classes: shadow bg-primary
+  figure:
+    caption: |
+      Hey everyone its **party** time!
+    name: fun-fish
+---
+from IPython.display import Image
+Image("images/fun-fish.png")
+```
+````
+
+```{code-cell} ipython3
+---
+myst:
+  image:
+    width: 200px
+    alt: fun-fish
+    classes: shadow bg-primary
+  figure:
+    caption: |
+      Hey everyone its **party** time!
+    name: fun-fish
+---
+from IPython.display import Image
+Image("images/fun-fish.png")
+```
+
+Now we can link to the image: [swim to the fish](fun-fish)
+
 (use/format/markdown)=
 ## Markdown
 
