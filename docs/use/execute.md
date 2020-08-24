@@ -98,7 +98,7 @@ The path should point to an **empty folder**, or a folder where a **jupyter cach
 
 ## Executing in temporary folders
 
-By default, the command working directory (cwd) that a notebook runs in will be its parent directory.
+By default, the command working directory (cwd) that a notebook runs in will be the directory it is located in.
 However, you can set `execution_in_temp=True` in your `conf.py`, to change this behaviour such that, for each execution, a temporary directory will be created and used as the cwd.
 
 (execute/timeout)=
