@@ -83,4 +83,5 @@ MyST-NB then adds some additional configuration, specific to notebooks:
 * - `execution_show_tb`
   - `False`
   - Show failed notebook tracebacks in stdout (in addition to writing to file).
+-
 `````

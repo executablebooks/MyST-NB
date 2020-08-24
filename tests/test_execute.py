@@ -265,7 +265,7 @@ def test_nb_exec_table(sphinx_run, file_regression, check_nbs):
     "custom-formats.Rmd",
     conf={
         "jupyter_execute_notebooks": "auto",
-        "execution_custom_formats": {".Rmd": ["jupytext.reads", {"fmt": "Rmd"}]},
+        "nb_custom_formats": {".Rmd": ["jupytext.reads", {"fmt": "Rmd"}]},
     },
 )
 def test_custom_convert_auto(sphinx_run, file_regression, check_nbs):
@@ -286,7 +286,7 @@ def test_custom_convert_auto(sphinx_run, file_regression, check_nbs):
     "custom-formats.Rmd",
     conf={
         "jupyter_execute_notebooks": "cache",
-        "execution_custom_formats": {".Rmd": ["jupytext.reads", {"fmt": "Rmd"}]},
+        "nb_custom_formats": {".Rmd": ["jupytext.reads", {"fmt": "Rmd"}]},
     },
 )
 def test_custom_convert_cache(sphinx_run, file_regression, check_nbs):
