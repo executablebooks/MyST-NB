@@ -13,6 +13,7 @@ from sphinx.util import logging
 
 from myst_nb.nb_glue import GLUE_PREFIX
 from myst_nb.nb_glue.utils import find_all_keys
+from myst_nb.nodes import CellOutputNode, CellOutputBundleNode
 
 SPHINX_LOGGER = logging.getLogger(__name__)
 
@@ -20,8 +21,7 @@ SPHINX_LOGGER = logging.getLogger(__name__)
 class PasteNode(nodes.container):
     """Represent a MimeBundle in the Sphinx AST, to be transformed later."""
 
-    def __init__(self, key, location=None, rawsource="", *children, **attributes):
-        self.location = location
+    def __init__(self, key, **attributes):
         attributes["key"] = key
         super().__init__("", **attributes)
 
@@ -30,16 +30,17 @@ class PasteNode(nodes.container):
         return self.attributes["key"]
 
     def copy(self):
-        return self.__class__(location=self.location, **self.attributes)
+        return self.__class__(
+            self.key, **{k: v for k, v in self.attributes.items() if k != "key"}
+        )
 
     def create_node(self, output: dict, document, env):
         """Create the output node, give the cell output."""
         # the whole output chunk is deposited and rendered later
         # TODO move these nodes to separate module, to avoid cyclic imports
-        from myst_nb.parser import CellOutputNode, CellOutputBundleNode
-
-        output_node = CellOutputBundleNode(outputs=[output])
+        output_node = CellOutputBundleNode([output], "default")
         out_node = CellOutputNode(classes=["cell_output"])
+        out_node.source, out_node.line = self.source, self.line
         out_node += output_node
         return out_node
 
@@ -48,10 +49,9 @@ class PasteInlineNode(PasteNode):
     def create_node(self, output: dict, document, env):
         """Create the output node, give the cell output."""
         # the whole output chunk is deposited and rendered later
-        from myst_nb.parser import CellOutputBundleNode
-
-        bundle_node = CellOutputBundleNode(outputs=[output], inline=True)
+        bundle_node = CellOutputBundleNode([output], "inline")
         inline_node = nodes.inline("", "", bundle_node, classes=["pasted-inline"])
+        inline_node.source, inline_node.line = self.source, self.line
         return inline_node
 
 
@@ -74,7 +74,9 @@ class PasteTextNode(PasteNode):
                     text = f"{newtext:>{self.formatting}}"
                 except ValueError:
                     pass
-            return nodes.inline(text, text, classes=["pasted-text"])
+            node = nodes.inline(text, text, classes=["pasted-text"])
+            node.source, node.line = self.source, self.line
+            return node
         return None
 
 
@@ -98,11 +100,9 @@ class PasteMathNode(PasteNode):
                 nowrap=self["math_nowrap"],
                 label=self["math_label"],
             )
-            node.line = self.line
-            node.source = self.source
+            node.line, node.source = self.line, self.source
             if "math_class" in self and self["math_class"]:
                 node["classes"].append(self["math_class"])
-
             return node
         return None
 
@@ -116,15 +116,9 @@ class Paste(SphinxDirective):
     option_spec = {"id": directives.unchanged}
 
     def run(self):
-        # TODO: Figure out how to report cell number in the location
-        #       currently, line numbers in ipynb files are not reliable
-        path, lineno = self.state_machine.get_source_and_line(self.lineno)
-        # Remove line number if we have a notebook because it is unreliable
-        if path.endswith(".ipynb"):
-            lineno = None
-        # Remove the suffix from path so its suffix is printed properly in logs
-        path = str(Path(path).with_suffix(""))
-        return [PasteNode(self.arguments[0], location=(path, lineno))]
+        node = PasteNode(self.arguments[0])
+        self.set_source_info(node)
+        return [node]
 
 
 class PasteMath(Paste):
@@ -136,15 +130,8 @@ class PasteMath(Paste):
     has_content = False
 
     def run(self):
-        # TODO: Figure out how to report cell number in the location
-        #       currently, line numbers in ipynb files are not reliable
-        path, lineno = self.state_machine.get_source_and_line(self.lineno)
-        # Remove line number if we have a notebook because it is unreliable
-        if path.endswith(".ipynb"):
-            lineno = None
-        # Remove the suffix from path so its suffix is printed properly in logs
-        path = str(Path(path).with_suffix(""))
-        paste_node = PasteMathNode(self.arguments[0], location=(path, lineno))
+        paste_node = PasteMathNode(self.arguments[0])
+        self.set_source_info(paste_node)
         paste_node["math_class"] = self.options.pop("class", None)
         paste_node["math_label"] = self.options.pop("label", None)
         paste_node["math_nowrap"] = "nowrap" in self.options

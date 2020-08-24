@@ -21,7 +21,15 @@ setup(
     author_email="choldgraf@berkeley.edu",
     license="BSD-3",
     packages=find_packages(),
-    entry_points={"console_scripts": []},
+    entry_points={
+        "myst_nb.mime_render": [
+            "default = myst_nb.render_outputs:CellOutputRenderer",
+            "inline = myst_nb.render_outputs:CellOutputRendererInline",
+        ],
+        # 'pygments.lexers': [
+        #     'myst_ansi = myst_nb.ansi_lexer:AnsiColorLexer',
+        # ],
+    },
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
@@ -51,6 +59,7 @@ setup(
         "nbconvert~=5.6",
         "pyyaml",
         "sphinx-togglebutton~=0.2.2",
+        "importlib_metadata",
     ],
     extras_require={
         "code_style": ["flake8<3.8.0,>=3.7.0", "black", "pre-commit==1.17.0"],

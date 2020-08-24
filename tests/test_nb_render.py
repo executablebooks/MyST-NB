@@ -22,7 +22,7 @@ def test_render(line, title, input, expected):
     dct = yaml.safe_load(input)
     dct.setdefault("metadata", {})
     ntbk = nbformat.from_dict(dct)
-    md, env, tokens = nb_to_tokens(ntbk, MdParserConfig())
+    md, env, tokens = nb_to_tokens(ntbk, MdParserConfig(), "default")
     document = make_document()
     with mock_sphinx_env(document=document):
         tokens_to_docutils(md, env, tokens, document)
@@ -40,7 +40,7 @@ def test_reporting(line, title, input, expected):
     dct = yaml.safe_load(input)
     dct.setdefault("metadata", {})
     ntbk = nbformat.from_dict(dct)
-    md, env, tokens = nb_to_tokens(ntbk, MdParserConfig())
+    md, env, tokens = nb_to_tokens(ntbk, MdParserConfig(), "default")
     document = make_document("source/path")
     messages = []
 

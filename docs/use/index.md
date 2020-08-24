@@ -10,5 +10,6 @@ start
 myst
 execute
 hiding
+formatting_outputs
 glue
 ```

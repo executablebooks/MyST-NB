@@ -155,4 +155,11 @@
                         widgets.Layout(model_id="1337h4x0R")
                 <CellOutputNode classes="cell_output">
                     <CellOutputBundleNode output_count="1">
+            <CellNode cell_type="code" classes="cell">
+                <CellInputNode classes="cell_input">
+                    <literal_block language="ipython3" xml:space="preserve">
+                        from IPython.display import display, Markdown
+                        display(Markdown('**_some_ markdown**'))
+                <CellOutputNode classes="cell_output">
+                    <CellOutputBundleNode output_count="1">
     <JupyterWidgetStateNode state="{'state': {'1337h4x0R': {'model_module': '@jupyter-widgets/base', 'model_module_version': '1.2.0', 'model_name': 'LayoutModel', 'state': {'_model_module': '@jupyter-widgets/base', '_model_module_version': '1.2.0', '_model_name': 'LayoutModel', '_view_count': None, '_view_module': '@jupyter-widgets/base', '_view_module_version': '1.2.0', '_view_name': 'LayoutView', 'align_content': None, 'align_items': None, 'align_self': None, 'border': None, 'bottom': None, 'display': None, 'flex': None, 'flex_flow': None, 'grid_area': None, 'grid_auto_columns': None, 'grid_auto_flow': None, 'grid_auto_rows': None, 'grid_column': None, 'grid_gap': None, 'grid_row': None, 'grid_template_areas': None, 'grid_template_columns': None, 'grid_template_rows': None, 'height': None, 'justify_content': None, 'justify_items': None, 'left': None, 'margin': None, 'max_height': None, 'max_width': None, 'min_height': None, 'min_width': None, 'object_fit': None, 'object_position': None, 'order': None, 'overflow': None, 'overflow_x': None, 'overflow_y': None, 'padding': None, 'right': None, 'top': None, 'visibility': None, 'width': None}}}, 'version_major': 2, 'version_minor': 0}">

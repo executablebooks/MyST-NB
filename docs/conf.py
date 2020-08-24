@@ -34,6 +34,8 @@ extensions = [
     "sphinx_togglebutton",
     "sphinx_copybutton",
     "sphinx.ext.intersphinx",
+    "sphinx.ext.autodoc",
+    # "sphinx.ext.viewcode"
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -63,19 +65,31 @@ html_theme_options = {
 }
 
 intersphinx_mapping = {
+    "python": ("https://docs.python.org/3.8", None),
     "jb": ("https://jupyterbook.org/", None),
     "myst": ("https://myst-parser.readthedocs.io/en/latest/", None),
     "markdown_it": ("https://markdown-it-py.readthedocs.io/en/latest", None),
     "nbclient": ("https://nbclient.readthedocs.io/en/latest", None),
     "nbformat": ("https://nbformat.readthedocs.io/en/latest", None),
+    "sphinx": ("https://www.sphinx-doc.org/en/3.x", None),
 }
 
 intersphinx_cache_limit = 5
+
+nitpick_ignore = [
+    ("py:class", "docutils.nodes.document"),
+    ("py:class", "docutils.nodes.Node"),
+    ("py:class", "docutils.nodes.container"),
+    ("py:class", "docutils.nodes.system_message"),
+    ("py:class", "nbformat.notebooknode.NotebookNode"),
+    ("py:class", "pygments.lexer.RegexLexer"),
+]
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
+html_css_files = ["patch.css"]
 
 copybutton_selector = "div:not(.output) > div.highlight pre"
 
