@@ -52,7 +52,8 @@ source/path:10004: (WARNING/2) Duplicate reference definition: abc
 The MyST-NB parser derives from {ref}`the base MyST-Parser <myst:intro/get-started>`, and so all the same configuration options are available.
 See the {ref}`MyST configuration options <myst:intro/config-options>` for the full set of options.
 
-MyST-NB then adds some additional configuration, specific to notebooks:
+MyST-NB then adds some additional configuration, specific to notebooks.
+Firstly for execution:
 
 `````{list-table}
 :header-rows: 1
@@ -83,5 +84,26 @@ MyST-NB then adds some additional configuration, specific to notebooks:
 * - `execution_show_tb`
   - `False`
   - Show failed notebook tracebacks in stdout (in addition to writing to file).
--
+`````
+
+Then for parsing and output rendering:
+
+`````{list-table}
+:header-rows: 1
+
+* - Option
+  - Default
+  - Description
+* - `nb_custom_formats`
+  - `{}`
+  - Define custom functions for conversion of files to notebooks, [see here](examples/custom_formats) for details.
+* - `nb_render_priority`
+  - `{}`
+  - Dict override for MIME type render priority, [see here](use/format/priority) for details.
+* - `nb_render_plugin`
+  - `default`
+  - Entry point pointing toward a code cell output renderer, [see here](use/format/cutomise) for details.
+* - `nb_render_text_lexer`
+  - `myst-ansi`
+  - pygments lexer for rendering text outputs, [see here](use/format/ansi) for details.
 `````
