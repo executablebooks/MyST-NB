@@ -80,6 +80,7 @@ nitpick_ignore = [
     ("py:class", "docutils.nodes.document"),
     ("py:class", "docutils.nodes.Node"),
     ("py:class", "docutils.nodes.container"),
+    ("py:class", "docutils.nodes.system_message"),
     ("py:class", "nbformat.notebooknode.NotebookNode"),
     ("py:class", "pygments.lexer.RegexLexer"),
 ]

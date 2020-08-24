@@ -109,7 +109,7 @@ Image("images/fun-fish.png")
 ---
 myst:
   image:
-    width: 200px
+    width: 300px
     alt: fun-fish
     classes: shadow bg-primary
   figure:
@@ -121,7 +121,7 @@ from IPython.display import Image
 Image("images/fun-fish.png")
 ```
 
-Now we can link to the image: [swim to the fish](fun-fish)
+Now we can link to the image from anywhere in our documentation: [swim to the fish](fun-fish)
 
 (use/format/markdown)=
 ## Markdown

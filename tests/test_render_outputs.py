@@ -47,6 +47,16 @@ def test_complex_outputs_latex(sphinx_run, file_regression):
     file_regression.check(doctree.pformat().replace(".jpeg", ".jpg"), extension=".xml")
 
 
+@pytest.mark.sphinx_params(
+    "metadata_image.ipynb", conf={"jupyter_execute_notebooks": "off"},
+)
+def test_metadata_image(sphinx_run, file_regression):
+    sphinx_run.build()
+    assert sphinx_run.warnings() == ""
+    doctree = sphinx_run.get_resolved_doctree("metadata_image")
+    file_regression.check(doctree.pformat().replace(".jpeg", ".jpg"), extension=".xml")
+
+
 # @pytest.mark.sphinx_params(
 #     "unknown_mimetype.ipynb", conf={"jupyter_execute_notebooks": "off"}
 # )

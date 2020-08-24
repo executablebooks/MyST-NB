@@ -184,14 +184,16 @@ class CellOutputRendererBase(ABC):
         return output_nodes
 
     def add_source_and_line(self, *nodes: List[nodes.Node]):
-        """Add the source and line recursively to all nodes """
+        """Add the source and line recursively to all nodes."""
         location = self.node.source, self.node.line
         for node in nodes:
             node.source, node.line = location
             for child in node.traverse():
                 child.source, child.line = location
 
-    def make_error(self, error_msg):
+    def make_error(self, error_msg: str) -> nodes.system_message:
+        """Raise an exception or generate a warning if appropriate,
+        and return a system_message node"""
         return self.document.reporter.error(
             "output render: {}".format(error_msg), line=self.node.line,
         )
@@ -208,17 +210,22 @@ class CellOutputRendererBase(ABC):
         self.document.note_explicit_target(node, node)
         return name
 
-    def parse_markdown(self, text: str, parent: Optional[nodes.Node] = None):
+    def parse_markdown(
+        self, text: str, parent: Optional[nodes.Node] = None
+    ) -> List[nodes.Node]:
+        """Parse text as CommonMark, in a new document."""
         parser = default_parser(MdParserConfig(commonmark_only=True))
         parent = parent or nodes.container()
         parser.options["current_node"] = parent
         parser.render(text)
+        # TODO is there any transforms we should retroactively carry out?
         return parent.children
 
     @abstractmethod
     def render(
         self, mime_type: str, output: NotebookNode, index: int
     ) -> List[nodes.Node]:
+        """Take a MIME bundle and MIME type, and return zero or more nodes."""
         pass
 
 
@@ -246,6 +253,7 @@ class CellOutputRenderer(CellOutputRendererBase):
     def render(
         self, mime_type: str, output: NotebookNode, index: int
     ) -> List[nodes.Node]:
+        """Take a MIME bundle and MIME type, and return zero or more nodes."""
         if mime_type.startswith("image"):
             nodes = self.create_render_image(mime_type)(output, index)
             self.add_source_and_line(*nodes)
@@ -389,7 +397,7 @@ class CellOutputRenderer(CellOutputRendererBase):
                             "Invalid image attribute: "
                             "(key: '{}'; value: {})\n{}".format(key, value, error)
                         )
-                        return self.make_error(error_msg)
+                        return [self.make_error(error_msg)]
 
             myst_meta_fig = self.node.metadata.get(MYST_META_KEY, {}).get("figure", {})
             if "caption" not in myst_meta_fig:
@@ -404,10 +412,10 @@ class CellOutputRenderer(CellOutputRendererBase):
                 name = myst_meta_fig["name"]
                 self.add_source_and_line(figure_node)
                 self.add_name(figure_node, name)
-                # The target will have already been processed by now, with
+                # The target should have already been processed by now, with
                 # sphinx.transforms.references.SphinxDomains, which calls
                 # sphinx.domains.std.StandardDomain.process_doc,
-                # so we have to replicate that
+                # so we have to replicate that here
                 std = self.env.get_domain("std")
                 nametypes = self.document.nametypes.items()
                 self.document.nametypes = {name: True}

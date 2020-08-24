@@ -26,7 +26,7 @@ To install `myst-nb`, do the following:
   ```
 
 Once you do this, MyST-NB will now parse both markdown (`.md`), Jupyter notebooks (`.ipynb`), and even [text-based Notebooks](markdown.md) (`.md`) into your Sphinx site
-(see also ).
+(see also [custom notebook formats](examples/custom_formats)).
 
 (start/error-reporting)=
 
