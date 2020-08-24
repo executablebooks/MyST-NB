@@ -107,7 +107,7 @@ def setup(app: Sphinx):
     # show traceback in stdout (in addition to writing to file)
     # this is useful in e.g. RTD where one cannot inspect a file
     app.add_config_value("execution_show_tb", False, "")
-    app.add_config_value("execution_custom_formats", {}, "env")
+    app.add_config_value("nb_custom_formats", {}, "env")
 
     # render config
     app.add_config_value("nb_render_priority", {}, "env")
@@ -178,37 +178,35 @@ def validate_config_values(app: Sphinx, config):
             f"'jupyter_cache' is not a directory: {app.config['jupyter_cache']}",
         )
 
-    if not isinstance(app.config["execution_custom_formats"], dict):
+    if not isinstance(app.config["nb_custom_formats"], dict):
         raise MystNbConfigError(
-            "'execution_custom_formats' should be a dictionary: "
-            f"{app.config['execution_custom_formats']}"
+            "'nb_custom_formats' should be a dictionary: "
+            f"{app.config['nb_custom_formats']}"
         )
-    for name, converter in app.config["execution_custom_formats"].items():
+    for name, converter in app.config["nb_custom_formats"].items():
         if not isinstance(name, str):
             raise MystNbConfigError(
-                f"'execution_custom_formats' keys should br a string: {name}"
+                f"'nb_custom_formats' keys should br a string: {name}"
             )
         if isinstance(converter, str):
-            app.config["execution_custom_formats"][name] = (converter, {})
+            app.config["nb_custom_formats"][name] = (converter, {})
         elif not (isinstance(converter, Sequence) and len(converter) in [2, 3]):
             raise MystNbConfigError(
-                "'execution_custom_formats' values must be "
+                "'nb_custom_formats' values must be "
                 f"either strings or 2/3-element sequences, got: {converter}"
             )
 
-        converter_str = app.config["execution_custom_formats"][name][0]
-        caller = import_object(
-            converter_str, f"MyST-NB execution_custom_formats: {name}",
-        )
+        converter_str = app.config["nb_custom_formats"][name][0]
+        caller = import_object(converter_str, f"MyST-NB nb_custom_formats: {name}",)
         if not callable(caller):
             raise MystNbConfigError(
-                f"`execution_custom_formats.{name}` converter is not callable: {caller}"
+                f"`nb_custom_formats.{name}` converter is not callable: {caller}"
             )
-        if len(app.config["execution_custom_formats"][name]) == 2:
-            app.config["execution_custom_formats"][name].append(None)
-        elif not isinstance(app.config["execution_custom_formats"][name][2], bool):
+        if len(app.config["nb_custom_formats"][name]) == 2:
+            app.config["nb_custom_formats"][name].append(None)
+        elif not isinstance(app.config["nb_custom_formats"][name][2], bool):
             raise MystNbConfigError(
-                f"`execution_custom_formats.{name}.commonmark_only` arg is not boolean"
+                f"`nb_custom_formats.{name}.commonmark_only` arg is not boolean"
             )
     # try loading notebook output renderer
     load_renderer(app.config["nb_render_plugin"])
@@ -272,7 +270,7 @@ def remove_execution_data(app: Sphinx, env, docname):
 
 def add_nb_custom_formats(app: Sphinx, config):
     """Add custom conversion formats."""
-    for suffix in config.execution_custom_formats:
+    for suffix in config.nb_custom_formats:
         app.add_source_suffix(suffix, "myst-nb")
 
 

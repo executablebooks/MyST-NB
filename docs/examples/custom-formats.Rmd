@@ -14,7 +14,7 @@ jupyter:
 You can designate additional file types to be converted to Notebooks, and then executed / parsed in the same manner as regular Notebooks, by adding the following configuration to your `conf.py`:
 
 ```python
-execution_custom_formats = {
+nb_custom_formats = {
   ".mysuffix": "mylibrary.converter_function"
 }
 ```
@@ -65,7 +65,7 @@ A common conversion tool is [jupytext](https://github.com/mwouts/jupytext), whic
 The configuration looks like:
 
 ```python
-execution_custom_formats = {
+nb_custom_formats = {
   ".Rmd": ["jupytext.reads", {"fmt": "Rmd"}]
 }
 ```

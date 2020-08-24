@@ -34,14 +34,14 @@ def get_nb_converter(
 
     # we check suffixes ordered by longest first, to ensure we get the "closest" match
     for source_suffix in sorted(
-        env.config.execution_custom_formats.keys(), key=len, reverse=True
+        env.config.nb_custom_formats.keys(), key=len, reverse=True
     ):
         if path.endswith(source_suffix):
             (
                 converter,
                 converter_kwargs,
                 commonmark_only,
-            ) = env.config.execution_custom_formats[source_suffix]
+            ) = env.config.nb_custom_formats[source_suffix]
             converter = import_object(converter)
             a = NbConverter(
                 lambda text: converter(text, **(converter_kwargs or {})),
