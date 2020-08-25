@@ -190,10 +190,24 @@ class CellOutputRendererBase(ABC):
             for child in node.traverse():
                 child.source, child.line = location
 
+    def make_warning(self, error_msg: str) -> nodes.system_message:
+        """Raise an exception or generate a warning if appropriate,
+        and return a system_message node"""
+        return self.document.reporter.warning(
+            "output render: {}".format(error_msg), line=self.node.line,
+        )
+
     def make_error(self, error_msg: str) -> nodes.system_message:
         """Raise an exception or generate a warning if appropriate,
         and return a system_message node"""
         return self.document.reporter.error(
+            "output render: {}".format(error_msg), line=self.node.line,
+        )
+
+    def make_severe(self, error_msg: str) -> nodes.system_message:
+        """Raise an exception or generate a warning if appropriate,
+        and return a system_message node"""
+        return self.document.reporter.severe(
             "output render: {}".format(error_msg), line=self.node.line,
         )
 
@@ -271,8 +285,24 @@ class CellOutputRenderer(CellOutputRendererBase):
 
     def render_stderr(self, output: NotebookNode, index: int):
         """Output a container with an unhighlighted literal block."""
+        text = output["text"]
 
-        if "remove-stderr" in self.node.metadata.get("tags", []):
+        if self.env.config.nb_output_stderr == "show":
+            pass
+        elif self.env.config.nb_output_stderr == "remove-warn":
+            self.make_warning(f"stderr was found in the cell outputs: {text}")
+            return []
+        elif self.env.config.nb_output_stderr == "warn":
+            self.make_warning(f"stderr was found in the cell outputs: {text}")
+        elif self.env.config.nb_output_stderr == "error":
+            self.make_error(f"stderr was found in the cell outputs: {text}")
+        elif self.env.config.nb_output_stderr == "severe":
+            self.make_severe(f"stderr was found in the cell outputs: {text}")
+
+        if (
+            "remove-stderr" in self.node.metadata.get("tags", [])
+            or self.env.config.nb_output_stderr == "remove"
+        ):
             return []
 
         container = nodes.container(classes=["stderr"])

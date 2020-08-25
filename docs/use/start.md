@@ -109,4 +109,7 @@ Then for parsing and output rendering:
 * - `nb_render_key`
   - `render`
   - The top-level cell metadata key, to store render control data, [see here](use/format/images) for examples.
+* - `nb_output_stderr`
+  - `show`
+  - One of 'show', 'remove', 'warn', 'error' or 'severe', [see here](use/format/stderr) for details.
 `````
