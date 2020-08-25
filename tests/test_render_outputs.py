@@ -48,7 +48,8 @@ def test_complex_outputs_latex(sphinx_run, file_regression):
 
 
 @pytest.mark.sphinx_params(
-    "metadata_image.ipynb", conf={"jupyter_execute_notebooks": "off"},
+    "metadata_image.ipynb",
+    conf={"jupyter_execute_notebooks": "off", "nb_render_key": "myst"},
 )
 def test_metadata_image(sphinx_run, file_regression):
     sphinx_run.build()
