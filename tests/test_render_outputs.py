@@ -48,6 +48,27 @@ def test_complex_outputs_latex(sphinx_run, file_regression):
 
 
 @pytest.mark.sphinx_params(
+    "basic_stderr.ipynb", conf={"jupyter_execute_notebooks": "off"}
+)
+def test_stderr_tag(sphinx_run, file_regression):
+    sphinx_run.build()
+    assert sphinx_run.warnings() == ""
+    doctree = sphinx_run.get_resolved_doctree("basic_stderr")
+    file_regression.check(doctree.pformat(), extension=".xml")
+
+
+@pytest.mark.sphinx_params(
+    "basic_stderr.ipynb",
+    conf={"jupyter_execute_notebooks": "off", "nb_output_stderr": "remove"},
+)
+def test_stderr_remove(sphinx_run, file_regression):
+    sphinx_run.build()
+    assert sphinx_run.warnings() == ""
+    doctree = sphinx_run.get_resolved_doctree("basic_stderr")
+    file_regression.check(doctree.pformat(), extension=".xml")
+
+
+@pytest.mark.sphinx_params(
     "metadata_image.ipynb",
     conf={"jupyter_execute_notebooks": "off", "nb_render_key": "myst"},
 )

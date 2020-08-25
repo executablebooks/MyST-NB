@@ -114,6 +114,7 @@ def setup(app: Sphinx):
     app.add_config_value("nb_render_priority", {}, "env")
     app.add_config_value("nb_render_plugin", "default", "env")
     app.add_config_value("nb_render_text_lexer", "myst-ansi", "env")
+    app.add_config_value("nb_output_stderr", "show", "env")
 
     # Register our post-transform which will convert output bundles to nodes
     app.add_post_transform(PasteNodesToDocutils)
@@ -209,6 +210,23 @@ def validate_config_values(app: Sphinx, config):
             raise MystNbConfigError(
                 f"`nb_custom_formats.{name}.commonmark_only` arg is not boolean"
             )
+
+        if not isinstance(app.config["nb_render_key"], str):
+            raise MystNbConfigError("`nb_render_key` is not a string")
+
+        if app.config["nb_output_stderr"] not in [
+            "show",
+            "remove",
+            "remove-warn",
+            "warn",
+            "error",
+            "severe",
+        ]:
+            raise MystNbConfigError(
+                "`nb_output_stderr` not one of: "
+                "'show', 'remove', 'remove-warn', 'warn', 'error', 'severe'"
+            )
+
     # try loading notebook output renderer
     load_renderer(app.config["nb_render_plugin"])
 
