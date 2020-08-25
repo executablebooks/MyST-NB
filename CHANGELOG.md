@@ -1,5 +1,15 @@
 # Change Log
 
+## 0.9.1 - 2020-08-24
+
+More configuration!
+
+- ✨ NEW: Add stderr global configuration: `nb_output_stderr`
+  (see [removing stderr](https://myst-nb.readthedocs.io/en/latest/use/formatting_outputs.html#removing-stdout-and-stderr))
+- ✨ NEW: Add `nb_render_key` configuration
+  (see [formatting outputs](https://myst-nb.readthedocs.io/en/latest/use/formatting_outputs.html#images))
+- 🐛 FIX: `auto` execution not recognising (and skipping) notebooks with existing outputs
+
 ## 0.9.0 - 2020-08-24
 
 This versions see's many great changes; utilising the ⬆️ upgrade to `myst-parser=v0.12`
