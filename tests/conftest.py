@@ -1,12 +1,10 @@
 import json
 import os
 from pathlib import Path
-import pickle
 import uuid
 
 import pytest
 
-from docutils.utils import Reporter
 from nbdime.diffing.notebooks import (
     diff_notebooks,
     set_notebook_diff_targets,
@@ -22,6 +20,16 @@ set_notebook_diff_ignores({"/nbformat_minor": True})
 set_notebook_diff_targets(metadata=False)
 
 TEST_FILE_DIR = Path(__file__).parent.joinpath("notebooks")
+
+
+@pytest.fixture(autouse=True, scope="session")
+def build_matplotlib_font_cache():
+    """This is to mitigate errors on CI VMs, where you can get the message:
+    "Matplotlib is building the font cache" in output notebooks
+    """
+    from matplotlib.font_manager import FontManager
+
+    FontManager()
 
 
 @pytest.fixture()
@@ -67,17 +75,17 @@ class SphinxFixture:
         for name, _ in self.files:
             self.env.all_docs.pop(name)
 
-    def get_doctree(self, index=0):
+    def get_resolved_doctree(self, docname):
+        """Load and return the built docutils.document, after post-transforms."""
+        doctree = self.env.get_and_resolve_doctree(docname, self.app.builder)
+        doctree["source"] = docname
+        return doctree
+
+    def get_doctree(self, docname=None):
         """Load and return the built docutils.document."""
-        name = self.files[index][0]
-        _path = self.app.doctreedir / (name + ".doctree")
-        if not _path.exists():
-            pytest.fail("doctree not output")
-        doctree = pickle.loads(_path.bytes())
-        doctree["source"] = name
-        doctree.reporter = Reporter(name, 1, 5)
-        self.app.env.temp_data["docname"] = name
-        doctree.settings.env = self.app.env
+        docname = docname or self.files[0][0]
+        doctree = self.env.get_doctree(docname)
+        doctree["source"] = docname
         return doctree
 
     def get_html(self, index=0):
@@ -166,7 +174,7 @@ def sphinx_run(sphinx_params, make_app, tempdir):
         nb_path = TEST_FILE_DIR.joinpath(nb_file)
         assert nb_path.exists(), nb_path
         (srcdir / nb_file).parent.makedirs(exist_ok=True)
-        (srcdir / nb_file).write_text(nb_path.read_text())
+        (srcdir / nb_file).write_text(nb_path.read_text(encoding="utf8"))
 
     app = make_app(buildername=buildername, srcdir=srcdir, confoverrides=confoverrides)
 

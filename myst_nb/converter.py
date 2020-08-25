@@ -1,49 +1,80 @@
 import json
-import os
-from pathlib import Path
+from typing import Callable, Iterable, Optional
 
-# import jupytext
+import attr
+
 import nbformat as nbf
+from sphinx.environment import BuildEnvironment
+from sphinx.util import import_object
 import yaml
 
+from myst_parser.main import MdParserConfig
+
+NOTEBOOK_VERSION = 4
 CODE_DIRECTIVE = "{code-cell}"
 RAW_DIRECTIVE = "{raw-cell}"
 
 
-def string_to_notebook(inputstring, env, add_source_map=True):
-    """de-serialize a notebook or text-based representation"""
-    extension = os.path.splitext(env.doc2path(env.docname))[1]
-    if extension == ".ipynb":
-        return nbf.reads(inputstring, nbf.NO_CONVERT)
-    elif is_myst_notebook(inputstring.splitlines(keepends=True)):
-        # return jupytext.reads(inputstring, fmt="myst")
-        return myst_to_notebook(inputstring, add_source_map=add_source_map)
+@attr.s
+class NbConverter:
+    func: Callable[[str], nbf.NotebookNode] = attr.ib()
+    config: MdParserConfig = attr.ib()
+
+
+def get_nb_converter(
+    path: str, env: BuildEnvironment, source_iter: Optional[Iterable[str]] = None,
+) -> Optional[NbConverter]:
+    """Get function, to convert a source string to a Notebook."""
+
+    # Standard notebooks take priority
+    if path.endswith(".ipynb"):
+        return NbConverter(
+            lambda text: nbf.reads(text, as_version=NOTEBOOK_VERSION), env.myst_config
+        )
+
+    # we check suffixes ordered by longest first, to ensure we get the "closest" match
+    for source_suffix in sorted(
+        env.config.nb_custom_formats.keys(), key=len, reverse=True
+    ):
+        if path.endswith(source_suffix):
+            (
+                converter,
+                converter_kwargs,
+                commonmark_only,
+            ) = env.config.nb_custom_formats[source_suffix]
+            converter = import_object(converter)
+            a = NbConverter(
+                lambda text: converter(text, **(converter_kwargs or {})),
+                env.myst_config
+                if commonmark_only is None
+                else attr.evolve(env.myst_config, commonmark_only=commonmark_only),
+            )
+            return a
+
+    # If there is no source text then we assume a MyST Notebook
+    if source_iter is None:
+        return NbConverter(
+            lambda text: myst_to_notebook(
+                text, config=env.myst_config, add_source_map=True
+            ),
+            env.myst_config,
+        )
+
+    # Given the source lines, we check it can be recognised as a MyST Notebook
+    if is_myst_notebook(source_iter):
+        return NbConverter(
+            lambda text: myst_to_notebook(
+                text, config=env.myst_config, add_source_map=True
+            ),
+            env.myst_config,
+        )
+
+    # Otherwise, we return None,
+    # to imply that it should be parsed as as standard Markdown file
     return None
 
 
-def path_to_notebook(path):
-    extension = os.path.splitext(path)[1]
-    if extension == ".ipynb":
-        return nbf.read(path, nbf.NO_CONVERT)
-    else:
-        return myst_to_notebook(Path(path).read_text())
-
-
-def is_myst_file(path):
-    extension = os.path.splitext(path)[1]
-    if extension == ".ipynb":
-        return True
-    if not os.path.exists(path):
-        return False
-
-    with open(path) as handle:
-        # here we use an iterator, so that only the required lines are read
-        is_myst = is_myst_notebook((line for line in handle))
-
-    return is_myst
-
-
-def is_myst_notebook(line_iter):
+def is_myst_notebook(line_iter: Iterable[str]) -> bool:
     """Is the text file a MyST based notebook representation?"""
     # we need to distinguish between markdown representing notebooks
     # and standard notebooks.
@@ -141,6 +172,7 @@ def read_cell_metadata(token, cell_index):
 
 def myst_to_notebook(
     text,
+    config: MdParserConfig,
     code_directive=CODE_DIRECTIVE,
     raw_directive=RAW_DIRECTIVE,
     add_source_map=False,
@@ -158,10 +190,14 @@ def myst_to_notebook(
     NOTE: we assume here that all of these directives are at the top-level,
     i.e. not nested in other directives.
     """
+    # TODO warn about nested code-cells
     from myst_parser.main import default_parser
 
     # parse markdown file up to the block level (i.e. don't worry about inline text)
-    parser = default_parser("html", disable_syntax=["inline"])
+    inline_config = attr.evolve(
+        config, renderer="html", disable_syntax=(config.disable_syntax + ["inline"])
+    )
+    parser = default_parser(inline_config)
     tokens = parser.parse(text + "\n")
     lines = text.splitlines()
     md_start_line = 0

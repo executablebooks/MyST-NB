@@ -1,0 +1,2 @@
+# this is only required by coconut kernel
+ipython<=7.11.0

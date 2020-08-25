@@ -131,3 +131,8 @@ dmypy.json
 
 # Jupyter Cache
 docs/.jupyter_cache
+
+# OSX
+.DS_Store
+
+.vscode/

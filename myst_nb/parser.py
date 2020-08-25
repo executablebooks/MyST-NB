@@ -3,6 +3,8 @@ from typing import List, Tuple
 
 from docutils import nodes
 import nbformat as nbf
+
+from sphinx.environment import BuildEnvironment
 from sphinx.util import logging
 
 from jupyter_sphinx.ast import get_widgets, JupyterWidgetStateNode
@@ -13,26 +15,25 @@ from markdown_it.token import Token
 from markdown_it.rules_core import StateCore
 from markdown_it.utils import AttrDict
 
-from myst_parser.main import default_parser, to_docutils
+from myst_parser.main import default_parser, MdParserConfig
 from myst_parser.sphinx_renderer import SphinxRenderer
 from myst_parser.sphinx_parser import MystParser
 
-from myst_nb.cache import add_notebook_outputs
-from myst_nb.converter import string_to_notebook
+from myst_nb.converter import get_nb_converter
+from myst_nb.execution import generate_notebook_outputs
 from myst_nb.nb_glue import GLUE_PREFIX
 from myst_nb.nb_glue.domain import NbGlueDomain
+from myst_nb.nodes import CellNode, CellInputNode, CellOutputNode, CellOutputBundleNode
 
 
 SPHINX_LOGGER = logging.getLogger(__name__)
 
 
 class NotebookParser(MystParser):
-    """Docutils parser for IPynb + CommonMark + Extensions."""
+    """Docutils parser for Markedly Structured Text (MyST) and Jupyter Notebooks."""
 
     supported = ("myst-nb",)
     translate_section_name = None
-
-    default_config = {"known_url_schemes": None}
 
     config_section = "myst-nb parser"
     config_section_dependencies = ("parsers",)
@@ -40,33 +41,43 @@ class NotebookParser(MystParser):
     def parse(self, inputstring: str, document: nodes.document):
 
         self.reporter = document.reporter
-        self.env = document.settings.env
-        self.config = self.default_config.copy()
-        try:
-            new_cfg = document.settings.env.config.myst_config
-            self.config.update(new_cfg)
-        except AttributeError:
-            pass
+        self.env = document.settings.env  # type: BuildEnvironment
+
+        converter = get_nb_converter(
+            self.env.doc2path(self.env.docname, False),
+            self.env,
+            inputstring.splitlines(keepends=True),
+        )
+
+        if converter is None:
+            # Read the notebook as a text-document
+            super().parse(inputstring, document=document)
+            return
 
         try:
-            ntbk = string_to_notebook(inputstring, self.env)
-        except Exception as err:
+            ntbk = converter.func(inputstring)
+        except Exception as error:
             SPHINX_LOGGER.error(
-                "Notebook load failed for %s: %s", self.env.docname, err
+                "MyST-NB: Conversion to notebook failed: %s",
+                error,
+                # exc_info=True,
+                location=(self.env.docname, 1),
             )
-            return
-        if not ntbk:
-            # Read the notebook as a text-document
-            to_docutils(inputstring, options=self.config, document=document)
             return
 
         # add outputs to notebook from the cache
         if self.env.config["jupyter_execute_notebooks"] != "off":
-            ntbk = add_notebook_outputs(self.env, ntbk)
+            ntbk = generate_notebook_outputs(
+                self.env, ntbk, show_traceback=self.env.config["execution_show_tb"]
+            )
 
         # Parse the notebook content to a list of syntax tokens and an env
         # containing global data like reference definitions
-        md_parser, env, tokens = nb_to_tokens(ntbk)
+        md_parser, env, tokens = nb_to_tokens(
+            ntbk,
+            self.env.myst_config if converter is None else converter.config,
+            self.env.config["nb_render_plugin"],
+        )
 
         # Write the notebook's output to disk
         path_doc = nb_output_to_disc(ntbk, document)
@@ -79,14 +90,17 @@ class NotebookParser(MystParser):
         tokens_to_docutils(md_parser, env, tokens, document)
 
 
-def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Token]]:
+def nb_to_tokens(
+    ntbk: nbf.NotebookNode, config: MdParserConfig, renderer_plugin: str
+) -> Tuple[MarkdownIt, AttrDict, List[Token]]:
     """Parse the notebook content to a list of syntax tokens and an env,
     containing global data like reference definitions.
     """
+    md = default_parser(config)
     # setup the markdown parser
     # Note we disable front matter parsing,
     # because this is taken from the actual notebook metadata
-    md = default_parser().disable("front_matter", ignoreInvalid=True)
+    md.disable("front_matter", ignoreInvalid=True)
     md.renderer = SphinxNBRenderer(md)
     # make a sandbox where all the parsing global data,
     # like reference definitions will be stored
@@ -115,6 +129,11 @@ def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Tok
     block_tokens = []
     source_map = ntbk.metadata.get("source_map", None)
 
+    # get language lexer name
+    langinfo = ntbk.metadata.get("language_info", {})
+    lexer = langinfo.get("pygments_lexer", langinfo.get("name", None))
+    # TODO log warning if lexer is still None
+
     for cell_index, nb_cell in enumerate(ntbk.cells):
 
         # if the the source_map has been stored (for text-based notebooks),
@@ -137,7 +156,6 @@ def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Tok
 
             # we add the cell index to tokens,
             # so they can be included in the error logging,
-            # although note this logic isn't currently implemented in SphinxRenderer
             block_tokens.extend(parse_block(nb_cell["source"], start_line))
 
         elif nb_cell["cell_type"] == "code":
@@ -147,7 +165,7 @@ def nb_to_tokens(ntbk: nbf.NotebookNode) -> Tuple[MarkdownIt, AttrDict, List[Tok
                     "nb_code_cell",
                     "",
                     0,
-                    meta={"cell": nb_cell},
+                    meta={"cell": nb_cell, "lexer": lexer, "renderer": renderer_plugin},
                     map=[start_line, start_line],
                 )
             )
@@ -197,7 +215,8 @@ class SphinxNBRenderer(SphinxRenderer):
 
     def render_nb_code_cell(self, token: Token):
         """Render a Jupyter notebook cell."""
-        cell = token.meta["cell"]
+        cell = token.meta["cell"]  # type: nbf.NotebookNode
+
         # TODO logic involving tags should be deferred to a transform
         tags = cell.metadata.get("tags", [])
 
@@ -209,10 +228,13 @@ class SphinxNBRenderer(SphinxRenderer):
         self.current_node += sphinx_cell
         if ("remove_input" not in tags) and ("remove-input" not in tags):
             cell_input = CellInputNode(classes=["cell_input"])
+            self.add_line_and_source_path(cell_input, token)
             sphinx_cell += cell_input
 
             # Input block
             code_block = nodes.literal_block(text=cell["source"])
+            if token.meta.get("lexer", None) is not None:
+                code_block["language"] = token.meta["lexer"]
             cell_input += code_block
 
         # ==================
@@ -226,43 +248,11 @@ class SphinxNBRenderer(SphinxRenderer):
             cell_output = CellOutputNode(classes=["cell_output"])
             sphinx_cell += cell_output
 
-            outputs = CellOutputBundleNode(cell["outputs"])
+            outputs = CellOutputBundleNode(
+                cell["outputs"], token.meta["renderer"], cell.metadata
+            )
+            self.add_line_and_source_path(outputs, token)
             cell_output += outputs
-
-
-class CellNode(nodes.container):
-    """Represent a cell in the Sphinx AST."""
-
-    def __init__(self, rawsource="", *children, **attributes):
-        super().__init__("", **attributes)
-
-
-class CellInputNode(nodes.container):
-    """Represent an input cell in the Sphinx AST."""
-
-    def __init__(self, rawsource="", *children, **attributes):
-        super().__init__("", **attributes)
-
-
-class CellOutputNode(nodes.container):
-    """Represent an output cell in the Sphinx AST."""
-
-    def __init__(self, rawsource="", *children, **attributes):
-        super().__init__("", **attributes)
-
-
-class CellOutputBundleNode(nodes.container):
-    """Represent a MimeBundle in the Sphinx AST, to be transformed later."""
-
-    def __init__(self, outputs, rawsource="", *children, **attributes):
-        self.outputs = outputs
-        attributes["output_count"] = len(outputs)
-        super().__init__("", **attributes)
-
-    def copy(self):
-        return self.__class__(
-            rawsource=self.rawsource, outputs=self.outputs, **self.attributes
-        )
 
 
 def nb_output_to_disc(ntbk: nbf.NotebookNode, document: nodes.document) -> Path:

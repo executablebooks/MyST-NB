@@ -33,6 +33,31 @@ cells:
                 print(a)
 .
 
+Code Cell (with lexer):
+.
+metadata:
+    language_info:
+        pygments_lexer: mylexer
+cells:
+  - cell_type: code
+    metadata: {}
+    execution_count: null
+    source: a=1
+    outputs: []
+.
+<document source="notset">
+    <docinfo>
+        <field>
+            <field_name>
+                language_info
+            <field_body>
+                {"pygments_lexer": "mylexer"}
+    <CellNode cell_type="code" classes="cell">
+        <CellInputNode classes="cell_input">
+            <literal_block language="mylexer" xml:space="preserve">
+                a=1
+.
+
 Code Cell (simple output):
 .
 cells:

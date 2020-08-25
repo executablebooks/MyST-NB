@@ -9,9 +9,14 @@ A collection of tools for working with Jupyter Notebooks in Sphinx.
 
 The primary tool this package provides is a Sphinx parser for `ipynb` files.
 This allows you to directly convert Jupyter Notebooks into Sphinx documents.
-It relies heavily on the [`MyST` parser](https://github.com/executablebooks/myst_parser).
+It relies heavily on the [`MyST` parser](https://github.com/executablebooks/myst-parser).
 
 For more information, [see the MyST-NB documentation](https://myst-nb.readthedocs.io/en/latest/)
+
+## Contributing
+
+We welcome all contributions!
+See the [Contributing Guide](https://myst-nb.readthedocs.io/en/latest/develop/contributing.html) for more details.
 
 [github-ci]: https://github.com/executablebooks/MyST-NB/workflows/continuous-integration/badge.svg?branch=master
 [github-link]: https://github.com/executablebooks/MyST-NB
