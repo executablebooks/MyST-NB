@@ -327,7 +327,7 @@ def execute_staged_nb(
     return result
 
 
-def nb_has_all_output(source_path: str, nb_extensions: List[str] = [".ipynb"]) -> bool:
+def nb_has_all_output(source_path: str, nb_extensions: List[str] = (".ipynb",)) -> bool:
     """Determine if the path contains a notebook with at least one output."""
     has_outputs = False
     ext = os.path.splitext(source_path)[1]
