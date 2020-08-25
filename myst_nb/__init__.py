@@ -110,6 +110,7 @@ def setup(app: Sphinx):
     app.add_config_value("nb_custom_formats", {}, "env")
 
     # render config
+    app.add_config_value("nb_render_key", "render", "env")
     app.add_config_value("nb_render_priority", {}, "env")
     app.add_config_value("nb_render_plugin", "default", "env")
     app.add_config_value("nb_render_text_lexer", "myst-ansi", "env")

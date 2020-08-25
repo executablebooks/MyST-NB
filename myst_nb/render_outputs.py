@@ -28,7 +28,6 @@ from .nodes import CellOutputBundleNode
 LOGGER = logging.getLogger(__name__)
 
 WIDGET_VIEW_MIMETYPE = "application/vnd.jupyter.widget-view+json"
-MYST_META_KEY = "myst"
 
 
 def get_default_render_priority(builder: str) -> Optional[List[str]]:
@@ -378,7 +377,9 @@ class CellOutputRenderer(CellOutputRendererBase):
             # it becomes clickable?! (i.e. will open the image in the browser)
             image_node = nodes.image(uri=uri)
 
-            myst_meta_img = self.node.metadata.get(MYST_META_KEY, {}).get("image", {})
+            myst_meta_img = self.node.metadata.get(
+                self.env.config.nb_render_key, {}
+            ).get("image", {})
 
             for key, spec in [
                 ("classes", directives.class_option),
@@ -399,7 +400,9 @@ class CellOutputRenderer(CellOutputRendererBase):
                         )
                         return [self.make_error(error_msg)]
 
-            myst_meta_fig = self.node.metadata.get(MYST_META_KEY, {}).get("figure", {})
+            myst_meta_fig = self.node.metadata.get(
+                self.env.config.nb_render_key, {}
+            ).get("figure", {})
             if "caption" not in myst_meta_fig:
                 return [image_node]
 
