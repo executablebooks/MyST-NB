@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.9.2 - 2020-08-27
+
+⬆️ UPGRADE: myst-parser patch version, to ensure a few new features and bug fixes are incorporated (see its [CHANGELOG.md](https://github.com/executablebooks/MyST-Parser/blob/master/CHANGELOG.md))
+
 ## 0.9.1 - 2020-08-24
 
 More configuration!
