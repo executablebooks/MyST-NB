@@ -19,7 +19,7 @@ These should all be supported in MyST-NB by passing the output HTML through
 automatically. This page has a few common examples.[^download]
 
 [^download]: This notebook can be downloaded as
-            **{jupyter-download:notebook}`interactive`** and {download}`interactive.md`
+            **{nb-download}`interactive.ipynb`** and {download}`interactive.md`
 
 First off, we'll download a little bit of data
 and show its structure:

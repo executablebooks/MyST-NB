@@ -17,7 +17,7 @@ This notebook is a demonstration of directly-parsing Jupyter Notebooks into
 Sphinx using the MyST parser.[^download]
 
 [^download]: This notebook can be downloaded as
-            **{jupyter-download:notebook}`basic`** and {download}`basic.md`
+            **{nb-download}`basic.ipynb`** and {download}`basic.md`
 
 ## Markdown
 

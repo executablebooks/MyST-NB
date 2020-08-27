@@ -26,7 +26,7 @@ This page describes how to add keys to variables in notebooks, and how to insert
 into your book's content in a variety of ways.[^download]
 
 [^download]: This notebook can be downloaded as
-            **{jupyter-download:notebook}`glue`** and {download}`glue.md`
+            **{nb-download}`glue.ipynb`** and {download}`glue.md`
 
 +++
 

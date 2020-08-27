@@ -23,7 +23,12 @@ from myst_nb.converter import get_nb_converter
 from myst_nb.execution import generate_notebook_outputs
 from myst_nb.nb_glue import GLUE_PREFIX
 from myst_nb.nb_glue.domain import NbGlueDomain
-from myst_nb.nodes import CellNode, CellInputNode, CellOutputNode, CellOutputBundleNode
+from myst_nb.nodes import (
+    CellNode,
+    CellInputNode,
+    CellOutputNode,
+    CellOutputBundleNode,
+)
 
 
 SPHINX_LOGGER = logging.getLogger(__name__)
@@ -132,6 +137,8 @@ def nb_to_tokens(
     # get language lexer name
     langinfo = ntbk.metadata.get("language_info", {})
     lexer = langinfo.get("pygments_lexer", langinfo.get("name", None))
+    if lexer is None:
+        ntbk.metadata.get("kernelspec", {}).get("language", None)
     # TODO log warning if lexer is still None
 
     for cell_index, nb_cell in enumerate(ntbk.cells):
@@ -209,6 +216,8 @@ class SphinxNBRenderer(SphinxRenderer):
     """
 
     def render_jupyter_widget_state(self, token: Token):
+        if token.meta["state"]:
+            self.document.settings.env.nb_contains_widgets = True
         node = JupyterWidgetStateNode(state=token.meta["state"])
         self.add_line_and_source_path(node, token)
         self.document.append(node)
@@ -283,16 +292,6 @@ def nb_output_to_disc(ntbk: nbf.NotebookNode, document: nodes.document) -> Path:
     doc_filename = path_doc.name
     build_dir = Path(document.settings.env.app.outdir).parent
     output_dir = build_dir.joinpath("jupyter_execute", doc_relpath)
-
-    # Write a script too.
-    if not ntbk.metadata.get("language_info"):
-        # TODO: we can remove this
-        # once https://github.com/executablebooks/MyST-NB/issues/177 is merged
-        ntbk.metadata["language_info"] = {"file_extension": ".txt"}
-        SPHINX_LOGGER.warning(
-            "Notebook code has no file extension metadata, " "defaulting to `.txt`",
-            location=document.settings.env.docname,
-        )
     write_notebook_output(ntbk, str(output_dir), doc_filename)
 
     # Now add back the mime prefixes to the right outputs so they aren't rendered

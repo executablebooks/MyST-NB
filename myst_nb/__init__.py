@@ -3,12 +3,22 @@ __version__ = "0.9.2"
 from collections.abc import Sequence
 import os
 from pathlib import Path
+from typing import cast
 
-from docutils import nodes
+from docutils import nodes as docnodes
+from sphinx.addnodes import download_reference
 from sphinx.application import Sphinx
+from sphinx.builders.html import StandaloneHTMLBuilder
+from sphinx.environment import BuildEnvironment
 from sphinx.errors import SphinxError
-from sphinx.util.docutils import SphinxDirective
+from sphinx.util.docutils import SphinxDirective, ReferenceRole
 from sphinx.util import logging, import_object
+
+from IPython.lib.lexers import IPythonTracebackLexer, IPython3Lexer
+from ipywidgets.embed import DEFAULT_EMBED_REQUIREJS_URL, DEFAULT_EMBED_SCRIPT_URL
+from jupyter_sphinx import REQUIRE_URL_DEFAULT
+from jupyter_sphinx.ast import JupyterWidgetStateNode, JupyterWidgetViewNode
+from jupyter_sphinx.utils import sphinx_abs_dir
 
 from myst_parser import setup_sphinx as setup_myst_parser
 
@@ -22,7 +32,6 @@ from .nodes import (
 )
 from .render_outputs import CellOutputsToNodes, get_default_render_priority
 from .nb_glue import glue  # noqa: F401
-
 from .nb_glue.domain import (
     NbGlueDomain,
     PasteMathNode,
@@ -47,12 +56,12 @@ def setup(app: Sphinx):
 
     # Helper functions for the registry, pulled from jupyter-sphinx
     def skip(self, node):
-        raise nodes.SkipNode
+        raise docnodes.SkipNode
 
     # Used to render an element node as HTML
     def visit_element_html(self, node):
         self.body.append(node.html())
-        raise nodes.SkipNode
+        raise docnodes.SkipNode
 
     # Shortcut for registering our container nodes
     render_container = (
@@ -83,6 +92,19 @@ def setup(app: Sphinx):
         text=(skip, None),
         man=(skip, None),
     )
+
+    # these nodes hold widget state/view JSON,
+    # but are only rendered properly in HTML documents.
+    for node in [JupyterWidgetStateNode, JupyterWidgetViewNode]:
+        app.add_node(
+            node,
+            override=True,
+            html=(visit_element_html, None),
+            latex=(skip, None),
+            textinfo=(skip, None),
+            text=(skip, None),
+            man=(skip, None),
+        )
 
     # Register our inline nodes so they can be parsed as a part of titles
     # No translators should touch these nodes because we'll replace them in a transform
@@ -135,16 +157,20 @@ def setup(app: Sphinx):
     app.connect("config-inited", update_togglebutton_classes)
     app.connect("env-updated", save_glue_cache)
     app.connect("config-inited", add_nb_custom_formats)
+    app.connect("env-updated", load_ipywidgets_js)
 
     from myst_nb.ansi_lexer import AnsiColorLexer
 
+    # For syntax highlighting
+    app.add_lexer("ipythontb", IPythonTracebackLexer)
+    app.add_lexer("ipython", IPython3Lexer)
     app.add_lexer("myst-ansi", AnsiColorLexer)
 
-    # Misc
-    app.add_css_file("mystnb.css")
-    app.setup_extension("jupyter_sphinx")
-    app.add_domain(NbGlueDomain)
+    # Add components
     app.add_directive("code-cell", CodeCell)
+    app.add_role("nb-download", JupyterDownloadRole())
+    app.add_css_file("mystnb.css")
+    app.add_domain(NbGlueDomain)
 
     # execution statistics table
     setup_exec_table(app)
@@ -236,6 +262,45 @@ def static_path(app: Sphinx):
     app.config.html_static_path.append(str(static_path))
 
 
+def load_ipywidgets_js(app: Sphinx, env: BuildEnvironment) -> None:
+    """Add ipywidget JavaScript to HTML pages.
+
+    We adapt the code in sphinx.ext.mathjax,
+    to only add this JS if widgets have been found in any notebooks.
+    (ideally we would only add it to the pages containing widgets,
+    but this is not trivial in sphinx)
+
+    There are 2 cases:
+
+    - ipywidgets 7, with require
+    - ipywidgets 7, no require
+
+    We reuse settings, if available, for jupyter-sphinx
+    """
+    if app.builder.format != "html" or not app.env.nb_contains_widgets:
+        return
+    builder = cast(StandaloneHTMLBuilder, app.builder)
+
+    require_url_default = (
+        REQUIRE_URL_DEFAULT
+        if "jupyter_sphinx_require_url" not in app.config
+        else app.config.jupyter_sphinx_require_url
+    )
+    embed_url_default = (
+        None
+        if "jupyter_sphinx_embed_url" not in app.config
+        else app.config.jupyter_sphinx_embed_url
+    )
+
+    if require_url_default:
+        builder.add_js_file(require_url_default)
+        embed_url = embed_url_default or DEFAULT_EMBED_REQUIREJS_URL
+    else:
+        embed_url = embed_url_default or DEFAULT_EMBED_SCRIPT_URL
+    if embed_url:
+        builder.add_js_file(embed_url)
+
+
 def set_render_priority(app: Sphinx):
     """Set the render priority for the particular builder."""
     builder = app.builder.name
@@ -271,6 +336,7 @@ def set_valid_execution_paths(app: Sphinx):
         for suffix, parser_type in app.config["source_suffix"].items()
         if parser_type in ("myst-nb",)
     }
+    app.env.nb_contains_widgets = False
 
 
 def set_up_execution_data(app: Sphinx):
@@ -314,6 +380,18 @@ def update_togglebutton_classes(app: Sphinx, config):
 
 def save_glue_cache(app: Sphinx, env):
     NbGlueDomain.from_env(env).write_cache()
+
+
+class JupyterDownloadRole(ReferenceRole):
+    def run(self):
+        reftarget = sphinx_abs_dir(self.env, self.target)
+        node = download_reference(self.rawtext, reftarget=reftarget)
+        self.set_source_info(node)
+        title = self.title if self.has_explicit_title else self.target
+        node += docnodes.literal(
+            self.rawtext, title, classes=["xref", "download", "myst-nb"]
+        )
+        return [node], []
 
 
 class CodeCell(SphinxDirective):
