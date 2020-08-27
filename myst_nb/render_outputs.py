@@ -15,10 +15,7 @@ from sphinx.util import logging
 import nbconvert
 from nbformat import NotebookNode
 
-from jupyter_sphinx.ast import (
-    JupyterWidgetViewNode,
-    strip_latex_delimiters,
-)
+from jupyter_sphinx.ast import strip_latex_delimiters, JupyterWidgetViewNode
 from jupyter_sphinx.utils import sphinx_abs_dir
 
 from myst_parser.main import default_parser, MdParserConfig
@@ -160,7 +157,6 @@ class CellOutputRendererBase(ABC):
                 else:
                     output_nodes.extend(self.render("stdout", output, idx))
             elif output_type == "error":
-                print("traceback", idx)
                 output_nodes.extend(self.render("traceback", output, idx))
 
             elif output_type in ("display_data", "execute_result"):
@@ -352,6 +348,7 @@ class CellOutputRenderer(CellOutputRendererBase):
 
     def render_text_latex(self, output: NotebookNode, index: int):
         text = output["data"]["text/latex"]
+        self.env.get_domain("math").data["has_equations"][self.env.docname] = True
         return [
             nodes.math_block(
                 text=strip_latex_delimiters(text),
@@ -505,6 +502,7 @@ class CellOutputRendererInline(CellOutputRenderer):
 
     def render_text_latex(self, output: NotebookNode, index: int):
         data = output["data"]["text/latex"]
+        self.env.get_domain("math").data["has_equations"][self.env.docname] = True
         return [
             nodes.math(
                 text=strip_latex_delimiters(data),
