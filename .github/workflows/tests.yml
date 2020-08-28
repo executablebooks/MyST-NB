@@ -22,14 +22,20 @@ jobs:
 
   tests:
 
-    runs-on: ubuntu-latest
     strategy:
       matrix:
+        os: [ubuntu-latest]
         python-version: [3.6, 3.7, 3.8]
         sphinx: [">=3,<4"]
         include:
-          - python-version: 3.8
+          - os: ubuntu-latest
+            python-version: 3.8
             sphinx: ">=2,<3"
+          - os: windows-latest
+            python-version: 3.7
+            sphinx: ">=3,<4"
+
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v2
@@ -42,14 +48,17 @@ jobs:
         python -m pip install --upgrade pip
         pip install "sphinx${{ matrix.sphinx }}"
         pip install -e .[testing]
+
     - name: Run pytest
-      run: |
-        pytest --durations=10 --cov=myst_nb --cov-report=xml --cov-report=term-missing
-        coverage xml
+      run: pytest --durations=10 --cov=myst_nb --cov-report=xml --cov-report=term-missing
+
+    - name: Create cov
+      run: coverage xml
       # for some reason the tests/conftest.py::check_nbs fixture breaks pytest-cov's cov-report outputting
       # this is why we run `coverage xml` afterwards (required by codecov)
+
     - name: Upload to Codecov
-      if: matrix.python-version == 3.7 && matrix.sphinx == '>=3,<4' && github.repository == 'executablebooks/MyST-NB'
+      if: matrix.os == 'ubuntu-latest' && matrix.python-version == 3.7 && matrix.sphinx == '>=3,<4' && github.repository == 'executablebooks/MyST-NB'
       uses: codecov/codecov-action@v1
       with:
         name: myst-nb-pytests-py3.7
