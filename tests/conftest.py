@@ -3,6 +3,8 @@ import os
 from pathlib import Path
 import uuid
 
+from docutils.nodes import image as image_node
+from sphinx.util.console import nocolor
 import pytest
 
 from nbdime.diffing.notebooks import (
@@ -10,6 +12,7 @@ from nbdime.diffing.notebooks import (
     set_notebook_diff_targets,
     set_notebook_diff_ignores,
 )
+from nbconvert.filters import strip_ansi
 from nbdime.prettyprint import pretty_print_diff
 import nbformat as nbf
 
@@ -149,6 +152,7 @@ def sphinx_run(sphinx_params, make_app, tempdir):
         "extensions": ["myst_nb"],
         "master_doc": os.path.splitext(sphinx_params["files"][0])[0],
         "exclude_patterns": ["_build"],
+        "execution_show_tb": True,
     }
     confoverrides.update(conf)
 
@@ -176,6 +180,7 @@ def sphinx_run(sphinx_params, make_app, tempdir):
         (srcdir / nb_file).parent.makedirs(exist_ok=True)
         (srcdir / nb_file).write_text(nb_path.read_text(encoding="utf8"))
 
+    nocolor()
     app = make_app(buildername=buildername, srcdir=srcdir, confoverrides=confoverrides)
 
     yield SphinxFixture(app, sphinx_params["files"])
@@ -194,6 +199,8 @@ def empty_non_deterministic_outputs(cell):
                     k: os.path.basename(v)
                     for k, v in item["metadata"]["filenames"].items()
                 }
+            if "traceback" in item:
+                item["traceback"] = [strip_ansi(line) for line in item["traceback"]]
 
 
 @pytest.fixture()
@@ -215,3 +222,23 @@ def check_nbs():
             )
 
     return _check_nbs
+
+
+@pytest.fixture()
+def clean_doctree():
+    def _func(doctree):
+        if os.name == "nt":  # on Windows file paths are absolute
+            for node in doctree.traverse(image_node):  # type: image_node
+                if "candidates" in node:
+                    node["candidates"][
+                        "*"
+                    ] = "_build/jupyter_execute/" + os.path.basename(
+                        node["candidates"]["*"]
+                    )
+                if "uri" in node:
+                    node["uri"] = "_build/jupyter_execute/" + os.path.basename(
+                        node["uri"]
+                    )
+        return doctree
+
+    return _func
