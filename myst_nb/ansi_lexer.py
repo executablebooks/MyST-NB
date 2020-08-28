@@ -68,7 +68,10 @@ class AnsiColorLexer(pygments.lexer.RegexLexer):
     @property
     def current_token(self):
         return _token_from_lexer_state(
-            self.bold, self.faint, self.fg_color, self.bg_color,
+            self.bold,
+            self.faint,
+            self.fg_color,
+            self.bg_color,
         )
 
     def process(self, match):
@@ -90,7 +93,9 @@ class AnsiColorLexer(pygments.lexer.RegexLexer):
         # This is rare but can happen for keyboard remapping, e.g.
         # '\x1b[0;59;"A"p'
         parsed = re.match(
-            r"([0-9;=]*?)?([a-zA-Z])(.*)$", after_escape, re.DOTALL | re.MULTILINE,
+            r"([0-9;=]*?)?([a-zA-Z])(.*)$",
+            after_escape,
+            re.DOTALL | re.MULTILINE,
         )
         if parsed is None:
             # This shouldn't ever happen if we're given valid text + ANSI, but

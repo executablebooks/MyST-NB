@@ -22,7 +22,9 @@ class NbConverter:
 
 
 def get_nb_converter(
-    path: str, env: BuildEnvironment, source_iter: Optional[Iterable[str]] = None,
+    path: str,
+    env: BuildEnvironment,
+    source_iter: Optional[Iterable[str]] = None,
 ) -> Optional[NbConverter]:
     """Get function, to convert a source string to a Notebook."""
 

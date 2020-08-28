@@ -234,7 +234,11 @@ def is_valid_exec_file(env: BuildEnvironment, docname: str) -> bool:
 
 
 def _report_exec_fail(
-    env, file_name: str, traceback: str, show_traceback: bool, template: str,
+    env,
+    file_name: str,
+    traceback: str,
+    show_traceback: bool,
+    template: str,
 ):
     """Save the traceback to a log file, and create log message."""
     reports_dir = Path(env.app.outdir).joinpath("reports")

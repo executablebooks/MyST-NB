@@ -190,21 +190,24 @@ class CellOutputRendererBase(ABC):
         """Raise an exception or generate a warning if appropriate,
         and return a system_message node"""
         return self.document.reporter.warning(
-            "output render: {}".format(error_msg), line=self.node.line,
+            "output render: {}".format(error_msg),
+            line=self.node.line,
         )
 
     def make_error(self, error_msg: str) -> nodes.system_message:
         """Raise an exception or generate a warning if appropriate,
         and return a system_message node"""
         return self.document.reporter.error(
-            "output render: {}".format(error_msg), line=self.node.line,
+            "output render: {}".format(error_msg),
+            line=self.node.line,
         )
 
     def make_severe(self, error_msg: str) -> nodes.system_message:
         """Raise an exception or generate a warning if appropriate,
         and return a system_message node"""
         return self.document.reporter.severe(
-            "output render: {}".format(error_msg), line=self.node.line,
+            "output render: {}".format(error_msg),
+            line=self.node.line,
         )
 
     def add_name(self, node: nodes.Node, name: str):
@@ -301,16 +304,13 @@ class CellOutputRenderer(CellOutputRendererBase):
         ):
             return []
 
-        container = nodes.container(classes=["stderr"])
-        container.append(
-            nodes.literal_block(
-                text=output["text"],
-                rawsource=output["text"],
-                language=self.env.config.nb_render_text_lexer,
-                classes=["stderr"],
-            )
+        node = nodes.literal_block(
+            text=output["text"],
+            rawsource=output["text"],
+            language=self.env.config.nb_render_text_lexer,
+            classes=["output", "stderr"],
         )
-        return [container]
+        return [node]
 
     def render_stdout(self, output: NotebookNode, index: int):
 

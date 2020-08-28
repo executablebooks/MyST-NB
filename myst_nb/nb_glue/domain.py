@@ -213,8 +213,7 @@ class PasteFigure(Paste):
 
 
 def paste_any_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
-    """This role will simply add the cell output
-    """
+    """This role will simply add the cell output"""
     path = inliner.document.current_source
     # Remove line number if we have a notebook because it is unreliable
     if path.endswith(".ipynb"):

@@ -28,7 +28,8 @@ def setup_exec_table(app):
 
 
 def add_doc_tracker(app):
-    """This variable keeps track of want documents contain an `nb-exec-table` directive.
+    """This variable keeps track of want documents contain
+    an `nb-exec-table` directive.
     """
     if not hasattr(app.env, "docs_with_exec_table"):
         app.env.docs_with_exec_table = set()
