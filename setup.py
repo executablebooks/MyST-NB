@@ -53,7 +53,7 @@ setup(
         "docutils>=0.15",
         "sphinx>=2,<4",
         "jupyter_sphinx~=0.3.1",
-        "jupyter-cache~=0.4.0",
+        "jupyter-cache~=0.4.1",
         "ipython",
         "nbformat~=5.0",
         "nbconvert~=5.6",
