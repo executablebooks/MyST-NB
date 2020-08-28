@@ -67,7 +67,10 @@ def test_ignores_unrecognized_ansi_color_codes():
         # invalid non-int code
         "\x1b[=m"
         "plain text\n"
-    ) == ((Text, "plain text\n"), (Text, "plain text\n"),)
+    ) == (
+        (Text, "plain text\n"),
+        (Text, "plain text\n"),
+    )
 
 
 def test_ignores_valid_ansi_non_color_codes():
@@ -96,4 +99,7 @@ def test_ignores_completely_invalid_escapes():
     This shouldn't happen in valid ANSI text, but we could have an escape
     followed by garbage.
     """
-    assert _highlight("plain \x1b[%text\n") == ((Text, "plain "), (Text, "%text\n"),)
+    assert _highlight("plain \x1b[%text\n") == (
+        (Text, "plain "),
+        (Text, "%text\n"),
+    )

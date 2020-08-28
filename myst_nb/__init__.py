@@ -225,7 +225,10 @@ def validate_config_values(app: Sphinx, config):
             )
 
         converter_str = app.config["nb_custom_formats"][name][0]
-        caller = import_object(converter_str, f"MyST-NB nb_custom_formats: {name}",)
+        caller = import_object(
+            converter_str,
+            f"MyST-NB nb_custom_formats: {name}",
+        )
         if not callable(caller):
             raise MystNbConfigError(
                 f"`nb_custom_formats.{name}` converter is not callable: {caller}"

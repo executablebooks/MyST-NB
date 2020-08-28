@@ -249,7 +249,8 @@ def test_execution_metadata_timeout(sphinx_run, file_regression, check_nbs):
 
 
 @pytest.mark.sphinx_params(
-    "nb_exec_table.md", conf={"jupyter_execute_notebooks": "auto"},
+    "nb_exec_table.md",
+    conf={"jupyter_execute_notebooks": "auto"},
 )
 def test_nb_exec_table(sphinx_run, file_regression, check_nbs):
     """Test that the table gets output into the HTML,
