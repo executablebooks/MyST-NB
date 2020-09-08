@@ -263,7 +263,7 @@ For more information, see [the MyST-NB Sphinx extension documentation](index.md)
 ## MyST Notebooks in Jupyter Book
 
 In addition to using MyST Notebooks with Sphinx, you may also use them with the
-Jupyter Book project. See {doc}`jb:content-types/myst-notebooks`.
+Jupyter Book project. See {doc}`jb:file-types/myst-notebooks`.
 
 
 (myst-nb/jupyter-interfaces)=

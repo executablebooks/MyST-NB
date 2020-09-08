@@ -2,6 +2,7 @@
 from abc import ABC, abstractmethod
 import os
 from typing import List, Optional
+from unittest import mock
 
 from importlib_metadata import entry_points
 from docutils import nodes
@@ -19,6 +20,7 @@ from jupyter_sphinx.ast import strip_latex_delimiters, JupyterWidgetViewNode
 from jupyter_sphinx.utils import sphinx_abs_dir
 
 from myst_parser.main import default_parser, MdParserConfig
+from myst_parser.docutils_renderer import make_document
 
 from .nodes import CellOutputBundleNode
 
@@ -118,7 +120,15 @@ class CellOutputsToNodes(SphinxPostTransform):
             if "candidates" in node:
                 continue
             col = ImageCollector()
-            col.process_doc(self.app, node)
+
+            # use the node docname, where possible, to deal with single document builds
+            docname = (
+                self.app.env.path2doc(node.source)
+                if node.source
+                else self.app.env.docname
+            )
+            with mock.patch.dict(self.app.env.temp_data, {"docname": docname}):
+                col.process_doc(self.app, node)
 
 
 class CellOutputRendererBase(ABC):
@@ -227,9 +237,25 @@ class CellOutputRendererBase(ABC):
     ) -> List[nodes.Node]:
         """Parse text as CommonMark, in a new document."""
         parser = default_parser(MdParserConfig(commonmark_only=True))
-        parent = parent or nodes.container()
+
+        # setup parent node
+        if parent is None:
+            parent = nodes.container()
+            self.add_source_and_line(parent)
         parser.options["current_node"] = parent
-        parser.render(text)
+
+        # setup containing document
+        new_doc = make_document(self.node.source)
+        new_doc.settings = self.document.settings
+        new_doc.reporter = self.document.reporter
+        parser.options["document"] = new_doc
+
+        # use the node docname, where possible, to deal with single document builds
+        with mock.patch.dict(
+            self.env.temp_data, {"docname": self.env.path2doc(self.node.source)}
+        ):
+            parser.render(text)
+
         # TODO is there any transforms we should retroactively carry out?
         return parent.children
 
