@@ -100,7 +100,9 @@ execution_timeout = 60  # Note: 30 was timing out on RTD
 myst_admonition_enable = True
 myst_amsmath_enable = True
 myst_html_img_enable = True
+myst_deflist_enable = True
 myst_url_schemes = ("http", "https", "mailto")
+panels_add_boostrap_css = False
 
 
 def setup(app):
