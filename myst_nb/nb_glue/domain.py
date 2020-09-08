@@ -30,9 +30,13 @@ class PasteNode(nodes.container):
         return self.attributes["key"]
 
     def copy(self):
-        return self.__class__(
+        obj = self.__class__(
             self.key, **{k: v for k, v in self.attributes.items() if k != "key"}
         )
+        obj.document = self.document
+        obj.source = self.source
+        obj.line = self.line
+        return obj
 
     def create_node(self, output: dict, document, env):
         """Create the output node, give the cell output."""

@@ -67,6 +67,16 @@ fig = px.scatter(df, x="sepal_width", y="sepal_length", color="species", size="s
 fig
 ```
 
+:::{important}
+
+You may need to supply the `require.js` for plotly to display; in your `conf.py`:
+
+```python
+html_js_files = ["https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"]
+```
+
+:::
+
 ## Bokeh
 
 Bokeh provides several options for interactive visualizations, and is part of the PyViz ecosystem. See

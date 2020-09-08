@@ -20,7 +20,7 @@ from pathlib import Path
 from sphinx.application import Sphinx
 from sphinx.builders import Builder
 from sphinx.environment import BuildEnvironment
-from sphinx.util import logging
+from sphinx.util import logging, progress_message
 
 from jupyter_cache import get_cache
 from jupyter_cache.executors import load_executor
@@ -273,14 +273,15 @@ def _stage_and_execute(
 
     # can leverage parallel execution implemented in jupyter-cache here
     try:
-        execute_staged_nb(
-            cache_base,
-            pk_list or None,
-            timeout=timeout,
-            exec_in_temp=exec_in_temp,
-            allow_errors=allow_errors,
-            env=env,
-        )
+        with progress_message("executing outdated notebooks"):
+            execute_staged_nb(
+                cache_base,
+                pk_list or None,
+                timeout=timeout,
+                exec_in_temp=exec_in_temp,
+                allow_errors=allow_errors,
+                env=env,
+            )
     except OSError as err:
         # This is a 'fix' for obscure cases, such as if you
         # remove name.ipynb and add name.md (i.e. same name, different extension)

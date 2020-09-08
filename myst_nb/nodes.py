@@ -52,9 +52,13 @@ class CellOutputBundleNode(nodes.container):
         return self._renderer
 
     def copy(self):
-        return self.__class__(
+        obj = self.__class__(
             outputs=self._outputs,
             renderer=self._renderer,
             metadata=self._metadata,
             **self.attributes,
         )
+        obj.document = self.document
+        obj.source = self.source
+        obj.line = self.line
+        return obj
