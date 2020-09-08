@@ -1,9 +1,16 @@
 # Change Log
 
+## 0.10.1 - 2020-09-08
+
+⬆️ UPGRADE: myst-parser v0.12.9
+
+: Minor bug fixes and enhancements / new features
+
 ## 0.10.0 - 2020-08-28
 
 ⬆️ UPGRADE: jupyter-sphinx v0.3, jupyter-cache v0.4.1 and nbclient v0.5.
-These upgrades allow for full Windows OS compatibility, and improve the stability of notebook execution on small machines.
+
+: These upgrades allow for full Windows OS compatibility, and improve the stability of notebook execution on small machines.
 
 👌 IMPROVE: Formatting of stderr is now similar to stdout, but with a slight red background.
 
@@ -11,7 +18,9 @@ These upgrades allow for full Windows OS compatibility, and improve the stabilit
 
 ## 0.9.2 - 2020-08-27
 
-⬆️ UPGRADE: myst-parser patch version, to ensure a few new features and bug fixes are incorporated (see its [CHANGELOG.md](https://github.com/executablebooks/MyST-Parser/blob/master/CHANGELOG.md))
+⬆️ UPGRADE: myst-parser patch version
+
+: to ensure a few new features and bug fixes are incorporated (see its [CHANGELOG.md](https://github.com/executablebooks/MyST-Parser/blob/master/CHANGELOG.md))
 
 ## 0.9.1 - 2020-08-24
 
