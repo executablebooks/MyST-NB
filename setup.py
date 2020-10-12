@@ -52,7 +52,8 @@ setup(
         "myst-parser~=0.12.9",
         "docutils>=0.15",
         "sphinx>=2,<4",
-        "jupyter_sphinx~=0.3.1",
+        # TODO 0.3.2 requires some changes to the pytests
+        "jupyter_sphinx==0.3.1",
         "jupyter-cache~=0.4.1",
         "ipython",
         "nbformat~=5.0",
