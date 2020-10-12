@@ -94,6 +94,8 @@ def is_myst_notebook(line_iter: Iterable[str]) -> bool:
         front_matter = yaml.safe_load("".join(yaml_lines))
     except Exception:
         return False
+    if front_matter is None:  # this can occur for empty files
+        return False
     if (
         front_matter.get("jupytext", {})
         .get("text_representation", {})
