@@ -93,7 +93,7 @@ def load_renderer(name) -> "CellOutputRendererBase":
 
 
 class CellOutputsToNodes(SphinxPostTransform):
-    """Use the builder context to transform a ``CellOutputNode`` into Sphinx nodes."""
+    """Use the builder context to transform a :class:`~.nodes.CellOutputNode` into Sphinx nodes."""
 
     # process very early, before CitationReferenceTransform (5), ReferencesResolver (10)
     # https://www.sphinx-doc.org/en/master/extdev/appapi.html#sphinx.application.Sphinx.add_transform
