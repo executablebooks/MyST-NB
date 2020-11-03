@@ -23,6 +23,10 @@ div.cell div.cell_input {
   border-left-color: green;
   border-left-width: medium;
 }
+div.cell.tag_collapse-cell > .cell_output{
+  max-height: 20em;
+  overflow-y: scroll;
+}
 
 div.cell_input > div, div.cell_output div.output > div.highlight {
   margin: 0em !important;
