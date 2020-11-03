@@ -17,14 +17,14 @@ This notebook is a demonstration of directly-parsing Jupyter Notebooks into
 Sphinx using the MyST parser.[^download]
 
 [^download]: This notebook can be downloaded as
-            **{jupyter-download:notebook}`basic`** and {download}`basic.md`
+            **{nb-download}`basic.ipynb`** and {download}`basic.md`
 
 ## Markdown
 
 
 ### Configuration
 
-The MyST-NB parser derives from [the base MyST-Parser](myst:intro/get-started>, and so all the same configuration options are available.
+The MyST-NB parser derives from [the base MyST-Parser](myst:intro/get-started), and so all the same configuration options are available.
 See the [MyST configuration options](myst:intro/config-options) for the full set of options, and [MyST syntax guide](myst:example_syntax) for all the syntax options.
 
 To build documentation from this notebook, the following options are set:

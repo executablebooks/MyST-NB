@@ -22,7 +22,9 @@ class NbConverter:
 
 
 def get_nb_converter(
-    path: str, env: BuildEnvironment, source_iter: Optional[Iterable[str]] = None,
+    path: str,
+    env: BuildEnvironment,
+    source_iter: Optional[Iterable[str]] = None,
 ) -> Optional[NbConverter]:
     """Get function, to convert a source string to a Notebook."""
 
@@ -91,6 +93,8 @@ def is_myst_notebook(line_iter: Iterable[str]) -> bool:
     try:
         front_matter = yaml.safe_load("".join(yaml_lines))
     except Exception:
+        return False
+    if front_matter is None:  # this can occur for empty files
         return False
     if (
         front_matter.get("jupytext", {})

@@ -18,7 +18,7 @@ the rendered notebook. This uses the [**`sphinx-togglebutton`**](https://sphinx-
 package to add a little button that toggles the visibility of content.[^download]
 
 [^download]: This notebook can be downloaded as
-            **{jupyter-download:notebook}`hiding`** and {download}`hiding.md`
+            **{nb-download}`hiding.ipynb`** and {download}`hiding.md`
 
 (use/hiding/code)=
 

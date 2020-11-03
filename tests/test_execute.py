@@ -1,4 +1,13 @@
+import os
 import pytest
+
+
+def regress_nb_doc(file_regression, sphinx_run, check_nbs):
+    file_regression.check(
+        sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb", encoding="utf8"
+    )
+    doctree = sphinx_run.get_doctree()
+    file_regression.check(doctree.pformat(), extension=".xml", encoding="utf8")
 
 
 @pytest.mark.sphinx_params(
@@ -9,8 +18,7 @@ def test_basic_unrun_auto(sphinx_run, file_regression, check_nbs):
     # print(sphinx_run.status())
     assert sphinx_run.warnings() == ""
     assert "test_name" in sphinx_run.app.env.metadata["basic_unrun"]
-    file_regression.check(sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
-    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
+    regress_nb_doc(file_regression, sphinx_run, check_nbs)
 
     # Test execution statistics, should look like:
     # {'basic_unrun': {'mtime': '2020-08-20T03:32:27.061454', 'runtime': 0.964572671,
@@ -29,8 +37,7 @@ def test_basic_unrun_cache(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
     assert sphinx_run.warnings() == ""
     assert "test_name" in sphinx_run.app.env.metadata["basic_unrun"]
-    file_regression.check(sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
-    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
+    regress_nb_doc(file_regression, sphinx_run, check_nbs)
 
     # Test execution statistics, should look like:
     # {'basic_unrun': {'mtime': '2020-08-20T03:32:27.061454', 'runtime': 0.964572671,
@@ -77,7 +84,9 @@ def test_exclude_path(sphinx_run, file_regression):
     sphinx_run.build()
     assert len(sphinx_run.app.env.nb_excluded_exec_paths) == 1
     assert "Executing" not in sphinx_run.status(), sphinx_run.status()
-    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
+    file_regression.check(
+        sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf8"
+    )
 
 
 @pytest.mark.sphinx_params(
@@ -85,14 +94,13 @@ def test_exclude_path(sphinx_run, file_regression):
 )
 def test_basic_failing_cache(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
-    # print(sphinx_run.status())
     assert "Execution Failed" in sphinx_run.warnings()
+    expected_path = "" if os.name == "nt" else "source/basic_failing.ipynb"
     assert (
-        "Couldn't find cache key for notebook file source/basic_failing.ipynb"
+        f"Couldn't find cache key for notebook file {expected_path}"
         in sphinx_run.warnings()
     )
-    file_regression.check(sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
-    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
+    regress_nb_doc(file_regression, sphinx_run, check_nbs)
     sphinx_run.get_report_file()
 
     assert "basic_failing" in sphinx_run.env.nb_execution_data
@@ -109,8 +117,7 @@ def test_basic_failing_auto(sphinx_run, file_regression, check_nbs):
     # print(sphinx_run.status())
     assert "Execution Failed" in sphinx_run.warnings()
     assert "Execution Failed with traceback saved in" in sphinx_run.warnings()
-    file_regression.check(sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
-    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
+    regress_nb_doc(file_regression, sphinx_run, check_nbs)
     sphinx_run.get_report_file()
 
     assert "basic_failing" in sphinx_run.env.nb_execution_data
@@ -127,8 +134,7 @@ def test_allow_errors_cache(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
     # print(sphinx_run.status())
     assert not sphinx_run.warnings()
-    file_regression.check(sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
-    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
+    regress_nb_doc(file_regression, sphinx_run, check_nbs)
 
 
 @pytest.mark.sphinx_params(
@@ -139,8 +145,7 @@ def test_allow_errors_auto(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
     # print(sphinx_run.status())
     assert not sphinx_run.warnings()
-    file_regression.check(sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
-    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
+    regress_nb_doc(file_regression, sphinx_run, check_nbs)
 
 
 @pytest.mark.sphinx_params(
@@ -151,8 +156,7 @@ def test_outputs_present(sphinx_run, file_regression, check_nbs):
     # print(sphinx_run.status())
     assert sphinx_run.warnings() == ""
     assert "test_name" in sphinx_run.app.env.metadata["basic_unrun"]
-    file_regression.check(sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
-    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
+    regress_nb_doc(file_regression, sphinx_run, check_nbs)
 
 
 @pytest.mark.sphinx_params(
@@ -162,8 +166,7 @@ def test_complex_outputs_unrun_cache(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
     # print(sphinx_run.status())
     assert sphinx_run.warnings() == ""
-    file_regression.check(sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
-    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
+    regress_nb_doc(file_regression, sphinx_run, check_nbs)
 
     # Widget view and widget state should make it into the HTML
     html = sphinx_run.get_html()
@@ -178,8 +181,7 @@ def test_complex_outputs_unrun_auto(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
     # print(sphinx_run.status())
     assert sphinx_run.warnings() == ""
-    file_regression.check(sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
-    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
+    regress_nb_doc(file_regression, sphinx_run, check_nbs)
 
     # Widget view and widget state should make it into the HTML
     html = sphinx_run.get_html()
@@ -194,8 +196,7 @@ def test_no_execute(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
     # print(sphinx_run.status())
     assert sphinx_run.warnings() == ""
-    file_regression.check(sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
-    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
+    regress_nb_doc(file_regression, sphinx_run, check_nbs)
 
 
 @pytest.mark.sphinx_params(
@@ -205,8 +206,7 @@ def test_jupyter_cache_path(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
     assert "Execution Succeeded" in sphinx_run.status()
     assert sphinx_run.warnings() == ""
-    file_regression.check(sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
-    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
+    regress_nb_doc(file_regression, sphinx_run, check_nbs)
 
 
 # Testing relative paths within the notebook
@@ -249,7 +249,8 @@ def test_execution_metadata_timeout(sphinx_run, file_regression, check_nbs):
 
 
 @pytest.mark.sphinx_params(
-    "nb_exec_table.md", conf={"jupyter_execute_notebooks": "auto"},
+    "nb_exec_table.md",
+    conf={"jupyter_execute_notebooks": "auto"},
 )
 def test_nb_exec_table(sphinx_run, file_regression, check_nbs):
     """Test that the table gets output into the HTML,
@@ -257,7 +258,9 @@ def test_nb_exec_table(sphinx_run, file_regression, check_nbs):
     """
     sphinx_run.build()
     assert not sphinx_run.warnings()
-    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
+    file_regression.check(
+        sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf8"
+    )
     assert '<tr class="row-even"><td><p>nb_exec_table</p></td>' in sphinx_run.get_html()
 
 
@@ -272,9 +275,7 @@ def test_custom_convert_auto(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
     # print(sphinx_run.status())
     assert sphinx_run.warnings() == ""
-
-    file_regression.check(sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
-    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
+    regress_nb_doc(file_regression, sphinx_run, check_nbs)
 
     assert sphinx_run.env.nb_execution_data_changed is True
     assert "custom-formats" in sphinx_run.env.nb_execution_data
@@ -293,8 +294,7 @@ def test_custom_convert_cache(sphinx_run, file_regression, check_nbs):
     """The outputs should be populated."""
     sphinx_run.build()
     assert sphinx_run.warnings() == ""
-    file_regression.check(sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
-    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
+    regress_nb_doc(file_regression, sphinx_run, check_nbs)
 
     assert sphinx_run.env.nb_execution_data_changed is True
     assert "custom-formats" in sphinx_run.env.nb_execution_data

@@ -30,9 +30,13 @@ class PasteNode(nodes.container):
         return self.attributes["key"]
 
     def copy(self):
-        return self.__class__(
+        obj = self.__class__(
             self.key, **{k: v for k, v in self.attributes.items() if k != "key"}
         )
+        obj.document = self.document
+        obj.source = self.source
+        obj.line = self.line
+        return obj
 
     def create_node(self, output: dict, document, env):
         """Create the output node, give the cell output."""
@@ -213,8 +217,7 @@ class PasteFigure(Paste):
 
 
 def paste_any_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
-    """This role will simply add the cell output
-    """
+    """This role will simply add the cell output"""
     path = inliner.document.current_source
     # Remove line number if we have a notebook because it is unreliable
     if path.endswith(".ipynb"):

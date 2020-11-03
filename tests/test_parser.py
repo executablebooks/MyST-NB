@@ -16,7 +16,9 @@ def test_basic_run(sphinx_run, file_regression):
         sphinx_run.app.env.metadata["basic_run"]["kernelspec"]
         == '{"display_name": "Python 3", "language": "python", "name": "python3"}'
     )
-    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
+    file_regression.check(
+        sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf8"
+    )
 
     filenames = {
         p for p in (sphinx_run.app.srcdir / "_build" / "jupyter_execute").listdir()
@@ -51,7 +53,9 @@ def test_complex_outputs(sphinx_run, file_regression):
         sphinx_run.app.env.metadata["complex_outputs"]["kernelspec"]
         == '{"display_name": "Python 3", "language": "python", "name": "python3"}'
     )
-    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
+    file_regression.check(
+        sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf8"
+    )
 
     filenames = {
         p.replace(".jpeg", ".jpg")

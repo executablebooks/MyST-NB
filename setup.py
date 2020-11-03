@@ -49,14 +49,16 @@ setup(
     python_requires=">=3.6",
     package_data={"myst_nb": ["_static/*"]},
     install_requires=[
-        "myst-parser~=0.12.1",
+        "myst-parser~=0.12.9",
         "docutils>=0.15",
         "sphinx>=2,<4",
-        "jupyter_sphinx~=0.2.4",
-        "jupyter-cache~=0.4.0",
+        # TODO 0.3.2 requires some changes to the pytests
+        "jupyter_sphinx==0.3.1",
+        "jupyter-cache~=0.4.1",
         "ipython",
         "nbformat~=5.0",
         "nbconvert~=5.6",
+        "ipywidgets>=7.0.0,<8",
         "pyyaml",
         "sphinx-togglebutton~=0.2.2",
         "importlib_metadata",
@@ -72,11 +74,10 @@ setup(
             "numpy",
             "sympy",
             "pandas",
-            # greater versions currently have a version conflict with myst-parser
-            "jupytext<=1.4.0",
+            "jupytext>=1.6.0",
         ],
         "rtd": [
-            "jupytext<=1.4.0",
+            "jupytext>=1.6.0",
             "coconut~=1.4.3",
             "sphinxcontrib-bibtex",
             "ipywidgets",

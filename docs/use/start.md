@@ -106,4 +106,10 @@ Then for parsing and output rendering:
 * - `nb_render_text_lexer`
   - `myst-ansi`
   - pygments lexer for rendering text outputs, [see here](use/format/ansi) for details.
+* - `nb_render_key`
+  - `render`
+  - The top-level cell metadata key, to store render control data, [see here](use/format/images) for examples.
+* - `nb_output_stderr`
+  - `show`
+  - One of 'show', 'remove', 'warn', 'error' or 'severe', [see here](use/format/stderr) for details.
 `````

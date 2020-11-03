@@ -1,5 +1,37 @@
 # Change Log
 
+## 0.10.1 - 2020-09-08
+
+⬆️ UPGRADE: myst-parser v0.12.9
+
+: Minor bug fixes and enhancements / new features
+
+## 0.10.0 - 2020-08-28
+
+⬆️ UPGRADE: jupyter-sphinx v0.3, jupyter-cache v0.4.1 and nbclient v0.5.
+
+: These upgrades allow for full Windows OS compatibility, and improve the stability of notebook execution on small machines.
+
+👌 IMPROVE: Formatting of stderr is now similar to stdout, but with a slight red background.
+
+🧪 TESTS: Add Windows CI
+
+## 0.9.2 - 2020-08-27
+
+⬆️ UPGRADE: myst-parser patch version
+
+: to ensure a few new features and bug fixes are incorporated (see its [CHANGELOG.md](https://github.com/executablebooks/MyST-Parser/blob/master/CHANGELOG.md))
+
+## 0.9.1 - 2020-08-24
+
+More configuration!
+
+- ✨ NEW: Add stderr global configuration: `nb_output_stderr`
+  (see [removing stderr](https://myst-nb.readthedocs.io/en/latest/use/formatting_outputs.html#removing-stdout-and-stderr))
+- ✨ NEW: Add `nb_render_key` configuration
+  (see [formatting outputs](https://myst-nb.readthedocs.io/en/latest/use/formatting_outputs.html#images))
+- 🐛 FIX: `auto` execution not recognising (and skipping) notebooks with existing outputs
+
 ## 0.9.0 - 2020-08-24
 
 This versions see's many great changes; utilising the ⬆️ upgrade to `myst-parser=v0.12`

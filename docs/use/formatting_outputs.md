@@ -42,11 +42,13 @@ nb_render_priority = {
 [](use/format/cutomise), for a more advanced means of customisation.
 :::
 
+(use/format/stderr)=
 ## Removing stdout and stderr
 
 In some cases you may not wish to display stdout/stderr outputs in your final documentation,
 for example, if they are only for debugging purposes.
-You can tell MyST-NB to remove these outputs using the `remove-stdout` and `remove-stderr` [cell tags](https://jupyter-notebook.readthedocs.io/en/stable/changelog.html#cell-tags), like so:
+
+You can tell MyST-NB to remove these outputs, per cell, using the `remove-stdout` and `remove-stderr` [cell tags](https://jupyter-notebook.readthedocs.io/en/stable/changelog.html#cell-tags), like so:
 
 ````md
 ```{code-cell} ipython3
@@ -70,11 +72,20 @@ print("this is some stderr", file=sys.stderr)
 pandas.DataFrame({"column 1": [1, 2, 3]})
 ```
 
+Alternatively, you can configure how stdout is dealt with at a global configuration level, using the `nb_output_stderr` configuration value.
+This can be set to:
+
+- `"show"` (default): show all stderr (unless a `remove-stderr` tag is present)
+- `"remove"`: remove all stderr
+- `"remove-warn"`: remove all stderr, but log a warning to sphinx if any found
+- `"warn"`, `"error"` or `"severe"`: log to sphinx, at a certain level, if any found.
+
 (use/format/images)=
 ## Images
 
 With the default renderer, for any image types output by the code, we can apply formatting *via* cell metadata.
-The keys should be placed under `myst`, then for the image we can apply all the variables of the standard [image directive](https://docutils.sourceforge.io/docs/ref/rst/directives.html#image):
+The top-level metadata key can be set using `nb_render_key` in your `conf.py`, and is set to `render` by default.
+Then for the image we can apply all the variables of the standard [image directive](https://docutils.sourceforge.io/docs/ref/rst/directives.html#image):
 
 - **width**: length or percentage (%) of the current line width
 - **height**: length
@@ -90,7 +101,7 @@ We can also set a caption (which is rendered as [CommonMark](https://commonmark.
 ````md
 ```{code-cell} ipython3
 ---
-myst:
+render:
   image:
     width: 200px
     alt: fun-fish
@@ -107,7 +118,7 @@ Image("images/fun-fish.png")
 
 ```{code-cell} ipython3
 ---
-myst:
+render:
   image:
     width: 300px
     alt: fun-fish

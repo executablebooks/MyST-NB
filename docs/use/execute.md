@@ -107,7 +107,7 @@ However, you can set `execution_in_temp=True` in your `conf.py`, to change this 
 The execution of notebooks is managed by {doc}`nbclient <nbclient:client>`.
 
 The `execution_timeout` sphinx option defines the maximum time (in seconds) each notebook cell is allowed to run.
-if the execution takes longer an exception will be raised.
+If the execution takes longer an exception will be raised.
 The default is 30 s, so in cases of long-running cells you may want to specify an higher value.
 The timeout option can also be set to `None` or -1 to remove any restriction on execution time.
 

@@ -35,7 +35,7 @@ extensions = [
     "sphinx_copybutton",
     "sphinx.ext.intersphinx",
     "sphinx.ext.autodoc",
-    # "sphinx.ext.viewcode"
+    "sphinx.ext.viewcode",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -89,7 +89,6 @@ nitpick_ignore = [
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
-html_css_files = ["patch.css"]
 
 copybutton_selector = "div:not(.output) > div.highlight pre"
 
@@ -101,7 +100,9 @@ execution_timeout = 60  # Note: 30 was timing out on RTD
 myst_admonition_enable = True
 myst_amsmath_enable = True
 myst_html_img_enable = True
+myst_deflist_enable = True
 myst_url_schemes = ("http", "https", "mailto")
+panels_add_boostrap_css = False
 
 
 def setup(app):

@@ -30,7 +30,7 @@ When used with Sphinx, MyST Notebooks are also integrated
 directly into the {ref}`Execution and Caching <execute/cache>` machinery!
 
 [^download]: This notebook can be downloaded as
-            **{jupyter-download:notebook}`markdown`** and {download}`markdown.md`
+            **{nb-download}`markdown.py`** and {download}`markdown.md`
 
 ## The MyST Notebook Structure
 
@@ -263,7 +263,7 @@ For more information, see [the MyST-NB Sphinx extension documentation](index.md)
 ## MyST Notebooks in Jupyter Book
 
 In addition to using MyST Notebooks with Sphinx, you may also use them with the
-Jupyter Book project. See {doc}`jb:content-types/myst-notebooks`.
+Jupyter Book project. See {doc}`jb:file-types/myst-notebooks`.
 
 
 (myst-nb/jupyter-interfaces)=

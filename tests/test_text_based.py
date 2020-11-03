@@ -21,8 +21,12 @@ def test_basic_run(sphinx_run, file_regression, check_nbs):
         sphinx_run.app.env.metadata["basic_unrun"]["kernelspec"]
         == '{"display_name": "Python 3", "language": "python", "name": "python3"}'
     )
-    file_regression.check(sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
-    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml")
+    file_regression.check(
+        sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb", encoding="utf8"
+    )
+    file_regression.check(
+        sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf8"
+    )
 
 
 @pytest.mark.sphinx_params(
@@ -36,9 +40,11 @@ def test_basic_run_exec_off(sphinx_run, file_regression, check_nbs):
     assert "language_info" not in set(sphinx_run.app.env.metadata["basic_unrun"].keys())
     assert sphinx_run.app.env.metadata["basic_unrun"]["author"] == "Chris"
 
-    file_regression.check(sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb")
     file_regression.check(
-        sphinx_run.get_doctree().pformat(), extension=".xml",
+        sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb", encoding="utf8"
+    )
+    file_regression.check(
+        sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf8"
     )
 
 

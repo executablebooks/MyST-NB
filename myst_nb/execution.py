@@ -20,7 +20,7 @@ from pathlib import Path
 from sphinx.application import Sphinx
 from sphinx.builders import Builder
 from sphinx.environment import BuildEnvironment
-from sphinx.util import logging
+from sphinx.util import logging, progress_message
 
 from jupyter_cache import get_cache
 from jupyter_cache.executors import load_executor
@@ -199,13 +199,6 @@ def generate_notebook_outputs(
 
         LOGGER.error(message)
 
-        # This is a 'fix' for jupyter_sphinx, which requires this value for dumping the
-        # script file, to stop it from raising an exception if not found:
-        # Normally it would be added from the executed notebook but,
-        # since we are already logging an error, we don't want to block the whole build.
-        # So here we just add a dummy .txt extension
-        if "language_info" not in ntbk.metadata:
-            ntbk.metadata["language_info"] = nbf.from_dict({"file_extension": ".txt"})
     else:
         LOGGER.verbose("Merged cached outputs into %s", str(r_file_path))
         succeeded = True
@@ -241,7 +234,11 @@ def is_valid_exec_file(env: BuildEnvironment, docname: str) -> bool:
 
 
 def _report_exec_fail(
-    env, file_name: str, traceback: str, show_traceback: bool, template: str,
+    env,
+    file_name: str,
+    traceback: str,
+    show_traceback: bool,
+    template: str,
 ):
     """Save the traceback to a log file, and create log message."""
     reports_dir = Path(env.app.outdir).joinpath("reports")
@@ -276,14 +273,15 @@ def _stage_and_execute(
 
     # can leverage parallel execution implemented in jupyter-cache here
     try:
-        execute_staged_nb(
-            cache_base,
-            pk_list or None,
-            timeout=timeout,
-            exec_in_temp=exec_in_temp,
-            allow_errors=allow_errors,
-            env=env,
-        )
+        with progress_message("executing outdated notebooks"):
+            execute_staged_nb(
+                cache_base,
+                pk_list or None,
+                timeout=timeout,
+                exec_in_temp=exec_in_temp,
+                allow_errors=allow_errors,
+                env=env,
+            )
     except OSError as err:
         # This is a 'fix' for obscure cases, such as if you
         # remove name.ipynb and add name.md (i.e. same name, different extension)
@@ -327,7 +325,7 @@ def execute_staged_nb(
     return result
 
 
-def nb_has_all_output(source_path: str, nb_extensions: List[str] = ["ipynb"]) -> bool:
+def nb_has_all_output(source_path: str, nb_extensions: List[str] = (".ipynb",)) -> bool:
     """Determine if the path contains a notebook with at least one output."""
     has_outputs = False
     ext = os.path.splitext(source_path)[1]

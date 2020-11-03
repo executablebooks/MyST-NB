@@ -19,7 +19,7 @@ These should all be supported in MyST-NB by passing the output HTML through
 automatically. This page has a few common examples.[^download]
 
 [^download]: This notebook can be downloaded as
-            **{jupyter-download:notebook}`interactive`** and {download}`interactive.md`
+            **{nb-download}`interactive.ipynb`** and {download}`interactive.md`
 
 First off, we'll download a little bit of data
 and show its structure:
@@ -66,6 +66,16 @@ df = px.data.iris()
 fig = px.scatter(df, x="sepal_width", y="sepal_length", color="species", size="sepal_length")
 fig
 ```
+
+:::{important}
+
+You may need to supply the `require.js` for plotly to display; in your `conf.py`:
+
+```python
+html_js_files = ["https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"]
+```
+
+:::
 
 ## Bokeh
 

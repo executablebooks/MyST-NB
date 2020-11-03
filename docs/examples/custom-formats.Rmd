@@ -71,7 +71,7 @@ nb_custom_formats = {
 ```
 
 :::{important}
-It is necessary to use `jupytext<=1.4.0,>=1.5.0`, due to an incompatibility with the `myst-parser` version in `jupytext=1.4`.
+For full compatibility with `myst-nb`, `jupytext>=1.6.0` should be used.
 :::
 
 For example:
