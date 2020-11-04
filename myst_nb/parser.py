@@ -181,7 +181,7 @@ def nb_to_tokens(
     # we run inline and post-inline chains, to expand the text.
     # Note we assume here that these rules never require the actual source text,
     # only acting on the existing tokens
-    state = StateCore(None, md, env, block_tokens)
+    state = StateCore("", md, env, block_tokens)
     with md.reset_rules():
         md.core.ruler.enableOnly(rules[rules.index("inline") :])
         md.core.process(state)
