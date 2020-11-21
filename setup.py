@@ -16,7 +16,7 @@ setup(
     ),
     long_description=open("README.md", encoding="utf8").read(),
     long_description_content_type="text/markdown",
-    url="https://github.com/executablebooks/myst_nb",
+    url="https://github.com/executablebooks/myst-nb",
     author="ExecutableBookProject",
     author_email="choldgraf@berkeley.edu",
     license="BSD-3",
