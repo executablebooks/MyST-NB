@@ -61,7 +61,6 @@ html_theme_options = {
     "repository_branch": "master",
     "use_edit_page_button": True,
     "path_to_docs": "docs/",
-    "expand_sections": ["use/index", "examples/index"],
 }
 
 intersphinx_mapping = {
@@ -102,7 +101,7 @@ myst_amsmath_enable = True
 myst_html_img_enable = True
 myst_deflist_enable = True
 myst_url_schemes = ("http", "https", "mailto")
-panels_add_boostrap_css = False
+panels_add_bootstrap_css = False
 
 
 def setup(app):
