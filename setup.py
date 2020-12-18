@@ -49,7 +49,7 @@ setup(
     python_requires=">=3.6",
     package_data={"myst_nb": ["_static/*"]},
     install_requires=[
-        "myst-parser~=0.12.9",
+        "myst-parser~=0.13.0",
         "docutils>=0.15",
         "sphinx>=2,<4",
         # TODO 0.3.2 requires some changes to the pytests
@@ -74,10 +74,10 @@ setup(
             "numpy",
             "sympy",
             "pandas",
-            "jupytext>=1.6.0",
+            "jupytext-ebp==1.7.2a0",  # TODO waiting for jupytext 1.7.2 release
         ],
         "rtd": [
-            "jupytext>=1.6.0",
+            "jupytext-ebp==1.7.2a0",  # TODO waiting for jupytext 1.7.2 release
             "coconut~=1.4.3",
             "sphinxcontrib-bibtex",
             "ipywidgets",
