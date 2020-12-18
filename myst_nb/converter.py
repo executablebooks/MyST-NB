@@ -90,6 +90,9 @@ def is_myst_notebook(line_iter: Iterable[str]) -> bool:
             break
         yaml_lines.append(line.rstrip() + "\n")
 
+    if not yaml_lines:
+        return False
+
     try:
         front_matter = yaml.safe_load("".join(yaml_lines))
     except Exception:
