@@ -1,4 +1,4 @@
-__version__ = "0.10.1"
+__version__ = "0.11.0a1"
 
 from collections.abc import Sequence
 import os
