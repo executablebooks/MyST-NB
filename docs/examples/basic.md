@@ -30,9 +30,13 @@ See the [MyST configuration options](myst:intro/config-options) for the full set
 To build documentation from this notebook, the following options are set:
 
 ```python
-myst_admonition_enable = True
-myst_amsmath_enable = True
-myst_html_img_enable = True
+myst_enable_extensions = [
+    "amsmath",
+    "colon_fence",
+    "deflist",
+    "dollarmath",
+    "html_image",
+]
 myst_url_schemes = ("http", "https", "mailto")
 ```
 
@@ -47,7 +51,7 @@ For example, here's the MyST-NB logo:
 
 ![myst-nb logo](../_static/logo.png)
 
-With the `myst_html_img_enable=True` ([see here](myst:syntax/images)), you can even add HTML img tags with attributes:
+By adding `"html_image"` to the `myst_enable_extensions` list in the sphinx configuration ([see here](myst:syntax/images)), you can even add HTML `img` tags with attributes:
 
 ```html
 <img src="../_static/logo.png" alt="logo" width="200px" class="shadow mb-2">
@@ -70,7 +74,7 @@ It was generated with this code ([as explained here](myst:syntax/admonitions)):
 
 :::::
 
-If you wish to use "bare" LaTeX equations, then you should set `myst_amsmath_enable = True` in the sphinx configuration.
+If you wish to use "bare" LaTeX equations, then you should add `"amsmath"` to the `myst_enable_extensions` list in the sphinx configuration.
 This is [explained here](myst:syntax/amsmath), and works as such:
 
 ```latex

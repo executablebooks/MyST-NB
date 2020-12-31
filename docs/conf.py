@@ -61,6 +61,7 @@ html_theme_options = {
     "repository_branch": "master",
     "use_edit_page_button": True,
     "path_to_docs": "docs/",
+    "show_navbar_depth": 2,
 }
 
 intersphinx_mapping = {
@@ -96,10 +97,13 @@ jupyter_execute_notebooks = "cache"
 execution_show_tb = "READTHEDOCS" in os.environ
 execution_timeout = 60  # Note: 30 was timing out on RTD
 
-myst_admonition_enable = True
-myst_amsmath_enable = True
-myst_html_img_enable = True
-myst_deflist_enable = True
+myst_enable_extensions = [
+    "amsmath",
+    "colon_fence",
+    "deflist",
+    "dollarmath",
+    "html_image",
+]
 myst_url_schemes = ("http", "https", "mailto")
 panels_add_bootstrap_css = False
 

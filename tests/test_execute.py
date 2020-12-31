@@ -228,7 +228,7 @@ def test_relative_path_force(sphinx_run, file_regression, check_nbs):
 
 # Execution timeout configuration
 @pytest.mark.sphinx_params(
-    "complex_outputs_unrun.ipynb",
+    "sleep_10.ipynb",
     conf={"jupyter_execute_notebooks": "cache", "execution_timeout": 1},
 )
 def test_execution_timeout(sphinx_run, file_regression, check_nbs):
@@ -239,7 +239,7 @@ def test_execution_timeout(sphinx_run, file_regression, check_nbs):
 
 
 @pytest.mark.sphinx_params(
-    "complex_outputs_unrun_timeout.ipynb",
+    "sleep_10_metadata_timeout.ipynb",
     conf={"jupyter_execute_notebooks": "cache", "execution_timeout": 60},
 )
 def test_execution_metadata_timeout(sphinx_run, file_regression, check_nbs):
