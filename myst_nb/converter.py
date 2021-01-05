@@ -2,6 +2,8 @@ import json
 from typing import Callable, Iterable, Optional
 
 import attr
+import re
+from pathlib import Path
 
 import nbformat as nbf
 from sphinx.environment import BuildEnvironment
@@ -57,7 +59,7 @@ def get_nb_converter(
     if source_iter is None:
         return NbConverter(
             lambda text: myst_to_notebook(
-                text, config=env.myst_config, add_source_map=True
+                text, config=env.myst_config, add_source_map=True, context=env
             ),
             env.myst_config,
         )
@@ -66,7 +68,7 @@ def get_nb_converter(
     if is_myst_notebook(source_iter):
         return NbConverter(
             lambda text: myst_to_notebook(
-                text, config=env.myst_config, add_source_map=True
+                text, config=env.myst_config, add_source_map=True, context=env
             ),
             env.myst_config,
         )
@@ -118,6 +120,10 @@ def is_myst_notebook(line_iter: Iterable[str]) -> bool:
 
 class MystMetadataParsingError(Exception):
     """Error when parsing metadata from myst formatted text"""
+
+
+class MystFileParsingError(Exception):
+    """Error when parsing files for code-blocks/code-cells"""
 
 
 def strip_blank_lines(text):
@@ -180,6 +186,7 @@ def myst_to_notebook(
     code_directive=CODE_DIRECTIVE,
     raw_directive=RAW_DIRECTIVE,
     add_source_map=False,
+    context=None,
 ):
     """Convert text written in the myst format to a notebook.
 
@@ -188,6 +195,7 @@ def myst_to_notebook(
     :param raw_directive: the name of the directive to search for containing raw cells
     :param add_source_map: add a `source_map` key to the notebook metadata,
         which is a list of the starting source line number for each cell.
+    :param: context: passthrough Sphinx Builder Environment
 
     :raises MystMetadataParsingError if the metadata block is not valid JSON/YAML
 
@@ -248,6 +256,14 @@ def myst_to_notebook(
         if token.type == "fence" and token.info.startswith(code_directive):
             _flush_markdown(md_start_line, token, md_metadata)
             options, body_lines = read_fenced_cell(token, len(notebook.cells), "Code")
+            # Parse :file or file: tags and populate body with contents of file
+            if "file" in options:
+                fl = re.search(r"( .*?\.[\w:]+)", token.content).group(0).lstrip()
+                flpath = Path(context.srcdir + "/" + fl).resolve()
+                try:
+                    body_lines = flpath.read_text().split("\n")
+                except Exception:
+                    raise MystFileParsingError("Can't read file: {}".format(flpath))
             meta = nbf.from_dict(options)
             source_map.append(token.map[0] + 1)
             notebook.cells.append(
