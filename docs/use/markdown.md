@@ -103,6 +103,22 @@ b = "Python code!"
 print(f"{a} {b}")
 ```
 
+**Code from Files:**
+
+`myst_nb` provides a convenience feature for importing executable code into a `{code-cell}`
+from a file. This can be useful when you want to share code between documents. To do this
+you specify a `file` metadata attribute such as:
+
+````md
+```{code-cell} ipython3
+:file: <path>
+```
+````
+
+```{warning}
+This is a feature provided by `myst_nb` and is **not** part of the core `MyST` markup specification.
+```
+
 ### Syntax for markdown
 
 Anything in-between code cells will be treated as markdown. You can use any markdown
