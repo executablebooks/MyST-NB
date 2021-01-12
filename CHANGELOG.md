@@ -1,5 +1,13 @@
 # Change Log
 
+## 0.10.2 - 2021-01-12
+
+Minor fixes:
+
+- 🐛 FIX: empty myst file read
+- 🐛 FIX: remove cell background-color CSS for cells
+- 🔧 MAINTAIN: Pin jupyter-sphinx version
+
 ## 0.10.1 - 2020-09-08
 
 ⬆️ UPGRADE: myst-parser v0.12.9
