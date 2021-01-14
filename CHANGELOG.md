@@ -1,5 +1,21 @@
 # Change Log
 
+## 0.11.0 - 2021-01-12
+
+This release updates MyST-Parser to `v0.13`,
+which is detailed in the [myst-parser changelog](https://myst-parser.readthedocs.io/en/latest/develop/_changelog.html).
+
+The primary change is to the extension system, with extensions now all loaded *via* `myst_enable_extensions = ["dollarmath", ...]`,
+and a number of extensions added or improved.
+
+## 0.10.2 - 2021-01-12
+
+Minor fixes:
+
+- 🐛 FIX: empty myst file read
+- 🐛 FIX: remove cell background-color CSS for cells
+- 🔧 MAINTAIN: Pin jupyter-sphinx version
+
 ## 0.10.1 - 2020-09-08
 
 ⬆️ UPGRADE: myst-parser v0.12.9
