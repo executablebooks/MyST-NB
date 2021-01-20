@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.11.1 - 2021-01-20
+
+Minor update to handle MyST-Parser `v0.13.3` and `v4.5` notebooks.
+
 ## 0.11.0 - 2021-01-12
 
 This release updates MyST-Parser to `v0.13`,
