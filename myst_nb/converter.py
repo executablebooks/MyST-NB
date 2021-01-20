@@ -140,7 +140,7 @@ def read_fenced_cell(token, cell_index, cell_type):
     try:
         _, options, body_lines = parse_directive_text(
             directive_class=MockDirective,
-            argument_str="",
+            first_line="",
             content=token.content,
             validate_options=False,
         )
