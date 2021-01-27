@@ -300,3 +300,22 @@ def test_custom_convert_cache(sphinx_run, file_regression, check_nbs):
     assert "custom-formats" in sphinx_run.env.nb_execution_data
     assert sphinx_run.env.nb_execution_data["custom-formats"]["method"] == "cache"
     assert sphinx_run.env.nb_execution_data["custom-formats"]["succeeded"] is True
+
+
+@pytest.mark.sphinx_params(
+    "basic_failing.ipynb",
+    conf={"execution_allow_errors": False, "execution_strict_mode": True},
+)
+def test_execution_strict_mode_true(sphinx_run, file_regression, check_nbs):
+    with pytest.raises(ValueError) as excinfo:
+        sphinx_run.build()
+    assert str(excinfo.value).startswith("Execution failed:")
+
+
+@pytest.mark.sphinx_params(
+    "basic_failing.ipynb",
+    conf={"execution_allow_errors": False, "execution_strict_mode": False},
+)
+def test_execution_strict_mode_false(sphinx_run, file_regression, check_nbs):
+    sphinx_run.build()
+    assert "Execution Failed" in sphinx_run.warnings()

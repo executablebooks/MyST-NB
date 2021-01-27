@@ -129,6 +129,7 @@ def setup(app: Sphinx):
     # show traceback in stdout (in addition to writing to file)
     # this is useful in e.g. RTD where one cannot inspect a file
     app.add_config_value("execution_show_tb", False, "")
+    app.add_config_value("execution_strict_mode", False, "env")
     app.add_config_value("nb_custom_formats", {}, "env")
 
     # render config

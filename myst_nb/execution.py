@@ -151,7 +151,7 @@ def generate_notebook_outputs(
                     show_traceback,
                     "Execution Failed with traceback saved in {}",
                 )
-                LOGGER.error(message)
+                handle_execution_failure(env, message)
 
             ntbk = result.nb
 
@@ -289,8 +289,8 @@ def _stage_and_execute(
         # Normally we want to keep the stage records available, so that we can retrieve
         # execution tracebacks at the `generate_notebook_outputs` stage,
         # but we need to flush if it becomes 'corrupted'
-        LOGGER.error(
-            "Execution failed in an unexpected way, clearing staged notebooks: %s", err
+        handle_execution_failure(env,
+            "Execution failed in an unexpected way, clearing staged notebooks: {err}"
         )
         for record in cache_base.list_staged_records():
             cache_base.discard_staged_notebook(record.pk)
@@ -308,7 +308,7 @@ def execute_staged_nb(
     try:
         executor = load_executor("basic", cache_base, logger=LOGGER)
     except ImportError as error:
-        LOGGER.error(str(error))
+        handle_execution_failure(env, str(error))
         return 1
 
     def _converter(path):
@@ -339,3 +339,10 @@ def nb_has_all_output(source_path: str, nb_extensions: List[str] = (".ipynb",)) 
                 if cell["cell_type"] == "code"
             )
     return has_outputs
+
+
+def handle_execution_failure(env, message):
+    if env.config["execution_strict_mode"]:
+        raise ValueError(f"Execution failed: {message}")
+    else:
+        LOGGER.error(message)
