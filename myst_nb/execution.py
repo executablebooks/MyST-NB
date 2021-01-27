@@ -289,8 +289,9 @@ def _stage_and_execute(
         # Normally we want to keep the stage records available, so that we can retrieve
         # execution tracebacks at the `generate_notebook_outputs` stage,
         # but we need to flush if it becomes 'corrupted'
-        handle_execution_failure(env,
-            "Execution failed in an unexpected way, clearing staged notebooks: {err}"
+        handle_execution_failure(
+            env,
+            f"Execution failed in an unexpected way, clearing staged notebooks: {err}",
         )
         for record in cache_base.list_staged_records():
             cache_base.discard_staged_notebook(record.pk)
