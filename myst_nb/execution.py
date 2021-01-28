@@ -150,7 +150,9 @@ def generate_notebook_outputs(
             report_path = None
             if result.err:
                 if env.config["execution_fail_on_error"]:
-                    raise ExecutionError(str(result.err))
+                    raise ExecutionError(
+                        f"Execution failed for file: {file_path}\n{str(result.err)}"
+                    )
                 else:
                     report_path, message = _report_exec_fail(
                         env,

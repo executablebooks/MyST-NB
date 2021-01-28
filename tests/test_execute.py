@@ -311,11 +311,11 @@ def test_custom_convert_cache(sphinx_run, file_regression, check_nbs):
 def test_execution_fail_on_error(sphinx_run, file_regression, check_nbs):
     with pytest.raises(ExecutionError) as excinfo:
         sphinx_run.build()
-    assert str(excinfo.value).startswith(
-        "An error occurred while executing the following cell:"
-    )
-    cell_contents = "------------------\nraise Exception('oopsie!')\n------------------"
-    assert cell_contents in str(excinfo.value)
+    assert str(excinfo.value).startswith("Execution failed for file:")
+    # Ensure filename is reported:
+    assert "basic_failing.ipynb" in str(excinfo.value)
+    # Ensure failing code is reported:
+    assert "raise Exception('oopsie!')" in str(excinfo.value)
 
 
 @pytest.mark.sphinx_params(
