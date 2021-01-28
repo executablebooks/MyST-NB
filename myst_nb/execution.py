@@ -152,16 +152,16 @@ def generate_notebook_outputs(
 
             report_path = None
             if result.err:
-                report_path, message = _report_exec_fail(
-                    env,
-                    Path(file_path).name,
-                    result.exc_string,
-                    show_traceback,
-                    "Execution Failed with traceback saved in {}",
-                )
                 if fail_on_error:
-                    raise ExecutionError(message)
+                    raise ExecutionError(str(result.err))
                 else:
+                    report_path, message = _report_exec_fail(
+                        env,
+                        Path(file_path).name,
+                        result.exc_string,
+                        show_traceback,
+                        "Execution Failed with traceback saved in {}",
+                    )
                     LOGGER.error(message)
 
             ntbk = result.nb
