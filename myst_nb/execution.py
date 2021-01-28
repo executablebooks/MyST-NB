@@ -112,9 +112,6 @@ def generate_notebook_outputs(
     # If we have a jupyter_cache, see if there's a cache for this notebook
     file_path = file_path or env.doc2path(env.docname)
 
-    fail_on_error = env.config["execution_fail_on_error"]
-    allow_errors = env.config["execution_allow_errors"] and not fail_on_error
-
     execution_method = env.config["jupyter_execute_notebooks"]  # type: str
 
     path_to_cache = env.nb_path_to_cache if "cache" in execution_method else None
@@ -138,7 +135,7 @@ def generate_notebook_outputs(
                         ntbk,
                         cwd=tmpdirname,
                         timeout=env.config["execution_timeout"],
-                        allow_errors=allow_errors,
+                        allow_errors=env.config["execution_allow_errors"],
                     )
             else:
                 cwd = Path(file_path).parent
@@ -147,12 +144,12 @@ def generate_notebook_outputs(
                     ntbk,
                     cwd=cwd,
                     timeout=env.config["execution_timeout"],
-                    allow_errors=allow_errors,
+                    allow_errors=env.config["execution_allow_errors"],
                 )
 
             report_path = None
             if result.err:
-                if fail_on_error:
+                if env.config["execution_fail_on_error"]:
                     raise ExecutionError(str(result.err))
                 else:
                     report_path, message = _report_exec_fail(
@@ -208,7 +205,7 @@ def generate_notebook_outputs(
             )
             message += suffix
 
-        if fail_on_error:
+        if env.config["execution_fail_on_error"]:
             raise ExecutionError(message)
         else:
             LOGGER.error(message)
@@ -343,7 +340,7 @@ def execute_staged_nb(
         filter_pks=pk_list or None,
         converter=_converter,
         timeout=timeout,
-        allow_errors=allow_errors and not fail_on_error,
+        allow_errors=allow_errors,
         run_in_temp=exec_in_temp,
     )
     return result

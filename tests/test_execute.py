@@ -323,11 +323,6 @@ def test_execution_fail_on_error(sphinx_run, file_regression, check_nbs):
     conf={"execution_allow_errors": True, "execution_fail_on_error": True},
 )
 def test_execution_fail_on_error_allow_errors(sphinx_run, file_regression, check_nbs):
-    with pytest.raises(ExecutionError) as excinfo:
-        sphinx_run.build()
-
-    assert str(excinfo.value).startswith(
-        "An error occurred while executing the following cell:"
-    )
-    cell_contents = "------------------\nraise Exception('oopsie!')\n------------------"
-    assert cell_contents in str(excinfo.value)
+    sphinx_run.build()
+    assert not sphinx_run.warnings()
+    regress_nb_doc(file_regression, sphinx_run, check_nbs)
