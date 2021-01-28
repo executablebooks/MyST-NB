@@ -1,6 +1,8 @@
 import os
 import pytest
 
+from myst_nb.execution import ExecutionError
+
 
 def regress_nb_doc(file_regression, sphinx_run, check_nbs):
     file_regression.check(
@@ -304,18 +306,23 @@ def test_custom_convert_cache(sphinx_run, file_regression, check_nbs):
 
 @pytest.mark.sphinx_params(
     "basic_failing.ipynb",
-    conf={"execution_allow_errors": False, "execution_strict_mode": True},
+    conf={"execution_allow_errors": False, "execution_fail_on_error": True},
 )
-def test_execution_strict_mode_true(sphinx_run, file_regression, check_nbs):
-    with pytest.raises(ValueError) as excinfo:
+def test_execution_fail_on_error(sphinx_run, file_regression, check_nbs):
+    with pytest.raises(ExecutionError) as excinfo:
         sphinx_run.build()
-    assert str(excinfo.value).startswith("Execution failed:")
+    assert str(excinfo.value).startswith("Execution Failed")
+    cell_contents = "------------------\nraise Exception('oopsie!')\n------------------"
+    assert cell_contents in str(excinfo.value)
 
 
 @pytest.mark.sphinx_params(
     "basic_failing.ipynb",
-    conf={"execution_allow_errors": False, "execution_strict_mode": False},
+    conf={"execution_allow_errors": True, "execution_fail_on_error": True},
 )
-def test_execution_strict_mode_false(sphinx_run, file_regression, check_nbs):
-    sphinx_run.build()
-    assert "Execution Failed" in sphinx_run.warnings()
+def test_execution_fail_on_error_allow_errors(sphinx_run, file_regression, check_nbs):
+    with pytest.raises(ExecutionError) as excinfo:
+        sphinx_run.build()
+    assert str(excinfo.value).startswith("Execution Failed")
+    cell_contents = "------------------\nraise Exception('oopsie!')\n------------------"
+    assert cell_contents in str(excinfo.value)

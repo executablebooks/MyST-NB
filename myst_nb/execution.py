@@ -31,6 +31,10 @@ from .converter import get_nb_converter
 LOGGER = logging.getLogger(__name__)
 
 
+class ExecutionError(Exception):
+    pass
+
+
 def update_execution_cache(
     app: Sphinx, builder: Builder, added: Set[str], changed: Set[str], removed: Set[str]
 ):
@@ -80,6 +84,7 @@ def update_execution_cache(
             path_to_cache=app.env.nb_path_to_cache,
             timeout=app.config["execution_timeout"],
             allow_errors=app.config["execution_allow_errors"],
+            fail_on_error=app.config["execution_fail_on_error"],
             exec_in_temp=app.config["execution_in_temp"],
         )
 
@@ -107,6 +112,9 @@ def generate_notebook_outputs(
     # If we have a jupyter_cache, see if there's a cache for this notebook
     file_path = file_path or env.doc2path(env.docname)
 
+    fail_on_error = env.config["execution_fail_on_error"]
+    allow_errors = env.config["execution_allow_errors"] and not fail_on_error
+
     execution_method = env.config["jupyter_execute_notebooks"]  # type: str
 
     path_to_cache = env.nb_path_to_cache if "cache" in execution_method else None
@@ -130,7 +138,7 @@ def generate_notebook_outputs(
                         ntbk,
                         cwd=tmpdirname,
                         timeout=env.config["execution_timeout"],
-                        allow_errors=env.config["execution_allow_errors"],
+                        allow_errors=allow_errors,
                     )
             else:
                 cwd = Path(file_path).parent
@@ -139,7 +147,7 @@ def generate_notebook_outputs(
                     ntbk,
                     cwd=cwd,
                     timeout=env.config["execution_timeout"],
-                    allow_errors=env.config["execution_allow_errors"],
+                    allow_errors=allow_errors,
                 )
 
             report_path = None
@@ -151,7 +159,10 @@ def generate_notebook_outputs(
                     show_traceback,
                     "Execution Failed with traceback saved in {}",
                 )
-                handle_execution_failure(env, message)
+                if fail_on_error:
+                    raise ExecutionError(message)
+                else:
+                    LOGGER.error(message)
 
             ntbk = result.nb
 
@@ -197,7 +208,10 @@ def generate_notebook_outputs(
             )
             message += suffix
 
-        LOGGER.error(message)
+        if fail_on_error:
+            raise ExecutionError(message)
+        else:
+            LOGGER.error(message)
 
     else:
         LOGGER.verbose("Merged cached outputs into %s", str(r_file_path))
@@ -257,6 +271,7 @@ def _stage_and_execute(
     path_to_cache: str,
     timeout: Optional[int],
     allow_errors: bool,
+    fail_on_error: bool,
     exec_in_temp: bool,
 ):
     pk_list = []
@@ -280,6 +295,7 @@ def _stage_and_execute(
                 timeout=timeout,
                 exec_in_temp=exec_in_temp,
                 allow_errors=allow_errors,
+                fail_on_error=fail_on_error,
                 env=env,
             )
     except OSError as err:
@@ -289,10 +305,13 @@ def _stage_and_execute(
         # Normally we want to keep the stage records available, so that we can retrieve
         # execution tracebacks at the `generate_notebook_outputs` stage,
         # but we need to flush if it becomes 'corrupted'
-        handle_execution_failure(
-            env,
-            f"Execution failed in an unexpected way, clearing staged notebooks: {err}",
+        message = (
+            f"Execution failed in an unexpected way, clearing staged notebooks: {err}"
         )
+        if fail_on_error:
+            raise ExecutionError(message)
+        else:
+            LOGGER.error(message)
         for record in cache_base.list_staged_records():
             cache_base.discard_staged_notebook(record.pk)
 
@@ -303,13 +322,17 @@ def execute_staged_nb(
     timeout: Optional[int],
     exec_in_temp: bool,
     allow_errors: bool,
+    fail_on_error: bool,
     env: BuildEnvironment,
 ):
     """Executing the staged notebook."""
     try:
         executor = load_executor("basic", cache_base, logger=LOGGER)
     except ImportError as error:
-        handle_execution_failure(env, str(error))
+        if fail_on_error:
+            raise ExecutionError(str(error))
+        else:
+            LOGGER.error(str(error))
         return 1
 
     def _converter(path):
@@ -320,7 +343,7 @@ def execute_staged_nb(
         filter_pks=pk_list or None,
         converter=_converter,
         timeout=timeout,
-        allow_errors=allow_errors,
+        allow_errors=allow_errors and not fail_on_error,
         run_in_temp=exec_in_temp,
     )
     return result
@@ -340,10 +363,3 @@ def nb_has_all_output(source_path: str, nb_extensions: List[str] = (".ipynb",)) 
                 if cell["cell_type"] == "code"
             )
     return has_outputs
-
-
-def handle_execution_failure(env, message):
-    if env.config["execution_strict_mode"]:
-        raise ValueError(f"Execution failed: {message}")
-    else:
-        LOGGER.error(message)
