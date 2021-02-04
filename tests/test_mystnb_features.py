@@ -1,11 +1,15 @@
 import pytest
 
+from sphinx.util.fileutil import copy_asset_file
+
 
 @pytest.mark.sphinx_params(
     "mystnb_codecell_file.md",
     conf={"jupyter_execute_notebooks": "cache", "source_suffix": {".md": "myst-nb"}},
 )
-def test_codecell_file(sphinx_run, file_regression, check_nbs):
+def test_codecell_file(sphinx_run, file_regression, check_nbs, get_test_path):
+    asset_path = get_test_path("mystnb_codecell_file.py")
+    copy_asset_file(str(asset_path), str(sphinx_run.app.srcdir))
     sphinx_run.build()
     assert sphinx_run.warnings() == ""
     assert set(sphinx_run.app.env.metadata["mystnb_codecell_file"].keys()) == {
