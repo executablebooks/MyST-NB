@@ -7,7 +7,6 @@ cells:
         # A Title
 .
 <document source="notset">
-    <docinfo>
     <section ids="a-title" names="a\ title">
         <title>
             A Title
@@ -25,7 +24,6 @@ cells:
     outputs: []
 .
 <document source="notset">
-    <docinfo>
     <CellNode cell_type="code" classes="cell">
         <CellInputNode classes="cell_input">
             <literal_block xml:space="preserve">
@@ -46,7 +44,7 @@ cells:
     outputs: []
 .
 <document source="notset">
-    <docinfo>
+    <field_list>
         <field>
             <field_name>
                 language_info
@@ -73,7 +71,6 @@ cells:
         text: 1
 .
 <document source="notset">
-    <docinfo>
     <CellNode cell_type="code" classes="cell">
         <CellInputNode classes="cell_input">
             <literal_block xml:space="preserve">
@@ -103,7 +100,6 @@ cells:
         b
 .
 <document source="notset">
-    <docinfo>
     <section ids="a-title" names="a\ title">
         <title>
             A Title
@@ -133,7 +129,6 @@ cells:
         [b]: after
 .
 <document source="notset">
-    <docinfo>
     <paragraph>
         <pending_xref refdoc="mock_docname" refdomain="True" refexplicit="True" reftarget="before" reftype="myst" refwarn="True">
             <inline classes="xref myst">
@@ -161,12 +156,11 @@ cells:
         [^b]: after
 .
 <document source="notset">
-    <docinfo>
     <paragraph>
         <footnote_reference auto="1" ids="id1" refname="a">
          
         <footnote_reference auto="1" ids="id2" refname="b">
-    <transition>
+    <transition classes="footnotes">
     <footnote auto="1" ids="a" names="a">
         <paragraph>
             before

@@ -190,13 +190,25 @@ def nb_to_tokens(
     # Note that myst_parser serialises dict/list like keys, when rendering to
     # docutils docinfo. These could be read back with `json.loads`.
     state.tokens = [
-        Token("front_matter", "", 0, content=({k: v for k, v in ntbk.metadata.items()}))
+        Token(
+            "front_matter",
+            "",
+            0,
+            map=[0, 0],
+            content=({k: v for k, v in ntbk.metadata.items()}),
+        )
     ] + state.tokens
 
     # If there are widgets, this will embed the state of all widgets in a script
     if contains_widgets(ntbk):
         state.tokens.append(
-            Token("jupyter_widget_state", "", 0, meta={"state": get_widgets(ntbk)})
+            Token(
+                "jupyter_widget_state",
+                "",
+                0,
+                map=[0, 0],
+                meta={"state": get_widgets(ntbk)},
+            )
         )
 
     return md, env, state.tokens

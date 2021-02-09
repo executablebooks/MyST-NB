@@ -208,10 +208,14 @@ def check_nbs():
     def _check_nbs(obtained_filename, expected_filename):
         obtained_nb = nbf.read(str(obtained_filename), nbf.NO_CONVERT)
         expect_nb = nbf.read(str(expected_filename), nbf.NO_CONVERT)
+        obtained_nb.nbformat_minor = 5
+        expect_nb.nbformat_minor = 5
         for cell in expect_nb.cells:
             empty_non_deterministic_outputs(cell)
+            cell.id = "none"
         for cell in obtained_nb.cells:
             empty_non_deterministic_outputs(cell)
+            cell.id = "none"
         diff = diff_notebooks(obtained_nb, expect_nb)
         filename_without_path = str(expected_filename)[
             str(expected_filename).rfind("/") + 1 :

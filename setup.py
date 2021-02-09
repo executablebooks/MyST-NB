@@ -49,7 +49,7 @@ setup(
     python_requires=">=3.6",
     package_data={"myst_nb": ["_static/*"]},
     install_requires=[
-        "myst-parser~=0.13.1",
+        "myst-parser~=0.13.3",
         "docutils>=0.15",
         "sphinx>=2,<4",
         # TODO 0.3.2 requires some changes to the pytests
