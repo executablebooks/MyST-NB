@@ -18,6 +18,7 @@ RAW_DIRECTIVE = "{raw-cell}"
 
 LOGGER = logging.getLogger(__name__)
 
+
 @attr.s
 class NbConverter:
     func: Callable[[str], nbf.NotebookNode] = attr.ib()
@@ -262,7 +263,10 @@ def myst_to_notebook(
                 fl = re.search(r"( .*?\.[\w:]+)", token.content).group(0).lstrip()
                 flpath = Path(context.srcdir + "/" + fl).resolve()
                 if len(body_lines):
-                    LOGGER.warning(("content of code-cell is being overwritten by `file`"),location=(context.srcdir + "/" + context.docname, token.map))
+                    LOGGER.warning(
+                        ("content of code-cell is being overwritten by `file`"),
+                        location=(context.srcdir + "/" + context.docname, token.map),
+                    )
                 try:
                     body_lines = flpath.read_text().split("\n")
                 except Exception:

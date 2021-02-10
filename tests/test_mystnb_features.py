@@ -31,6 +31,7 @@ def test_codecell_file(sphinx_run, file_regression, check_nbs, get_test_path):
         sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf8"
     )
 
+
 @pytest.mark.sphinx_params(
     "mystnb_codecell_file_warnings.md",
     conf={"jupyter_execute_notebooks": "force", "source_suffix": {".md": "myst-nb"}},
@@ -39,7 +40,10 @@ def test_codecell_file_warnings(sphinx_run, file_regression, check_nbs, get_test
     asset_path = get_test_path("mystnb_codecell_file.py")
     copy_asset_file(str(asset_path), str(sphinx_run.app.srcdir))
     sphinx_run.build()
-    assert "mystnb_codecell_file_warnings.md:[14, 19]: WARNING: content of code-cell is being overwritten by `file`" in sphinx_run.warnings()
+    assert (
+        "mystnb_codecell_file_warnings.md:[14, 19]: WARNING: content of code-cell is being overwritten by `file`"  # noqaE501
+        in sphinx_run.warnings()
+    )
     assert set(sphinx_run.app.env.metadata["mystnb_codecell_file_warnings"].keys()) == {
         "jupytext",
         "kernelspec",
@@ -47,7 +51,10 @@ def test_codecell_file_warnings(sphinx_run, file_regression, check_nbs, get_test
         "source_map",
         "language_info",
     }
-    assert sphinx_run.app.env.metadata["mystnb_codecell_file_warnings"]["author"] == "Aakash"
+    assert (
+        sphinx_run.app.env.metadata["mystnb_codecell_file_warnings"]["author"]
+        == "Aakash"
+    )
     assert (
         sphinx_run.app.env.metadata["mystnb_codecell_file_warnings"]["kernelspec"]
         == '{"display_name": "Python 3", "language": "python", "name": "python3"}'
