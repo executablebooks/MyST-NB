@@ -7,7 +7,7 @@ from pathlib import Path
 
 import nbformat as nbf
 from sphinx.environment import BuildEnvironment
-from sphinx.util import import_object
+from sphinx.util import import_object, logging
 import yaml
 
 from myst_parser.main import MdParserConfig
@@ -16,6 +16,7 @@ NOTEBOOK_VERSION = 4
 CODE_DIRECTIVE = "{code-cell}"
 RAW_DIRECTIVE = "{raw-cell}"
 
+LOGGER = logging.getLogger(__name__)
 
 @attr.s
 class NbConverter:
@@ -260,6 +261,8 @@ def myst_to_notebook(
             if "file" in options:
                 fl = re.search(r"( .*?\.[\w:]+)", token.content).group(0).lstrip()
                 flpath = Path(context.srcdir + "/" + fl).resolve()
+                if len(body_lines):
+                    LOGGER.warning(("content of code-cell is being overwritten by `file`"),location=(context.srcdir + "/" + context.docname, token.map))
                 try:
                     body_lines = flpath.read_text().split("\n")
                 except Exception:
