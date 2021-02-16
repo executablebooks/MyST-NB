@@ -116,7 +116,7 @@ you specify a `file` metadata attribute such as:
 ````
 
 ```{warning}
-This is a feature provided by `myst_nb` and is **not** part of the core `MyST` markup specification.
+This is an experimental feature that is **not** part of the core `MyST` markup specification, and may be removed in the future.
 ```
 
 ### Syntax for markdown
