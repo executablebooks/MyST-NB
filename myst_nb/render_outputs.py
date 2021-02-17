@@ -35,11 +35,11 @@ def get_default_render_priority(builder: str) -> Optional[List[str]]:
             WIDGET_VIEW_MIMETYPE,
             "application/javascript",
             "text/html",
+            "text/latex",
             "image/svg+xml",
             "image/png",
             "image/jpeg",
             "text/markdown",
-            "text/latex",
             "text/plain",
         )
         for builder in (
@@ -56,10 +56,10 @@ def get_default_render_priority(builder: str) -> Optional[List[str]]:
     }
     # TODO: add support for "image/svg+xml"
     priority["latex"] = (
+        "text/latex",
         "application/pdf",
         "image/png",
         "image/jpeg",
-        "text/latex",
         "text/markdown",
         "text/plain",
     )
