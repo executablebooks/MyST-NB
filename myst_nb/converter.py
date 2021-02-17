@@ -61,7 +61,10 @@ def get_nb_converter(
     if source_iter is None:
         return NbConverter(
             lambda text: myst_to_notebook(
-                text, config=env.myst_config, add_source_map=True, context=env
+                text,
+                config=env.myst_config,
+                add_source_map=True,
+                file_srcdir=env.srcdir,
             ),
             env.myst_config,
         )
@@ -70,7 +73,10 @@ def get_nb_converter(
     if is_myst_notebook(source_iter):
         return NbConverter(
             lambda text: myst_to_notebook(
-                text, config=env.myst_config, add_source_map=True, context=env
+                text,
+                config=env.myst_config,
+                add_source_map=True,
+                file_srcdir=env.srcdir,
             ),
             env.myst_config,
         )
@@ -124,7 +130,7 @@ class MystMetadataParsingError(Exception):
     """Error when parsing metadata from myst formatted text"""
 
 
-class MystFileParsingError(Exception):
+class CodeFileParsingError(Exception):
     """Error when parsing files for code-blocks/code-cells"""
 
 
@@ -188,7 +194,7 @@ def myst_to_notebook(
     code_directive=CODE_DIRECTIVE,
     raw_directive=RAW_DIRECTIVE,
     add_source_map=False,
-    context=None,
+    file_srcdir=".",
 ):
     """Convert text written in the myst format to a notebook.
 
@@ -197,7 +203,7 @@ def myst_to_notebook(
     :param raw_directive: the name of the directive to search for containing raw cells
     :param add_source_map: add a `source_map` key to the notebook metadata,
         which is a list of the starting source line number for each cell.
-    :param: context: passthrough Sphinx Builder Environment
+    :param: file_srcdir: Support for :file: import option for code-cell (myst_nb)
 
     :raises MystMetadataParsingError if the metadata block is not valid JSON/YAML
 
@@ -258,19 +264,21 @@ def myst_to_notebook(
         if token.type == "fence" and token.info.startswith(code_directive):
             _flush_markdown(md_start_line, token, md_metadata)
             options, body_lines = read_fenced_cell(token, len(notebook.cells), "Code")
-            # Parse :file or file: tags and populate body with contents of file
+            # Parse :file: or file: tags and populate body with contents of file
             if "file" in options:
                 fl = re.search(r"( .*?\.[\w:]+)", token.content).group(0).lstrip()
-                flpath = Path(context.srcdir + "/" + fl).resolve()
+                flpath = Path(file_srcdir + "/" + fl).resolve()
                 if len(body_lines):
                     LOGGER.warning(
                         ("content of code-cell is being overwritten by `file`"),
-                        location=(context.srcdir + "/" + context.docname, token.map),
+                        location=(flpath, token.map),
                     )
                 try:
                     body_lines = flpath.read_text().split("\n")
                 except Exception:
-                    raise MystFileParsingError("Can't read file: {}".format(flpath))
+                    raise CodeFileParsingError(
+                        "Can't read code file: {}".format(flpath)
+                    )
             meta = nbf.from_dict(options)
             source_map.append(token.map[0] + 1)
             notebook.cells.append(
