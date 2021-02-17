@@ -64,6 +64,7 @@ def get_nb_converter(
                 text,
                 config=env.myst_config,
                 add_source_map=True,
+                docname=env.docname,
                 file_srcdir=env.srcdir,
             ),
             env.myst_config,
@@ -76,6 +77,7 @@ def get_nb_converter(
                 text,
                 config=env.myst_config,
                 add_source_map=True,
+                docname=env.docname,
                 file_srcdir=env.srcdir,
             ),
             env.myst_config,
@@ -194,6 +196,7 @@ def myst_to_notebook(
     code_directive=CODE_DIRECTIVE,
     raw_directive=RAW_DIRECTIVE,
     add_source_map=False,
+    docname=None,
     file_srcdir=".",
 ):
     """Convert text written in the myst format to a notebook.
@@ -203,6 +206,7 @@ def myst_to_notebook(
     :param raw_directive: the name of the directive to search for containing raw cells
     :param add_source_map: add a `source_map` key to the notebook metadata,
         which is a list of the starting source line number for each cell.
+    :param: docname: current name of document being converted
     :param: file_srcdir: Support for :file: import option for code-cell (myst_nb)
 
     :raises MystMetadataParsingError if the metadata block is not valid JSON/YAML
@@ -269,10 +273,8 @@ def myst_to_notebook(
                 fl = re.search(r"( .*?\.[\w:]+)", token.content).group(0).lstrip()
                 flpath = Path(file_srcdir + "/" + fl).resolve()
                 if len(body_lines):
-                    LOGGER.warning(
-                        ("content of code-cell is being overwritten by `file`"),
-                        location=(flpath, token.map),
-                    )
+                    msg = f"content of code-cell is being overwritten by :file: {fl}"
+                    LOGGER.warning(msg, location=(docname, token.map))
                 try:
                     body_lines = flpath.read_text().split("\n")
                 except Exception:
