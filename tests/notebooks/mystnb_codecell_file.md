@@ -13,5 +13,5 @@ author: Matt
 # a title
 
 ```{code-cell} ipython3
-:file: mystnb_codecell_file.py
+:load: mystnb_codecell_file.py
 ```

@@ -64,7 +64,7 @@ def get_nb_converter(
                 text,
                 config=env.myst_config,
                 add_source_map=True,
-                file_context=env,
+                load_context=env,
             ),
             env.myst_config,
         )
@@ -76,7 +76,7 @@ def get_nb_converter(
                 text,
                 config=env.myst_config,
                 add_source_map=True,
-                file_context=env,
+                load_context=env,
             ),
             env.myst_config,
         )
@@ -130,7 +130,7 @@ class MystMetadataParsingError(Exception):
     """Error when parsing metadata from myst formatted text"""
 
 
-class CodeFileParsingError(Exception):
+class LoadFileParsingError(Exception):
     """Error when parsing files for code-blocks/code-cells"""
 
 
@@ -194,7 +194,7 @@ def myst_to_notebook(
     code_directive=CODE_DIRECTIVE,
     raw_directive=RAW_DIRECTIVE,
     add_source_map=False,
-    file_context=None,
+    load_context=None,
 ):
     """Convert text written in the myst format to a notebook.
 
@@ -264,18 +264,18 @@ def myst_to_notebook(
         if token.type == "fence" and token.info.startswith(code_directive):
             _flush_markdown(md_start_line, token, md_metadata)
             options, body_lines = read_fenced_cell(token, len(notebook.cells), "Code")
-            # Parse :file: or file: tags and populate body with contents of file
-            if "file" in options:
+            # Parse :load: or load: tags and populate body with contents of file
+            if "load" in options:
                 fl = re.search(r"( .*?\.[\w:]+)", token.content).group(0).lstrip()
-                flpath = Path(file_context.srcdir + "/" + fl).resolve()
+                flpath = Path(load_context.srcdir + "/" + fl).resolve()
                 if len(body_lines):
-                    msg = f"content of code-cell is being overwritten by :file: {fl}"
-                    LOGGER.warning(msg, location=(file_context.docname, token.map))
+                    msg = f"content of code-cell is being overwritten by :load: {fl}"
+                    LOGGER.warning(msg, location=(load_context.docname, token.map))
                 try:
                     body_lines = flpath.read_text().split("\n")
                 except Exception:
-                    raise CodeFileParsingError(
-                        "Can't read code file: {}".format(flpath)
+                    raise LoadFileParsingError(
+                        "Can't read file from :load: {}".format(flpath)
                     )
             meta = nbf.from_dict(options)
             source_map.append(token.map[0] + 1)
