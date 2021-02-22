@@ -1,8 +1,7 @@
 import json
-from typing import Callable, Iterable, Optional, Tuple
+from typing import Callable, Iterable, Optional
 
 import attr
-import re
 from pathlib import Path
 
 import nbformat as nbf
@@ -57,11 +56,6 @@ def get_nb_converter(
             )
             return a
 
-    try:
-        docname = env.docname
-    except KeyError:
-        docname = env.config.master_doc
-
     # If there is no source text then we assume a MyST Notebook
     if source_iter is None:
         # Check if docname exists
@@ -70,7 +64,7 @@ def get_nb_converter(
                 text,
                 config=env.myst_config,
                 add_source_map=True,
-                load_context=(env.srcdir, docname),
+                path=path,
             ),
             env.myst_config,
         )
@@ -83,7 +77,7 @@ def get_nb_converter(
                 text,
                 config=env.myst_config,
                 add_source_map=True,
-                load_context=(env.srcdir, docname),
+                path=path,
             ),
             env.myst_config,
         )
@@ -195,16 +189,18 @@ def read_cell_metadata(token, cell_index):
     return metadata
 
 
-def load_code_from_file(token, body_lines, load_context):
+def load_code_from_file(nb_path, file_name, token, body_lines):
     """load source code from a file."""
-    if not load_context:
-        raise LoadFileParsingError("load context not supplied for :load:")
-    srcdir, docname = load_context
-    file_name = re.search(r"( .*?\.[\w:]+)", token.content).group(0).lstrip()
-    file_path = Path(srcdir).joinpath(file_name).resolve()
+    if nb_path is None:
+        raise LoadFileParsingError("path to notebook not supplied for :load:")
+    file_path = Path(nb_path).parent.joinpath(file_name).resolve()
     if len(body_lines):
-        msg = f"content of code-cell is being overwritten by :load: {file_name}"
-        LOGGER.warning(msg, location=(docname, token.map[0] if token.map else 0))
+        line = token.map[0] if token.map else 0
+        msg = (
+            f"{nb_path}:{line} content of code-cell is being overwritten by "
+            f":load: {file_name}"
+        )
+        LOGGER.warning(msg)
     try:
         body_lines = file_path.read_text().split("\n")
     except Exception:
@@ -218,7 +214,7 @@ def myst_to_notebook(
     code_directive=CODE_DIRECTIVE,
     raw_directive=RAW_DIRECTIVE,
     add_source_map=False,
-    load_context: Optional[Tuple[str, str]] = None,
+    path: Optional[str] = None,
 ):
     """Convert text written in the myst format to a notebook.
 
@@ -227,7 +223,7 @@ def myst_to_notebook(
     :param raw_directive: the name of the directive to search for containing raw cells
     :param add_source_map: add a `source_map` key to the notebook metadata,
         which is a list of the starting source line number for each cell.
-    :param: load_context: sphinx context for :load: code-cell option (myst_nb)
+    :param path: path to notebook (required for :load:)
 
     :raises MystMetadataParsingError if the metadata block is not valid JSON/YAML
 
@@ -290,7 +286,9 @@ def myst_to_notebook(
             options, body_lines = read_fenced_cell(token, len(notebook.cells), "Code")
             # Parse :load: or load: tags and populate body with contents of file
             if "load" in options:
-                body_lines = load_code_from_file(token, body_lines, load_context)
+                body_lines = load_code_from_file(
+                    path, options["load"], token, body_lines
+                )
             meta = nbf.from_dict(options)
             source_map.append(token.map[0] + 1)
             notebook.cells.append(

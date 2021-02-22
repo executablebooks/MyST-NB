@@ -41,7 +41,8 @@ def test_codecell_file_warnings(sphinx_run, file_regression, check_nbs, get_test
     copy_asset_file(str(asset_path), str(sphinx_run.app.srcdir))
     sphinx_run.build()
     assert (
-        "mystnb_codecell_file_warnings.md:14: WARNING: content of code-cell is being overwritten by :load: mystnb_codecell_file.py"  # noqaE501
+        "mystnb_codecell_file_warnings.md:14 content of code-cell "
+        "is being overwritten by :load: mystnb_codecell_file.py"
         in sphinx_run.warnings()
     )
     assert set(sphinx_run.app.env.metadata["mystnb_codecell_file_warnings"].keys()) == {
