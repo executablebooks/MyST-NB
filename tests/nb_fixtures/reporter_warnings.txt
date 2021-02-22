@@ -66,5 +66,5 @@ cells:
 
         [a]: c
 .
-source/path:20004: (WARNING/2) Duplicate reference definition: A
+source/path:20004: (WARNING/2) Duplicate reference definition: A [myst.ref]
 .

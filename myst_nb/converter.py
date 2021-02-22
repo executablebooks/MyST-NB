@@ -2,10 +2,11 @@ import json
 from typing import Callable, Iterable, Optional
 
 import attr
+from pathlib import Path
 
 import nbformat as nbf
 from sphinx.environment import BuildEnvironment
-from sphinx.util import import_object
+from sphinx.util import import_object, logging
 import yaml
 
 from myst_parser.main import MdParserConfig
@@ -13,6 +14,8 @@ from myst_parser.main import MdParserConfig
 NOTEBOOK_VERSION = 4
 CODE_DIRECTIVE = "{code-cell}"
 RAW_DIRECTIVE = "{raw-cell}"
+
+LOGGER = logging.getLogger(__name__)
 
 
 @attr.s
@@ -55,18 +58,26 @@ def get_nb_converter(
 
     # If there is no source text then we assume a MyST Notebook
     if source_iter is None:
+        # Check if docname exists
         return NbConverter(
             lambda text: myst_to_notebook(
-                text, config=env.myst_config, add_source_map=True
+                text,
+                config=env.myst_config,
+                add_source_map=True,
+                path=path,
             ),
             env.myst_config,
         )
 
     # Given the source lines, we check it can be recognised as a MyST Notebook
     if is_myst_notebook(source_iter):
+        # Check if docname exists
         return NbConverter(
             lambda text: myst_to_notebook(
-                text, config=env.myst_config, add_source_map=True
+                text,
+                config=env.myst_config,
+                add_source_map=True,
+                path=path,
             ),
             env.myst_config,
         )
@@ -118,6 +129,10 @@ def is_myst_notebook(line_iter: Iterable[str]) -> bool:
 
 class MystMetadataParsingError(Exception):
     """Error when parsing metadata from myst formatted text"""
+
+
+class LoadFileParsingError(Exception):
+    """Error when parsing files for code-blocks/code-cells"""
 
 
 def strip_blank_lines(text):
@@ -174,12 +189,32 @@ def read_cell_metadata(token, cell_index):
     return metadata
 
 
+def load_code_from_file(nb_path, file_name, token, body_lines):
+    """load source code from a file."""
+    if nb_path is None:
+        raise LoadFileParsingError("path to notebook not supplied for :load:")
+    file_path = Path(nb_path).parent.joinpath(file_name).resolve()
+    if len(body_lines):
+        line = token.map[0] if token.map else 0
+        msg = (
+            f"{nb_path}:{line} content of code-cell is being overwritten by "
+            f":load: {file_name}"
+        )
+        LOGGER.warning(msg)
+    try:
+        body_lines = file_path.read_text().split("\n")
+    except Exception:
+        raise LoadFileParsingError("Can't read file from :load: {}".format(file_path))
+    return body_lines
+
+
 def myst_to_notebook(
     text,
     config: MdParserConfig,
     code_directive=CODE_DIRECTIVE,
     raw_directive=RAW_DIRECTIVE,
     add_source_map=False,
+    path: Optional[str] = None,
 ):
     """Convert text written in the myst format to a notebook.
 
@@ -188,6 +223,7 @@ def myst_to_notebook(
     :param raw_directive: the name of the directive to search for containing raw cells
     :param add_source_map: add a `source_map` key to the notebook metadata,
         which is a list of the starting source line number for each cell.
+    :param path: path to notebook (required for :load:)
 
     :raises MystMetadataParsingError if the metadata block is not valid JSON/YAML
 
@@ -248,6 +284,11 @@ def myst_to_notebook(
         if token.type == "fence" and token.info.startswith(code_directive):
             _flush_markdown(md_start_line, token, md_metadata)
             options, body_lines = read_fenced_cell(token, len(notebook.cells), "Code")
+            # Parse :load: or load: tags and populate body with contents of file
+            if "load" in options:
+                body_lines = load_code_from_file(
+                    path, options["load"], token, body_lines
+                )
             meta = nbf.from_dict(options)
             source_map.append(token.map[0] + 1)
             notebook.cells.append(

@@ -49,7 +49,7 @@ class NotebookParser(MystParser):
         self.env = document.settings.env  # type: BuildEnvironment
 
         converter = get_nb_converter(
-            self.env.doc2path(self.env.docname, False),
+            self.env.doc2path(self.env.docname, True),
             self.env,
             inputstring.splitlines(keepends=True),
         )
