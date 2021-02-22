@@ -1,5 +1,5 @@
 import json
-from typing import Callable, Iterable, Optional
+from typing import Callable, Iterable, Optional, Tuple
 
 import attr
 import re
@@ -64,7 +64,7 @@ def get_nb_converter(
                 text,
                 config=env.myst_config,
                 add_source_map=True,
-                load_context=env,
+                load_context=(env.srcdir, env.docname),
             ),
             env.myst_config,
         )
@@ -76,7 +76,7 @@ def get_nb_converter(
                 text,
                 config=env.myst_config,
                 add_source_map=True,
-                load_context=env,
+                load_context=(env.srcdir, env.docname),
             ),
             env.myst_config,
         )
@@ -188,13 +188,30 @@ def read_cell_metadata(token, cell_index):
     return metadata
 
 
+def load_code_from_file(token, body_lines, load_context):
+    """load source code from a file."""
+    if not load_context:
+        raise LoadFileParsingError("load context not supplied for :load:")
+    srcdir, docname = load_context
+    file_name = re.search(r"( .*?\.[\w:]+)", token.content).group(0).lstrip()
+    file_path = Path(srcdir).joinpath(file_name).resolve()
+    if len(body_lines):
+        msg = f"content of code-cell is being overwritten by :load: {file_name}"
+        LOGGER.warning(msg, location=(docname, token.map[0] if token.map else 0))
+    try:
+        body_lines = file_path.read_text().split("\n")
+    except Exception:
+        raise LoadFileParsingError("Can't read file from :load: {}".format(file_path))
+    return body_lines
+
+
 def myst_to_notebook(
     text,
     config: MdParserConfig,
     code_directive=CODE_DIRECTIVE,
     raw_directive=RAW_DIRECTIVE,
     add_source_map=False,
-    load_context=None,
+    load_context: Optional[Tuple[str, str]] = None,
 ):
     """Convert text written in the myst format to a notebook.
 
@@ -266,17 +283,7 @@ def myst_to_notebook(
             options, body_lines = read_fenced_cell(token, len(notebook.cells), "Code")
             # Parse :load: or load: tags and populate body with contents of file
             if "load" in options:
-                fl = re.search(r"( .*?\.[\w:]+)", token.content).group(0).lstrip()
-                flpath = Path(load_context.srcdir + "/" + fl).resolve()
-                if len(body_lines):
-                    msg = f"content of code-cell is being overwritten by :load: {fl}"
-                    LOGGER.warning(msg, location=(load_context.docname, token.map))
-                try:
-                    body_lines = flpath.read_text().split("\n")
-                except Exception:
-                    raise LoadFileParsingError(
-                        "Can't read file from :load: {}".format(flpath)
-                    )
+                body_lines = load_code_from_file(token, body_lines, load_context)
             meta = nbf.from_dict(options)
             source_map.append(token.map[0] + 1)
             notebook.cells.append(
