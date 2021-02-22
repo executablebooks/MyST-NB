@@ -57,13 +57,14 @@ def get_nb_converter(
             )
             return a
 
+    try:
+        docname = env.docname
+    except KeyError:
+        docname = env.config.master_doc
+
     # If there is no source text then we assume a MyST Notebook
     if source_iter is None:
         # Check if docname exists
-        try:
-            docname = env.docname
-        except KeyError:
-            docname = env.config.master_doc
         return NbConverter(
             lambda text: myst_to_notebook(
                 text,
@@ -77,10 +78,6 @@ def get_nb_converter(
     # Given the source lines, we check it can be recognised as a MyST Notebook
     if is_myst_notebook(source_iter):
         # Check if docname exists
-        try:
-            docname = env.docname
-        except KeyError:
-            docname = env.config.master_doc
         return NbConverter(
             lambda text: myst_to_notebook(
                 text,
