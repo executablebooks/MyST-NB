@@ -59,24 +59,34 @@ def get_nb_converter(
 
     # If there is no source text then we assume a MyST Notebook
     if source_iter is None:
+        # Check if docname exists
+        try:
+            docname = env.docname
+        except KeyError:
+            docname = env.config.master_doc
         return NbConverter(
             lambda text: myst_to_notebook(
                 text,
                 config=env.myst_config,
                 add_source_map=True,
-                load_context=(env.srcdir, env.docname),
+                load_context=(env.srcdir, docname),
             ),
             env.myst_config,
         )
 
     # Given the source lines, we check it can be recognised as a MyST Notebook
     if is_myst_notebook(source_iter):
+        # Check if docname exists
+        try:
+            docname = env.docname
+        except KeyError:
+            docname = env.config.master_doc
         return NbConverter(
             lambda text: myst_to_notebook(
                 text,
                 config=env.myst_config,
                 add_source_map=True,
-                load_context=(env.srcdir, env.docname),
+                load_context=(env.srcdir, docname),
             ),
             env.myst_config,
         )
@@ -220,7 +230,7 @@ def myst_to_notebook(
     :param raw_directive: the name of the directive to search for containing raw cells
     :param add_source_map: add a `source_map` key to the notebook metadata,
         which is a list of the starting source line number for each cell.
-    :param: file_context: sphinx context for :file: code-cell option (myst_nb)
+    :param: load_context: sphinx context for :load: code-cell option (myst_nb)
 
     :raises MystMetadataParsingError if the metadata block is not valid JSON/YAML
 
