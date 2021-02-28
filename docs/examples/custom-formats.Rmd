@@ -26,7 +26,7 @@ If the function takes additional keyword arguments, then you can specify these a
 For example this is what the default conversion would look like:
 
 ```python
-nbsphinx_custom_formats = {
+nb_custom_formats = {
     '.ipynb': ['nbformat.reads', {'as_version': 4}],
 }
 ```
