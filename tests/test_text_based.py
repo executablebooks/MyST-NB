@@ -36,7 +36,6 @@ def test_basic_run(sphinx_run, file_regression, check_nbs):
 def test_basic_run_exec_off(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
     # print(sphinx_run.status())
-    assert "Notebook code has no file extension metadata" in sphinx_run.warnings()
     assert "language_info" not in set(sphinx_run.app.env.metadata["basic_unrun"].keys())
     assert sphinx_run.app.env.metadata["basic_unrun"]["author"] == "Chris"
 

@@ -49,11 +49,10 @@ setup(
     python_requires=">=3.6",
     package_data={"myst_nb": ["_static/*"]},
     install_requires=[
-        "myst-parser~=0.13.3",
+        "myst-parser>=0.13.5",
         "docutils>=0.15",
         "sphinx>=2,<4",
-        # TODO 0.3.2 requires some changes to the pytests
-        "jupyter_sphinx==0.3.1",
+        "jupyter_sphinx>=0.3.2",
         "jupyter-cache~=0.4.1",
         "ipython",
         "nbformat~=5.0",
@@ -70,7 +69,8 @@ setup(
             "pytest-cov~=2.8",
             "coverage<5.0",
             "pytest-regressions",
-            "matplotlib",
+            # TODO: 3.4.0 has some warnings that need to be fixed in the tests.
+            "matplotlib~=3.3.0",
             "numpy",
             "sympy",
             "pandas",
