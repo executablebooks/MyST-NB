@@ -52,7 +52,7 @@ setup(
         "myst-parser>=0.13.5",
         "docutils>=0.15",
         "sphinx>=2,<4",
-        "jupyter_sphinx>=0.3.2",
+        "jupyter_sphinx~=0.3.2",
         "jupyter-cache~=0.4.1",
         "ipython",
         "nbformat~=5.0",
