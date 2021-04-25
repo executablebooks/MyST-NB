@@ -1,6 +1,12 @@
 # Change Log
 
-# 0.12.0 - 2021-02-23
+## 0.12.1 - 2021-04-25
+
+- ⬆️ UPDATE: jupyter_sphinx to `0.3.2`: fixes `Notebook code has no file extension metadata` warning)
+- ⬆️ UPDATE: importlib_metadata to `3.6`: to use new entry point loading interface
+- Official support for Python 3.9
+
+## 0.12.0 - 2021-02-23
 
 This release adds an experimental MyST-NB feature to enable loading of code from a file
 for `code-cell` directives using a `:load: <file>` option.
