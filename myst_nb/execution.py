@@ -9,22 +9,20 @@ The primary methods in this module are:
   or if 'auto' / 'force' is set, will execute the notebook.
 
 """
-from datetime import datetime
 import os
 import tempfile
+from datetime import datetime
+from pathlib import Path
 from typing import List, Optional, Set
 
 import nbformat as nbf
-from pathlib import Path
-
+from jupyter_cache import get_cache
+from jupyter_cache.executors import load_executor
+from jupyter_cache.executors.utils import single_nb_execution
 from sphinx.application import Sphinx
 from sphinx.builders import Builder
 from sphinx.environment import BuildEnvironment
 from sphinx.util import logging, progress_message
-
-from jupyter_cache import get_cache
-from jupyter_cache.executors import load_executor
-from jupyter_cache.executors.utils import single_nb_execution
 
 from .converter import get_nb_converter
 

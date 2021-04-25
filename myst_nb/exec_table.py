@@ -10,8 +10,8 @@ from datetime import datetime
 from docutils import nodes
 from sphinx.transforms import SphinxTransform
 from sphinx.transforms.post_transforms import SphinxPostTransform
-from sphinx.util.docutils import SphinxDirective
 from sphinx.util import logging
+from sphinx.util.docutils import SphinxDirective
 
 LOGGER = logging.getLogger(__name__)
 

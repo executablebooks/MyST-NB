@@ -1,8 +1,7 @@
 from sphinx.transforms import SphinxTransform
 from sphinx.util import logging
 
-from myst_nb.nb_glue.domain import PasteNode, NbGlueDomain
-
+from myst_nb.nb_glue.domain import NbGlueDomain, PasteNode
 
 SPHINX_LOGGER = logging.getLogger(__name__)
 

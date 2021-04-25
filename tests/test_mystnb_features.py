@@ -1,5 +1,4 @@
 import pytest
-
 from sphinx.util.fileutil import copy_asset_file
 
 

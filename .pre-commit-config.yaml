@@ -26,6 +26,11 @@ repos:
       args: [--no-build-isolation]
       additional_dependencies: [setuptools>=46.4.0]
 
+  - repo: https://github.com/timothycrosley/isort
+    rev: 5.8.0
+    hooks:
+    - id: isort
+
   - repo: https://github.com/psf/black
     rev: 20.8b1
     hooks:

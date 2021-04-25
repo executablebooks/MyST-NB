@@ -8,7 +8,6 @@ import re
 import pygments.lexer
 import pygments.token
 
-
 _ansi_code_to_color = {
     0: "Black",
     1: "Red",

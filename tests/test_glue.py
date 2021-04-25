@@ -1,12 +1,11 @@
 import pytest
-from IPython.core.interactiveshell import InteractiveShell
 from IPython.core.displaypub import DisplayPublisher
+from IPython.core.interactiveshell import InteractiveShell
 
 from myst_nb.nb_glue import glue, utils
 from myst_nb.nb_glue.domain import NbGlueDomain
-
-from myst_nb.render_outputs import CellOutputsToNodes
 from myst_nb.nb_glue.transform import PasteNodesToDocutils
+from myst_nb.render_outputs import CellOutputsToNodes
 
 
 class MockDisplayPublisher(DisplayPublisher):
