@@ -1,35 +1,25 @@
 from pathlib import Path
 from typing import List, Tuple
 
-from docutils import nodes
 import nbformat as nbf
-
+from docutils import nodes
+from jupyter_sphinx.ast import JupyterWidgetStateNode, get_widgets
+from jupyter_sphinx.execute import contains_widgets, write_notebook_output
+from markdown_it import MarkdownIt
+from markdown_it.rules_core import StateCore
+from markdown_it.token import Token
+from markdown_it.utils import AttrDict
+from myst_parser.main import MdParserConfig, default_parser
+from myst_parser.sphinx_parser import MystParser
+from myst_parser.sphinx_renderer import SphinxRenderer
 from sphinx.environment import BuildEnvironment
 from sphinx.util import logging
-
-from jupyter_sphinx.ast import get_widgets, JupyterWidgetStateNode
-from jupyter_sphinx.execute import contains_widgets, write_notebook_output
-
-from markdown_it import MarkdownIt
-from markdown_it.token import Token
-from markdown_it.rules_core import StateCore
-from markdown_it.utils import AttrDict
-
-from myst_parser.main import default_parser, MdParserConfig
-from myst_parser.sphinx_renderer import SphinxRenderer
-from myst_parser.sphinx_parser import MystParser
 
 from myst_nb.converter import get_nb_converter
 from myst_nb.execution import generate_notebook_outputs
 from myst_nb.nb_glue import GLUE_PREFIX
 from myst_nb.nb_glue.domain import NbGlueDomain
-from myst_nb.nodes import (
-    CellNode,
-    CellInputNode,
-    CellOutputNode,
-    CellOutputBundleNode,
-)
-
+from myst_nb.nodes import CellInputNode, CellNode, CellOutputBundleNode, CellOutputNode
 
 SPHINX_LOGGER = logging.getLogger(__name__)
 

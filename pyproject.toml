@@ -1,0 +1,7 @@
+[build-system]
+requires = ["setuptools>=46.4.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.isort]
+profile = "black"
+src_paths = ["myst_nb", "tests"]

@@ -1,9 +1,9 @@
 from unittest.mock import patch
 
-from importlib_metadata import EntryPoint
 import pytest
+from importlib_metadata import EntryPoint
 
-from myst_nb.render_outputs import load_renderer, MystNbEntryPointError
+from myst_nb.render_outputs import MystNbEntryPointError, load_renderer
 
 
 def test_load_renderer_not_found():

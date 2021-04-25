@@ -1,26 +1,23 @@
 """A Sphinx post-transform, to convert notebook outpus to AST nodes."""
-from abc import ABC, abstractmethod
 import os
+from abc import ABC, abstractmethod
 from typing import List, Optional
 from unittest import mock
 
-from importlib_metadata import entry_points
+import nbconvert
 from docutils import nodes
 from docutils.parsers.rst import directives
+from importlib_metadata import entry_points
+from jupyter_sphinx.ast import JupyterWidgetViewNode, strip_latex_delimiters
+from jupyter_sphinx.utils import sphinx_abs_dir
+from myst_parser.docutils_renderer import make_document
+from myst_parser.main import MdParserConfig, default_parser
+from nbformat import NotebookNode
 from sphinx.environment import BuildEnvironment
 from sphinx.environment.collectors.asset import ImageCollector
 from sphinx.errors import SphinxError
 from sphinx.transforms.post_transforms import SphinxPostTransform
 from sphinx.util import logging
-
-import nbconvert
-from nbformat import NotebookNode
-
-from jupyter_sphinx.ast import strip_latex_delimiters, JupyterWidgetViewNode
-from jupyter_sphinx.utils import sphinx_abs_dir
-
-from myst_parser.main import default_parser, MdParserConfig
-from myst_parser.docutils_renderer import make_document
 
 from .nodes import CellOutputBundleNode
 

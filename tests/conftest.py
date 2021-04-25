@@ -1,21 +1,21 @@
 import json
 import os
-from pathlib import Path
 import uuid
+from pathlib import Path
 
-from docutils.nodes import image as image_node
-from sphinx.util.console import nocolor
+import nbformat as nbf
 import pytest
-
+from docutils.nodes import image as image_node
+from nbconvert.filters import strip_ansi
 from nbdime.diffing.notebooks import (
     diff_notebooks,
-    set_notebook_diff_targets,
     set_notebook_diff_ignores,
+    set_notebook_diff_targets,
 )
-from nbconvert.filters import strip_ansi
 from nbdime.prettyprint import pretty_print_diff
-import nbformat as nbf
+from sphinx.util.console import nocolor
 
+pytest_plugins = "sphinx.testing.fixtures"
 
 # -Diff Configuration-#
 NB_VERSION = 4
