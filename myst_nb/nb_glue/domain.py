@@ -216,7 +216,7 @@ class PasteFigure(Paste):
         return [figure_node]
 
 
-def paste_any_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
+def paste_any_role(name, rawtext, text, lineno, inliner, options=None, content=()):
     """This role will simply add the cell output"""
     path = inliner.document.current_source
     # Remove line number if we have a notebook because it is unreliable
@@ -226,7 +226,7 @@ def paste_any_role(name, rawtext, text, lineno, inliner, options={}, content=[])
     return [PasteInlineNode(text, location=(path, lineno))], []
 
 
-def paste_text_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
+def paste_text_role(name, rawtext, text, lineno, inliner, options=None, content=()):
     """This role will be parsed as text, with some formatting fanciness.
 
     The text can have a final ``:``,

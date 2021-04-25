@@ -73,7 +73,7 @@ class ExecutionStatsTransform(SphinxTransform):
 
     def apply(self):
         self.env.docs_with_exec_table.discard(self.env.docname)
-        for node in self.document.traverse(ExecutionStatsNode):
+        for _ in self.document.traverse(ExecutionStatsNode):
             self.env.docs_with_exec_table.add(self.env.docname)
             break
 

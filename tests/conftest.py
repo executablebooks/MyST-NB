@@ -17,6 +17,8 @@ from nbdime.prettyprint import pretty_print_diff
 import nbformat as nbf
 
 
+pytest_plugins = "sphinx.testing.fixtures"
+
 # -Diff Configuration-#
 NB_VERSION = 4
 set_notebook_diff_ignores({"/nbformat_minor": True})
