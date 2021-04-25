@@ -43,6 +43,14 @@ def get_test_path():
     return _get_test_path
 
 
+def read_text(path):
+    try:
+        return path.read_text()
+    except AttributeError:
+        # sphinx 2 compat
+        return path.text()
+
+
 class SphinxFixture:
     """A class returned by the ``sphinx_run`` fixture, to run sphinx,
     and retrieve aspects of the build.
@@ -97,7 +105,7 @@ class SphinxFixture:
         _path = self.app.outdir / (name + ".html")
         if not _path.exists():
             pytest.fail("html not output")
-        return _path.text()
+        return read_text(_path)
 
     def get_nb(self, index=0):
         """Return the output notebook (after any execution)."""
@@ -105,7 +113,7 @@ class SphinxFixture:
         _path = self.app.srcdir / "_build" / "jupyter_execute" / (name + ".ipynb")
         if not _path.exists():
             pytest.fail("notebook not output")
-        return _path.text()
+        return read_text(_path)
 
     def get_report_file(self, index=0):
         """Return the report file for a failed execution."""
@@ -113,7 +121,7 @@ class SphinxFixture:
         _path = self.app.outdir / "reports" / (name + ".log")
         if not _path.exists():
             pytest.fail("report log not output")
-        return _path.text()
+        return read_text(_path)
 
 
 @pytest.fixture()
