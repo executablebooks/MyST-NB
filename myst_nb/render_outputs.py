@@ -1,5 +1,6 @@
 """A Sphinx post-transform, to convert notebook outpus to AST nodes."""
 import os
+import sys
 from abc import ABC, abstractmethod
 from typing import List, Optional
 from unittest import mock
@@ -7,7 +8,6 @@ from unittest import mock
 import nbconvert
 from docutils import nodes
 from docutils.parsers.rst import directives
-from importlib_metadata import entry_points
 from jupyter_sphinx.ast import JupyterWidgetViewNode, strip_latex_delimiters
 from jupyter_sphinx.utils import sphinx_abs_dir
 from myst_parser.docutils_renderer import make_document
@@ -20,6 +20,12 @@ from sphinx.transforms.post_transforms import SphinxPostTransform
 from sphinx.util import logging
 
 from .nodes import CellOutputBundleNode
+
+if sys.version_info < (3, 10):
+    from importlib_metadata import entry_points
+else:
+    from importlib.metadata import entry_points
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -71,22 +77,17 @@ def load_renderer(name) -> "CellOutputRendererBase":
     """Load a renderer,
     given a name within the ``myst_nb.mime_render`` entry point group
     """
-    ep_list = set(ep for ep in entry_points()["myst_nb.mime_render"] if ep.name == name)
-    if len(ep_list) == 1:
-        klass = ep_list.pop().load()
+    eps = entry_points(group="myst_nb.mime_render", name=name)
+    if name in eps.names:
+        klass = eps[name].load()
         if not issubclass(klass, CellOutputRendererBase):
             raise MystNbEntryPointError(
                 f"Entry Point for myst_nb.mime_render:{name} "
                 f"is not a subclass of `CellOutputRendererBase`: {klass}"
             )
         return klass
-    elif not ep_list:
-        raise MystNbEntryPointError(
-            f"No Entry Point found for myst_nb.mime_render:{name}"
-        )
-    raise MystNbEntryPointError(
-        f"Multiple Entry Points found for myst_nb.mime_render:{name}: {ep_list}"
-    )
+
+    raise MystNbEntryPointError(f"No Entry Point found for myst_nb.mime_render:{name}")
 
 
 class CellOutputsToNodes(SphinxPostTransform):
