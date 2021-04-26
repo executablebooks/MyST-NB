@@ -4,6 +4,7 @@
 [![Coverage Status][codecov-badge]][codecov-link]
 [![Documentation Status][rtd-badge]][rtd-link]
 [![PyPI][pypi-badge]][pypi-link]
+[![Conda Version][conda-badge]][conda-link]
 
 A collection of tools for working with Jupyter Notebooks in Sphinx.
 
@@ -26,3 +27,5 @@ See the [Contributing Guide](https://myst-nb.readthedocs.io/en/latest/develop/co
 [codecov-link]: https://codecov.io/gh/executablebooks/MyST-NB
 [pypi-badge]: https://img.shields.io/pypi/v/myst-nb.svg
 [pypi-link]: https://pypi.org/project/myst-nb
+[conda-badge]: https://img.shields.io/conda/vn/conda-forge/myst-nb.svg
+[conda-link]: https://anaconda.org/conda-forge/myst-nb

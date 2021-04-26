@@ -67,12 +67,19 @@ class MystNbEntryPointError(SphinxError):
     category = "MyST NB Renderer Load"
 
 
-def load_renderer(name) -> "CellOutputRendererBase":
+def load_renderer(name: str) -> "CellOutputRendererBase":
     """Load a renderer,
     given a name within the ``myst_nb.mime_render`` entry point group
     """
-    eps = entry_points(group="myst_nb.mime_render", name=name)
-    if name in eps.names:
+    all_eps = entry_points()
+    if hasattr(all_eps, "select"):
+        # importlib_metadata >= 3.6 or importlib.metadata in python >=3.10
+        eps = all_eps.select(group="myst_nb.mime_render", name=name)
+        found = name in eps.names
+    else:
+        eps = {ep.name: ep for ep in all_eps.get("myst_nb.mime_render", [])}
+        found = name in eps
+    if found:
         klass = eps[name].load()
         if not issubclass(klass, CellOutputRendererBase):
             raise MystNbEntryPointError(
