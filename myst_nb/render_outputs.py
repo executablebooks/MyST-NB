@@ -1,6 +1,5 @@
 """A Sphinx post-transform, to convert notebook outpus to AST nodes."""
 import os
-import sys
 from abc import ABC, abstractmethod
 from typing import List, Optional
 from unittest import mock
@@ -8,6 +7,7 @@ from unittest import mock
 import nbconvert
 from docutils import nodes
 from docutils.parsers.rst import directives
+from importlib_metadata import entry_points
 from jupyter_sphinx.ast import JupyterWidgetViewNode, strip_latex_delimiters
 from jupyter_sphinx.utils import sphinx_abs_dir
 from myst_parser.docutils_renderer import make_document
@@ -20,12 +20,6 @@ from sphinx.transforms.post_transforms import SphinxPostTransform
 from sphinx.util import logging
 
 from .nodes import CellOutputBundleNode
-
-if sys.version_info < (3, 10):
-    from importlib_metadata import entry_points
-else:
-    from importlib.metadata import entry_points
-
 
 LOGGER = logging.getLogger(__name__)
 
