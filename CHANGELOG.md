@@ -6,6 +6,8 @@
 - ⬆️ UPDATE: importlib_metadata to `3.6`: to use new entry point loading interface
 - Official support for Python 3.9
 
+(`0.12.2` and `0.12.3` fix a regression, when working with the entry point loading interface)
+
 ## 0.12.0 - 2021-02-23
 
 This release adds an experimental MyST-NB feature to enable loading of code from a file
