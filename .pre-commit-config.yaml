@@ -48,7 +48,7 @@ repos:
     - id: mypy
       args: [--config-file=setup.cfg]
       additional_dependencies:
-      - myst-parser==0.14.0a2
+      - myst-parser~=0.14.0
       files: >
         (?x)^(
             myst_nb/parser.py|

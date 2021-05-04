@@ -27,7 +27,7 @@ SPHINX_LOGGER = logging.getLogger(__name__)
 class NotebookParser(MystParser):
     """Docutils parser for Markedly Structured Text (MyST) and Jupyter Notebooks."""
 
-    supported = ("myst-nb",)  # type: ignore[assignment]
+    supported = ("myst-nb",)
     translate_section_name = None
 
     config_section = "myst-nb parser"
