@@ -15,6 +15,7 @@ def test_basic_run(sphinx_run, file_regression, check_nbs):
         "author",
         "source_map",
         "language_info",
+        "wordcount",
     }
     assert sphinx_run.app.env.metadata["basic_unrun"]["author"] == "Chris"
     assert (
