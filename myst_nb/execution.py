@@ -10,6 +10,7 @@ The primary methods in this module are:
 
 """
 import os
+import re
 import tempfile
 from datetime import datetime
 from pathlib import Path
@@ -225,8 +226,11 @@ def is_valid_exec_file(env: BuildEnvironment, docname: str) -> bool:
     doc_path = env.doc2path(docname)
     if doc_path in env.nb_excluded_exec_paths:
         return False
-    extension = os.path.splitext(doc_path)[1]
-    if extension not in env.nb_allowed_exec_suffixes:
+    matches = tuple(
+        re.search(re.escape(suffix) + "$", doc_path)
+        for suffix in env.nb_allowed_exec_suffixes
+    )
+    if not any(matches):
         return False
     return True
 
