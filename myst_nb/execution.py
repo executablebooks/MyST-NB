@@ -14,7 +14,7 @@ import re
 import tempfile
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Set, Tuple
+from typing import Iterable, List, Optional, Set
 
 import nbformat as nbf
 from jupyter_cache import get_cache
@@ -328,7 +328,7 @@ def execute_staged_nb(
 
 
 def nb_has_all_output(
-    source_path: str, nb_extensions: Tuple[str] = (".ipynb",)
+    source_path: str, nb_extensions: Iterable[str] = (".ipynb",)
 ) -> bool:
     """Determine if the path contains a notebook with at least one output."""
     has_outputs = False
