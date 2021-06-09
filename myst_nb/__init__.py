@@ -168,6 +168,24 @@ def setup(app: Sphinx):
     app.add_css_file("mystnb.css")
     app.add_domain(NbGlueDomain)
 
+    # Load bokeh
+    def install_bokeh(
+        app: Sphinx, pagename: str, templatename: str, context: "Dict", event_arg: "Any"
+    ) -> None:
+        if app.builder.format != "html":
+            return
+
+        domain = cast(NbGlueDomain, app.env.get_domain("glue"))
+        if domain.has_bokeh(pagename):
+            from bokeh.resources import CDN
+
+            for js_file in CDN.js_files:
+                app.add_js_file(js_file)
+            for js_raw in CDN.js_raw:
+                app.add_js_file(None, body=js_raw, type="text/javascript")  # type: ignore
+
+    app.connect("html-page-context", install_bokeh)
+
     # execution statistics table
     setup_exec_table(app)
 

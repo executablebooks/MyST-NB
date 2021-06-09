@@ -51,6 +51,20 @@ class CellOutputBundleNode(nodes.container):
         """The cell level metadata for this output."""
         return self._renderer
 
+    @property
+    def has_bokeh(self) -> bool:
+        """Whether or not Bokeh JSON is in the output."""
+        for output in self.outputs:
+            mime_prefix = (
+                output.get("metadata", {}).get("scrapbook", {}).get("mime_prefix")
+            )
+            if mime_prefix is None:
+                return False
+            for k in output.get("data", {}).keys():
+                if k.replace(mime_prefix, "") == "application/jupyter-book-bokeh-json":
+                    return True
+        return False
+
     def copy(self):
         obj = self.__class__(
             outputs=self._outputs,

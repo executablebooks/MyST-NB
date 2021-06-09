@@ -24,12 +24,14 @@ from .nodes import CellOutputBundleNode
 LOGGER = logging.getLogger(__name__)
 
 WIDGET_VIEW_MIMETYPE = "application/vnd.jupyter.widget-view+json"
+JB_BOKEH_MIMETYPE = "application/jupyter-book-bokeh-json"
 
 
 def get_default_render_priority(builder: str) -> Optional[List[str]]:
     priority = {
         builder: (
             WIDGET_VIEW_MIMETYPE,
+            JB_BOKEH_MIMETYPE,
             "application/javascript",
             "text/html",
             "image/svg+xml",
@@ -285,6 +287,7 @@ class CellOutputRenderer(CellOutputRendererBase):
             "text/latex": self.render_text_latex,
             "application/javascript": self.render_application_javascript,
             WIDGET_VIEW_MIMETYPE: self.render_widget,
+            JB_BOKEH_MIMETYPE: self.render_bokeh,
         }
 
     def render(
@@ -393,6 +396,17 @@ class CellOutputRenderer(CellOutputRendererBase):
                 classes=["output", "text_plain"],
             )
         ]
+
+    def render_bokeh(self, output: NotebookNode, index: int):
+        """Output nodes for Bokeh plots given JSON."""
+        name = output["metadata"]["scrapbook"]["name"]
+        html_node = nodes.raw(text=f'<div id="{name}"></div>', format="html")
+
+        json_text = output["data"][JB_BOKEH_MIMETYPE]
+        js_text = f"""<script type="text/javascript">Bokeh.embed.embed_item(JSON.parse('{json_text}'));</script>"""
+        js_node = nodes.raw(text=js_text, format="html")
+
+        return [html_node, js_node]
 
     def render_application_javascript(self, output: NotebookNode, index: int):
         data = output["data"]["application/javascript"]

@@ -249,7 +249,7 @@ def paste_text_role(name, rawtext, text, lineno, inliner, options=None, content=
 
 
 class NbGlueDomain(Domain):
-    """A sphinx domain for handling glue data """
+    """A sphinx domain for handling glue data"""
 
     name = "glue"
     label = "NotebookGlue"
@@ -258,7 +258,7 @@ class NbGlueDomain(Domain):
     # data value for a fresh environment
     # - cache is the mapping of all keys to outputs
     # - docmap is the mapping of docnames to the set of keys it contains
-    initial_data = {"cache": {}, "docmap": {}}
+    initial_data = {"cache": {}, "docmap": {}, "has_bokeh": {}}
 
     directives = {"": Paste, "any": Paste, "figure": PasteFigure, "math": PasteMath}
 
@@ -333,3 +333,19 @@ class NbGlueDomain(Domain):
             "merge_domaindata must be implemented in %s "
             "to be able to do parallel builds!" % self.__class__
         )
+
+    def has_bokeh(self, docname: str = None) -> bool:
+        if docname:
+            return self.data["has_bokeh"].get(docname, False)
+        else:
+            return any(self.data["has_bokeh"].values())
+
+    def process_doc(
+        self, env: "BuildEnvironment", docname: str, document: nodes.document
+    ) -> None:
+        def bokeh_in_output(node: "Node") -> bool:
+            if isinstance(node, CellOutputBundleNode):
+                return node.has_bokeh
+            return False
+
+        self.data["has_bokeh"][docname] = any(document.traverse(bokeh_in_output))
