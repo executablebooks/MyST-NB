@@ -20,9 +20,32 @@ def glue(name, variable, display=True):
         Display the object you are gluing. This is helpful in sanity-checking the
         state of the object at glue-time.
     """
-    mimebundle, metadata = IPython.core.formatters.format_display_data(variable)
     mime_prefix = "" if display else GLUE_PREFIX
-    metadata["scrapbook"] = dict(name=name, mime_prefix=mime_prefix)
-    ipy_display(
-        {mime_prefix + k: v for k, v in mimebundle.items()}, raw=True, metadata=metadata
-    )
+    metadata = {"scrapbook": dict(name=name, mime_prefix=mime_prefix)}
+    if "bokeh" in type(variable).__module__:
+        # import here to avoid a hard dependency on bokeh
+        from bokeh.embed import json_item
+        import json
+
+        bokeh_json = json_item(variable, name)
+        bokeh_version = bokeh_json.get("doc", {}).get("version", None)
+        metadata["scrapbook"]["bokeh_version"] = bokeh_version
+        ipy_display(
+            {
+                mime_prefix
+                + "application/jupyter-book-bokeh-json": json.dumps(
+                    bokeh_json, separators=(",", ":")
+                )
+            },
+            raw=True,
+            metadata=metadata,
+        )
+
+    else:
+        mimebundle, meta = IPython.core.formatters.format_display_data(variable)
+        metadata.update(meta)
+        ipy_display(
+            {mime_prefix + k: v for k, v in mimebundle.items()},
+            raw=True,
+            metadata=metadata,
+        )

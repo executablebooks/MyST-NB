@@ -24,12 +24,14 @@ from .nodes import CellOutputBundleNode
 LOGGER = logging.getLogger(__name__)
 
 WIDGET_VIEW_MIMETYPE = "application/vnd.jupyter.widget-view+json"
+BOKEH_MIMETYPE = "application/jupyter-book-bokeh-json"
 
 
 def get_default_render_priority(builder: str) -> Optional[List[str]]:
     priority = {
         builder: (
             WIDGET_VIEW_MIMETYPE,
+            BOKEH_MIMETYPE,
             "application/javascript",
             "text/html",
             "image/svg+xml",
@@ -285,6 +287,7 @@ class CellOutputRenderer(CellOutputRendererBase):
             "text/latex": self.render_text_latex,
             "application/javascript": self.render_application_javascript,
             WIDGET_VIEW_MIMETYPE: self.render_widget,
+            BOKEH_MIMETYPE: self.render_bokeh,
         }
 
     def render(
@@ -393,6 +396,65 @@ class CellOutputRenderer(CellOutputRendererBase):
                 classes=["output", "text_plain"],
             )
         ]
+
+    def render_bokeh(self, output: NotebookNode, index: int):
+        """Output nodes for Bokeh plots given JSON."""
+        name = output["metadata"]["scrapbook"]["name"]
+        text = f'<div id="{name}"></div>'
+        html_node = nodes.raw(text=text, format="html")
+        json_text = output["data"][BOKEH_MIMETYPE]
+        from textwrap import dedent
+        from bokeh.resources import Resources
+        from bokeh import __version__ as bk_version
+
+        bokeh_version = output["metadata"]["scrapbook"]["bokeh_version"]
+        if bokeh_version is None:
+            bokeh_version = bk_version
+
+        res = Resources("cdn", bokeh_version, minified=True)
+        js_text = dedent(
+            f"""<script type="application/javascript">new Promise(function(resolve, reject) {{
+                  var js_files = {res.js_files};
+                  js_files.forEach(function(el){{
+                    var script = document.createElement("script");
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    script.src = el;
+                    document.head.appendChild(script);
+                  }});
+                }}).then(() => {{
+                  (function() {{
+                  var fn = function() {{
+                    Bokeh.safely(function() {{
+                      (function(root) {{
+                        if (root.Bokeh !== undefined) {{
+                          root.Bokeh.embed.embed_item(JSON.parse('{json_text}'));
+                        }} else {{
+                          var attempts = 0;
+                          var timer = setInterval(function(root) {{
+                          if (root.Bokeh !== undefined) {{
+                            clearInterval(timer);
+                            root.Bokeh.embed.embed_item(JSON.parse('{json_text}'));
+                          }} else {{
+                            attempts++;
+                            if (attempts > 100) {{
+                              clearInterval(timer);
+                              console.log("Bokeh: ERROR: Unable to run BokehJS code because BokehJS library is missing");
+                            }}
+                          }}
+                        }}, 10, root)
+                        }}
+                        }})(window);
+                        }});
+                    }};
+                    if (document.readyState != "loading") fn();
+                    else document.addEventListener("DOMContentLoaded", fn);
+                    }})();
+                    }});</script>"""
+        )
+
+        js_node = nodes.raw(text=js_text, format="html")
+        return [html_node, js_node]
 
     def render_application_javascript(self, output: NotebookNode, index: int):
         data = output["data"]["application/javascript"]
