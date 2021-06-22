@@ -38,7 +38,7 @@ class PasteNode(nodes.container):
         return obj
 
     def create_node(self, output: dict, document, env):
-        """Create the output node, give the cell output."""
+        """Create the output node, given the cell output."""
         # the whole output chunk is deposited and rendered later
         # TODO move these nodes to separate module, to avoid cyclic imports
         output_node = CellOutputBundleNode([output], env.config["nb_render_plugin"])
@@ -50,7 +50,7 @@ class PasteNode(nodes.container):
 
 class PasteInlineNode(PasteNode):
     def create_node(self, output: dict, document, env):
-        """Create the output node, give the cell output."""
+        """Create the output node, given the cell output."""
         # the whole output chunk is deposited and rendered later
         bundle_node = CellOutputBundleNode([output], "inline")
         inline_node = nodes.inline("", "", bundle_node, classes=["pasted-inline"])
@@ -66,7 +66,7 @@ class PasteTextNode(PasteNode):
         return self.attributes["formatting"]
 
     def create_node(self, output: dict, document, env):
-        """Create the output node, give the cell output."""
+        """Create the output node, given the cell output."""
         mimebundle = output["data"]
         if "text/plain" in mimebundle:
             text = mimebundle["text/plain"].strip("'")
@@ -90,7 +90,7 @@ class PasteMathNode(PasteNode):
     """
 
     def create_node(self, output: dict, document, env):
-        """Create the output node, give the cell output."""
+        """Create the output node, given the cell output."""
         mimebundle = output["data"]
         if "text/latex" in mimebundle:
             text = mimebundle["text/latex"].strip("$")
