@@ -149,7 +149,7 @@ display(Markdown('**_some_ markdown** and an [internal reference](use/format/mar
 and even internal images can be rendered!
 
 ```{code-cell} ipython3
-display(Markdown('![figure](../_static/logo.png)'))
+display(Markdown('![figure](../_static/logo-wide.svg)'))
 ```
 
 (use/format/ansi)=
