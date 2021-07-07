@@ -50,7 +50,7 @@ source/path:10004: (WARNING/2) Duplicate reference definition: abc
 ## MyST-NB configuration options
 
 The MyST-NB parser derives from {ref}`the base MyST-Parser <myst:intro/get-started>`, and so all the same configuration options are available.
-See the {ref}`MyST configuration options <myst:intro/config-options>` for the full set of options.
+See the {ref}`MyST configuration options <myst:sphinx/config-options>` for the full set of options.
 
 MyST-NB then adds some additional configuration, specific to notebooks.
 Firstly for execution:

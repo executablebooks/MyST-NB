@@ -137,7 +137,7 @@ Now we can link to the image from anywhere in our documentation: [swim to the fi
 (use/format/markdown)=
 ## Markdown
 
-Markdown output is parsed by MyST-Parser, currently with the configuration set to `myst_commonmark_only=True` (see [MyST configuration options](myst:intro/config-options)).
+Markdown output is parsed by MyST-Parser, currently with the configuration set to `myst_commonmark_only=True` (see [MyST configuration options](myst:sphinx/config-options)).
 
 The parsed Markdown is integrated into the wider documentation, and so it is possible, for example, to include internal references:
 
@@ -149,7 +149,7 @@ display(Markdown('**_some_ markdown** and an [internal reference](use/format/mar
 and even internal images can be rendered!
 
 ```{code-cell} ipython3
-display(Markdown('![figure](../_static/logo.png)'))
+display(Markdown('![figure](../_static/logo-wide.svg)'))
 ```
 
 (use/format/ansi)=
