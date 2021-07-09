@@ -116,7 +116,8 @@ you specify a `load` metadata attribute such as:
 ````
 
 ```{warning}
-This is an experimental feature that is **not** part of the core `MyST` markup specification, and may be removed in the future. Using `:load:` will also overwrite any code written into the directive.
+This is an experimental feature that is **not** part of the core `MyST` markup specification, and may be removed in the future. Using `:load:` will also overwrite any code written into the directive. The
+default encoding is set to `utf-8` when reading files for all platforms.
 ```
 
 ### Syntax for markdown

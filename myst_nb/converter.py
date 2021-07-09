@@ -187,7 +187,7 @@ def read_cell_metadata(token, cell_index):
     return metadata
 
 
-def load_code_from_file(nb_path, file_name, token, body_lines):
+def load_code_from_file(nb_path, file_name, token, body_lines, encoding="utf-8"):
     """load source code from a file."""
     if nb_path is None:
         raise LoadFileParsingError("path to notebook not supplied for :load:")
@@ -200,7 +200,7 @@ def load_code_from_file(nb_path, file_name, token, body_lines):
         )
         LOGGER.warning(msg)
     try:
-        body_lines = file_path.read_text().split("\n")
+        body_lines = file_path.read_text(encoding=encoding).split("\n")
     except Exception:
         raise LoadFileParsingError("Can't read file from :load: {}".format(file_path))
     return body_lines
