@@ -72,7 +72,7 @@ intersphinx_mapping = {
     "markdown_it": ("https://markdown-it-py.readthedocs.io/en/latest", None),
     "nbclient": ("https://nbclient.readthedocs.io/en/latest", None),
     "nbformat": ("https://nbformat.readthedocs.io/en/latest", None),
-    "sphinx": ("https://www.sphinx-doc.org/en/3.x", None),
+    "sphinx": ("https://www.sphinx-doc.org/en/master", None),
 }
 
 intersphinx_cache_limit = 5
