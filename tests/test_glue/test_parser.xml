@@ -1,5 +1,5 @@
 <document source="with_glue">
-    <section classes="tex2jax_ignore mathjax_ignore" ids="glue-tests" names="glue\ tests">
+    <section ids="glue-tests" names="glue\ tests">
         <title>
             Glue Tests
         <CellNode cell_type="code" classes="cell">
@@ -139,7 +139,7 @@
                 <inline classes="pasted-text">
                     undisplayed
                  inline…
-            <figure ids="abc" names="abc">
+            <figure align="default" ids="abc" names="abc">
                 <CellOutputNode classes="cell_output">
                     <image candidates="{'*': '_build/jupyter_execute/with_glue_5_0.png'}" uri="_build/jupyter_execute/with_glue_5_0.png">
                 <caption>
