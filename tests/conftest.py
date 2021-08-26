@@ -62,7 +62,7 @@ class SphinxFixture:
         self.env = app.env
         self.files = [os.path.splitext(ff) for ff in filenames]
         self.software_versions = (
-            f".sphinx{sphinx.version_info[0]}"  # encodes sphinx major version
+            f".sphinx{sphinx.version_info[0]}"  # software versions for fixtures
         )
 
         # self.nb_file = nb_file
@@ -106,7 +106,7 @@ class SphinxFixture:
     def get_html(self, index=0):
         """Return the built HTML file."""
         name = self.files[index][0]
-        _path = self.app.outdir / (name + self.software_versions + ".html")
+        _path = self.app.outdir / (name + ".html")
         if not _path.exists():
             pytest.fail("html not output")
         return read_text(_path)
@@ -114,12 +114,7 @@ class SphinxFixture:
     def get_nb(self, index=0):
         """Return the output notebook (after any execution)."""
         name = self.files[index][0]
-        _path = (
-            self.app.srcdir
-            / "_build"
-            / "jupyter_execute"
-            / (name + self.software_versions + ".ipynb")
-        )
+        _path = self.app.srcdir / "_build" / "jupyter_execute" / (name + ".ipynb")
         if not _path.exists():
             pytest.fail("notebook not output")
         return read_text(_path)
@@ -127,7 +122,7 @@ class SphinxFixture:
     def get_report_file(self, index=0):
         """Return the report file for a failed execution."""
         name = self.files[index][0]
-        _path = self.app.outdir / "reports" / (name + self.software_versions + ".log")
+        _path = self.app.outdir / "reports" / (name + ".log")
         if not _path.exists():
             pytest.fail("report log not output")
         return read_text(_path)
