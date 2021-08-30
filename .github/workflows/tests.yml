@@ -30,14 +30,14 @@ jobs:
         sphinx: [">=4,<5"]
         include:
           - os : ubuntu-latest
-            python-version: [3.8,3.9]
+            python-version: 3.8
+            sphinx: ">=3,<4"
+          - os: windows-latest
+            python-version: 3.7
             sphinx: ">=3,<4"
           - os: macos-latest
             python-version: 3.9
             sphinx: ">=4,<5"
-          - os: windows-latest
-            python-version: 3.7
-            sphinx: ">=3,<4"
 
     runs-on: ${{ matrix.os }}
 
