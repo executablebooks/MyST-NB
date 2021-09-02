@@ -1,5 +1,21 @@
 # Change Log
 
+## 0.13.0 - 2021-09-02
+
+### Upgraded to `sphinx` v4 ⬆️
+
+The primary change in this release is to update the requirements of myst-nb from `sphinx>=2,<4` to `sphinx>=3,<5` to
+support `sphinx>=4` [[PR #356](https://github.com/executablebooks/MyST-NB/pull/356)].
+
+- 👌 IMPROVE: Allows more complex suffixes in notebooks [[PR #328](https://github.com/executablebooks/MyST-NB/pull/328)]
+- ⬆️ UPDATE: myst-parser to `0.15.2` [[PR #353](https://github.com/executablebooks/MyST-NB/pull/353)]
+- ⬆️ UPGRADE: nbconvert 6 support [[PR #326](https://github.com/executablebooks/MyST-NB/pull/326)]
+- ⬆️ UPGRADE: markdown-it-py v1.0 [[PR #320](https://github.com/executablebooks/MyST-NB/pull/320)]
+- 🔧 MAINT: Pin ipykernel to ~v5.5 [[PR #347](https://github.com/executablebooks/MyST-NB/pull/347)]
+- 🔧 MAINT: Make a more specific selector for no-border [[PR #344](https://github.com/executablebooks/MyST-NB/pull/344)]
+
+Many thanks to @akhmerov, @bollwyvl, @choldgraf, @chrisjsewell, @juhuebner, @mmcky
+
 ## 0.12.1 - 2021-04-25
 
 - ⬆️ UPDATE: jupyter_sphinx to `0.3.2`: fixes `Notebook code has no file extension metadata` warning)
