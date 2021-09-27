@@ -10,5 +10,5 @@ src_paths = ["myst_nb", "tests"]
 show_error_codes = true
 
 [[tool.mypy.overrides]]
-module = 'docutils.*'
+module = 'docutils'
 ignore_missing_imports = true
