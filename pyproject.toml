@@ -5,10 +5,3 @@ build-backend = "setuptools.build_meta"
 [tool.isort]
 profile = "black"
 src_paths = ["myst_nb", "tests"]
-
-[tool.mypy]
-show_error_codes = true
-
-[[tool.mypy.overrides]]
-module = 'docutils'
-ignore_missing_imports = true
