@@ -1,5 +1,6 @@
 """A Sphinx post-transform, to convert notebook outpus to AST nodes."""
 import os
+import re
 from abc import ABC, abstractmethod
 from typing import List, Optional
 from unittest import mock
@@ -91,6 +92,58 @@ def load_renderer(name: str) -> "CellOutputRendererBase":
     raise MystNbEntryPointError(f"No Entry Point found for myst_nb.mime_render:{name}")
 
 
+RGX_CARRIAGERETURN = re.compile(r".*\r(?=[^\n])")
+RGX_BACKSPACE = re.compile(r"[^\n]\b")
+
+
+def coalesce_streams(outputs: List[NotebookNode]) -> List[NotebookNode]:
+    """Merge all stream outputs with shared names into single streams.
+
+    This ensure deterministic outputs.
+
+    Adapted from:
+    https://github.com/computationalmodelling/nbval/blob/master/nbval/plugin.py.
+    """
+    if not outputs:
+        return []
+
+    new_outputs = []
+    streams = {}
+    for output in outputs:
+        if output["output_type"] == "stream":
+            if output["name"] in streams:
+                streams[output["name"]]["text"] += output["text"]
+            else:
+                new_outputs.append(output)
+                streams[output["name"]] = output
+        else:
+            new_outputs.append(output)
+
+    # process \r and \b characters
+    for output in streams.values():
+        old = output["text"]
+        while len(output["text"]) < len(old):
+            old = output["text"]
+            # Cancel out anything-but-newline followed by backspace
+            output["text"] = RGX_BACKSPACE.sub("", output["text"])
+        # Replace all carriage returns not followed by newline
+        output["text"] = RGX_CARRIAGERETURN.sub("", output["text"])
+
+    # We also want to ensure stdout and stderr are always in the same consecutive order,
+    # because they are asynchronous, so order isn't guaranteed.
+    for i, output in enumerate(new_outputs):
+        if output["output_type"] == "stream" and output["name"] == "stderr":
+            if (
+                len(new_outputs) >= i + 2
+                and new_outputs[i + 1]["output_type"] == "stream"
+                and new_outputs[i + 1]["name"] == "stdout"
+            ):
+                stdout = new_outputs.pop(i + 1)
+                new_outputs.insert(i, stdout)
+
+    return new_outputs
+
+
 class CellOutputsToNodes(SphinxPostTransform):
     """Use the builder context to transform a CellOutputNode into Sphinx nodes."""
 
@@ -108,6 +161,8 @@ class CellOutputsToNodes(SphinxPostTransform):
                 renderer_cls = load_renderer(node.renderer)
                 renderers[node.renderer] = renderer_cls
             renderer = renderer_cls(self.document, node, abs_dir)
+            if self.config.nb_merge_streams:
+                node._outputs = coalesce_streams(node.outputs)
             output_nodes = renderer.cell_output_to_nodes(self.env.nb_render_priority)
             node.replace_self(output_nodes)
 

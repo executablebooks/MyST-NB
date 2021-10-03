@@ -133,6 +133,7 @@ def setup(app: Sphinx):
     app.add_config_value("nb_render_plugin", "default", "env")
     app.add_config_value("nb_render_text_lexer", "myst-ansi", "env")
     app.add_config_value("nb_output_stderr", "show", "env")
+    app.add_config_value("nb_merge_streams", False, "env")
 
     # Register our post-transform which will convert output bundles to nodes
     app.add_post_transform(PasteNodesToDocutils)

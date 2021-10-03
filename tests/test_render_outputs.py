@@ -73,6 +73,17 @@ def test_stderr_remove(sphinx_run, file_regression):
 
 
 @pytest.mark.sphinx_params(
+    "merge_streams.ipynb",
+    conf={"jupyter_execute_notebooks": "off", "nb_merge_streams": True},
+)
+def test_merge_streams(sphinx_run, file_regression):
+    sphinx_run.build()
+    assert sphinx_run.warnings() == ""
+    doctree = sphinx_run.get_resolved_doctree("merge_streams")
+    file_regression.check(doctree.pformat(), extension=".xml", encoding="utf8")
+
+
+@pytest.mark.sphinx_params(
     "metadata_image.ipynb",
     conf={"jupyter_execute_notebooks": "off", "nb_render_key": "myst"},
 )
