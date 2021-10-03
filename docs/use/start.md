@@ -112,4 +112,7 @@ Then for parsing and output rendering:
 * - `nb_output_stderr`
   - `show`
   - One of 'show', 'remove', 'warn', 'error' or 'severe', [see here](use/format/stderr) for details.
+* - `nb_merge_streams`
+  - `False`
+  - If `True`, ensure all stdout / stderr output streams are merged into single outputs. This ensures deterministic outputs.
 `````
