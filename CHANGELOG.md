@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.13.1 - 2021-10-04
+
+✨ NEW: `nb_merge_streams` configuration  [[PR #364](https://github.com/executablebooks/MyST-NB/pull/364)]
+
+If `nb_merge_streams=True`, all stdout / stderr output streams are merged into single outputs. This ensures deterministic outputs.
+
 ## 0.13.0 - 2021-09-02
 
 ### Upgraded to `sphinx` v4 ⬆️
