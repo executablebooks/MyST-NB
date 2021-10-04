@@ -33,7 +33,7 @@ nb_custom_formats = {
 
 :::{important}
 
-By default, Markdown cells in the Notebook will be parsed using the same MyST parser configuration as for other Markdown files ([see available configuration options](start/config-options)).
+By default, Markdown cells in the Notebook will be parsed using the same MyST parser configuration as for other Markdown files ([see available configuration options](config/reference)).
 
 But, if this is incompatible with your file format, then you can specify for the Markdown to be parsed as **strictly CommonMark**, using a third argument:
 
@@ -56,7 +56,7 @@ This key should be a list mapping each cell to the starting line number in the o
 }
 ```
 
-This mapping allows for "true" error reporting, as described in [](start/error-reporting).
+This mapping allows for "true" error reporting, as described in [](myst/error-reporting).
 
 ## Using Jupytext
 

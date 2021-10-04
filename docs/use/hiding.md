@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# Hiding cell contents
+# Hide cell contents
 
 You can use Jupyter Notebook **cell tags** to control some of the behavior of
 the rendered notebook. This uses the [**`sphinx-togglebutton`**](https://sphinx-togglebutton.readthedocs.io/en/latest/)
@@ -22,7 +22,7 @@ package to add a little button that toggles the visibility of content.[^download
 
 (use/hiding/code)=
 
-## Hiding code cells
+## Hide code cells
 
 You can use **cell tags** to control the content hidden with code cells.
 Add the following tags to a cell's metadata to control
@@ -75,7 +75,7 @@ points =ax.scatter(*data, c=data[0], s=data[0])
 
 (use/hiding/markdown)=
 
-## Hiding markdown cells
+## Hide markdown cells
 
 There are two ways to hide markdown cells. First, **you can add the `hide-input`**
 cell metadata. This triggers the same hiding behavior described above for
@@ -132,7 +132,7 @@ with `#`. If you'd like to use headings, do one of the following:
 
 (use/removing)=
 
-## Removing parts of cells
+## Remove parts of cells
 
 Sometimes, you want to entirely remove parts of a cell so that it doesn't make it
 into the output at all. To do this, you can use the same tag pattern described above,

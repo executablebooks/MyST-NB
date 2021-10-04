@@ -12,7 +12,7 @@ kernelspec:
 ---
 
 (use/format)=
-# Formatting code outputs
+# Format code outputs
 
 (use/format/priority)=
 ## Render priority
@@ -42,8 +42,11 @@ nb_render_priority = {
 [](use/format/cutomise), for a more advanced means of customisation.
 :::
 
+(use/format/stdout-stderr)=
+## stdout and stderr
+
 (use/format/stderr)=
-## Removing stdout and stderr
+### Remove stdout or stderr
 
 In some cases you may not wish to display stdout/stderr outputs in your final documentation,
 for example, if they are only for debugging purposes.
@@ -79,6 +82,22 @@ This can be set to:
 - `"remove"`: remove all stderr
 - `"remove-warn"`: remove all stderr, but log a warning to sphinx if any found
 - `"warn"`, `"error"` or `"severe"`: log to sphinx, at a certain level, if any found.
+
+### Group stdout and stderr into single streams
+
+Cells may print multiple things to `stdout` and `stderr`.
+For example, if a cell prints status updates throughout its execution, each of these is often printed to `stdout`.
+By default, these outputs may be split across multiple items, and will be rendered as separate "chunks" in your built documentation.
+
+If you'd like each of the outputs in `stderr` and `stdout` to be merged into a single stream for each, use the following configuration:
+
+```python
+nb_merge_streams = True
+```
+
+This will ensure that all `stderr` and `stdout` outputs are merged into a single group.
+This also makes cell outputs more deterministic.
+Normally, slight differences in timing may result in different orders of `stderr` and `stdout` in the cell output, while this setting will sort them properly.
 
 (use/format/images)=
 ## Images
