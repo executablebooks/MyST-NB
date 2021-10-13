@@ -83,6 +83,7 @@ This can be set to:
 - `"remove-warn"`: remove all stderr, but log a warning to sphinx if any found
 - `"warn"`, `"error"` or `"severe"`: log to sphinx, at a certain level, if any found.
 
+(use/format/group-stderr-stdout)=
 ### Group stdout and stderr into single streams
 
 Cells may print multiple things to `stdout` and `stderr`.
