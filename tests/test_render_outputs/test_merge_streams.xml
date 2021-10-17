@@ -1,0 +1,23 @@
+<document source="merge_streams">
+    <CellNode cell_type="code" classes="cell">
+        <CellInputNode classes="cell_input">
+            <literal_block language="ipython3" linenos="False" xml:space="preserve">
+                import sys
+                print('stdout1', file=sys.stdout)
+                print('stdout2', file=sys.stdout)
+                print('stderr1', file=sys.stderr)
+                print('stderr2', file=sys.stderr)
+                print('stdout3', file=sys.stdout)
+                print('stderr3', file=sys.stderr)
+                1
+        <CellOutputNode classes="cell_output">
+            <literal_block classes="output stream" language="myst-ansi" linenos="False" xml:space="preserve">
+                stdout1
+                stdout2
+                stdout3
+            <literal_block classes="output stderr" language="myst-ansi" linenos="False" xml:space="preserve">
+                stderr1
+                stderr2
+                stderr3
+            <literal_block classes="output text_plain" language="myst-ansi" linenos="False" xml:space="preserve">
+                1

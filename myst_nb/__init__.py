@@ -1,4 +1,4 @@
-__version__ = "0.13.0"
+__version__ = "0.13.1"
 
 import os
 from collections.abc import Sequence
@@ -133,6 +133,7 @@ def setup(app: Sphinx):
     app.add_config_value("nb_render_plugin", "default", "env")
     app.add_config_value("nb_render_text_lexer", "myst-ansi", "env")
     app.add_config_value("nb_output_stderr", "show", "env")
+    app.add_config_value("nb_merge_streams", False, "env")
 
     # Register our post-transform which will convert output bundles to nodes
     app.add_post_transform(PasteNodesToDocutils)
@@ -210,7 +211,7 @@ def validate_config_values(app: Sphinx, config):
     for name, converter in app.config["nb_custom_formats"].items():
         if not isinstance(name, str):
             raise MystNbConfigError(
-                f"'nb_custom_formats' keys should br a string: {name}"
+                f"'nb_custom_formats' keys should be a string: {name}"
             )
         if isinstance(converter, str):
             app.config["nb_custom_formats"][name] = (converter, {})

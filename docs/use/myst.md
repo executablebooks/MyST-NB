@@ -52,3 +52,25 @@ source_suffix = {
     '.myst': 'myst-nb',
 }
 ```
+
+(myst/error-reporting)=
+
+## Error reporting in Sphinx
+
+When Sphinx encounters and error or raises a warning, it will print the location and source file of the text that generated that error.
+This works slightly differently depending on whether you use markdown files or Jupyter Notebook files.
+
+For markdown (`.md`) files, Sphinx will correctly report the line number that the error or warning is associated with:
+
+```
+source/path:4: (WARNING/2) Duplicate reference definition: abc
+```
+
+For Jupyter Notebook (`.ipynb`) files, these errors also correspond to a cell index.
+To allow for this, we use a special format of line number corresponding to: `<CELL_INDEX> * 10000 + LINE_NUMBER`.
+
+For example, the following error corresponds to **Cell 1, line 4**:
+
+```
+source/path:10004: (WARNING/2) Duplicate reference definition: abc
+```
