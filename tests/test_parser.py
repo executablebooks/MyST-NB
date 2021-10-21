@@ -10,6 +10,7 @@ def test_basic_run(sphinx_run, file_regression):
         "test_name",
         "kernelspec",
         "language_info",
+        "wordcount",
     }
     assert sphinx_run.app.env.metadata["basic_run"]["test_name"] == "notebook1"
     assert (
@@ -44,6 +45,7 @@ def test_complex_outputs(sphinx_run, file_regression):
         "jupytext",
         "toc",
         "varInspector",
+        "wordcount",
     }
     assert (
         sphinx_run.app.env.metadata["complex_outputs"]["celltoolbar"] == "Edit Metadata"

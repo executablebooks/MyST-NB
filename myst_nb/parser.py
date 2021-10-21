@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import nbformat as nbf
 from docutils import nodes
@@ -8,7 +8,7 @@ from jupyter_sphinx.execute import contains_widgets, write_notebook_output
 from markdown_it import MarkdownIt
 from markdown_it.rules_core import StateCore
 from markdown_it.token import Token
-from markdown_it.utils import AttrDict
+from markdown_it.tree import SyntaxTreeNode
 from myst_parser.main import MdParserConfig, default_parser
 from myst_parser.sphinx_parser import MystParser
 from myst_parser.sphinx_renderer import SphinxRenderer
@@ -33,7 +33,9 @@ class NotebookParser(MystParser):
     config_section = "myst-nb parser"
     config_section_dependencies = ("parsers",)
 
-    def parse(self, inputstring: str, document: nodes.document):
+    def parse(
+        self, inputstring: str, document: nodes.document, renderer: str = "sphinx"
+    ) -> None:
 
         self.reporter = document.reporter
         self.env = document.settings.env  # type: BuildEnvironment
@@ -70,7 +72,11 @@ class NotebookParser(MystParser):
         # containing global data like reference definitions
         md_parser, env, tokens = nb_to_tokens(
             ntbk,
-            self.env.myst_config if converter is None else converter.config,
+            (
+                self.env.myst_config  # type: ignore[attr-defined]
+                if converter is None
+                else converter.config
+            ),
             self.env.config["nb_render_plugin"],
         )
 
@@ -87,7 +93,7 @@ class NotebookParser(MystParser):
 
 def nb_to_tokens(
     ntbk: nbf.NotebookNode, config: MdParserConfig, renderer_plugin: str
-) -> Tuple[MarkdownIt, AttrDict, List[Token]]:
+) -> Tuple[MarkdownIt, Dict[str, Any], List[Token]]:
     """Parse the notebook content to a list of syntax tokens and an env,
     containing global data like reference definitions.
     """
@@ -99,7 +105,7 @@ def nb_to_tokens(
     md.renderer = SphinxNBRenderer(md)
     # make a sandbox where all the parsing global data,
     # like reference definitions will be stored
-    env = AttrDict()
+    env: Dict[str, Any] = {}
     rules = md.core.ruler.get_active_rules()
 
     # First only run pre-inline chains
@@ -185,7 +191,7 @@ def nb_to_tokens(
             "",
             0,
             map=[0, 0],
-            content=({k: v for k, v in ntbk.metadata.items()}),
+            content=({k: v for k, v in ntbk.metadata.items()}),  # type: ignore[arg-type]
         )
     ] + state.tokens
 
@@ -205,8 +211,8 @@ def nb_to_tokens(
 
 
 def tokens_to_docutils(
-    md: MarkdownIt, env: AttrDict, tokens: List[Token], document: nodes.document
-):
+    md: MarkdownIt, env: Dict[str, Any], tokens: List[Token], document: nodes.document
+) -> None:
     """Render the Markdown tokens to docutils AST."""
     md.options["document"] = document
     md.renderer.render(tokens, md.options, env)
@@ -217,14 +223,14 @@ class SphinxNBRenderer(SphinxRenderer):
     which includes special methods for notebook cells.
     """
 
-    def render_jupyter_widget_state(self, token: Token):
+    def render_jupyter_widget_state(self, token: SyntaxTreeNode) -> None:
         if token.meta["state"]:
             self.document.settings.env.nb_contains_widgets = True
         node = JupyterWidgetStateNode(state=token.meta["state"])
         self.add_line_and_source_path(node, token)
         self.document.append(node)
 
-    def render_nb_code_cell(self, token: Token):
+    def render_nb_code_cell(self, token: SyntaxTreeNode) -> None:
         """Render a Jupyter notebook cell."""
         cell = token.meta["cell"]  # type: nbf.NotebookNode
 
