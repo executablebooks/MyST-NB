@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.13.2 - 2021-10-25
+
+🐛 FIX: Image URI issue for latex build when source has subdirectories
+
 ## 0.13.1 - 2021-10-04
 
 ✨ NEW: `nb_merge_streams` configuration  [[PR #364](https://github.com/executablebooks/MyST-NB/pull/364)]
