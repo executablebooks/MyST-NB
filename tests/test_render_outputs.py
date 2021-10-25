@@ -1,19 +1,19 @@
 from unittest.mock import patch
 
-from importlib_metadata import EntryPoint
 import pytest
+from importlib_metadata import EntryPoint
 
-from myst_nb.render_outputs import load_renderer, MystNbEntryPointError
+from myst_nb.render_outputs import MystNbEntryPointError, load_renderer
 
 
 def test_load_renderer_not_found():
-    with pytest.raises(MystNbEntryPointError):
+    with pytest.raises(MystNbEntryPointError, match="No Entry Point found"):
         load_renderer("other")
 
 
 @patch.object(EntryPoint, "load", lambda self: EntryPoint)
 def test_load_renderer_not_subclass():
-    with pytest.raises(MystNbEntryPointError):
+    with pytest.raises(MystNbEntryPointError, match="Entry Point .* not a subclass"):
         load_renderer("default")
 
 
@@ -69,6 +69,17 @@ def test_stderr_remove(sphinx_run, file_regression):
     sphinx_run.build()
     assert sphinx_run.warnings() == ""
     doctree = sphinx_run.get_resolved_doctree("basic_stderr")
+    file_regression.check(doctree.pformat(), extension=".xml", encoding="utf8")
+
+
+@pytest.mark.sphinx_params(
+    "merge_streams.ipynb",
+    conf={"jupyter_execute_notebooks": "off", "nb_merge_streams": True},
+)
+def test_merge_streams(sphinx_run, file_regression):
+    sphinx_run.build()
+    assert sphinx_run.warnings() == ""
+    doctree = sphinx_run.get_resolved_doctree("merge_streams")
     file_regression.check(doctree.pformat(), extension=".xml", encoding="utf8")
 
 

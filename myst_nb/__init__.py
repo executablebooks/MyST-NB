@@ -1,47 +1,43 @@
-__version__ = "0.12.0"
+__version__ = "0.13.1"
 
-from collections.abc import Sequence
 import os
+from collections.abc import Sequence
 from pathlib import Path
 from typing import cast
 
 from docutils import nodes as docnodes
+from IPython.lib.lexers import IPython3Lexer, IPythonTracebackLexer
+from ipywidgets.embed import DEFAULT_EMBED_REQUIREJS_URL, DEFAULT_EMBED_SCRIPT_URL
+from jupyter_sphinx import REQUIRE_URL_DEFAULT
+from jupyter_sphinx.ast import JupyterWidgetStateNode, JupyterWidgetViewNode
+from jupyter_sphinx.utils import sphinx_abs_dir
+from myst_parser import setup_sphinx as setup_myst_parser
 from sphinx.addnodes import download_reference
 from sphinx.application import Sphinx
 from sphinx.builders.html import StandaloneHTMLBuilder
 from sphinx.environment import BuildEnvironment
 from sphinx.errors import SphinxError
-from sphinx.util.docutils import SphinxDirective, ReferenceRole
-from sphinx.util import logging, import_object
+from sphinx.util import import_object, logging
+from sphinx.util.docutils import ReferenceRole, SphinxDirective
 
-from IPython.lib.lexers import IPythonTracebackLexer, IPython3Lexer
-from ipywidgets.embed import DEFAULT_EMBED_REQUIREJS_URL, DEFAULT_EMBED_SCRIPT_URL
-from jupyter_sphinx import REQUIRE_URL_DEFAULT
-from jupyter_sphinx.ast import JupyterWidgetStateNode, JupyterWidgetViewNode
-from jupyter_sphinx.utils import sphinx_abs_dir
-
-from myst_parser import setup_sphinx as setup_myst_parser
-
+from .exec_table import setup_exec_table
 from .execution import update_execution_cache
-from .parser import NotebookParser
-from .nodes import (
-    CellNode,
-    CellInputNode,
-    CellOutputNode,
-    CellOutputBundleNode,
-)
-from .render_outputs import CellOutputsToNodes, get_default_render_priority
 from .nb_glue import glue  # noqa: F401
 from .nb_glue.domain import (
     NbGlueDomain,
+    PasteInlineNode,
     PasteMathNode,
     PasteNode,
     PasteTextNode,
-    PasteInlineNode,
 )
 from .nb_glue.transform import PasteNodesToDocutils
-from .exec_table import setup_exec_table
-from .render_outputs import load_renderer
+from .nodes import CellInputNode, CellNode, CellOutputBundleNode, CellOutputNode
+from .parser import NotebookParser
+from .render_outputs import (
+    CellOutputsToNodes,
+    get_default_render_priority,
+    load_renderer,
+)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -137,6 +133,7 @@ def setup(app: Sphinx):
     app.add_config_value("nb_render_plugin", "default", "env")
     app.add_config_value("nb_render_text_lexer", "myst-ansi", "env")
     app.add_config_value("nb_output_stderr", "show", "env")
+    app.add_config_value("nb_merge_streams", False, "env")
 
     # Register our post-transform which will convert output bundles to nodes
     app.add_post_transform(PasteNodesToDocutils)
@@ -214,7 +211,7 @@ def validate_config_values(app: Sphinx, config):
     for name, converter in app.config["nb_custom_formats"].items():
         if not isinstance(name, str):
             raise MystNbConfigError(
-                f"'nb_custom_formats' keys should br a string: {name}"
+                f"'nb_custom_formats' keys should be a string: {name}"
             )
         if isinstance(converter, str):
             app.config["nb_custom_formats"][name] = (converter, {})

@@ -10,8 +10,8 @@ from datetime import datetime
 from docutils import nodes
 from sphinx.transforms import SphinxTransform
 from sphinx.transforms.post_transforms import SphinxPostTransform
-from sphinx.util.docutils import SphinxDirective
 from sphinx.util import logging
+from sphinx.util.docutils import SphinxDirective
 
 LOGGER = logging.getLogger(__name__)
 
@@ -73,7 +73,7 @@ class ExecutionStatsTransform(SphinxTransform):
 
     def apply(self):
         self.env.docs_with_exec_table.discard(self.env.docname)
-        for node in self.document.traverse(ExecutionStatsNode):
+        for _ in self.document.traverse(ExecutionStatsNode):
             self.env.docs_with_exec_table.add(self.env.docname)
             break
 

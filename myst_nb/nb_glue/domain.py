@@ -1,19 +1,18 @@
 import copy
 import json
 from pathlib import Path
-from typing import cast, List, Dict
+from typing import Dict, List, cast
 
 from docutils import nodes
 from docutils.parsers.rst import directives
 from sphinx.domains import Domain
 from sphinx.domains.math import MathDomain
-from sphinx.util.docutils import SphinxDirective
 from sphinx.util import logging
-
+from sphinx.util.docutils import SphinxDirective
 
 from myst_nb.nb_glue import GLUE_PREFIX
 from myst_nb.nb_glue.utils import find_all_keys
-from myst_nb.nodes import CellOutputNode, CellOutputBundleNode
+from myst_nb.nodes import CellOutputBundleNode, CellOutputNode
 
 SPHINX_LOGGER = logging.getLogger(__name__)
 
@@ -216,7 +215,7 @@ class PasteFigure(Paste):
         return [figure_node]
 
 
-def paste_any_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
+def paste_any_role(name, rawtext, text, lineno, inliner, options=None, content=()):
     """This role will simply add the cell output"""
     path = inliner.document.current_source
     # Remove line number if we have a notebook because it is unreliable
@@ -226,7 +225,7 @@ def paste_any_role(name, rawtext, text, lineno, inliner, options={}, content=[])
     return [PasteInlineNode(text, location=(path, lineno))], []
 
 
-def paste_text_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
+def paste_text_role(name, rawtext, text, lineno, inliner, options=None, content=()):
     """This role will be parsed as text, with some formatting fanciness.
 
     The text can have a final ``:``,
@@ -250,7 +249,7 @@ def paste_text_role(name, rawtext, text, lineno, inliner, options={}, content=[]
 
 
 class NbGlueDomain(Domain):
-    """A sphinx domain for handling glue data """
+    """A sphinx domain for handling glue data"""
 
     name = "glue"
     label = "NotebookGlue"

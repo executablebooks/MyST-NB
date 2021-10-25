@@ -1,15 +1,13 @@
 import json
+from pathlib import Path
 from typing import Callable, Iterable, Optional
 
 import attr
-from pathlib import Path
-
 import nbformat as nbf
+import yaml
+from myst_parser.main import MdParserConfig
 from sphinx.environment import BuildEnvironment
 from sphinx.util import import_object, logging
-import yaml
-
-from myst_parser.main import MdParserConfig
 
 NOTEBOOK_VERSION = 4
 CODE_DIRECTIVE = "{code-cell}"

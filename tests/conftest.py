@@ -1,21 +1,22 @@
 import json
 import os
-from pathlib import Path
 import uuid
+from pathlib import Path
 
-from docutils.nodes import image as image_node
-from sphinx.util.console import nocolor
+import nbformat as nbf
 import pytest
-
+import sphinx
+from docutils.nodes import image as image_node
+from nbconvert.filters import strip_ansi
 from nbdime.diffing.notebooks import (
     diff_notebooks,
-    set_notebook_diff_targets,
     set_notebook_diff_ignores,
+    set_notebook_diff_targets,
 )
-from nbconvert.filters import strip_ansi
 from nbdime.prettyprint import pretty_print_diff
-import nbformat as nbf
+from sphinx.util.console import nocolor
 
+pytest_plugins = "sphinx.testing.fixtures"
 
 # -Diff Configuration-#
 NB_VERSION = 4
@@ -43,6 +44,14 @@ def get_test_path():
     return _get_test_path
 
 
+def read_text(path):
+    try:
+        return path.read_text()
+    except AttributeError:
+        # sphinx 2 compat
+        return path.text()
+
+
 class SphinxFixture:
     """A class returned by the ``sphinx_run`` fixture, to run sphinx,
     and retrieve aspects of the build.
@@ -52,6 +61,9 @@ class SphinxFixture:
         self.app = app
         self.env = app.env
         self.files = [os.path.splitext(ff) for ff in filenames]
+        self.software_versions = (
+            f".sphinx{sphinx.version_info[0]}"  # software version tracking for fixtures
+        )
 
         # self.nb_file = nb_file
         # self.nb_name = os.path.splitext(nb_file)[0]
@@ -97,7 +109,7 @@ class SphinxFixture:
         _path = self.app.outdir / (name + ".html")
         if not _path.exists():
             pytest.fail("html not output")
-        return _path.text()
+        return read_text(_path)
 
     def get_nb(self, index=0):
         """Return the output notebook (after any execution)."""
@@ -105,7 +117,7 @@ class SphinxFixture:
         _path = self.app.srcdir / "_build" / "jupyter_execute" / (name + ".ipynb")
         if not _path.exists():
             pytest.fail("notebook not output")
-        return _path.text()
+        return read_text(_path)
 
     def get_report_file(self, index=0):
         """Return the report file for a failed execution."""
@@ -113,7 +125,7 @@ class SphinxFixture:
         _path = self.app.outdir / "reports" / (name + ".log")
         if not _path.exists():
             pytest.fail("report log not output")
-        return _path.text()
+        return read_text(_path)
 
 
 @pytest.fixture()

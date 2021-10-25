@@ -1,26 +1,24 @@
 """A Sphinx post-transform, to convert notebook outpus to AST nodes."""
-from abc import ABC, abstractmethod
 import os
+import re
+from abc import ABC, abstractmethod
 from typing import List, Optional
 from unittest import mock
 
-from importlib_metadata import entry_points
+import nbconvert
 from docutils import nodes
 from docutils.parsers.rst import directives
+from importlib_metadata import entry_points
+from jupyter_sphinx.ast import JupyterWidgetViewNode, strip_latex_delimiters
+from jupyter_sphinx.utils import sphinx_abs_dir
+from myst_parser.docutils_renderer import make_document
+from myst_parser.main import MdParserConfig, default_parser
+from nbformat import NotebookNode
 from sphinx.environment import BuildEnvironment
 from sphinx.environment.collectors.asset import ImageCollector
 from sphinx.errors import SphinxError
 from sphinx.transforms.post_transforms import SphinxPostTransform
 from sphinx.util import logging
-
-import nbconvert
-from nbformat import NotebookNode
-
-from jupyter_sphinx.ast import strip_latex_delimiters, JupyterWidgetViewNode
-from jupyter_sphinx.utils import sphinx_abs_dir
-
-from myst_parser.main import default_parser, MdParserConfig
-from myst_parser.docutils_renderer import make_document
 
 from .nodes import CellOutputBundleNode
 
@@ -70,26 +68,80 @@ class MystNbEntryPointError(SphinxError):
     category = "MyST NB Renderer Load"
 
 
-def load_renderer(name) -> "CellOutputRendererBase":
+def load_renderer(name: str) -> "CellOutputRendererBase":
     """Load a renderer,
     given a name within the ``myst_nb.mime_render`` entry point group
     """
-    ep_list = set(ep for ep in entry_points()["myst_nb.mime_render"] if ep.name == name)
-    if len(ep_list) == 1:
-        klass = ep_list.pop().load()
+    all_eps = entry_points()
+    if hasattr(all_eps, "select"):
+        # importlib_metadata >= 3.6 or importlib.metadata in python >=3.10
+        eps = all_eps.select(group="myst_nb.mime_render", name=name)
+        found = name in eps.names
+    else:
+        eps = {ep.name: ep for ep in all_eps.get("myst_nb.mime_render", [])}
+        found = name in eps
+    if found:
+        klass = eps[name].load()
         if not issubclass(klass, CellOutputRendererBase):
             raise MystNbEntryPointError(
                 f"Entry Point for myst_nb.mime_render:{name} "
                 f"is not a subclass of `CellOutputRendererBase`: {klass}"
             )
         return klass
-    elif not ep_list:
-        raise MystNbEntryPointError(
-            f"No Entry Point found for myst_nb.mime_render:{name}"
-        )
-    raise MystNbEntryPointError(
-        f"Multiple Entry Points found for myst_nb.mime_render:{name}: {ep_list}"
-    )
+
+    raise MystNbEntryPointError(f"No Entry Point found for myst_nb.mime_render:{name}")
+
+
+RGX_CARRIAGERETURN = re.compile(r".*\r(?=[^\n])")
+RGX_BACKSPACE = re.compile(r"[^\n]\b")
+
+
+def coalesce_streams(outputs: List[NotebookNode]) -> List[NotebookNode]:
+    """Merge all stream outputs with shared names into single streams.
+
+    This ensure deterministic outputs.
+
+    Adapted from:
+    https://github.com/computationalmodelling/nbval/blob/master/nbval/plugin.py.
+    """
+    if not outputs:
+        return []
+
+    new_outputs = []
+    streams = {}
+    for output in outputs:
+        if output["output_type"] == "stream":
+            if output["name"] in streams:
+                streams[output["name"]]["text"] += output["text"]
+            else:
+                new_outputs.append(output)
+                streams[output["name"]] = output
+        else:
+            new_outputs.append(output)
+
+    # process \r and \b characters
+    for output in streams.values():
+        old = output["text"]
+        while len(output["text"]) < len(old):
+            old = output["text"]
+            # Cancel out anything-but-newline followed by backspace
+            output["text"] = RGX_BACKSPACE.sub("", output["text"])
+        # Replace all carriage returns not followed by newline
+        output["text"] = RGX_CARRIAGERETURN.sub("", output["text"])
+
+    # We also want to ensure stdout and stderr are always in the same consecutive order,
+    # because they are asynchronous, so order isn't guaranteed.
+    for i, output in enumerate(new_outputs):
+        if output["output_type"] == "stream" and output["name"] == "stderr":
+            if (
+                len(new_outputs) >= i + 2
+                and new_outputs[i + 1]["output_type"] == "stream"
+                and new_outputs[i + 1]["name"] == "stdout"
+            ):
+                stdout = new_outputs.pop(i + 1)
+                new_outputs.insert(i, stdout)
+
+    return new_outputs
 
 
 class CellOutputsToNodes(SphinxPostTransform):
@@ -109,6 +161,8 @@ class CellOutputsToNodes(SphinxPostTransform):
                 renderer_cls = load_renderer(node.renderer)
                 renderers[node.renderer] = renderer_cls
             renderer = renderer_cls(self.document, node, abs_dir)
+            if self.config.nb_merge_streams:
+                node._outputs = coalesce_streams(node.outputs)
             output_nodes = renderer.cell_output_to_nodes(self.env.nb_render_priority)
             node.replace_self(output_nodes)
 
@@ -416,10 +470,10 @@ class CellOutputRenderer(CellOutputRendererBase):
             # directory, so make a relative path, which Sphinx treats
             # as being relative to the current working directory.
             filename = os.path.basename(output.metadata["filenames"][mime_type])
-
             # checks if file dir path is inside a subdir of dir
             filedir = os.path.dirname(output.metadata["filenames"][mime_type])
-            subpaths = filedir.split(self.sphinx_dir)
+            outbasedir = os.path.abspath(self.sphinx_dir)
+            subpaths = filedir.split(outbasedir)
             final_dir = self.sphinx_dir
             if subpaths and len(subpaths) > 1:
                 subpath = subpaths[1]

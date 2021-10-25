@@ -1,5 +1,4 @@
 import pytest
-
 from sphinx.util.fileutil import copy_asset_file
 
 
@@ -18,6 +17,7 @@ def test_codecell_file(sphinx_run, file_regression, check_nbs, get_test_path):
         "author",
         "source_map",
         "language_info",
+        "wordcount",
     }
     assert sphinx_run.app.env.metadata["mystnb_codecell_file"]["author"] == "Matt"
     assert (
@@ -51,6 +51,7 @@ def test_codecell_file_warnings(sphinx_run, file_regression, check_nbs, get_test
         "author",
         "source_map",
         "language_info",
+        "wordcount",
     }
     assert (
         sphinx_run.app.env.metadata["mystnb_codecell_file_warnings"]["author"]

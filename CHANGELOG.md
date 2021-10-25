@@ -1,6 +1,36 @@
 # Change Log
 
-# 0.12.0 - 2021-02-23
+## 0.13.1 - 2021-10-04
+
+✨ NEW: `nb_merge_streams` configuration  [[PR #364](https://github.com/executablebooks/MyST-NB/pull/364)]
+
+If `nb_merge_streams=True`, all stdout / stderr output streams are merged into single outputs. This ensures deterministic outputs.
+
+## 0.13.0 - 2021-09-02
+
+### Upgraded to `sphinx` v4 ⬆️
+
+The primary change in this release is to update the requirements of myst-nb from `sphinx>=2,<4` to `sphinx>=3,<5` to
+support `sphinx>=4` [[PR #356](https://github.com/executablebooks/MyST-NB/pull/356)].
+
+- 👌 IMPROVE: Allows more complex suffixes in notebooks [[PR #328](https://github.com/executablebooks/MyST-NB/pull/328)]
+- ⬆️ UPDATE: myst-parser to `0.15.2` [[PR #353](https://github.com/executablebooks/MyST-NB/pull/353)]
+- ⬆️ UPGRADE: nbconvert 6 support [[PR #326](https://github.com/executablebooks/MyST-NB/pull/326)]
+- ⬆️ UPGRADE: markdown-it-py v1.0 [[PR #320](https://github.com/executablebooks/MyST-NB/pull/320)]
+- 🔧 MAINT: Pin ipykernel to ~v5.5 [[PR #347](https://github.com/executablebooks/MyST-NB/pull/347)]
+- 🔧 MAINT: Make a more specific selector for no-border [[PR #344](https://github.com/executablebooks/MyST-NB/pull/344)]
+
+Many thanks to @akhmerov, @bollwyvl, @choldgraf, @chrisjsewell, @juhuebner, @mmcky
+
+## 0.12.1 - 2021-04-25
+
+- ⬆️ UPDATE: jupyter_sphinx to `0.3.2`: fixes `Notebook code has no file extension metadata` warning)
+- ⬆️ UPDATE: importlib_metadata to `3.6`: to use new entry point loading interface
+- Official support for Python 3.9
+
+(`0.12.2` and `0.12.3` fix a regression, when working with the entry point loading interface)
+
+## 0.12.0 - 2021-02-23
 
 This release adds an experimental MyST-NB feature to enable loading of code from a file
 for `code-cell` directives using a `:load: <file>` option.

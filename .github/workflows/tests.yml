@@ -26,15 +26,15 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: [3.6, 3.7, 3.8]
-        sphinx: [">=3,<4"]
+        python-version: [3.6, 3.7, 3.8, 3.9]
+        sphinx: [">=3,<4", ">=4,<5"]
         include:
-          - os: ubuntu-latest
-            python-version: 3.8
-            sphinx: ">=2,<3"
           - os: windows-latest
             python-version: 3.7
             sphinx: ">=3,<4"
+          - os: macos-latest
+            python-version: 3.9
+            sphinx: ">=4,<5"
 
     runs-on: ${{ matrix.os }}
 
@@ -76,10 +76,10 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v2
-      - name: Set up Python 3.7
+      - name: Set up Python
         uses: actions/setup-python@v1
         with:
-          python-version: 3.7
+          python-version: 3.8
       - name: Build package
         run: |
           pip install wheel

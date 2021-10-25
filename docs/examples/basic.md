@@ -25,7 +25,7 @@ Sphinx using the MyST parser.[^download]
 ### Configuration
 
 The MyST-NB parser derives from [the base MyST-Parser](myst:intro/get-started), and so all the same configuration options are available.
-See the [MyST configuration options](myst:intro/config-options) for the full set of options, and [MyST syntax guide](myst:example_syntax) for all the syntax options.
+See the [MyST configuration options](myst:sphinx/config-options) for the full set of options, and [MyST syntax guide](myst:example_syntax) for all the syntax options.
 
 To build documentation from this notebook, the following options are set:
 
@@ -46,18 +46,18 @@ As you can see, markdown is parsed as expected. Embedding images should work as 
 For example, here's the MyST-NB logo:
 
 ```md
-![myst-nb logo](../_static/logo.png)
+![myst-nb logo](../_static/logo-wide.svg)
 ```
 
-![myst-nb logo](../_static/logo.png)
+![myst-nb logo](../_static/logo-wide.svg)
 
 By adding `"html_image"` to the `myst_enable_extensions` list in the sphinx configuration ([see here](myst:syntax/images)), you can even add HTML `img` tags with attributes:
 
 ```html
-<img src="../_static/logo.png" alt="logo" width="200px" class="shadow mb-2">
+<img src="../_static/logo-wide.svg" alt="logo" width="200px" class="shadow mb-2">
 ```
 
-<img src="../_static/logo.png" alt="logo" width="200px"  class="shadow mb-2">
+<img src="../_static/logo-wide.svg" alt="logo" width="200px"  class="shadow mb-2">
 
 Because MyST-NB is using the MyST-markdown parser, you can include rich markdown with Sphinx in your notebook.
 For example, here's a note admonition block:
