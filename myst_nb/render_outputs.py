@@ -52,9 +52,9 @@ def get_default_render_priority(builder: str) -> Optional[List[str]]:
             "epub",
         )
     }
-    # TODO: add support for "image/svg+xml"
     priority["latex"] = (
         "application/pdf",
+        "image/svg+xml",
         "image/png",
         "image/jpeg",
         "text/latex",
