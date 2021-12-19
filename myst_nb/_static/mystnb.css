@@ -36,6 +36,7 @@ div.cell_input > div, div.cell_output div.output > div.highlight {
   margin-top: 1em;
 }
 
+/* TODO remove/replace? */
 /* Outputs from jupyter_sphinx overrides to remove extra CSS */
 div.section div.jupyter_container {
   padding: .4em;

@@ -7,10 +7,6 @@ from typing import cast
 
 from docutils import nodes as docnodes
 from IPython.lib.lexers import IPython3Lexer, IPythonTracebackLexer
-from ipywidgets.embed import DEFAULT_EMBED_REQUIREJS_URL, DEFAULT_EMBED_SCRIPT_URL
-from jupyter_sphinx import REQUIRE_URL_DEFAULT
-from jupyter_sphinx.ast import JupyterWidgetStateNode, JupyterWidgetViewNode
-from jupyter_sphinx.utils import sphinx_abs_dir
 from myst_parser import setup_sphinx as setup_myst_parser
 from sphinx.addnodes import download_reference
 from sphinx.application import Sphinx
@@ -22,6 +18,14 @@ from sphinx.util.docutils import ReferenceRole, SphinxDirective
 
 from .exec_table import setup_exec_table
 from .execution import update_execution_cache
+from .jsphinx import (
+    DEFAULT_EMBED_REQUIREJS_URL,
+    DEFAULT_EMBED_SCRIPT_URL,
+    REQUIRE_URL_DEFAULT,
+    JupyterWidgetStateNode,
+    JupyterWidgetViewNode,
+    sphinx_abs_dir,
+)
 from .nb_glue import glue  # noqa: F401
 from .nb_glue.domain import (
     NbGlueDomain,
@@ -281,6 +285,7 @@ def load_ipywidgets_js(app: Sphinx, env: BuildEnvironment) -> None:
         return
     builder = cast(StandaloneHTMLBuilder, app.builder)
 
+    # TODO change this logic?
     require_url_default = (
         REQUIRE_URL_DEFAULT
         if "jupyter_sphinx_require_url" not in app.config

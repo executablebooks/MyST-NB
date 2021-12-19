@@ -3,8 +3,6 @@ from typing import Any, Dict, List, Tuple
 
 import nbformat as nbf
 from docutils import nodes
-from jupyter_sphinx.ast import JupyterWidgetStateNode, get_widgets
-from jupyter_sphinx.execute import contains_widgets, write_notebook_output
 from markdown_it import MarkdownIt
 from markdown_it.rules_core import StateCore
 from markdown_it.token import Token
@@ -20,6 +18,13 @@ from myst_nb.execution import generate_notebook_outputs
 from myst_nb.nb_glue import GLUE_PREFIX
 from myst_nb.nb_glue.domain import NbGlueDomain
 from myst_nb.nodes import CellInputNode, CellNode, CellOutputBundleNode, CellOutputNode
+
+from .jsphinx import (
+    JupyterWidgetStateNode,
+    contains_widgets,
+    get_widgets,
+    write_notebook_output,
+)
 
 SPHINX_LOGGER = logging.getLogger(__name__)
 

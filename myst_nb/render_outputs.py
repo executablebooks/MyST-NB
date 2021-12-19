@@ -9,8 +9,6 @@ import nbconvert
 from docutils import nodes
 from docutils.parsers.rst import directives
 from importlib_metadata import entry_points
-from jupyter_sphinx.ast import JupyterWidgetViewNode, strip_latex_delimiters
-from jupyter_sphinx.utils import sphinx_abs_dir
 from myst_parser.docutils_renderer import make_document
 from myst_parser.main import MdParserConfig, default_parser
 from nbformat import NotebookNode
@@ -20,11 +18,15 @@ from sphinx.errors import SphinxError
 from sphinx.transforms.post_transforms import SphinxPostTransform
 from sphinx.util import logging
 
+from .jsphinx import (
+    WIDGET_VIEW_MIMETYPE,
+    JupyterWidgetViewNode,
+    sphinx_abs_dir,
+    strip_latex_delimiters,
+)
 from .nodes import CellOutputBundleNode
 
 LOGGER = logging.getLogger(__name__)
-
-WIDGET_VIEW_MIMETYPE = "application/vnd.jupyter.widget-view+json"
 
 
 def get_default_render_priority(builder: str) -> Optional[List[str]]:
