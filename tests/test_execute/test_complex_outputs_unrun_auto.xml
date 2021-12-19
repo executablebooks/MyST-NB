@@ -28,7 +28,7 @@
                         something else
             <paragraph>
                 A numbered list
-            <enumerated_list>
+            <enumerated_list enumtype="arabic" suffix=".">
                 <list_item>
                     <paragraph>
                         something
