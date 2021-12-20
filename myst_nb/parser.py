@@ -19,12 +19,8 @@ from myst_nb.nb_glue import GLUE_PREFIX
 from myst_nb.nb_glue.domain import NbGlueDomain
 from myst_nb.nodes import CellInputNode, CellNode, CellOutputBundleNode, CellOutputNode
 
-from .jsphinx import (
-    JupyterWidgetStateNode,
-    contains_widgets,
-    get_widgets,
-    write_notebook_output,
-)
+from .jsphinx import contains_widgets, get_widgets, write_notebook_output
+from .nodes import JupyterWidgetStateNode
 
 SPHINX_LOGGER = logging.getLogger(__name__)
 

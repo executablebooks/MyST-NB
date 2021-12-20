@@ -22,8 +22,6 @@ from .jsphinx import (
     DEFAULT_EMBED_REQUIREJS_URL,
     DEFAULT_EMBED_SCRIPT_URL,
     REQUIRE_URL_DEFAULT,
-    JupyterWidgetStateNode,
-    JupyterWidgetViewNode,
     sphinx_abs_dir,
 )
 from .nb_glue import glue  # noqa: F401
@@ -35,7 +33,14 @@ from .nb_glue.domain import (
     PasteTextNode,
 )
 from .nb_glue.transform import PasteNodesToDocutils
-from .nodes import CellInputNode, CellNode, CellOutputBundleNode, CellOutputNode
+from .nodes import (
+    CellInputNode,
+    CellNode,
+    CellOutputBundleNode,
+    CellOutputNode,
+    JupyterWidgetStateNode,
+    JupyterWidgetViewNode,
+)
 from .parser import NotebookParser
 from .render_outputs import (
     CellOutputsToNodes,

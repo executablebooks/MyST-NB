@@ -18,13 +18,8 @@ from sphinx.errors import SphinxError
 from sphinx.transforms.post_transforms import SphinxPostTransform
 from sphinx.util import logging
 
-from .jsphinx import (
-    WIDGET_VIEW_MIMETYPE,
-    JupyterWidgetViewNode,
-    sphinx_abs_dir,
-    strip_latex_delimiters,
-)
-from .nodes import CellOutputBundleNode
+from .jsphinx import WIDGET_VIEW_MIMETYPE, sphinx_abs_dir, strip_latex_delimiters
+from .nodes import CellOutputBundleNode, JupyterWidgetViewNode
 
 LOGGER = logging.getLogger(__name__)
 
