@@ -9,8 +9,8 @@ import nbformat
 from nbconvert.preprocessors import ExtractOutputPreprocessor
 from nbconvert.writers import FilesWriter
 
-# from ipywidgets (7.6.5)
-_HTML_MANGER_URL = "https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0"
+# from https://github.com/jupyter-widgets/ipywidgets v7.6.5
+_HTML_MANGER_URL = "https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^0.20.0"
 DEFAULT_EMBED_SCRIPT_URL = f"{_HTML_MANGER_URL}/dist/embed.js"
 DEFAULT_EMBED_REQUIREJS_URL = f"{_HTML_MANGER_URL}/dist/embed-amd.js"
 snippet_template = """
