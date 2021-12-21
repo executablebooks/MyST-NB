@@ -15,12 +15,16 @@ from sphinx.util import logging
 
 from myst_nb.converter import get_nb_converter
 from myst_nb.execution import generate_notebook_outputs
+from myst_nb.jsphinx import contains_widgets, get_widgets, write_notebook_output
 from myst_nb.nb_glue import GLUE_PREFIX
 from myst_nb.nb_glue.domain import NbGlueDomain
-from myst_nb.nodes import CellInputNode, CellNode, CellOutputBundleNode, CellOutputNode
-
-from .jsphinx import contains_widgets, get_widgets, write_notebook_output
-from .nodes import JupyterWidgetStateNode
+from myst_nb.nodes import (
+    CellInputNode,
+    CellNode,
+    CellOutputBundleNode,
+    CellOutputNode,
+    JupyterWidgetStateNode,
+)
 
 SPHINX_LOGGER = logging.getLogger(__name__)
 

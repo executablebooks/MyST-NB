@@ -25,7 +25,7 @@ from sphinx.builders import Builder
 from sphinx.environment import BuildEnvironment
 from sphinx.util import logging, progress_message
 
-from .converter import get_nb_converter
+from myst_nb.converter import get_nb_converter
 
 LOGGER = logging.getLogger(__name__)
 

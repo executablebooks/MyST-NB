@@ -5,7 +5,7 @@ from typing import Any, List
 from docutils import nodes
 from nbformat import NotebookNode
 
-from .jsphinx import snippet_template, widget_view_template
+from myst_nb.jsphinx import snippet_template, widget_view_template
 
 
 class CellNode(nodes.container):
