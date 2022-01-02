@@ -1,26 +1,10 @@
 """A parser for docutils."""
-import hashlib
 import json
 import logging
-import os
-import re
-from binascii import a2b_base64
-from contextlib import nullcontext
-from functools import lru_cache
-from mimetypes import guess_extension
-from pathlib import Path
-from tempfile import TemporaryDirectory
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
 from docutils import nodes
 from docutils.core import default_description, publish_cmdline
-from importlib_metadata import entry_points
-from jupyter_cache import get_cache
-from jupyter_cache.executors import load_executor
-from jupyter_cache.executors.utils import single_nb_execution
-from markdown_it.main import MarkdownIt
-from markdown_it.rules_core import StateCore
-from markdown_it.token import Token
 from markdown_it.tree import SyntaxTreeNode
 from myst_parser.docutils_ import DOCUTILS_EXCLUDED_ARGS as DOCUTILS_EXCLUDED_ARGS_MYST
 from myst_parser.docutils_ import Parser as MystParser
@@ -28,17 +12,13 @@ from myst_parser.docutils_ import create_myst_config, create_myst_settings_spec
 from myst_parser.docutils_renderer import DocutilsRenderer, token_line
 from myst_parser.main import MdParserConfig, create_md_parser
 from nbformat import NotebookNode
-from nbformat import reads as read_nb
-from typing_extensions import Literal
 
 from myst_nb.configuration import NbParserConfig
+from myst_nb.new.execute import update_notebook
+from myst_nb.new.parse import notebook_to_tokens
+from myst_nb.new.read import create_nb_reader
+from myst_nb.new.render import NbElementRenderer, load_renderer, sanitize_script_content
 from myst_nb.render_outputs import coalesce_streams
-
-NOTEBOOK_VERSION = 4
-WIDGET_STATE_MIMETYPE = "application/vnd.jupyter.widget-state+json"
-WIDGET_VIEW_MIMETYPE = "application/vnd.jupyter.widget-view+json"
-_ANSI_RE = re.compile("\x1b\\[(.*?)([@-~])")
-
 
 DOCUTILS_EXCLUDED_ARGS = {
     # docutils.conf can't represent dicts
@@ -155,48 +135,13 @@ class Parser(MystParser):
             nb_config = NbParserConfig()
 
         # convert inputstring to notebook
-        # TODO handle converters
-        notebook: NotebookNode = read_nb(inputstring, as_version=NOTEBOOK_VERSION)
+        nb_reader, md_config = create_nb_reader(
+            inputstring, document["source"], md_config, nb_config
+        )
+        notebook = nb_reader(inputstring)
 
-        # execute notebook if necessary
-        # TODO also look at notebook metadata
-        if nb_config.execution_mode == "force":
-            path = str(Path(document["source"]).parent)
-            cwd_context = (
-                TemporaryDirectory()
-                if nb_config.execution_in_temp
-                else nullcontext(path)
-            )
-            with cwd_context as cwd:
-                cwd = os.path.abspath(cwd)
-                logger.info(f"Executing notebook in {cwd}")
-                result = single_nb_execution(
-                    notebook,
-                    cwd=cwd,
-                    allow_errors=nb_config.execution_allow_errors,
-                    timeout=nb_config.execution_timeout,
-                )
-                logger.info(f"Executed notebook in {result.time:.2f} seconds")
-                # TODO save execution data on document (and environment if sphinx)
-                # TODO handle errors
-        elif nb_config.execution_mode == "cache":
-            # TODO for sphinx, the default would be in the output directory
-            cache = get_cache(nb_config.execution_cache_path or ".cache")
-            stage_record = cache.stage_notebook_file(document["source"])
-            # TODO handle converters
-            if cache.get_cache_record_of_staged(stage_record.pk) is None:
-                executor = load_executor("basic", cache, logger=logger)
-                executor.run_and_cache(
-                    filter_pks=[stage_record.pk],
-                    allow_errors=nb_config.execution_allow_errors,
-                    timeout=nb_config.execution_timeout,
-                    run_in_temp=nb_config.execution_in_temp,
-                )
-            else:
-                logger.info("Using cached notebook outputs")
-            # TODO save execution data on document (and environment if sphinx)
-            # TODO handle errors
-            _, notebook = cache.merge_match_into_notebook(notebook)
+        # potentially execute notebook and/or populate outputs from cache
+        notebook = update_notebook(notebook, document["source"], nb_config, logger)
 
         # TODO write executed notebook to output folder
         # always for sphinx, but maybe docutils option on whether to do this?
@@ -214,220 +159,13 @@ class Parser(MystParser):
         mdit_parser.renderer.render(mdit_tokens, mdit_parser.options, mdit_env)
 
 
-def notebook_to_tokens(
-    notebook: NotebookNode, mdit_parser: MarkdownIt, mdit_env: Dict[str, Any]
-) -> List[Token]:
-    # disable front-matter, since this is taken from the notebook
-    mdit_parser.disable("front_matter", ignoreInvalid=True)
-    # this stores global state, such as reference definitions
-
-    # Parse block tokens only first, leaving inline parsing to a second phase
-    # (required to collect all reference definitions, before assessing references).
-    metadata = dict(notebook.metadata.items())
-    # save these keys on the document, rather than as docinfo
-    spec_data = {
-        key: metadata.pop(key, None) for key in ("kernelspec", "language_info")
-    }
-
-    # get language lexer name
-    langinfo = spec_data.get("language_info", {})
-    lexer = langinfo.get("pygments_lexer", langinfo.get("name", None))
-    if lexer is None:
-        lexer = spec_data.get("kernelspec", {}).get("language", None)
-    # TODO warning if no lexer
-
-    # extract widgets
-    widgets = metadata.pop("widgets", None)
-    block_tokens = [
-        Token("nb_spec_data", "", 0, meta=spec_data),
-        Token(
-            "front_matter",
-            "",
-            0,
-            map=[0, 0],
-            content=metadata,  # type: ignore[arg-type]
-        ),
-    ]
-    for cell_index, nb_cell in enumerate(notebook.cells):
-
-        # skip empty cells
-        if len(nb_cell["source"].strip()) == 0:
-            continue
-
-        # skip cells tagged for removal
-        # TODO make configurable
-        tags = nb_cell.metadata.get("tags", [])
-        if ("remove_cell" in tags) or ("remove-cell" in tags):
-            continue
-
-        # generate tokens
-        tokens: List[Token]
-        if nb_cell["cell_type"] == "markdown":
-            # https://nbformat.readthedocs.io/en/5.1.3/format_description.html#markdown-cells
-            # TODO if cell has tag output-caption, then use as caption for next/preceding cell?
-            tokens = [
-                Token(
-                    "nb_cell_markdown_open",
-                    "",
-                    1,
-                    hidden=True,
-                    meta={
-                        "index": cell_index,
-                        "metadata": dict(nb_cell["metadata"].items()),
-                    },
-                    map=[0, len(nb_cell["source"].splitlines()) - 1],
-                ),
-            ]
-            with mdit_parser.reset_rules():
-                # enable only rules up to block
-                rules = mdit_parser.core.ruler.get_active_rules()
-                mdit_parser.core.ruler.enableOnly(rules[: rules.index("inline")])
-                tokens.extend(mdit_parser.parse(nb_cell["source"], mdit_env))
-            tokens.append(
-                Token(
-                    "nb_cell_markdown_close",
-                    "",
-                    -1,
-                    hidden=True,
-                ),
-            )
-        elif nb_cell["cell_type"] == "raw":
-            # https://nbformat.readthedocs.io/en/5.1.3/format_description.html#raw-nbconvert-cells
-            tokens = [
-                Token(
-                    "nb_cell_raw",
-                    "code",
-                    0,
-                    content=nb_cell["source"],
-                    meta={
-                        "index": cell_index,
-                        "metadata": dict(nb_cell["metadata"].items()),
-                    },
-                    map=[0, 0],
-                )
-            ]
-        elif nb_cell["cell_type"] == "code":
-            # https://nbformat.readthedocs.io/en/5.1.3/format_description.html#code-cells
-            # we don't copy the outputs here, since this would
-            # greatly increase the memory consumption,
-            # instead they will referenced by the cell index
-            tokens = [
-                Token(
-                    "nb_cell_code",
-                    "code",
-                    0,
-                    content=nb_cell["source"],
-                    meta={
-                        "index": cell_index,
-                        "execution_count": nb_cell.get("execution_count", None),
-                        "lexer": lexer,
-                        # TODO add notebook node to dict function and apply here etc
-                        "metadata": dict(nb_cell["metadata"].items()),
-                    },
-                    map=[0, 0],
-                )
-            ]
-        else:
-            pass  # TODO create warning
-
-        # update token's source lines, using either a source_map (index -> line),
-        # set when converting to a notebook, or a pseudo base of the cell index
-        smap = notebook.metadata.get("source_map", None)
-        start_line = smap[cell_index] if smap else (cell_index + 1) * 10000
-        start_line += 1  # use base 1 rather than 0
-        for token in tokens:
-            if token.map:
-                token.map = [start_line + token.map[0], start_line + token.map[1]]
-        # also update the source lines for duplicate references
-        for dup_ref in mdit_env.get("duplicate_refs", []):
-            if "fixed" not in dup_ref:
-                dup_ref["map"] = [
-                    start_line + dup_ref["map"][0],
-                    start_line + dup_ref["map"][1],
-                ]
-                dup_ref["fixed"] = True
-
-        # add tokens to list
-        block_tokens.extend(tokens)
-
-    # The widget state will be embedded as a script, at the end of HTML output
-    widget_state = (widgets or {}).get(WIDGET_STATE_MIMETYPE, None)
-    if widget_state and widget_state.get("state", None):
-        block_tokens.append(
-            Token(
-                "nb_widget_state",
-                "script",
-                0,
-                attrs={"type": WIDGET_STATE_MIMETYPE},
-                meta={"state": widget_state},
-                map=[0, 0],
-            )
-        )
-
-    # Now all definitions have been gathered, run the inline parsing phase
-    state = StateCore("", mdit_parser, mdit_env, block_tokens)
-    with mdit_parser.reset_rules():
-        rules = mdit_parser.core.ruler.get_active_rules()
-        mdit_parser.core.ruler.enableOnly(rules[rules.index("inline") :])
-        mdit_parser.core.process(state)
-
-    return state.tokens
-
-
-@lru_cache(maxsize=10)
-def load_renderer(name: str) -> "NbOutputRenderer":
-    """Load a renderer,
-    given a name within the ``myst_nb.output_renderer`` entry point group
-    """
-    all_eps = entry_points()
-    if hasattr(all_eps, "select"):
-        # importlib_metadata >= 3.6 or importlib.metadata in python >=3.10
-        eps = all_eps.select(group="myst_nb.output_renderer", name=name)
-        found = name in eps.names
-    else:
-        eps = {ep.name: ep for ep in all_eps.get("myst_nb.output_renderer", [])}
-        found = name in eps
-    if found:
-        klass = eps[name].load()
-        if not issubclass(klass, NbOutputRenderer):
-            raise Exception(
-                f"Entry Point for myst_nb.output_renderer:{name} "
-                f"is not a subclass of `NbOutputRenderer`: {klass}"
-            )
-        return klass
-
-    raise Exception(f"No Entry Point found for myst_nb.output_renderer:{name}")
-
-
-def strip_ansi(text: str) -> str:
-    """Strip ANSI escape sequences from a string"""
-    return _ANSI_RE.sub("", text)
-
-
-def strip_latex_delimiters(source):
-    r"""Remove LaTeX math delimiters that would be rendered by the math block.
-
-    These are: ``\(…\)``, ``\[…\]``, ``$…$``, and ``$$…$$``.
-    This is necessary because sphinx does not have a dedicated role for
-    generic LaTeX, while Jupyter only defines generic LaTeX output, see
-    https://github.com/jupyter/jupyter-sphinx/issues/90 for discussion.
-    """
-    source = source.strip()
-    delimiter_pairs = (pair.split() for pair in r"\( \),\[ \],$$ $$,$ $".split(","))
-    for start, end in delimiter_pairs:
-        if source.startswith(start) and source.endswith(end):
-            return source[len(start) : -len(end)]
-
-    return source
-
-
 class DocutilsNbRenderer(DocutilsRenderer):
     """ "A docutils-only renderer for Jupyter Notebooks."""
 
     # TODO maybe move more things to NbOutputRenderer?
     # and change name to e.g. NbElementRenderer
 
-    def get_nb_config(self, key: str, cell_index: int) -> Any:
+    def get_nb_config(self, key: str, cell_index: Optional[int]) -> Any:
         # TODO selection between config/notebook/cell level
         # TODO handle KeyError better
         return self.config["nb_config"][key]
@@ -519,11 +257,11 @@ class DocutilsNbRenderer(DocutilsRenderer):
         """Render a notebook code cell's outputs."""
         cell_index = token.meta["index"]
         line = token_line(token)
-        # metadata = token.meta["metadata"]
         outputs: List[NotebookNode] = self.config["notebook"]["cells"][cell_index].get(
             "outputs", []
         )
         if self.get_nb_config("merge_streams", cell_index):
+            # TODO should this be moved to the parsing phase?
             outputs = coalesce_streams(outputs)
         render_priority = self.get_nb_config("render_priority", cell_index)
         renderer_name = self.get_nb_config("render_plugin", cell_index)
@@ -531,7 +269,7 @@ class DocutilsNbRenderer(DocutilsRenderer):
         # TODO for sphinx we use a set output folder
         output_folder = self.get_nb_config("output_folder", cell_index)
         # load renderer class from name
-        renderer: NbOutputRenderer = load_renderer(renderer_name)(self, output_folder)
+        renderer: NbElementRenderer = load_renderer(renderer_name)(self, output_folder)
         for output in outputs:
             if output.output_type == "stream":
                 if output.name == "stdout":
@@ -594,356 +332,6 @@ class DocutilsNbRenderer(DocutilsRenderer):
         self.add_line_and_source_path(node, token)
         # always append to bottom of the document
         self.document.append(node)
-
-
-def sanitize_script_content(content: str) -> str:
-    """Sanitize the content of a ``<script>`` tag."""
-    # note escaping addresses https://github.com/jupyter/jupyter-sphinx/issues/184
-    return content.replace("</script>", r"<\/script>")
-
-
-class NbOutputRenderer:
-    """A class for rendering notebook outputs."""
-
-    def __init__(self, renderer: DocutilsNbRenderer, output_folder: str) -> None:
-        """Initialize the renderer.
-
-        :params output_folder: the folder path for external outputs (like images)
-        """
-        self._renderer = renderer
-        self._output_folder = output_folder
-
-    @property
-    def renderer(self) -> DocutilsNbRenderer:
-        """The renderer this output renderer is associated with."""
-        return self._renderer
-
-    def write_file(
-        self, path: List[str], content: bytes, overwrite=False, exists_ok=False
-    ) -> Path:
-        """Write a file to the external output folder.
-
-        :param path: the path to write the file to, relative to the output folder
-        :param content: the content to write to the file
-        :param overwrite: whether to overwrite an existing file
-        :param exists_ok: whether to ignore an existing file if overwrite is False
-        """
-        folder = Path(self._output_folder)
-        filepath = folder.joinpath(*path)
-        if filepath.exists():
-            if overwrite:
-                filepath.write_bytes(content)
-            elif not exists_ok:
-                # TODO raise or just report?
-                raise FileExistsError(f"File already exists: {filepath}")
-        else:
-            filepath.parent.mkdir(parents=True, exist_ok=True)
-            filepath.write_bytes(content)
-
-        return filepath
-
-    @property
-    def source(self):
-        """The source of the notebook."""
-        return self.renderer.document["source"]
-
-    def report(
-        self, level: Literal["warning", "error", "severe"], message: str, line: int
-    ) -> nodes.system_message:
-        """Report an issue."""
-        # TODO add cell index to message
-        # TODO handle for sphinx (including type/subtype)
-        reporter = self.renderer.document.reporter
-        levels = {
-            "warning": reporter.WARNING_LEVEL,
-            "error": reporter.ERROR_LEVEL,
-            "severe": reporter.SEVERE_LEVEL,
-        }
-        return reporter.system_message(
-            levels.get(level, reporter.WARNING_LEVEL), message, line=line
-        )
-
-    def get_cell_metadata(self, cell_index: int) -> NotebookNode:
-        # TODO handle key/index error
-        return self._renderer.config["notebook"]["cells"][cell_index]["metadata"]
-
-    def render_stdout(
-        self, output: NotebookNode, cell_index: int, source_line: int
-    ) -> List[nodes.Element]:
-        """Render a notebook stdout output.
-
-        https://nbformat.readthedocs.io/en/5.1.3/format_description.html#stream-output
-
-        :param output: the output node
-        :param cell_index: the index of the cell containing the output
-        :param source_line: the line number of the cell in the source document
-        """
-        metadata = self.get_cell_metadata(cell_index)
-        if "remove-stdout" in metadata.get("tags", []):
-            return []
-        lexer = self.renderer.get_nb_config("render_text_lexer", cell_index)
-        node = self.renderer.create_highlighted_code_block(
-            output["text"], lexer, source=self.source, line=source_line
-        )
-        node["classes"] += ["output", "stream"]
-        return [node]
-
-    def render_stderr(
-        self, output: NotebookNode, cell_index: int, source_line: int
-    ) -> List[nodes.Element]:
-        """Render a notebook stderr output.
-
-        https://nbformat.readthedocs.io/en/5.1.3/format_description.html#stream-output
-
-        :param output: the output node
-        :param cell_index: the index of the cell containing the output
-        :param source_line: the line number of the cell in the source document
-        """
-        metadata = self.get_cell_metadata(cell_index)
-        if "remove-stdout" in metadata.get("tags", []):
-            return []
-        output_stderr = self.renderer.get_nb_config("output_stderr", cell_index)
-        msg = "output render: stderr was found in the cell outputs"
-        outputs = []
-        if output_stderr == "remove":
-            return []
-        elif output_stderr == "remove-warn":
-            return [self.report("warning", msg, line=source_line)]
-        elif output_stderr == "warn":
-            outputs.append(self.report("warning", msg, line=source_line))
-        elif output_stderr == "error":
-            outputs.append(self.report("error", msg, line=source_line))
-        elif output_stderr == "severe":
-            outputs.append(self.report("severe", msg, line=source_line))
-        lexer = self.renderer.get_nb_config("render_text_lexer", cell_index)
-        node = self.renderer.create_highlighted_code_block(
-            output["text"], lexer, source=self.source, line=source_line
-        )
-        node["classes"] += ["output", "stderr"]
-        outputs.append(node)
-        return outputs
-
-    def render_error(
-        self, output: NotebookNode, cell_index: int, source_line: int
-    ) -> List[nodes.Element]:
-        """Render a notebook error output.
-
-        https://nbformat.readthedocs.io/en/5.1.3/format_description.html#error
-
-        :param output: the output node
-        :param cell_index: the index of the cell containing the output
-        :param source_line: the line number of the cell in the source document
-        """
-        traceback = strip_ansi("\n".join(output["traceback"]))
-        lexer = self.renderer.get_nb_config("render_error_lexer", cell_index)
-        node = self.renderer.create_highlighted_code_block(
-            traceback, lexer, source=self.source, line=source_line
-        )
-        node["classes"] += ["output", "traceback"]
-        return [node]
-
-    def render_mime_type(
-        self, mime_type: str, data: Union[str, bytes], cell_index: int, source_line: int
-    ) -> List[nodes.Element]:
-        """Render a notebook mime output.
-
-        https://nbformat.readthedocs.io/en/5.1.3/format_description.html#display-data
-
-        :param mime_type: the key from the "data" dict
-        :param data: the value from the "data" dict
-        :param cell_index: the index of the cell containing the output
-        :param source_line: the line number of the cell in the source document
-        """
-        if mime_type == "text/plain":
-            return self.render_text_plain(data, cell_index, source_line)
-        if mime_type in {"image/png", "image/jpeg", "application/pdf", "image/svg+xml"}:
-            return self.render_image(mime_type, data, cell_index, source_line)
-        if mime_type == "text/html":
-            return self.render_text_html(data, cell_index, source_line)
-        if mime_type == "text/latex":
-            return self.render_text_latex(data, cell_index, source_line)
-        if mime_type == "application/javascript":
-            return self.render_javascript(data, cell_index, source_line)
-        if mime_type == WIDGET_VIEW_MIMETYPE:
-            return self.render_widget_view(data, cell_index, source_line)
-        if mime_type == "text/markdown":
-            return self.render_markdown(data, cell_index, source_line)
-
-        return self.render_unknown(mime_type, data, cell_index, source_line)
-
-    def render_unknown(
-        self, mime_type: str, data: Union[str, bytes], cell_index: int, source_line: int
-    ) -> List[nodes.Element]:
-        """Render a notebook output of unknown mime type.
-
-        :param mime_type: the key from the "data" dict
-        :param data: the value from the "data" dict
-        :param cell_index: the index of the cell containing the output
-        :param source_line: the line number of the cell in the source document
-        """
-        return self.report(
-            "warning",
-            f"skipping unknown output mime type: {mime_type}",
-            line=source_line,
-        )
-
-    def render_markdown(
-        self, data: str, cell_index: int, source_line: int
-    ) -> List[nodes.Element]:
-        """Render a notebook text/markdown mime data output.
-
-        :param data: the value from the "data" dict
-        :param cell_index: the index of the cell containing the output
-        :param source_line: the line number of the cell in the source document
-        """
-        # create a container to parse the markdown into
-        temp_container = nodes.container()
-
-        # setup temporary renderer config
-        md = self.renderer.md
-        match_titles = self.renderer.md_env.get("match_titles", None)
-        if self.renderer.get_nb_config("embed_markdown_outputs", cell_index):
-            # this configuration is used in conjunction with a transform,
-            # which move this content outside & below the output container
-            # in this way the Markdown output can contain headings,
-            # and not break the structure of the docutils AST
-            # TODO create transform and for sphinx prioritise this output for all output formats
-            self.renderer.md_env["match_titles"] = True
-        else:
-            # otherwise we render as simple Markdown and heading are not allowed
-            self.renderer.md_env["match_titles"] = False
-            self.renderer.md = create_md_parser(
-                MdParserConfig(commonmark_only=True), self.renderer.__class__
-            )
-
-        # parse markdown
-        with self.renderer.current_node_context(temp_container):
-            self.renderer.nested_render_text(data, source_line)
-
-        # restore renderer config
-        self.renderer.md = md
-        self.renderer.md_env["match_titles"] = match_titles
-
-        return temp_container.children
-
-    def render_text_plain(
-        self, data: str, cell_index: int, source_line: int
-    ) -> List[nodes.Element]:
-        """Render a notebook text/plain mime data output.
-
-        :param data: the value from the "data" dict
-        :param cell_index: the index of the cell containing the output
-        :param source_line: the line number of the cell in the source document
-        """
-        lexer = self.renderer.get_nb_config("render_text_lexer", cell_index)
-        node = self.renderer.create_highlighted_code_block(
-            data, lexer, source=self.source, line=source_line
-        )
-        node["classes"] += ["output", "text_plain"]
-        return [node]
-
-    def render_text_html(
-        self, data: str, cell_index: int, source_line: int
-    ) -> List[nodes.Element]:
-        """Render a notebook text/html mime data output.
-
-        :param data: the value from the "data" dict
-        :param cell_index: the index of the cell containing the output
-        :param source_line: the line number of the cell in the source document
-        :param inline: create inline nodes instead of block nodes
-        """
-        return [nodes.raw(text=data, format="html", classes=["output", "text_html"])]
-
-    def render_text_latex(
-        self, data: str, cell_index: int, source_line: int
-    ) -> List[nodes.Element]:
-        """Render a notebook text/latex mime data output.
-
-        :param data: the value from the "data" dict
-        :param cell_index: the index of the cell containing the output
-        :param source_line: the line number of the cell in the source document
-        """
-        # TODO should we always assume this is math?
-        return [
-            nodes.math_block(
-                text=strip_latex_delimiters(data),
-                nowrap=False,
-                number=None,
-                classes=["output", "text_latex"],
-            )
-        ]
-
-    def render_image(
-        self,
-        mime_type: Union[str, bytes],
-        data: bytes,
-        cell_index: int,
-        source_line: int,
-    ) -> List[nodes.Element]:
-        """Render a notebook image mime data output.
-
-        :param mime_type: the key from the "data" dict
-        :param data: the value from the "data" dict
-        :param cell_index: the index of the cell containing the output
-        :param source_line: the line number of the cell in the source document
-        """
-        # Adapted from:
-        # https://github.com/jupyter/nbconvert/blob/45df4b6089b3bbab4b9c504f9e6a892f5b8692e3/nbconvert/preprocessors/extractoutput.py#L43
-
-        # ensure that the data is a bytestring
-        if mime_type in {"image/png", "image/jpeg", "application/pdf"}:
-            # data is b64-encoded as text
-            data_bytes = a2b_base64(data)
-        elif isinstance(data, str):
-            # ensure corrent line separator
-            data_bytes = os.linesep.join(data.splitlines()).encode("utf-8")
-        # create filename
-        extension = guess_extension(mime_type) or "." + mime_type.rsplit("/")[-1]
-        # latex does not recognize the '.jpe' extension
-        extension = ".jpeg" if extension == ".jpe" else extension
-        # ensure de-duplication of outputs by using hash as filename
-        # TODO note this is a change to the current implementation,
-        # which names by {notbook_name}-{cell_index}-{output-index}.{extension}
-        data_hash = hashlib.sha256(data_bytes).hexdigest()
-        filename = f"{data_hash}{extension}"
-        path = self.write_file([filename], data_bytes, overwrite=False, exists_ok=True)
-        # TODO add additional attributes
-        return [nodes.image(uri=str(path))]
-
-    def render_javascript(
-        self, data: str, cell_index: int, source_line: int
-    ) -> List[nodes.Element]:
-        """Render a notebook application/javascript mime data output.
-
-        :param data: the value from the "data" dict
-        :param cell_index: the index of the cell containing the output
-        :param source_line: the line number of the cell in the source document
-        """
-        content = sanitize_script_content(data)
-        mime_type = "application/javascript"
-        return [
-            nodes.raw(
-                text=f'<script type="{mime_type}">{content}</script>',
-                format="html",
-            )
-        ]
-
-    def render_widget_view(
-        self, data: str, cell_index: int, source_line: int
-    ) -> List[nodes.Element]:
-        """Render a notebook application/vnd.jupyter.widget-view+json mime output.
-
-        :param data: the value from the "data" dict
-        :param cell_index: the index of the cell containing the output
-        :param source_line: the line number of the cell in the source document
-        """
-        content = json.dumps(sanitize_script_content(data))
-        return [
-            nodes.raw(
-                text=f'<script type="{WIDGET_VIEW_MIMETYPE}">{content}</script>',
-                format="html",
-            )
-        ]
 
 
 def _run_cli(writer_name: str, writer_description: str, argv: Optional[List[str]]):
