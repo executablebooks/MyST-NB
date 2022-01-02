@@ -49,7 +49,9 @@ cells:
             <field_name>
                 language_info
             <field_body>
-                {"pygments_lexer": "mylexer"}
+                <paragraph>
+                    <literal>
+                        {"pygments_lexer": "mylexer"}
     <CellNode cell_type="code" classes="cell">
         <CellInputNode classes="cell_input">
             <literal_block language="mylexer" xml:space="preserve">

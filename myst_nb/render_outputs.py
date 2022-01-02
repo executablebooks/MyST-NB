@@ -10,7 +10,8 @@ from docutils import nodes
 from docutils.parsers.rst import directives
 from importlib_metadata import entry_points
 from myst_parser.docutils_renderer import make_document
-from myst_parser.main import MdParserConfig, default_parser
+from myst_parser.main import MdParserConfig, create_md_parser
+from myst_parser.sphinx_renderer import SphinxRenderer
 from nbformat import NotebookNode
 from sphinx.environment import BuildEnvironment
 from sphinx.environment.collectors.asset import ImageCollector
@@ -287,7 +288,7 @@ class CellOutputRendererBase(ABC):
         self, text: str, parent: Optional[nodes.Node] = None
     ) -> List[nodes.Node]:
         """Parse text as CommonMark, in a new document."""
-        parser = default_parser(MdParserConfig(commonmark_only=True))
+        parser = create_md_parser(MdParserConfig(commonmark_only=True), SphinxRenderer)
 
         # setup parent node
         if parent is None:

@@ -19,7 +19,7 @@
                 Some markdown text.
             <paragraph>
                 A list:
-            <bullet_list>
+            <bullet_list bullet="-">
                 <list_item>
                     <paragraph>
                         something
@@ -28,7 +28,7 @@
                         something else
             <paragraph>
                 A numbered list
-            <enumerated_list enumtype="arabic" suffix=".">
+            <enumerated_list enumtype="arabic" prefix="" suffix=".">
                 <list_item>
                     <paragraph>
                         something
@@ -59,7 +59,7 @@
                 some more text
             <paragraph>
                 This is an abbreviated section of the document text, which we only want in a presentation
-            <bullet_list>
+            <bullet_list bullet="-">
                 <list_item>
                     <paragraph>
                         summary of document text

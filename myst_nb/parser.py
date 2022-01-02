@@ -7,7 +7,7 @@ from markdown_it import MarkdownIt
 from markdown_it.rules_core import StateCore
 from markdown_it.token import Token
 from markdown_it.tree import SyntaxTreeNode
-from myst_parser.main import MdParserConfig, default_parser
+from myst_parser.main import MdParserConfig, create_md_parser
 from myst_parser.sphinx_parser import MystParser
 from myst_parser.sphinx_renderer import SphinxRenderer
 from sphinx.environment import BuildEnvironment
@@ -38,9 +38,9 @@ class NotebookParser(MystParser):
     config_section = "myst-nb parser"
     config_section_dependencies = ("parsers",)
 
-    def parse(
-        self, inputstring: str, document: nodes.document, renderer: str = "sphinx"
-    ) -> None:
+    def parse(self, inputstring: str, document: nodes.document) -> None:
+
+        # document.settings.smart_quotes = False
 
         self.reporter = document.reporter
         self.env = document.settings.env  # type: BuildEnvironment
@@ -102,12 +102,11 @@ def nb_to_tokens(
     """Parse the notebook content to a list of syntax tokens and an env,
     containing global data like reference definitions.
     """
-    md = default_parser(config)
     # setup the markdown parser
+    md = create_md_parser(config, SphinxNBRenderer)
     # Note we disable front matter parsing,
     # because this is taken from the actual notebook metadata
     md.disable("front_matter", ignoreInvalid=True)
-    md.renderer = SphinxNBRenderer(md)
     # make a sandbox where all the parsing global data,
     # like reference definitions will be stored
     env: Dict[str, Any] = {}

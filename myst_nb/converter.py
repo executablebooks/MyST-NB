@@ -5,7 +5,8 @@ from typing import Callable, Iterable, Optional
 import attr
 import nbformat as nbf
 import yaml
-from myst_parser.main import MdParserConfig
+from markdown_it.renderer import RendererHTML
+from myst_parser.main import MdParserConfig, create_md_parser
 from sphinx.environment import BuildEnvironment
 from sphinx.util import import_object, logging
 
@@ -229,13 +230,12 @@ def myst_to_notebook(
     i.e. not nested in other directives.
     """
     # TODO warn about nested code-cells
-    from myst_parser.main import default_parser
 
     # parse markdown file up to the block level (i.e. don't worry about inline text)
     inline_config = attr.evolve(
-        config, renderer="html", disable_syntax=(config.disable_syntax + ["inline"])
+        config, disable_syntax=(config.disable_syntax + ["inline"])
     )
-    parser = default_parser(inline_config)
+    parser = create_md_parser(inline_config, RendererHTML)
     tokens = parser.parse(text + "\n")
     lines = text.splitlines()
     md_start_line = 0
