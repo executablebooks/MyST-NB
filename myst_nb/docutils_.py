@@ -140,8 +140,15 @@ class Parser(MystParser):
         )
         notebook = nb_reader(inputstring)
 
+        # TODO update nb_config from notebook metadata
+
         # potentially execute notebook and/or populate outputs from cache
-        notebook = update_notebook(notebook, document["source"], nb_config, logger)
+        notebook, exec_data = update_notebook(
+            notebook, document["source"], nb_config, logger
+        )
+        if exec_data:
+            document["nb_exec_data"] = exec_data
+        # TODO store/print error traceback?
 
         # TODO write executed notebook to output folder
         # always for sphinx, but maybe docutils option on whether to do this?
@@ -167,6 +174,7 @@ class DocutilsNbRenderer(DocutilsRenderer):
 
     def get_nb_config(self, key: str, cell_index: Optional[int]) -> Any:
         # TODO selection between config/notebook/cell level
+        # (we can maybe update the nb_config with notebook level metadata in parser)
         # TODO handle KeyError better
         return self.config["nb_config"][key]
 
@@ -266,8 +274,8 @@ class DocutilsNbRenderer(DocutilsRenderer):
         render_priority = self.get_nb_config("render_priority", cell_index)
         renderer_name = self.get_nb_config("render_plugin", cell_index)
         # get folder path for external outputs (like images)
-        # TODO for sphinx we use a set output folder
-        output_folder = self.get_nb_config("output_folder", cell_index)
+        # TODO for sphinx we use a set output folder (set this in parser?)
+        output_folder = self.get_nb_config("output_folder", None)
         # load renderer class from name
         renderer: NbElementRenderer = load_renderer(renderer_name)(self, output_folder)
         for output in outputs:
