@@ -1,7 +1,7 @@
 import pytest
 from pygments.token import Text, Token
 
-from myst_nb import ansi_lexer
+from myst_nb import lexers
 
 
 @pytest.mark.parametrize(
@@ -15,12 +15,12 @@ from myst_nb import ansi_lexer
     ),
 )
 def test_token_from_lexer_state(bold, faint, fg_color, bg_color, expected):
-    ret = ansi_lexer._token_from_lexer_state(bold, faint, fg_color, bg_color)
+    ret = lexers._token_from_lexer_state(bold, faint, fg_color, bg_color)
     assert ret == expected
 
 
 def _highlight(text):
-    return tuple(ansi_lexer.AnsiColorLexer().get_tokens(text))
+    return tuple(lexers.AnsiColorLexer().get_tokens(text))
 
 
 def test_plain_text():

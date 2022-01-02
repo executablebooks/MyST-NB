@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-"""Pygments lexer for text containing ANSI color codes.
-
-Adapted from https://github.com/chriskuehl/pygments-ansi-color
-"""
+"""Pygments lexers"""
 import re
 
 import pygments.lexer
 import pygments.token
+
+# this is not added as an entry point in ipython, so we add it in this package
+from IPython.lib.lexers import IPythonTracebackLexer  # noqa: F401
 
 _ansi_code_to_color = {
     0: "Black",
@@ -50,6 +50,11 @@ def _token_from_lexer_state(bold, faint, fg_color, bg_color):
 
 
 class AnsiColorLexer(pygments.lexer.RegexLexer):
+    """Pygments lexer for text containing ANSI color codes.
+
+    Adapted from https://github.com/chriskuehl/pygments-ansi-color
+    """
+
     name = "ANSI Color"
     aliases = ("myst-ansi",)
     flags = re.DOTALL | re.MULTILINE

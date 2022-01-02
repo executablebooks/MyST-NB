@@ -17,7 +17,6 @@ from sphinx.util import import_object, logging
 from sphinx.util.docutils import ReferenceRole, SphinxDirective
 
 from myst_nb import __version__
-from myst_nb.ansi_lexer import AnsiColorLexer
 from myst_nb.exec_table import setup_exec_table
 from myst_nb.execution import update_execution_cache
 from myst_nb.jsphinx import (
@@ -26,6 +25,7 @@ from myst_nb.jsphinx import (
     REQUIRE_URL_DEFAULT,
     sphinx_abs_dir,
 )
+from myst_nb.lexers import AnsiColorLexer
 from myst_nb.nb_glue import glue  # noqa: F401
 from myst_nb.nb_glue.domain import (
     NbGlueDomain,
