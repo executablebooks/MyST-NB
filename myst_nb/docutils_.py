@@ -194,6 +194,7 @@ class Parser(MystParser):
                 )
             else:
                 logger.info("Using cached notebook outputs")
+            # TODO save execution data on document (and environment if sphinx)
             # TODO handle errors
             _, notebook = cache.merge_match_into_notebook(notebook)
 
@@ -262,6 +263,7 @@ def notebook_to_tokens(
         # generate tokens
         tokens: List[Token]
         if nb_cell["cell_type"] == "markdown":
+            # https://nbformat.readthedocs.io/en/5.1.3/format_description.html#markdown-cells
             # TODO if cell has tag output-caption, then use as caption for next/preceding cell?
             tokens = [
                 Token(
@@ -290,6 +292,7 @@ def notebook_to_tokens(
                 ),
             )
         elif nb_cell["cell_type"] == "raw":
+            # https://nbformat.readthedocs.io/en/5.1.3/format_description.html#raw-nbconvert-cells
             tokens = [
                 Token(
                     "nb_cell_raw",
@@ -304,6 +307,7 @@ def notebook_to_tokens(
                 )
             ]
         elif nb_cell["cell_type"] == "code":
+            # https://nbformat.readthedocs.io/en/5.1.3/format_description.html#code-cells
             # we don't copy the outputs here, since this would
             # greatly increase the memory consumption,
             # instead they will referenced by the cell index
@@ -419,16 +423,6 @@ def strip_latex_delimiters(source):
 
 class DocutilsNbRenderer(DocutilsRenderer):
     """ "A docutils-only renderer for Jupyter Notebooks."""
-
-    # TODO upstream
-    def add_line_and_source_path_r(
-        self, nodes: List[nodes.Node], token: SyntaxTreeNode
-    ) -> None:
-        """Add the source and line recursively to all nodes."""
-        for node in nodes:
-            self.add_line_and_source_path(node, token)
-            for child in node.traverse():
-                self.add_line_and_source_path(child, token)
 
     # TODO maybe move more things to NbOutputRenderer?
     # and change name to e.g. NbElementRenderer
@@ -673,12 +667,17 @@ class NbOutputRenderer:
         # TODO handle key/index error
         return self._renderer.config["notebook"]["cells"][cell_index]["metadata"]
 
-    # TODO add support for specifying inline types (for glue etc)
-
     def render_stdout(
         self, output: NotebookNode, cell_index: int, source_line: int
     ) -> List[nodes.Element]:
-        """Render a notebook stdout output."""
+        """Render a notebook stdout output.
+
+        https://nbformat.readthedocs.io/en/5.1.3/format_description.html#stream-output
+
+        :param output: the output node
+        :param cell_index: the index of the cell containing the output
+        :param source_line: the line number of the cell in the source document
+        """
         metadata = self.get_cell_metadata(cell_index)
         if "remove-stdout" in metadata.get("tags", []):
             return []
@@ -692,7 +691,14 @@ class NbOutputRenderer:
     def render_stderr(
         self, output: NotebookNode, cell_index: int, source_line: int
     ) -> List[nodes.Element]:
-        """Render a notebook stderr output."""
+        """Render a notebook stderr output.
+
+        https://nbformat.readthedocs.io/en/5.1.3/format_description.html#stream-output
+
+        :param output: the output node
+        :param cell_index: the index of the cell containing the output
+        :param source_line: the line number of the cell in the source document
+        """
         metadata = self.get_cell_metadata(cell_index)
         if "remove-stdout" in metadata.get("tags", []):
             return []
@@ -720,7 +726,14 @@ class NbOutputRenderer:
     def render_error(
         self, output: NotebookNode, cell_index: int, source_line: int
     ) -> List[nodes.Element]:
-        """Render a notebook error output."""
+        """Render a notebook error output.
+
+        https://nbformat.readthedocs.io/en/5.1.3/format_description.html#error
+
+        :param output: the output node
+        :param cell_index: the index of the cell containing the output
+        :param source_line: the line number of the cell in the source document
+        """
         traceback = strip_ansi("\n".join(output["traceback"]))
         lexer = self.renderer.get_nb_config("render_error_lexer", cell_index)
         node = self.renderer.create_highlighted_code_block(
@@ -732,16 +745,19 @@ class NbOutputRenderer:
     def render_mime_type(
         self, mime_type: str, data: Union[str, bytes], cell_index: int, source_line: int
     ) -> List[nodes.Element]:
-        """Render a notebook mime output."""
+        """Render a notebook mime output.
+
+        https://nbformat.readthedocs.io/en/5.1.3/format_description.html#display-data
+
+        :param mime_type: the key from the "data" dict
+        :param data: the value from the "data" dict
+        :param cell_index: the index of the cell containing the output
+        :param source_line: the line number of the cell in the source document
+        """
         if mime_type == "text/plain":
             return self.render_text_plain(data, cell_index, source_line)
-        if mime_type in {"image/png", "image/jpeg", "application/pdf"}:
-            # TODO move a2b_base64 to method? (but need to handle render_svg)
-            return self.render_image(
-                mime_type, a2b_base64(data), cell_index, source_line
-            )
-        if mime_type == "image/svg+xml":
-            return self.render_svg(data, cell_index, source_line)
+        if mime_type in {"image/png", "image/jpeg", "application/pdf", "image/svg+xml"}:
+            return self.render_image(mime_type, data, cell_index, source_line)
         if mime_type == "text/html":
             return self.render_text_html(data, cell_index, source_line)
         if mime_type == "text/latex":
@@ -758,7 +774,13 @@ class NbOutputRenderer:
     def render_unknown(
         self, mime_type: str, data: Union[str, bytes], cell_index: int, source_line: int
     ) -> List[nodes.Element]:
-        """Render a notebook output of unknown mime type."""
+        """Render a notebook output of unknown mime type.
+
+        :param mime_type: the key from the "data" dict
+        :param data: the value from the "data" dict
+        :param cell_index: the index of the cell containing the output
+        :param source_line: the line number of the cell in the source document
+        """
         return self.report(
             "warning",
             f"skipping unknown output mime type: {mime_type}",
@@ -768,7 +790,12 @@ class NbOutputRenderer:
     def render_markdown(
         self, data: str, cell_index: int, source_line: int
     ) -> List[nodes.Element]:
-        """Render a notebook text/markdown output."""
+        """Render a notebook text/markdown mime data output.
+
+        :param data: the value from the "data" dict
+        :param cell_index: the index of the cell containing the output
+        :param source_line: the line number of the cell in the source document
+        """
         # create a container to parse the markdown into
         temp_container = nodes.container()
 
@@ -802,7 +829,12 @@ class NbOutputRenderer:
     def render_text_plain(
         self, data: str, cell_index: int, source_line: int
     ) -> List[nodes.Element]:
-        """Render a notebook text/plain output."""
+        """Render a notebook text/plain mime data output.
+
+        :param data: the value from the "data" dict
+        :param cell_index: the index of the cell containing the output
+        :param source_line: the line number of the cell in the source document
+        """
         lexer = self.renderer.get_nb_config("render_text_lexer", cell_index)
         node = self.renderer.create_highlighted_code_block(
             data, lexer, source=self.source, line=source_line
@@ -813,13 +845,24 @@ class NbOutputRenderer:
     def render_text_html(
         self, data: str, cell_index: int, source_line: int
     ) -> List[nodes.Element]:
-        """Render a notebook text/html output."""
+        """Render a notebook text/html mime data output.
+
+        :param data: the value from the "data" dict
+        :param cell_index: the index of the cell containing the output
+        :param source_line: the line number of the cell in the source document
+        :param inline: create inline nodes instead of block nodes
+        """
         return [nodes.raw(text=data, format="html", classes=["output", "text_html"])]
 
     def render_text_latex(
         self, data: str, cell_index: int, source_line: int
     ) -> List[nodes.Element]:
-        """Render a notebook text/latex output."""
+        """Render a notebook text/latex mime data output.
+
+        :param data: the value from the "data" dict
+        :param cell_index: the index of the cell containing the output
+        :param source_line: the line number of the cell in the source document
+        """
         # TODO should we always assume this is math?
         return [
             nodes.math_block(
@@ -830,36 +873,52 @@ class NbOutputRenderer:
             )
         ]
 
-    def render_svg(
-        self, data: bytes, cell_index: int, source_line: int
-    ) -> List[nodes.Element]:
-        """Render a notebook image/svg+xml output."""
-        data = data if isinstance(data, str) else data.decode("utf-8")
-        data = os.linesep.join(data.splitlines()).encode("utf-8")
-        return self.render_image("image/svg+xml", data, source_line)
-
     def render_image(
-        self, mime_type: str, data: bytes, cell_index: int, source_line: int
+        self,
+        mime_type: Union[str, bytes],
+        data: bytes,
+        cell_index: int,
+        source_line: int,
     ) -> List[nodes.Element]:
-        """Render a notebook image output."""
-        # Adapted from ``nbconvert.ExtractOutputPreprocessor``
-        # TODO add additional attributes
+        """Render a notebook image mime data output.
+
+        :param mime_type: the key from the "data" dict
+        :param data: the value from the "data" dict
+        :param cell_index: the index of the cell containing the output
+        :param source_line: the line number of the cell in the source document
+        """
+        # Adapted from:
+        # https://github.com/jupyter/nbconvert/blob/45df4b6089b3bbab4b9c504f9e6a892f5b8692e3/nbconvert/preprocessors/extractoutput.py#L43
+
+        # ensure that the data is a bytestring
+        if mime_type in {"image/png", "image/jpeg", "application/pdf"}:
+            # data is b64-encoded as text
+            data_bytes = a2b_base64(data)
+        elif isinstance(data, str):
+            # ensure corrent line separator
+            data_bytes = os.linesep.join(data.splitlines()).encode("utf-8")
         # create filename
         extension = guess_extension(mime_type) or "." + mime_type.rsplit("/")[-1]
-        # latex does not read the '.jpe' extension
+        # latex does not recognize the '.jpe' extension
         extension = ".jpeg" if extension == ".jpe" else extension
         # ensure de-duplication of outputs by using hash as filename
         # TODO note this is a change to the current implementation,
         # which names by {notbook_name}-{cell_index}-{output-index}.{extension}
-        data_hash = hashlib.sha256(data).hexdigest()
+        data_hash = hashlib.sha256(data_bytes).hexdigest()
         filename = f"{data_hash}{extension}"
-        path = self.write_file([filename], data, overwrite=False, exists_ok=True)
+        path = self.write_file([filename], data_bytes, overwrite=False, exists_ok=True)
+        # TODO add additional attributes
         return [nodes.image(uri=str(path))]
 
     def render_javascript(
         self, data: str, cell_index: int, source_line: int
     ) -> List[nodes.Element]:
-        """Render a notebook application/javascript output."""
+        """Render a notebook application/javascript mime data output.
+
+        :param data: the value from the "data" dict
+        :param cell_index: the index of the cell containing the output
+        :param source_line: the line number of the cell in the source document
+        """
         content = sanitize_script_content(data)
         mime_type = "application/javascript"
         return [
@@ -872,7 +931,12 @@ class NbOutputRenderer:
     def render_widget_view(
         self, data: str, cell_index: int, source_line: int
     ) -> List[nodes.Element]:
-        """Render a notebook application/vnd.jupyter.widget-view+json output."""
+        """Render a notebook application/vnd.jupyter.widget-view+json mime output.
+
+        :param data: the value from the "data" dict
+        :param cell_index: the index of the cell containing the output
+        :param source_line: the line number of the cell in the source document
+        """
         content = json.dumps(sanitize_script_content(data))
         return [
             nodes.raw(
