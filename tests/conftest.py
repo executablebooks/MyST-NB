@@ -70,11 +70,8 @@ class SphinxFixture:
 
     def build(self):
         """Run the sphinx build."""
-        # reset streams before each build
-        self.app._status.truncate(0)
-        self.app._status.seek(0)
-        self.app._warning.truncate(0)
-        self.app._warning.seek(0)
+        # TODO reset streams before each build,
+        # but this was wiping the warnings of a build
         self.app.build()
 
     def status(self):
@@ -165,7 +162,7 @@ def sphinx_run(sphinx_params, make_app, tempdir):
         "extensions": ["myst_nb"],
         "master_doc": os.path.splitext(sphinx_params["files"][0])[0],
         "exclude_patterns": ["_build"],
-        "execution_show_tb": True,
+        "nb_execution_show_tb": True,
     }
     confoverrides.update(conf)
 

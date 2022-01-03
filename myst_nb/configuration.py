@@ -137,14 +137,12 @@ def render_priority_factory() -> Dict[str, Sequence[str]]:
 class NbParserConfig:
     """Global configuration options for the MyST-NB parser.
 
-    Note: in the sphinx configuration these option names are prepended with ``nb_``
+    Note: in the docutils/sphinx configuration,
+    these option names are prepended with ``nb_``
     """
 
-    # TODO: nb_render_key, execution_show_tb,
-    # execution_excludepatterns, jupyter_cache
+    # TODO: nb_render_key, execution_show_tb, execution_excludepatterns
     # jupyter_sphinx_require_url, jupyter_sphinx_embed_url
-
-    # TODO handle old names; put in metadata, then auto generate warnings
 
     # TODO mark which config are allowed per notebook/cell
 
@@ -164,7 +162,9 @@ class NbParserConfig:
     # notebook execution options
 
     execution_mode: Literal["off", "force", "cache"] = attr.ib(
-        default="off",  # TODO different default for docutils (off) and sphinx (cache)?
+        # TODO different default for docutils (off) and sphinx (cache)?
+        # TODO deprecate auto
+        default="off",
         validator=in_(
             [
                 "off",
@@ -172,29 +172,50 @@ class NbParserConfig:
                 "cache",
             ]
         ),
-        metadata={"help": "Execution mode for notebooks"},
+        metadata={
+            "help": "Execution mode for notebooks",
+            "legacy_name": "jupyter_execute_notebooks",
+        },
     )
     execution_cache_path: str = attr.ib(
         default="",
         validator=instance_of(str),
-        metadata={"help": "Path to folder for caching notebooks"},
+        metadata={
+            "help": "Path to folder for caching notebooks",
+            "legacy_name": "jupyter_cache",
+        },
     )
     execution_timeout: int = attr.ib(
         default=30,
         validator=instance_of(int),
-        metadata={"help": "Execution timeout (seconds)"},
+        metadata={
+            "help": "Execution timeout (seconds)",
+            "legacy_name": "execution_timeout",
+        },
     )
     execution_in_temp: bool = attr.ib(
         default=False,
         validator=instance_of(bool),
         metadata={
-            "help": "Use a temporary folder for the execution current working directory"
+            "help": "Use temporary folder for the execution current working directory",
+            "legacy_name": "execution_in_temp",
         },
     )
     execution_allow_errors: bool = attr.ib(
         default=False,
         validator=instance_of(bool),
-        metadata={"help": "Allow errors during execution"},
+        metadata={
+            "help": "Allow errors during execution",
+            "legacy_name": "execution_allow_errors",
+        },
+    )
+    execution_show_tb: bool = attr.ib(  # TODO implement
+        default=False,
+        validator=instance_of(bool),
+        metadata={
+            "help": "Print traceback to stderr on execution error",
+            "legacy_name": "execution_show_tb",
+        },
     )
 
     # render options
@@ -265,6 +286,7 @@ class NbParserConfig:
         ),
         validator=deep_iterable(instance_of(str)),
         metadata={"help": "Render priority for mime types", "sphinx_exclude": True},
+        repr=False,
     )
     render_priority: Dict[str, Sequence[str]] = attr.ib(
         factory=render_priority_factory,
@@ -273,6 +295,7 @@ class NbParserConfig:
             "help": "Render priority for mime types, by builder name",
             "docutils_exclude": True,
         },
+        repr=False,
     )
     render_text_lexer: str = attr.ib(
         default="myst-ansi",

@@ -25,6 +25,7 @@ from myst_nb.new.render import NbElementRenderer, load_renderer
 from myst_nb.render_outputs import coalesce_streams
 
 SPHINX_LOGGER = sphinx_logging.getLogger(__name__)
+UNSET = "--unset--"
 
 
 def setup(app):
@@ -44,8 +45,11 @@ def sphinx_setup(app: Sphinx):
     for name, default, field in NbParserConfig().as_triple():
         if not field.metadata.get("sphinx_exclude"):
             # TODO add types?
-            app.add_config_value(f"nb_{name}", default, "env")
-            # TODO add deprecated names
+            app.add_config_value(f"nb_{name}", default, "env", Any)
+            if "legacy_name" in field.metadata:
+                app.add_config_value(
+                    f"{field.metadata['legacy_name']}", UNSET, "env", Any
+                )
 
     # generate notebook configuration from Sphinx configuration
     app.connect("builder-inited", create_mystnb_config)
@@ -60,7 +64,11 @@ def sphinx_setup(app: Sphinx):
 
     # TODO do we need to add lexers, if they are anyhow added via entry-points?
 
-    return {"version": __version__, "parallel_read_safe": True}
+    return {
+        "version": __version__,
+        "parallel_read_safe": True,
+        "parallel_write_safe": True,
+    }
 
 
 def create_mystnb_config(app):
@@ -69,12 +77,21 @@ def create_mystnb_config(app):
     # Ignore type checkers because the attribute is dynamically assigned
     from sphinx.util.console import bold  # type: ignore[attr-defined]
 
-    # TODO deal with deprecated names
-    values = {
-        name: app.config[f"nb_{name}"]
-        for name, _, field in NbParserConfig().as_triple()
-        if not field.metadata.get("sphinx_exclude")
-    }
+    values = {}
+    for name, _, field in NbParserConfig().as_triple():
+        if not field.metadata.get("sphinx_exclude"):
+            values[name] = app.config[f"nb_{name}"]
+            if "legacy_name" in field.metadata:
+                legacy_value = app.config[field.metadata["legacy_name"]]
+                if legacy_value != UNSET:
+                    legacy_name = field.metadata["legacy_name"]
+                    SPHINX_LOGGER.warning(
+                        f"{legacy_name!r} is deprecated for 'nb_{name}' "
+                        f"[{DEFAULT_LOG_TYPE}.config]",
+                        type=DEFAULT_LOG_TYPE,
+                        subtype="config",
+                    )
+                    values[name] = legacy_value
 
     try:
         app.env.mystnb_config = NbParserConfig(**values)
@@ -375,8 +392,8 @@ class SelectMimeType(SphinxPostTransform):
         name = self.app.builder.name
         if name not in priority_lookup:
             SPHINX_LOGGER.warning(
-                f"Builder name {name!r} "
-                "not available in 'nb_render_priority', defaulting to 'html'",
+                f"Builder name {name!r} not available in 'nb_render_priority', "
+                f"defaulting to 'html' [{DEFAULT_LOG_TYPE}.mime_priority]",
                 type=DEFAULT_LOG_TYPE,
                 subtype="mime_priority",
             )
@@ -405,7 +422,8 @@ class SelectMimeType(SphinxPostTransform):
                     break
             if index is None:
                 SPHINX_LOGGER.warning(
-                    f"No mime type available in priority list builder {name!r}",
+                    f"No mime type available in priority list builder {name!r} "
+                    f"[{DEFAULT_LOG_TYPE}.mime_priority]",
                     type=DEFAULT_LOG_TYPE,
                     subtype="mime_priority",
                     location=node,
