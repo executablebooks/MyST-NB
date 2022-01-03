@@ -44,7 +44,12 @@ class SphinxLogger(logging.LoggerAdapter):
             self.extra["type"] = kwargs.pop("type")
         subtype = ("." + kwargs["subtype"]) if "subtype" in kwargs else ""
         if "line" in kwargs:  # add line to location
+            # note this will be overridden by the location keyword
             self.extra["location"] = (self.extra["location"], kwargs.pop("line"))
+        if "parent" in kwargs:
+            # TODO ideally here we would append a system_message to this node,
+            # then it could replace myst_parser.SphinxRenderer.create_warning
+            self.extra["parent"] = kwargs.pop("parent")
         return f"{msg} [{self.extra['type']}{subtype}]", kwargs
 
 
@@ -59,7 +64,16 @@ class DocutilsLogger(logging.LoggerAdapter):
     ``type.subtype`` are also appended to the end of messages.
     """
 
-    KEYWORDS = ["type", "subtype", "location", "nonl", "color", "once", "line"]
+    KEYWORDS = [
+        "type",
+        "subtype",
+        "location",
+        "nonl",
+        "color",
+        "once",
+        "line",
+        "parent",
+    ]
 
     def __init__(self, document: nodes.document, type_name: str = DEFAULT_LOG_TYPE):
         self.logger = logging.getLogger(f"{type_name}-{document.source}")
@@ -70,7 +84,7 @@ class DocutilsLogger(logging.LoggerAdapter):
 
         # default extras to parse to sphinx logger
         # location can be: docname, (docname, lineno), or a node
-        self.extra = {"type": type_name, "line": None}
+        self.extra = {"type": type_name, "line": None, "parent": None}
 
     def process(self, msg, kwargs):
         kwargs["extra"] = self.extra
@@ -103,6 +117,8 @@ class DocutilsLogHandler(logging.Handler):
         """Handle a log record."""
         levelname = record.levelname.upper()
         level = self._name_to_level.get(levelname, self._document.reporter.DEBUG_LEVEL)
-        self._document.reporter.system_message(
+        node = self._document.reporter.system_message(
             level, record.msg, **({"line": record.line} if record.line else {})
         )
+        if record.parent is not None:
+            record.parent.append(node)

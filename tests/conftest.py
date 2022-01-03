@@ -90,8 +90,9 @@ class SphinxFixture:
         for name, _ in self.files:
             self.env.all_docs.pop(name)
 
-    def get_resolved_doctree(self, docname):
+    def get_resolved_doctree(self, docname=None):
         """Load and return the built docutils.document, after post-transforms."""
+        docname = docname or self.files[0][0]
         doctree = self.env.get_and_resolve_doctree(docname, self.app.builder)
         doctree["source"] = docname
         return doctree

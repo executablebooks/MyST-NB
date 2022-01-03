@@ -1,6 +1,7 @@
 """Module for rendering notebook components to docutils nodes."""
 import hashlib
 import json
+import logging
 import os
 import re
 from binascii import a2b_base64
@@ -13,7 +14,6 @@ from docutils import nodes
 from importlib_metadata import entry_points
 from myst_parser.main import MdParserConfig, create_md_parser
 from nbformat import NotebookNode
-from typing_extensions import Literal
 
 if TYPE_CHECKING:
     from myst_nb.docutils_ import DocutilsNbRenderer
@@ -56,17 +56,32 @@ def strip_latex_delimiters(source):
 class NbElementRenderer:
     """A class for rendering notebook elements."""
 
-    def __init__(self, renderer: "DocutilsNbRenderer") -> None:
+    # TODO the type of renderer could be DocutilsNbRenderer or SphinxNbRenderer
+
+    def __init__(self, renderer: "DocutilsNbRenderer", logger: logging.Logger) -> None:
         """Initialize the renderer.
 
         :params output_folder: the folder path for external outputs (like images)
         """
         self._renderer = renderer
+        self._logger = logger
 
     @property
     def renderer(self) -> "DocutilsNbRenderer":
         """The renderer this output renderer is associated with."""
         return self._renderer
+
+    @property
+    def logger(self) -> logging.Logger:
+        """The logger for this renderer."""
+        # TODO the only problem with logging here, is that we cannot generate
+        # nodes.system_message to append to the document.
+        return self._logger
+
+    @property
+    def source(self):
+        """The source of the notebook."""
+        return self.renderer.document["source"]
 
     def write_file(
         self, path: List[str], content: bytes, overwrite=False, exists_ok=False
@@ -103,27 +118,6 @@ class NbElementRenderer:
             return "/" + os.path.relpath(filepath, self.renderer.sphinx_env.app.srcdir)
         else:
             return str(filepath)
-
-    @property
-    def source(self):
-        """The source of the notebook."""
-        return self.renderer.document["source"]
-
-    def report(
-        self, level: Literal["warning", "error", "severe"], message: str, line: int
-    ) -> nodes.system_message:
-        """Report an issue."""
-        # TODO add cell index to message
-        # TODO handle for sphinx (including type/subtype)
-        reporter = self.renderer.document.reporter
-        levels = {
-            "warning": reporter.WARNING_LEVEL,
-            "error": reporter.ERROR_LEVEL,
-            "severe": reporter.SEVERE_LEVEL,
-        }
-        return reporter.system_message(
-            levels.get(level, reporter.WARNING_LEVEL), message, line=line
-        )
 
     def get_cell_metadata(self, cell_index: int) -> NotebookNode:
         # TODO handle key/index error
@@ -165,18 +159,19 @@ class NbElementRenderer:
         if "remove-stdout" in metadata.get("tags", []):
             return []
         output_stderr = self.renderer.get_nb_config("output_stderr", cell_index)
-        msg = "output render: stderr was found in the cell outputs"
+        msg = f"stderr was found in the cell outputs of cell {cell_index + 1}"
         outputs = []
         if output_stderr == "remove":
             return []
         elif output_stderr == "remove-warn":
-            return [self.report("warning", msg, line=source_line)]
+            self.logger.warning(msg, subtype="stderr", line=source_line)
+            return []
         elif output_stderr == "warn":
-            outputs.append(self.report("warning", msg, line=source_line))
+            self.logger.warning(msg, subtype="stderr", line=source_line)
         elif output_stderr == "error":
-            outputs.append(self.report("error", msg, line=source_line))
+            self.logger.error(msg, subtype="stderr", line=source_line)
         elif output_stderr == "severe":
-            outputs.append(self.report("severe", msg, line=source_line))
+            self.logger.critical(msg, subtype="stderr", line=source_line)
         lexer = self.renderer.get_nb_config("render_text_lexer", cell_index)
         node = self.renderer.create_highlighted_code_block(
             output["text"], lexer, source=self.source, line=source_line
@@ -218,7 +213,13 @@ class NbElementRenderer:
         """
         if mime_type == "text/plain":
             return self.render_text_plain(data, cell_index, source_line)
-        if mime_type in {"image/png", "image/jpeg", "application/pdf", "image/svg+xml"}:
+        if mime_type in {
+            "image/png",
+            "image/jpeg",
+            "application/pdf",
+            "image/svg+xml",
+            "image/gif",
+        }:
             return self.render_image(mime_type, data, cell_index, source_line)
         if mime_type == "text/html":
             return self.render_text_html(data, cell_index, source_line)
@@ -243,11 +244,12 @@ class NbElementRenderer:
         :param cell_index: the index of the cell containing the output
         :param source_line: the line number of the cell in the source document
         """
-        return self.report(
-            "warning",
+        self.logger.warning(
             f"skipping unknown output mime type: {mime_type}",
+            subtype="unknown_mime_type",
             line=source_line,
         )
+        return []
 
     def render_markdown(
         self, data: str, cell_index: int, source_line: int
@@ -353,7 +355,7 @@ class NbElementRenderer:
         # https://github.com/jupyter/nbconvert/blob/45df4b6089b3bbab4b9c504f9e6a892f5b8692e3/nbconvert/preprocessors/extractoutput.py#L43
 
         # ensure that the data is a bytestring
-        if mime_type in {"image/png", "image/jpeg", "application/pdf"}:
+        if mime_type in {"image/png", "image/jpeg", "image/gif", "application/pdf"}:
             # data is b64-encoded as text
             data_bytes = a2b_base64(data)
         elif isinstance(data, str):
@@ -406,6 +408,20 @@ class NbElementRenderer:
                 format="html",
             )
         ]
+
+    def render_widget_state(self, mime_type: str, data: dict) -> nodes.Element:
+        """Render a notebook application/vnd.jupyter.widget-state+json mime output.
+
+        :param mime_type: the key from the "notebook.metdata.widgets" dict
+        :param data: the value from the "notebook.metdata.widgets" dict
+        """
+        # The JSON inside the script tag is identified and parsed by:
+        # https://github.com/jupyter-widgets/ipywidgets/blob/32f59acbc63c3ff0acf6afa86399cb563d3a9a86/packages/html-manager/src/libembed.ts#L36
+        content = json.dumps(sanitize_script_content(data["state"]))
+        return nodes.raw(
+            text=f'<script type="{mime_type}">\n{content}\n</script>',
+            format="html",
+        )
 
 
 @lru_cache(maxsize=10)

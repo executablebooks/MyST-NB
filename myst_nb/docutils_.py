@@ -1,5 +1,4 @@
 """A parser for docutils."""
-import json
 from typing import Any, Dict, List, Optional, Tuple
 
 import nbformat
@@ -15,16 +14,14 @@ from nbformat import NotebookNode
 
 from myst_nb.configuration import NbParserConfig
 from myst_nb.new.execute import update_notebook
-from myst_nb.new.loggers import DocutilsLogger
+from myst_nb.new.loggers import DEFAULT_LOG_TYPE, DocutilsLogger
 from myst_nb.new.parse import notebook_to_tokens
 from myst_nb.new.read import create_nb_reader
-from myst_nb.new.render import NbElementRenderer, load_renderer, sanitize_script_content
+from myst_nb.new.render import NbElementRenderer, load_renderer
 from myst_nb.render_outputs import coalesce_streams
 
 DOCUTILS_EXCLUDED_ARGS = {
-    # docutils.conf can't represent dicts
-    # TODO can we make this work?
-    "custom_formats",
+    f.name for f in NbParserConfig.get_fields() if f.metadata.get("docutils_exclude")
 }
 
 
@@ -92,7 +89,7 @@ class Parser(MystParser):
         # this is separate from DocutilsNbRenderer, so that users can override it
         renderer_name = nb_config.render_plugin
         nb_renderer: NbElementRenderer = load_renderer(renderer_name)(
-            mdit_parser.renderer
+            mdit_parser.renderer, logger
         )
         mdit_parser.options["nb_renderer"] = nb_renderer
 
@@ -102,32 +99,31 @@ class Parser(MystParser):
         )
         if exec_data:
             document["nb_exec_data"] = exec_data
-        # TODO store/print error traceback?
 
-        # TODO also write CSS to output folder if necessary or always?
+        # TODO store/print error traceback?
 
         # parse to tokens
         mdit_tokens = notebook_to_tokens(notebook, mdit_parser, mdit_env, logger)
         # convert to docutils AST, which is added to the document
         mdit_parser.renderer.render(mdit_tokens, mdit_parser.options, mdit_env)
 
+        # write updated notebook to output folder
+        # TODO currently this has to be done after the render has been called/setup
+        # TODO maybe docutils should be optional on whether to do this?
+        # utf-8 is the de-facto standard encoding for notebooks.
+        content = nbformat.writes(notebook).encode("utf-8")
+        path = ["rendered.ipynb"]
+        nb_renderer.write_file(path, content, overwrite=True)
+        # TODO also write CSS to output folder if necessary or always?
+
 
 class DocutilsNbRenderer(DocutilsRenderer):
-    """ "A docutils-only renderer for Jupyter Notebooks."""
+    """A docutils-only renderer for Jupyter Notebooks."""
 
-    def render(self, tokens, options, md_env) -> nodes.document:
-        document = super().render(tokens, options, md_env)
-        # write executed notebook to output folder
-        # utf-8 is the de-facto standard encoding for notebooks.
-        content = nbformat.writes(self.config["notebook"]).encode("utf-8")
-        if self.sphinx_env:
-            path = self.sphinx_env.docname.split("/")
-            path[-1] += ".ipynb"
-        else:
-            # TODO maybe docutils should be optional on whether to do this?
-            path = ["rendered.ipynb"]
-        self.config["nb_renderer"].write_file(path, content, overwrite=True)
-        return document
+    @property
+    def nb_renderer(self) -> NbElementRenderer:
+        """Get the notebook element renderer."""
+        return self.config["nb_renderer"]
 
     # TODO maybe move more things to NbOutputRenderer?
     # and change name to e.g. NbElementRenderer
@@ -140,6 +136,7 @@ class DocutilsNbRenderer(DocutilsRenderer):
 
     def render_nb_spec_data(self, token: SyntaxTreeNode) -> None:
         """Add a notebook spec data to the document attributes."""
+        # TODO in sphinx moves these to env metadata?
         self.document["nb_kernelspec"] = token.meta["kernelspec"]
         self.document["nb_language_info"] = token.meta["language_info"]
 
@@ -158,17 +155,16 @@ class DocutilsNbRenderer(DocutilsRenderer):
     def render_nb_cell_code(self, token: SyntaxTreeNode) -> None:
         """Render a notebook code cell."""
         cell_index = token.meta["index"]
-        exec_count = token.meta["execution_count"]
         tags = token.meta["metadata"].get("tags", [])
         # create a container for all the output
         classes = ["cell"]
         for tag in tags:
             classes.append(f"tag_{tag.replace(' ', '_')}")
         cell_container = nodes.container(
-            nb_type="cell_code",  # TODO maybe nb_cell="code"/"markdown"/"raw"
+            nb_element="cell_code",
             cell_index=cell_index,
-            # TODO some way to use this to output cell indexes in HTML?
-            exec_count=exec_count,
+            # TODO some way to use this to allow repr of count in outputs like HTML?
+            exec_count=token.meta["execution_count"],
             cell_metadata=token.meta["metadata"],
             classes=classes,
         )
@@ -185,7 +181,7 @@ class DocutilsNbRenderer(DocutilsRenderer):
                 and ("remove-input" not in tags)
             ):
                 cell_input = nodes.container(
-                    nb_type="cell_code_source", classes=["cell_input"]
+                    nb_element="cell_code_source", classes=["cell_input"]
                 )
                 self.add_line_and_source_path(cell_input, token)
                 with self.current_node_context(cell_input, append=True):
@@ -201,7 +197,7 @@ class DocutilsNbRenderer(DocutilsRenderer):
                 and ("remove-output" not in tags)
             ):
                 cell_output = nodes.container(
-                    nb_type="cell_code_output", classes=["cell_output"]
+                    nb_element="cell_code_output", classes=["cell_output"]
                 )
                 self.add_line_and_source_path(cell_output, token)
                 with self.current_node_context(cell_output, append=True):
@@ -232,24 +228,23 @@ class DocutilsNbRenderer(DocutilsRenderer):
             # TODO should this be moved to the parsing phase?
             outputs = coalesce_streams(outputs)
 
-        renderer: NbElementRenderer = self.config["nb_renderer"]
-        render_priority = self.get_nb_config("render_priority", cell_index)
+        mime_priority = self.get_nb_config("mime_priority", cell_index)
 
         # render the outputs
         for output in outputs:
             if output.output_type == "stream":
                 if output.name == "stdout":
-                    _nodes = renderer.render_stdout(output, cell_index, line)
+                    _nodes = self.nb_renderer.render_stdout(output, cell_index, line)
                     self.add_line_and_source_path_r(_nodes, token)
                     self.current_node.extend(_nodes)
                 elif output.name == "stderr":
-                    _nodes = renderer.render_stderr(output, cell_index, line)
+                    _nodes = self.nb_renderer.render_stderr(output, cell_index, line)
                     self.add_line_and_source_path_r(_nodes, token)
                     self.current_node.extend(_nodes)
                 else:
                     pass  # TODO warning
             elif output.output_type == "error":
-                _nodes = renderer.render_error(output, cell_index, line)
+                _nodes = self.nb_renderer.render_error(output, cell_index, line)
                 self.add_line_and_source_path_r(_nodes, token)
                 self.current_node.extend(_nodes)
             elif output.output_type in ("display_data", "execute_result"):
@@ -260,43 +255,41 @@ class DocutilsNbRenderer(DocutilsRenderer):
                 # if embed_markdown_outputs is True,
                 # this should be top priority and we "mark" the container for the transform
                 try:
-                    mime_type = next(x for x in render_priority if x in output["data"])
+                    mime_type = next(x for x in mime_priority if x in output["data"])
                 except StopIteration:
                     self.create_warning(
                         "No output mime type found from render_priority",
                         line=line,
                         append_to=self.current_node,
-                        wtype="mystnb",
+                        wtype=DEFAULT_LOG_TYPE,
                         subtype="mime_type",
                     )
                 else:
                     container = nodes.container(mime_type=mime_type)
                     with self.current_node_context(container, append=True):
-                        _nodes = renderer.render_mime_type(
+                        _nodes = self.nb_renderer.render_mime_type(
                             mime_type, output["data"][mime_type], cell_index, line
                         )
-                        self.add_line_and_source_path_r(_nodes, token)
                         self.current_node.extend(_nodes)
+                    self.add_line_and_source_path_r([container], token)
             else:
                 self.create_warning(
                     f"Unsupported output type: {output.output_type}",
                     line=line,
                     append_to=self.current_node,
-                    wtype="mystnb",
+                    wtype=DEFAULT_LOG_TYPE,
                     subtype="output_type",
                 )
 
     def render_nb_widget_state(self, token: SyntaxTreeNode) -> None:
         """Render the HTML defining the ipywidget state."""
-        # The JSON inside the script tag is identified and parsed by:
-        # https://github.com/jupyter-widgets/ipywidgets/blob/32f59acbc63c3ff0acf6afa86399cb563d3a9a86/packages/html-manager/src/libembed.ts#L36
-        # TODO we also need to load JS URLs if widgets are present and HTML
-        html = (
-            f'<script type="{token.attrGet("type")}">\n'
-            f"{sanitize_script_content(json.dumps(token.meta['state']))}\n"
-            "</script>"
+        # TODO handle this more generally,
+        # by just passing all notebook metadata to the nb_renderer
+        # TODO in docutils we also need to load JS URLs if widgets are present and HTML
+        node = self.nb_renderer.render_widget_state(
+            mime_type=token.attrGet("type"), data=token.meta
         )
-        node = nodes.raw("", html, format="html", nb_type="widget_state")
+        node["nb_element"] = "widget_state"
         self.add_line_and_source_path(node, token)
         # always append to bottom of the document
         self.document.append(node)

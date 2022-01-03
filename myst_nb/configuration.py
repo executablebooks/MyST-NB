@@ -2,7 +2,7 @@
 from typing import Any, Dict, Iterable, Sequence, Tuple
 
 import attr
-from attr.validators import deep_iterable, in_, instance_of, optional
+from attr.validators import deep_iterable, deep_mapping, in_, instance_of, optional
 from typing_extensions import Literal
 
 
@@ -44,6 +44,95 @@ def custom_formats_converter(value: dict) -> dict:
     return output
 
 
+def render_priority_factory() -> Dict[str, Sequence[str]]:
+    """Create a default render priority dict: name -> priority list."""
+    # See formats at https://www.sphinx-doc.org/en/master/usage/builders/index.html
+    # generated with:
+    # [(b.name, b.format, b.supported_image_types)
+    # for b in app.registry.builders.values()]
+    # TODO potentially could auto-generate
+    html_builders = [
+        ("epub", "html", ["image/svg+xml", "image/png", "image/gif", "image/jpeg"]),
+        ("html", "html", ["image/svg+xml", "image/png", "image/gif", "image/jpeg"]),
+        ("dirhtml", "html", ["image/svg+xml", "image/png", "image/gif", "image/jpeg"]),
+        (
+            "singlehtml",
+            "html",
+            ["image/svg+xml", "image/png", "image/gif", "image/jpeg"],
+        ),
+        (
+            "applehelp",
+            "html",
+            [
+                "image/png",
+                "image/gif",
+                "image/jpeg",
+                "image/tiff",
+                "image/jp2",
+                "image/svg+xml",
+            ],
+        ),
+        ("devhelp", "html", ["image/png", "image/gif", "image/jpeg"]),
+        ("htmlhelp", "html", ["image/png", "image/gif", "image/jpeg"]),
+        ("json", "html", ["image/svg+xml", "image/png", "image/gif", "image/jpeg"]),
+        ("pickle", "html", ["image/svg+xml", "image/png", "image/gif", "image/jpeg"]),
+        ("qthelp", "html", ["image/svg+xml", "image/png", "image/gif", "image/jpeg"]),
+        # deprecated RTD builders
+        # https://github.com/readthedocs/readthedocs-sphinx-ext/blob/master/readthedocs_ext/readthedocs.py
+        (
+            "readthedocs",
+            "html",
+            ["image/svg+xml", "image/png", "image/gif", "image/jpeg"],
+        ),
+        (
+            "readthedocsdirhtml",
+            "html",
+            ["image/svg+xml", "image/png", "image/gif", "image/jpeg"],
+        ),
+        (
+            "readthedocssinglehtml",
+            "html",
+            ["image/svg+xml", "image/png", "image/gif", "image/jpeg"],
+        ),
+        (
+            "readthedocssinglehtmllocalmedia",
+            "html",
+            ["image/svg+xml", "image/png", "image/gif", "image/jpeg"],
+        ),
+    ]
+    other_builders = [
+        ("changes", "", []),
+        ("dummy", "", []),
+        ("gettext", "", []),
+        ("latex", "latex", ["application/pdf", "image/png", "image/jpeg"]),
+        ("linkcheck", "", []),
+        ("man", "man", []),
+        ("texinfo", "texinfo", ["image/png", "image/jpeg", "image/gif"]),
+        ("text", "text", []),
+        ("xml", "xml", []),
+        ("pseudoxml", "pseudoxml", []),
+    ]
+    output = {}
+    for name, _, supported_images in html_builders:
+        output[name] = (
+            "application/vnd.jupyter.widget-view+json",
+            "application/javascript",
+            "text/html",
+            *supported_images,
+            "text/markdown",
+            "text/latex",
+            "text/plain",
+        )
+    for name, _, supported_images in other_builders:
+        output[name] = (
+            *supported_images,
+            "text/latex",
+            "text/markdown",
+            "text/plain",
+        )
+    return output
+
+
 @attr.s()
 class NbParserConfig:
     """Global configuration options for the MyST-NB parser.
@@ -65,7 +154,11 @@ class NbParserConfig:
         factory=dict,
         converter=custom_formats_converter,
         # TODO check can be loaded from string?
-        metadata={"help": "Custom formats for reading notebook; suffix -> reader"},
+        metadata={
+            "help": "Custom formats for reading notebook; suffix -> reader",
+            # TODO can we make this work for docutils?
+            "docutils_exclude": True,
+        },
     )
 
     # notebook execution options
@@ -111,7 +204,7 @@ class NbParserConfig:
         validator=instance_of(str),
         metadata={
             "help": "Output folder for external outputs",
-            "docutils_only": True,  # in sphinx we always output to the build folder
+            "sphinx_exclude": True,  # in sphinx we always output to the build folder
         },
     )
     remove_code_source: bool = attr.ib(
@@ -155,8 +248,10 @@ class NbParserConfig:
         validator=instance_of(bool),
         metadata={"help": "Embed markdown outputs"},  # TODO better help text
     )
-    # TODO this would be for docutils but not for sphinx
-    render_priority: Iterable[str] = attr.ib(
+    # docutils does not allow for the dictionaries in its configuration,
+    # and also there is no API for the parser to know the output format, so
+    # we use two different options for docutils(mime_priority)/sphinx(render_priority)
+    mime_priority: Sequence[str] = attr.ib(
         default=(
             "application/vnd.jupyter.widget-view+json",
             "application/javascript",
@@ -169,7 +264,15 @@ class NbParserConfig:
             "text/plain",
         ),
         validator=deep_iterable(instance_of(str)),
-        metadata={"help": "Render priority for mime types"},
+        metadata={"help": "Render priority for mime types", "sphinx_exclude": True},
+    )
+    render_priority: Dict[str, Sequence[str]] = attr.ib(
+        factory=render_priority_factory,
+        validator=deep_mapping(instance_of(str), deep_iterable(instance_of(str))),
+        metadata={
+            "help": "Render priority for mime types, by builder name",
+            "docutils_exclude": True,
+        },
     )
     render_text_lexer: str = attr.ib(
         default="myst-ansi",
