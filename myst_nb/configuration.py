@@ -57,6 +57,8 @@ class NbParserConfig:
 
     # TODO handle old names; put in metadata, then auto generate warnings
 
+    # TODO mark which config are allowed per notebook/cell
+
     # file read options
 
     custom_formats: Dict[str, Tuple[str, dict, bool]] = attr.ib(
@@ -204,3 +206,7 @@ class NbParserConfig:
         fields = attr.fields_dict(self.__class__)
         for name, value in attr.asdict(self).items():
             yield name, value, fields[name]
+
+    def copy(self, **changes) -> "NbParserConfig":
+        """Return a copy of the configuration with optional changes applied."""
+        return attr.evolve(self, **changes)

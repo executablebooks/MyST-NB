@@ -56,13 +56,12 @@ def strip_latex_delimiters(source):
 class NbElementRenderer:
     """A class for rendering notebook elements."""
 
-    def __init__(self, renderer: "DocutilsNbRenderer", output_folder: str) -> None:
+    def __init__(self, renderer: "DocutilsNbRenderer") -> None:
         """Initialize the renderer.
 
         :params output_folder: the folder path for external outputs (like images)
         """
         self._renderer = renderer
-        self._output_folder = output_folder
 
     @property
     def renderer(self) -> "DocutilsNbRenderer":
@@ -71,16 +70,18 @@ class NbElementRenderer:
 
     def write_file(
         self, path: List[str], content: bytes, overwrite=False, exists_ok=False
-    ) -> Path:
+    ) -> str:
         """Write a file to the external output folder.
 
         :param path: the path to write the file to, relative to the output folder
         :param content: the content to write to the file
         :param overwrite: whether to overwrite an existing file
         :param exists_ok: whether to ignore an existing file if overwrite is False
+
+        :returns: URI to use for referencing the file
         """
-        folder = Path(self._output_folder)
-        filepath = folder.joinpath(*path)
+        output_folder = Path(self.renderer.get_nb_config("output_folder", None))
+        filepath = output_folder.joinpath(*path)
         if filepath.exists():
             if overwrite:
                 filepath.write_bytes(content)
@@ -91,7 +92,17 @@ class NbElementRenderer:
             filepath.parent.mkdir(parents=True, exist_ok=True)
             filepath.write_bytes(content)
 
-        return filepath
+        if self.renderer.sphinx_env:
+            # sphinx expects paths in POSIX format, relative to the documents path,
+            # or relative to the source folder if prepended with '/'
+            filepath = filepath.resolve()
+            if os.name == "nt":
+                # Can't get relative path between drives on Windows
+                return filepath.as_posix()
+            # Path().relative_to() doesn't work when not a direct subpath
+            return "/" + os.path.relpath(filepath, self.renderer.sphinx_env.app.srcdir)
+        else:
+            return str(filepath)
 
     @property
     def source(self):
@@ -116,7 +127,7 @@ class NbElementRenderer:
 
     def get_cell_metadata(self, cell_index: int) -> NotebookNode:
         # TODO handle key/index error
-        return self._renderer.config["notebook"]["cells"][cell_index]["metadata"]
+        return self.renderer.config["notebook"]["cells"][cell_index]["metadata"]
 
     def render_stdout(
         self, output: NotebookNode, cell_index: int, source_line: int
@@ -357,9 +368,9 @@ class NbElementRenderer:
         # which names by {notbook_name}-{cell_index}-{output-index}.{extension}
         data_hash = hashlib.sha256(data_bytes).hexdigest()
         filename = f"{data_hash}{extension}"
-        path = self.write_file([filename], data_bytes, overwrite=False, exists_ok=True)
+        uri = self.write_file([filename], data_bytes, overwrite=False, exists_ok=True)
         # TODO add additional attributes
-        return [nodes.image(uri=str(path))]
+        return [nodes.image(uri=uri)]
 
     def render_javascript(
         self, data: str, cell_index: int, source_line: int

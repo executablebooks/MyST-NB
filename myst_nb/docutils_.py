@@ -1,8 +1,8 @@
 """A parser for docutils."""
 import json
-import logging
 from typing import Any, Dict, List, Optional, Tuple
 
+import nbformat
 from docutils import nodes
 from docutils.core import default_description, publish_cmdline
 from markdown_it.tree import SyntaxTreeNode
@@ -15,6 +15,7 @@ from nbformat import NotebookNode
 
 from myst_nb.configuration import NbParserConfig
 from myst_nb.new.execute import update_notebook
+from myst_nb.new.loggers import DocutilsLogger
 from myst_nb.new.parse import notebook_to_tokens
 from myst_nb.new.read import create_nb_reader
 from myst_nb.new.render import NbElementRenderer, load_renderer, sanitize_script_content
@@ -25,61 +26,6 @@ DOCUTILS_EXCLUDED_ARGS = {
     # TODO can we make this work?
     "custom_formats",
 }
-
-
-# mapping of standard logger level names to their docutils equivalent
-_LOGNAME_TO_DOCUTILS_LEVEL = {
-    "DEBUG": 0,
-    "INFO": 1,
-    "WARN": 2,
-    "WARNING": 2,
-    "ERROR": 3,
-    "CRITICAL": 4,
-    "FATAL": 4,
-}
-
-
-class DocutilsFormatter(logging.Formatter):
-    """A formatter that formats log messages for docutils."""
-
-    def __init__(self, source: str):
-        """Initialize a new formatter."""
-        self._source = source
-        super().__init__()
-
-    def format(self, record: logging.LogRecord) -> str:
-        """Format a log record for docutils."""
-        levelname = record.levelname.upper()
-        level = _LOGNAME_TO_DOCUTILS_LEVEL.get(levelname, 0)
-        node = nodes.system_message(
-            record.msg, source=self._source, type=levelname, level=level
-        )
-        return node.astext()
-
-
-class DocutilsLogHandler(logging.Handler):
-    """Bridge from a Python logger to a docutils reporter."""
-
-    def __init__(self, document: nodes.document) -> None:
-        """Initialize a new handler."""
-        super().__init__()
-        self._document = document
-        reporter = self._document.reporter
-        self._name_to_level = {
-            "DEBUG": reporter.DEBUG_LEVEL,
-            "INFO": reporter.INFO_LEVEL,
-            "WARN": reporter.WARNING_LEVEL,
-            "WARNING": reporter.WARNING_LEVEL,
-            "ERROR": reporter.ERROR_LEVEL,
-            "CRITICAL": reporter.SEVERE_LEVEL,
-            "FATAL": reporter.SEVERE_LEVEL,
-        }
-
-    def emit(self, record: logging.LogRecord) -> None:
-        """Handle a log record."""
-        levelname = record.levelname.upper()
-        level = self._name_to_level.get(levelname, self._document.reporter.DEBUG_LEVEL)
-        self._document.reporter.system_message(level, record.msg)
 
 
 class Parser(MystParser):
@@ -98,23 +44,16 @@ class Parser(MystParser):
 
     config_section = "myst-nb parser"
 
-    @staticmethod
-    def get_logger(document: nodes.document) -> logging.Logger:
-        """Get or create a logger for a docutils document."""
-        logger = logging.getLogger(document["source"])
-        logger.setLevel(logging.DEBUG)
-        if not logger.handlers:
-            logger.addHandler(DocutilsLogHandler(document))
-        return logger
-
     def parse(self, inputstring: str, document: nodes.document) -> None:
         """Parse source text.
 
         :param inputstring: The source string to parse
         :param document: The root docutils node to add AST elements to
         """
-        # create a logger for this document
-        logger = self.get_logger(document)
+        document_source = document["source"]
+
+        # get a logger for this document
+        logger = DocutilsLogger(document)
 
         # get markdown parsing configuration
         try:
@@ -136,38 +75,59 @@ class Parser(MystParser):
 
         # convert inputstring to notebook
         nb_reader, md_config = create_nb_reader(
-            inputstring, document["source"], md_config, nb_config
+            inputstring, document_source, md_config, nb_config
         )
         notebook = nb_reader(inputstring)
 
         # TODO update nb_config from notebook metadata
 
-        # potentially execute notebook and/or populate outputs from cache
-        notebook, exec_data = update_notebook(
-            notebook, document["source"], nb_config, logger
-        )
-        if exec_data:
-            document["nb_exec_data"] = exec_data
-        # TODO store/print error traceback?
-
-        # TODO write executed notebook to output folder
-        # always for sphinx, but maybe docutils option on whether to do this?
-        # only on successful parse?
-
-        # Setup parser
+        # Setup the markdown parser
         mdit_parser = create_md_parser(md_config, DocutilsNbRenderer)
         mdit_parser.options["document"] = document
         mdit_parser.options["notebook"] = notebook
         mdit_parser.options["nb_config"] = nb_config.as_dict()
         mdit_env: Dict[str, Any] = {}
+
+        # load notebook element renderer class from entry-point name
+        # this is separate from DocutilsNbRenderer, so that users can override it
+        renderer_name = nb_config.render_plugin
+        nb_renderer: NbElementRenderer = load_renderer(renderer_name)(
+            mdit_parser.renderer
+        )
+        mdit_parser.options["nb_renderer"] = nb_renderer
+
+        # potentially execute notebook and/or populate outputs from cache
+        notebook, exec_data = update_notebook(
+            notebook, document_source, nb_config, logger
+        )
+        if exec_data:
+            document["nb_exec_data"] = exec_data
+        # TODO store/print error traceback?
+
+        # TODO also write CSS to output folder if necessary or always?
+
         # parse to tokens
-        mdit_tokens = notebook_to_tokens(notebook, mdit_parser, mdit_env)
+        mdit_tokens = notebook_to_tokens(notebook, mdit_parser, mdit_env, logger)
         # convert to docutils AST, which is added to the document
         mdit_parser.renderer.render(mdit_tokens, mdit_parser.options, mdit_env)
 
 
 class DocutilsNbRenderer(DocutilsRenderer):
     """ "A docutils-only renderer for Jupyter Notebooks."""
+
+    def render(self, tokens, options, md_env) -> nodes.document:
+        document = super().render(tokens, options, md_env)
+        # write executed notebook to output folder
+        # utf-8 is the de-facto standard encoding for notebooks.
+        content = nbformat.writes(self.config["notebook"]).encode("utf-8")
+        if self.sphinx_env:
+            path = self.sphinx_env.docname.split("/")
+            path[-1] += ".ipynb"
+        else:
+            # TODO maybe docutils should be optional on whether to do this?
+            path = ["rendered.ipynb"]
+        self.config["nb_renderer"].write_file(path, content, overwrite=True)
+        return document
 
     # TODO maybe move more things to NbOutputRenderer?
     # and change name to e.g. NbElementRenderer
@@ -271,13 +231,11 @@ class DocutilsNbRenderer(DocutilsRenderer):
         if self.get_nb_config("merge_streams", cell_index):
             # TODO should this be moved to the parsing phase?
             outputs = coalesce_streams(outputs)
+
+        renderer: NbElementRenderer = self.config["nb_renderer"]
         render_priority = self.get_nb_config("render_priority", cell_index)
-        renderer_name = self.get_nb_config("render_plugin", cell_index)
-        # get folder path for external outputs (like images)
-        # TODO for sphinx we use a set output folder (set this in parser?)
-        output_folder = self.get_nb_config("output_folder", None)
-        # load renderer class from name
-        renderer: NbElementRenderer = load_renderer(renderer_name)(self, output_folder)
+
+        # render the outputs
         for output in outputs:
             if output.output_type == "stream":
                 if output.name == "stdout":
@@ -308,7 +266,8 @@ class DocutilsNbRenderer(DocutilsRenderer):
                         "No output mime type found from render_priority",
                         line=line,
                         append_to=self.current_node,
-                        subtype="nb_mime_type",
+                        wtype="mystnb",
+                        subtype="mime_type",
                     )
                 else:
                     container = nodes.container(mime_type=mime_type)
@@ -323,7 +282,8 @@ class DocutilsNbRenderer(DocutilsRenderer):
                     f"Unsupported output type: {output.output_type}",
                     line=line,
                     append_to=self.current_node,
-                    subtype="nb_output_type",
+                    wtype="mystnb",
+                    subtype="output_type",
                 )
 
     def render_nb_widget_state(self, token: SyntaxTreeNode) -> None:

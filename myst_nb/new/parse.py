@@ -1,4 +1,5 @@
 """Module for parsing notebooks to Markdown-it tokens."""
+import logging
 from typing import Any, Dict, List
 
 from markdown_it.main import MarkdownIt
@@ -22,7 +23,10 @@ def _nb_node_to_dict(item: Any) -> Any:
 
 
 def notebook_to_tokens(
-    notebook: NotebookNode, mdit_parser: MarkdownIt, mdit_env: Dict[str, Any]
+    notebook: NotebookNode,
+    mdit_parser: MarkdownIt,
+    mdit_env: Dict[str, Any],
+    logger: logging.Logger,
 ) -> List[Token]:
     # disable front-matter, since this is taken from the notebook
     mdit_parser.disable("front_matter", ignoreInvalid=True)
@@ -36,12 +40,15 @@ def notebook_to_tokens(
         key: metadata.pop(key, None) for key in ("kernelspec", "language_info")
     }
 
-    # get language lexer name
+    # attempt to get language lexer name
     langinfo = spec_data.get("language_info", {})
     lexer = langinfo.get("pygments_lexer", langinfo.get("name", None))
     if lexer is None:
         lexer = spec_data.get("kernelspec", {}).get("language", None)
-    # TODO warning if no lexer
+    if lexer is None:
+        logger.warning(
+            "No source code lexer found in notebook metadata", subtype="lexer"
+        )
 
     # extract widgets
     widgets = metadata.pop("widgets", None)

@@ -78,6 +78,7 @@ def update_notebook(
     elif nb_config.execution_mode == "cache":
 
         # TODO for sphinx, the default would be in the output directory
+        # also in sphinx we run and cache up front
         cache = get_cache(nb_config.execution_cache_path or ".cache")
         stage_record = cache.stage_notebook_file(source)
         # TODO handle converters

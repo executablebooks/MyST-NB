@@ -1,5 +1,4 @@
 """An extension for sphinx"""
-import logging
 from pathlib import Path
 from typing import Any, Dict
 
@@ -14,8 +13,10 @@ from myst_nb import __version__
 from myst_nb.configuration import NbParserConfig
 from myst_nb.docutils_ import DocutilsNbRenderer
 from myst_nb.new.execute import update_notebook
+from myst_nb.new.loggers import SphinxLogger
 from myst_nb.new.parse import notebook_to_tokens
 from myst_nb.new.read import create_nb_reader
+from myst_nb.new.render import NbElementRenderer, load_renderer
 
 
 def setup(app):
@@ -74,6 +75,11 @@ def create_mystnb_config(app):
         logger.error("myst-nb configuration invalid: %s", error.args[0])
         app.env.mystnb_config = NbParserConfig()
 
+    # update the output_folder (for writing external files like images),
+    # to a set path within the sphinx build folder
+    output_folder = Path(app.outdir).parent.joinpath("jupyter_execute").resolve()
+    app.env.mystnb_config = app.env.mystnb_config.copy(output_folder=str(output_folder))
+
 
 def add_exclude_patterns(app: Sphinx, config):
     """Add default exclude patterns (if not already present)."""
@@ -96,53 +102,66 @@ class MystNbParser(MystParser):
     config_section = "myst-nb parser"
     config_section_dependencies = ("parsers",)
 
-    @staticmethod
-    def get_logger(document: nodes.document) -> logging.Logger:
-        """Get or create a logger for a docutils document."""
-        # TODO load with document
-        return sphinx_logging.getLogger(__name__)
-
     def parse(self, inputstring: str, document: nodes.document) -> None:
         """Parse source text.
 
         :param inputstring: The source string to parse
         :param document: The root docutils node to add AST elements to
         """
-        # create a logger for this document
-        logger = self.get_logger(document)
+        document_source = self.env.doc2path(self.env.docname)
+
+        # get a logger for this document
+        logger = SphinxLogger(document)
 
         # get markdown parsing configuration
-        md_config: MdParserConfig = document.settings.env.myst_config
+        md_config: MdParserConfig = self.env.myst_config
         # get notebook rendering configuration
-        nb_config: NbParserConfig = document.settings.env.mystnb_config
+        nb_config: NbParserConfig = self.env.mystnb_config
 
         # convert inputstring to notebook
+        # TODO in sphinx, we also need to allow for the fact
+        # that the input could be a standard markdown file
         nb_reader, md_config = create_nb_reader(
-            inputstring, document["source"], md_config, nb_config
+            inputstring, document_source, md_config, nb_config
         )
         notebook = nb_reader(inputstring)
 
         # TODO update nb_config from notebook metadata
 
-        # potentially execute notebook and/or populate outputs from cache
-        notebook, exec_data = update_notebook(
-            notebook, document["source"], nb_config, logger
-        )
-        if exec_data:
-            document["nb_exec_data"] = exec_data
-        # TODO store/print error traceback?
-
-        # TODO write executed notebook to output folder
-        # always for sphinx, but maybe docutils option on whether to do this?
-        # only on successful parse?
-
-        # Setup parser
+        # Setup the markdown parser
         mdit_parser = create_md_parser(md_config, DocutilsNbRenderer)
         mdit_parser.options["document"] = document
         mdit_parser.options["notebook"] = notebook
         mdit_parser.options["nb_config"] = nb_config.as_dict()
         mdit_env: Dict[str, Any] = {}
+
+        # load notebook element renderer class from entry-point name
+        # this is separate from DocutilsNbRenderer, so that users can override it
+        renderer_name = nb_config.render_plugin
+        nb_renderer: NbElementRenderer = load_renderer(renderer_name)(
+            mdit_parser.renderer
+        )
+        mdit_parser.options["nb_renderer"] = nb_renderer
+
+        # potentially execute notebook and/or populate outputs from cache
+        notebook, exec_data = update_notebook(
+            notebook, document_source, nb_config, logger
+        )
+        if exec_data:
+            # TODO note this is a different location to previous env.nb_execution_data
+            # but it is a more standard place, which will be merged on parallel builds
+            # (via MetadataCollector)
+            # Also to note, in docutils we store it on the document
+            # TODO should we deal with this getting overwritten by docinfo?
+            self.env.metadata[self.env.docname]["nb_exec_data"] = exec_data
+            # self.env.nb_exec_data_changed = True
+            # TODO how to do this in a "parallel friendly" way? perhaps we don't store
+            # this and just check the mtime of the exec_data instead,
+            # using that for the the exec_table extension
+
+        # TODO store/print error traceback?
+
         # parse to tokens
-        mdit_tokens = notebook_to_tokens(notebook, mdit_parser, mdit_env)
+        mdit_tokens = notebook_to_tokens(notebook, mdit_parser, mdit_env, logger)
         # convert to docutils AST, which is added to the document
         mdit_parser.renderer.render(mdit_tokens, mdit_parser.options, mdit_env)
