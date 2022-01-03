@@ -109,7 +109,7 @@ class NbParserConfig:
         validator=instance_of(str),
         metadata={
             "help": "Output folder for external outputs",
-            "docutils_only": True,  # in sphinx we output to the build folder
+            "docutils_only": True,  # in sphinx we always output to the build folder
         },
     )
     remove_code_source: bool = attr.ib(

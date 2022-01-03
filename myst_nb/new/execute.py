@@ -5,7 +5,7 @@ from datetime import datetime
 from logging import Logger
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any, Dict, Optional, Tuple
+from typing import Optional, Tuple
 
 from jupyter_cache import get_cache
 from jupyter_cache.executors import load_executor
