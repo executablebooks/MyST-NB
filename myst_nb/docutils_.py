@@ -14,7 +14,7 @@ from nbformat import NotebookNode
 
 from myst_nb.configuration import NbParserConfig
 from myst_nb.new.execute import update_notebook
-from myst_nb.new.loggers import DEFAULT_LOG_TYPE, DocutilsLogger
+from myst_nb.new.loggers import DEFAULT_LOG_TYPE, DocutilsDocLogger
 from myst_nb.new.parse import notebook_to_tokens
 from myst_nb.new.read import create_nb_reader
 from myst_nb.new.render import NbElementRenderer, load_renderer
@@ -50,7 +50,7 @@ class Parser(MystParser):
         document_source = document["source"]
 
         # get a logger for this document
-        logger = DocutilsLogger(document)
+        logger = DocutilsDocLogger(document)
 
         # get markdown parsing configuration
         try:

@@ -16,7 +16,7 @@ from docutils import nodes
 DEFAULT_LOG_TYPE = "mystnb"
 
 
-class SphinxLogger(logging.LoggerAdapter):
+class SphinxDocLogger(logging.LoggerAdapter):
     """Wraps a Sphinx logger, which routes messages to the docutils document reporter.
 
     The document path and message type are automatically included in the message,
@@ -53,7 +53,7 @@ class SphinxLogger(logging.LoggerAdapter):
         return f"{msg} [{self.extra['type']}{subtype}]", kwargs
 
 
-class DocutilsLogger(logging.LoggerAdapter):
+class DocutilsDocLogger(logging.LoggerAdapter):
     """A logger which routes messages to the docutils document reporter.
 
     The document path and message type are automatically included in the message,

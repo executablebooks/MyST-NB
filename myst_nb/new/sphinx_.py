@@ -18,7 +18,7 @@ from sphinx.util import logging as sphinx_logging
 from myst_nb import __version__
 from myst_nb.configuration import NbParserConfig
 from myst_nb.new.execute import update_notebook
-from myst_nb.new.loggers import DEFAULT_LOG_TYPE, SphinxLogger
+from myst_nb.new.loggers import DEFAULT_LOG_TYPE, SphinxDocLogger
 from myst_nb.new.parse import notebook_to_tokens
 from myst_nb.new.read import create_nb_reader
 from myst_nb.new.render import NbElementRenderer, load_renderer
@@ -121,7 +121,7 @@ class MystNbParser(MystParser):
         document_source = self.env.doc2path(self.env.docname)
 
         # get a logger for this document
-        logger = SphinxLogger(document)
+        logger = SphinxDocLogger(document)
 
         # get markdown parsing configuration
         md_config: MdParserConfig = self.env.myst_config
