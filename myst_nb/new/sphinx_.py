@@ -21,8 +21,7 @@ from myst_nb.new.execute import update_notebook
 from myst_nb.new.loggers import DEFAULT_LOG_TYPE, SphinxDocLogger
 from myst_nb.new.parse import notebook_to_tokens
 from myst_nb.new.read import UnexpectedCellDirective, create_nb_reader
-from myst_nb.new.render import NbElementRenderer, load_renderer
-from myst_nb.render_outputs import coalesce_streams
+from myst_nb.new.render import NbElementRenderer, coalesce_streams, load_renderer
 
 SPHINX_LOGGER = sphinx_logging.getLogger(__name__)
 UNSET = "--unset--"

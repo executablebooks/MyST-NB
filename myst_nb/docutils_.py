@@ -24,8 +24,7 @@ from myst_nb.new.read import (
     read_myst_markdown_notebook,
     standard_nb_read,
 )
-from myst_nb.new.render import NbElementRenderer, load_renderer
-from myst_nb.render_outputs import coalesce_streams
+from myst_nb.new.render import NbElementRenderer, coalesce_streams, load_renderer
 
 DOCUTILS_EXCLUDED_ARGS = {
     f.name for f in NbParserConfig.get_fields() if f.metadata.get("docutils_exclude")
