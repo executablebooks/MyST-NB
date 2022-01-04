@@ -187,7 +187,7 @@ class NbParserConfig:
         },
     )
     execution_cache_path: str = attr.ib(
-        default="",
+        default="",  # No default, so that sphinx can set it inside outdir, if empty
         validator=instance_of(str),
         metadata={
             "help": "Path to folder for caching notebooks",

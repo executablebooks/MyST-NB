@@ -89,14 +89,11 @@ class Parser(MystParser):
         # TODO update nb_config from notebook metadata
 
         # potentially execute notebook and/or populate outputs from cache
-        # TODO parse notebook reader?
         notebook, exec_data = update_notebook(
             notebook, document_source, nb_config, logger
         )
         if exec_data:
             document["nb_exec_data"] = exec_data
-
-        # TODO store/print error traceback?
 
         # Setup the markdown parser
         mdit_parser = create_md_parser(nb_reader.md_config, DocutilsNbRenderer)

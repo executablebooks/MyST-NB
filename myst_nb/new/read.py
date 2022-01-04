@@ -21,7 +21,7 @@ class NbReader:
     """A data class for reading a notebook format."""
 
     read: Callable[[str], nbf.NotebookNode] = attr.ib()
-    """The function to read a notebook from a string."""
+    """The function to read a notebook from a (utf8) string."""
     md_config: MdParserConfig = attr.ib()
     """The configuration for parsing markdown cells."""
 

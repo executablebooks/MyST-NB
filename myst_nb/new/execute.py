@@ -1,6 +1,6 @@
 """Module for executing notebooks."""
 import os
-from contextlib import nullcontext
+from contextlib import nullcontext, suppress
 from datetime import datetime
 from logging import Logger
 from pathlib import Path
@@ -8,7 +8,8 @@ from tempfile import TemporaryDirectory
 from typing import Optional, Tuple
 
 from jupyter_cache import get_cache
-from jupyter_cache.executors import load_executor
+from jupyter_cache.base import NbBundleIn
+from jupyter_cache.cache.db import NbStageRecord
 from jupyter_cache.executors.utils import single_nb_execution
 from nbformat import NotebookNode
 from typing_extensions import TypedDict
@@ -27,7 +28,7 @@ class ExecutionResult(TypedDict):
     """method used to execute the notebook"""
     succeeded: bool
     """True if the notebook executed successfully"""
-    # TODO error_log: str
+    # TODO error
 
 
 def update_notebook(
@@ -47,17 +48,27 @@ def update_notebook(
 
     :returns: The updated notebook, and the (optional) execution metadata.
     """
+    # path should only be None when using docutils programmatically
+    path = Path(source) if Path(source).is_file() else None
+
     exec_metadata: Optional[ExecutionResult] = None
 
     if nb_config.execution_mode == "force":
-        # TODO what if source is a descriptor?
-        path = str(Path(source).parent)
-        cwd_context = (
-            TemporaryDirectory() if nb_config.execution_in_temp else nullcontext(path)
-        )
+
+        # setup the execution current working directory
+        if nb_config.execution_in_temp:
+            cwd_context = TemporaryDirectory()
+        else:
+            if path is None:
+                raise ValueError(
+                    f"source must exist as file, if execution_in_temp=False: {source}"
+                )
+            cwd_context = nullcontext(str(path.parent))
+
+        # execute in the context of the current working directory
         with cwd_context as cwd:
             cwd = os.path.abspath(cwd)
-            logger.info(f"Executing notebook in {cwd}")
+            logger.info(f"Executing notebook: CWD={cwd!r}")
             result = single_nb_execution(
                 notebook,
                 cwd=cwd,
@@ -66,6 +77,12 @@ def update_notebook(
             )
             logger.info(f"Executed notebook in {result.time:.2f} seconds")
 
+        if result.err:
+            msg = f"Executing notebook failed: {result.err.__class__.__name__}"
+            if nb_config.execution_show_tb:
+                msg += f"\n{result.exc_string}"
+            logger.warning(msg, subtype="exec")
+
         exec_metadata = {
             "mtime": datetime.now().timestamp(),
             "runtime": result.time,
@@ -73,33 +90,77 @@ def update_notebook(
             "succeeded": False if result.err else True,
         }
 
-        # TODO handle errors
-
     elif nb_config.execution_mode == "cache":
 
-        # TODO for sphinx, the default would be in the output directory
-        # also in sphinx we run and cache up front
-        cache = get_cache(nb_config.execution_cache_path or ".cache")
-        stage_record = cache.stage_notebook_file(source)
-        # TODO handle converters
-        if cache.get_cache_record_of_staged(stage_record.pk) is None:
-            executor = load_executor("basic", cache, logger=logger)
-            executor.run_and_cache(
-                filter_pks=[stage_record.pk],  # TODO specify, rather than filter
+        # setup the cache
+        cache = get_cache(nb_config.execution_cache_path or ".jupyter_cache")
+        # TODO config on what notebook/cell metadata to merge
+
+        # attempt to match the notebook to one in the cache
+        cache_record = None
+        with suppress(KeyError):
+            cache_record = cache.match_cache_notebook(notebook)
+
+        # use the cached notebook if it exists
+        if cache_record is not None:
+            logger.info(f"Using cached notebook: PK={cache_record.pk}")
+            _, notebook = cache.merge_match_into_notebook(notebook)
+            exec_metadata = {
+                "mtime": cache_record.created.timestamp(),
+                "runtime": cache_record.data.get("execution_seconds", None),
+                "method": nb_config.execution_mode,
+                "succeeded": True,
+            }
+            return notebook, exec_metadata
+
+        if path is None:
+            raise ValueError(
+                f"source must exist as file, if execution_mode is 'cache': {source}"
+            )
+
+        # attempt to execute the notebook
+        stage_record = cache.stage_notebook_file(str(path))
+        # TODO do in try/except, in case of db write errors
+        NbStageRecord.remove_tracebacks([stage_record.pk], cache.db)
+        cwd_context = (
+            TemporaryDirectory()
+            if nb_config.execution_in_temp
+            else nullcontext(str(path.parent))
+        )
+        with cwd_context as cwd:
+            cwd = os.path.abspath(cwd)
+            logger.info(f"Executing notebook: CWD={cwd!r}")
+            result = single_nb_execution(
+                notebook,
+                cwd=cwd,
                 allow_errors=nb_config.execution_allow_errors,
                 timeout=nb_config.execution_timeout,
-                run_in_temp=nb_config.execution_in_temp,
             )
-        else:
-            logger.info("Using cached notebook outputs")
+            logger.info(f"Executed notebook in {result.time:.2f} seconds")
 
-        _, notebook = cache.merge_match_into_notebook(notebook)
+        # handle success / failure cases
+        # TODO do in try/except to be careful (in case of database write errors?
+        if result.err:
+            msg = f"Executing notebook failed: {result.err.__class__.__name__}"
+            if nb_config.execution_show_tb:
+                msg += f"\n{result.exc_string}"
+            logger.warning(msg, subtype="exec")
+            NbStageRecord.set_traceback(stage_record.uri, result.exc_string, cache.db)
+        else:
+            cache_record = cache.cache_notebook_bundle(
+                NbBundleIn(
+                    notebook, stage_record.uri, data={"execution_seconds": result.time}
+                ),
+                check_validity=False,
+                overwrite=True,
+            )
+            logger.info(f"Cached executed notebook: PK={cache_record.pk}")
 
         exec_metadata = {
             "mtime": datetime.now().timestamp(),
-            "runtime": None,  # TODO get runtime from cache
+            "runtime": result.time,
             "method": nb_config.execution_mode,
-            "succeeded": True,  # TODO handle errors
+            "succeeded": False if result.err else True,
         }
 
     return notebook, exec_metadata

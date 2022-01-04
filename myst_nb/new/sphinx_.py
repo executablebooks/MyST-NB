@@ -38,7 +38,7 @@ def sphinx_setup(app: Sphinx):
     app.add_source_suffix(".ipynb", "myst-nb")
     app.add_source_parser(MystNbParser)
 
-    # Add myst-parser transforms and configuration
+    # Add myst-parser configuration and transforms
     setup_myst_parser(app)
 
     for name, default, field in NbParserConfig().as_triple():
@@ -102,9 +102,15 @@ def create_mystnb_config(app):
         app.env.mystnb_config = NbParserConfig()
 
     # update the output_folder (for writing external files like images),
+    # and the execution_cache_path (for caching notebook outputs)
     # to a set path within the sphinx build folder
     output_folder = Path(app.outdir).parent.joinpath("jupyter_execute").resolve()
-    app.env.mystnb_config = app.env.mystnb_config.copy(output_folder=str(output_folder))
+    exec_cache_path = app.env.mystnb_config.execution_cache_path
+    if not exec_cache_path:
+        exec_cache_path = Path(app.outdir).parent.joinpath(".jupyter_cache").resolve()
+    app.env.mystnb_config = app.env.mystnb_config.copy(
+        output_folder=str(output_folder), execution_cache_path=str(exec_cache_path)
+    )
 
 
 def add_exclude_patterns(app: Sphinx, config):
@@ -156,7 +162,6 @@ class MystNbParser(MystParser):
         # TODO update nb_config from notebook metadata
 
         # potentially execute notebook and/or populate outputs from cache
-        # TODO parse notebook reader?
         notebook, exec_data = update_notebook(
             notebook, document_path, nb_config, logger
         )
@@ -172,7 +177,7 @@ class MystNbParser(MystParser):
             # this and just check the mtime of the exec_data instead,
             # using that for the the exec_table extension
 
-        # TODO store/print error traceback?
+            # TODO store error traceback in outdir and log its path
 
         # Setup the parser
         mdit_parser = create_md_parser(nb_reader.md_config, SphinxNbRenderer)
