@@ -119,7 +119,7 @@ def update_notebook(
             )
 
         # attempt to execute the notebook
-        stage_record = cache.stage_notebook_file(str(path))
+        stage_record = cache.stage_notebook_file(str(path))  # TODO record nb reader
         # TODO do in try/except, in case of db write errors
         NbStageRecord.remove_tracebacks([stage_record.pk], cache.db)
         cwd_context = (

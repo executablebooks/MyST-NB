@@ -20,7 +20,7 @@ from myst_nb.configuration import NbParserConfig
 from myst_nb.new.execute import update_notebook
 from myst_nb.new.loggers import DEFAULT_LOG_TYPE, SphinxDocLogger
 from myst_nb.new.parse import notebook_to_tokens
-from myst_nb.new.read import create_nb_reader
+from myst_nb.new.read import UnexpectedCellDirective, create_nb_reader
 from myst_nb.new.render import NbElementRenderer, load_renderer
 from myst_nb.render_outputs import coalesce_streams
 
@@ -53,13 +53,19 @@ def sphinx_setup(app: Sphinx):
     # generate notebook configuration from Sphinx configuration
     app.connect("builder-inited", create_mystnb_config)
 
-    # ensure notebook checkpoints are excluded
+    # ensure notebook checkpoints are excluded from parsing
     app.connect("config-inited", add_exclude_patterns)
+
+    # add directive to ensure all notebook cells are converted
+    app.add_directive("code-cell", UnexpectedCellDirective)
+    app.add_directive("raw-cell", UnexpectedCellDirective)
+
+    # add post-transform for selecting mime type from a bundle
+    app.add_post_transform(SelectMimeType)
+
     # add HTML resources
     app.connect("builder-inited", add_static_path)
     app.add_css_file("mystnb.css")
-    # add post-transform for selecting mime type from a bundle
-    app.add_post_transform(SelectMimeType)
 
     # TODO do we need to add lexers, if they are anyhow added via entry-points?
 

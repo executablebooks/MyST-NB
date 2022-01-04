@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import nbformat
 from docutils import nodes
 from docutils.core import default_description, publish_cmdline
+from docutils.parsers.rst.directives import register_directive
 from markdown_it.tree import SyntaxTreeNode
 from myst_parser.docutils_ import DOCUTILS_EXCLUDED_ARGS as DOCUTILS_EXCLUDED_ARGS_MYST
 from myst_parser.docutils_ import Parser as MystParser
@@ -17,7 +18,12 @@ from myst_nb.configuration import NbParserConfig
 from myst_nb.new.execute import update_notebook
 from myst_nb.new.loggers import DEFAULT_LOG_TYPE, DocutilsDocLogger
 from myst_nb.new.parse import notebook_to_tokens
-from myst_nb.new.read import NbReader, read_myst_markdown_notebook, standard_nb_read
+from myst_nb.new.read import (
+    NbReader,
+    UnexpectedCellDirective,
+    read_myst_markdown_notebook,
+    standard_nb_read,
+)
 from myst_nb.new.render import NbElementRenderer, load_renderer
 from myst_nb.render_outputs import coalesce_streams
 
@@ -49,6 +55,10 @@ class Parser(MystParser):
         :param document: The root docutils node to add AST elements to
         """
         document_source = document["source"]
+
+        # register special directives
+        register_directive("code-cell", UnexpectedCellDirective)
+        register_directive("raw-cell", UnexpectedCellDirective)
 
         # get a logger for this document
         logger = DocutilsDocLogger(document)

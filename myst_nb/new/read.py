@@ -7,10 +7,12 @@ from typing import Callable, Iterator, Optional, Union
 import attr
 import nbformat as nbf
 import yaml
+from docutils.parsers.rst import Directive
 from markdown_it.renderer import RendererHTML
 from myst_parser.main import MdParserConfig, create_md_parser
 
 from myst_nb.configuration import NbParserConfig
+from myst_nb.new.loggers import DocutilsDocLogger, SphinxDocLogger
 
 NOTEBOOK_VERSION = 4
 """The notebook version that readers should return."""
@@ -278,7 +280,7 @@ def _read_fenced_cell(token, cell_index, cell_type):
     from myst_parser.parse_directives import DirectiveParsingError, parse_directive_text
 
     try:
-        _, options, body_lines = parse_directive_text(
+        _, options, body_lines, _ = parse_directive_text(
             directive_class=_MockDirective,
             first_line="",
             content=token.content,
@@ -332,3 +334,37 @@ def _load_code_from_file(nb_path, file_name, token, body_lines):
     except Exception:
         raise _LoadFileParsingError("Can't read file from :load: {}".format(file_path))
     return body_lines
+
+
+class UnexpectedCellDirective(Directive):
+    """The `{code-cell}`` and ``{raw-cell}`` directives, are special cases,
+    which are picked up by the MyST Markdown reader to convert them into notebooks.
+
+    If any are left in the parsed Markdown, it probably means that they were nested
+    inside another directive, which is not allowed.
+
+    Therefore, we log a warning if it is triggered, and discard it.
+
+    """
+
+    optional_arguments = 1
+    final_argument_whitespace = True
+    has_content = True
+
+    def run(self):
+        """Run the directive."""
+        message = (
+            "Found an unexpected `code-cell` or `raw-cell` directive. "
+            "Either this file was not converted to a notebook, "
+            "because Jupytext header content was missing, "
+            "or the `code-cell` was not converted, because it is nested. "
+            "See https://myst-nb.readthedocs.io/en/latest/use/markdown.html "
+            "for more information."
+        )
+        document = self.state.document
+        if hasattr(document.settings, "env"):
+            logger = SphinxDocLogger(document)
+        else:
+            logger = DocutilsDocLogger(document)
+        logger.warning(message, line=self.lineno, subtype="nbcell")
+        return []
