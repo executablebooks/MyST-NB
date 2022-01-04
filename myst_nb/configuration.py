@@ -33,6 +33,7 @@ def custom_formats_converter(value: dict) -> dict:
             raise TypeError(
                 f"`nb_custom_formats` values[0] must be a string: {output[suffix][0]}"
             )
+            # TODO check can be loaded as a python object?
         if not isinstance(output[suffix][1], dict):
             raise TypeError(
                 f"`nb_custom_formats` values[1] must be a dict: {output[suffix][1]}"
@@ -151,12 +152,20 @@ class NbParserConfig:
     custom_formats: Dict[str, Tuple[str, dict, bool]] = attr.ib(
         factory=dict,
         converter=custom_formats_converter,
-        # TODO check can be loaded from string?
         metadata={
             "help": "Custom formats for reading notebook; suffix -> reader",
-            # TODO can we make this work for docutils?
             "docutils_exclude": True,
         },
+    )
+    # docutils does not support directly the custom format mechanism
+    read_as_md: bool = attr.ib(
+        default=False,
+        validator=instance_of(bool),
+        metadata={
+            "help": "Read as the MyST Markdown format",
+            "sphinx_exclude": True,
+        },
+        repr=False,
     )
 
     # notebook execution options

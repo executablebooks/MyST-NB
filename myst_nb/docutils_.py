@@ -1,4 +1,5 @@
 """A parser for docutils."""
+from functools import partial
 from typing import Any, Dict, List, Optional, Tuple
 
 import nbformat
@@ -16,7 +17,7 @@ from myst_nb.configuration import NbParserConfig
 from myst_nb.new.execute import update_notebook
 from myst_nb.new.loggers import DEFAULT_LOG_TYPE, DocutilsDocLogger
 from myst_nb.new.parse import notebook_to_tokens
-from myst_nb.new.read import create_nb_reader
+from myst_nb.new.read import NbReader, read_myst_markdown_notebook, standard_nb_read
 from myst_nb.new.render import NbElementRenderer, load_renderer
 from myst_nb.render_outputs import coalesce_streams
 
@@ -71,15 +72,34 @@ class Parser(MystParser):
             nb_config = NbParserConfig()
 
         # convert inputstring to notebook
-        nb_reader, md_config = create_nb_reader(
-            inputstring, document_source, md_config, nb_config
-        )
-        notebook = nb_reader(inputstring)
+        # note docutils does not support the full custom format mechanism
+        if nb_config.read_as_md:
+            nb_reader = NbReader(
+                partial(
+                    read_myst_markdown_notebook,
+                    config=md_config,
+                    add_source_map=True,
+                ),
+                md_config,
+            )
+        else:
+            nb_reader = NbReader(standard_nb_read, md_config)
+        notebook = nb_reader.read(inputstring)
 
         # TODO update nb_config from notebook metadata
 
+        # potentially execute notebook and/or populate outputs from cache
+        # TODO parse notebook reader?
+        notebook, exec_data = update_notebook(
+            notebook, document_source, nb_config, logger
+        )
+        if exec_data:
+            document["nb_exec_data"] = exec_data
+
+        # TODO store/print error traceback?
+
         # Setup the markdown parser
-        mdit_parser = create_md_parser(md_config, DocutilsNbRenderer)
+        mdit_parser = create_md_parser(nb_reader.md_config, DocutilsNbRenderer)
         mdit_parser.options["document"] = document
         mdit_parser.options["notebook"] = notebook
         mdit_parser.options["nb_config"] = nb_config.as_dict()
@@ -92,15 +112,6 @@ class Parser(MystParser):
             mdit_parser.renderer, logger
         )
         mdit_parser.options["nb_renderer"] = nb_renderer
-
-        # potentially execute notebook and/or populate outputs from cache
-        notebook, exec_data = update_notebook(
-            notebook, document_source, nb_config, logger
-        )
-        if exec_data:
-            document["nb_exec_data"] = exec_data
-
-        # TODO store/print error traceback?
 
         # parse to tokens
         mdit_tokens = notebook_to_tokens(notebook, mdit_parser, mdit_env, logger)
@@ -297,6 +308,7 @@ class DocutilsNbRenderer(DocutilsRenderer):
 
 def _run_cli(writer_name: str, writer_description: str, argv: Optional[List[str]]):
     """Run the command line interface for a particular writer."""
+    # TODO note to run this with --report="info", to see notebook execution
     publish_cmdline(
         parser=Parser(),
         writer_name=writer_name,

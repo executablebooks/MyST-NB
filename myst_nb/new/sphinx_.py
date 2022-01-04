@@ -34,8 +34,7 @@ def setup(app):
 
 def sphinx_setup(app: Sphinx):
     """Initialize Sphinx extension."""
-    # TODO perhaps there should be a way to turn this off,
-    # app.add_source_suffix(".md", "myst-nb")
+    app.add_source_suffix(".md", "myst-nb")
     app.add_source_suffix(".ipynb", "myst-nb")
     app.add_source_parser(MystNbParser)
 
@@ -135,7 +134,7 @@ class MystNbParser(MystParser):
         :param inputstring: The source string to parse
         :param document: The root docutils node to add AST elements to
         """
-        document_source = self.env.doc2path(self.env.docname)
+        document_path = self.env.doc2path(self.env.docname)
 
         # get a logger for this document
         logger = SphinxDocLogger(document)
@@ -145,34 +144,21 @@ class MystNbParser(MystParser):
         # get notebook rendering configuration
         nb_config: NbParserConfig = self.env.mystnb_config
 
-        # convert inputstring to notebook
-        # TODO in sphinx, we also need to allow for the fact
-        # that the input could be a standard markdown file
-        nb_reader, md_config = create_nb_reader(
-            inputstring, document_source, md_config, nb_config
-        )
-        notebook = nb_reader(inputstring)
+        # create a reader for the notebook
+        nb_reader = create_nb_reader(document_path, md_config, nb_config, inputstring)
+
+        # If the nb_reader is None, then we default to a standard Markdown parser
+        if nb_reader is None:
+            return super().parse(inputstring, document)
+
+        notebook = nb_reader.read(inputstring)
 
         # TODO update nb_config from notebook metadata
 
-        # Setup the markdown parser
-        mdit_parser = create_md_parser(md_config, SphinxNbRenderer)
-        mdit_parser.options["document"] = document
-        mdit_parser.options["notebook"] = notebook
-        mdit_parser.options["nb_config"] = nb_config.as_dict()
-        mdit_env: Dict[str, Any] = {}
-
-        # load notebook element renderer class from entry-point name
-        # this is separate from DocutilsNbRenderer, so that users can override it
-        renderer_name = nb_config.render_plugin
-        nb_renderer: NbElementRenderer = load_renderer(renderer_name)(
-            mdit_parser.renderer, logger
-        )
-        mdit_parser.options["nb_renderer"] = nb_renderer
-
         # potentially execute notebook and/or populate outputs from cache
+        # TODO parse notebook reader?
         notebook, exec_data = update_notebook(
-            notebook, document_source, nb_config, logger
+            notebook, document_path, nb_config, logger
         )
         if exec_data:
             # TODO note this is a different location to previous env.nb_execution_data
@@ -187,6 +173,21 @@ class MystNbParser(MystParser):
             # using that for the the exec_table extension
 
         # TODO store/print error traceback?
+
+        # Setup the parser
+        mdit_parser = create_md_parser(nb_reader.md_config, SphinxNbRenderer)
+        mdit_parser.options["document"] = document
+        mdit_parser.options["notebook"] = notebook
+        mdit_parser.options["nb_config"] = nb_config.as_dict()
+        mdit_env: Dict[str, Any] = {}
+
+        # load notebook element renderer class from entry-point name
+        # this is separate from SphinxNbRenderer, so that users can override it
+        renderer_name = nb_config.render_plugin
+        nb_renderer: NbElementRenderer = load_renderer(renderer_name)(
+            mdit_parser.renderer, logger
+        )
+        mdit_parser.options["nb_renderer"] = nb_renderer
 
         # parse to tokens
         mdit_tokens = notebook_to_tokens(notebook, mdit_parser, mdit_env, logger)

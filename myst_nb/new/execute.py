@@ -85,7 +85,7 @@ def update_notebook(
         if cache.get_cache_record_of_staged(stage_record.pk) is None:
             executor = load_executor("basic", cache, logger=logger)
             executor.run_and_cache(
-                filter_pks=[stage_record.pk],  # TODO specitfy, rather than filter
+                filter_pks=[stage_record.pk],  # TODO specify, rather than filter
                 allow_errors=nb_config.execution_allow_errors,
                 timeout=nb_config.execution_timeout,
                 run_in_temp=nb_config.execution_in_temp,

@@ -35,16 +35,16 @@ def notebook_to_tokens(
     # Parse block tokens only first, leaving inline parsing to a second phase
     # (required to collect all reference definitions, before assessing references).
     metadata = nb_node_to_dict(notebook.metadata)
-    # save these keys on the document, rather than as docinfo
+    # save these special keys on the document, rather than as docinfo
     spec_data = {
         key: metadata.pop(key, None) for key in ("kernelspec", "language_info")
     }
 
     # attempt to get language lexer name
-    langinfo = spec_data.get("language_info", {})
-    lexer = langinfo.get("pygments_lexer", langinfo.get("name", None))
+    langinfo = spec_data.get("language_info") or {}
+    lexer = langinfo.get("pygments_lexer") or langinfo.get("name", None)
     if lexer is None:
-        lexer = spec_data.get("kernelspec", {}).get("language", None)
+        lexer = (spec_data.get("kernelspec") or {}).get("language", None)
     if lexer is None:
         logger.warning(
             "No source code lexer found in notebook metadata", subtype="lexer"
