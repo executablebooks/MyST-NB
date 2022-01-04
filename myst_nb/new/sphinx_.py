@@ -1,9 +1,11 @@
 """An extension for sphinx"""
+import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
 
 import nbformat
 from docutils import nodes
+from markdown_it.token import Token
 from markdown_it.tree import SyntaxTreeNode
 from myst_parser import setup_sphinx as setup_myst_parser
 from myst_parser.docutils_renderer import token_line
@@ -12,6 +14,7 @@ from myst_parser.sphinx_parser import MystParser
 from myst_parser.sphinx_renderer import SphinxRenderer
 from nbformat import NotebookNode
 from sphinx.application import Sphinx
+from sphinx.environment import BuildEnvironment
 from sphinx.transforms.post_transforms import SphinxPostTransform
 from sphinx.util import logging as sphinx_logging
 
@@ -21,7 +24,13 @@ from myst_nb.new.execute import update_notebook
 from myst_nb.new.loggers import DEFAULT_LOG_TYPE, SphinxDocLogger
 from myst_nb.new.parse import notebook_to_tokens
 from myst_nb.new.read import UnexpectedCellDirective, create_nb_reader
-from myst_nb.new.render import NbElementRenderer, coalesce_streams, load_renderer
+from myst_nb.new.render import (
+    WIDGET_STATE_MIMETYPE,
+    NbElementRenderer,
+    coalesce_streams,
+    load_renderer,
+    sanitize_script_content,
+)
 
 SPHINX_LOGGER = sphinx_logging.getLogger(__name__)
 UNSET = "--unset--"
@@ -65,6 +74,8 @@ def sphinx_setup(app: Sphinx):
     # add HTML resources
     app.connect("builder-inited", add_static_path)
     app.add_css_file("mystnb.css")
+    # note, this event is only available in Sphinx >= 3.5
+    app.connect("html-page-context", install_ipywidgets)
 
     # TODO do we need to add lexers, if they are anyhow added via entry-points?
 
@@ -130,6 +141,47 @@ def add_static_path(app: Sphinx):
     app.config.html_static_path.append(str(static_path))
 
 
+def install_ipywidgets(app: Sphinx, pagename: str, *args: Any, **kwargs: Any) -> None:
+    """Install ipywidgets Javascript, if required on the page."""
+    if app.builder.format != "html":
+        return
+    ipywidgets_state = get_doc_metadata(app.env, pagename, "ipywidgets_state")
+    if ipywidgets_state is not None:
+        # see: https://ipywidgets.readthedocs.io/en/7.6.5/embedding.html
+
+        for path, kwargs in app.env.config["nb_ipywidgets_js"].items():
+            app.add_js_file(path, **kwargs)
+
+        # The state of all the widget models on the page
+        # TODO how to add data-jupyter-widgets-cdn="https://cdn.jsdelivr.net/npm/"?
+        app.add_js_file(
+            None,
+            type="application/vnd.jupyter.widget-state+json",
+            body=ipywidgets_state,
+        )
+
+
+def store_doc_metadata(env: BuildEnvironment, docname: str, key: str, value: Any):
+    """Store myst-nb metadata for a document."""
+    # Data in env.metadata is correctly handled, by sphinx.MetadataCollector,
+    # for clearing removed documents and for merging on parallel builds
+
+    # however, one drawback is that it also extracts all docinfo to here,
+    # so we prepend the key name to hopefully avoid it being overwritten
+
+    # TODO is it worth implementing a custom MetadataCollector?
+    if docname not in env.metadata:
+        env.metadata[docname] = {}
+    env.metadata[docname][f"__mystnb__{key}"] = value
+
+
+def get_doc_metadata(
+    env: BuildEnvironment, docname: str, key: str, default=None
+) -> Any:
+    """Get myst-nb metadata for a document."""
+    return env.metadata.get(docname, {}).get(f"__mystnb__{key}", default)
+
+
 class MystNbParser(MystParser):
     """Sphinx parser for Jupyter Notebook formats, containing MyST Markdown."""
 
@@ -171,16 +223,7 @@ class MystNbParser(MystParser):
             notebook, document_path, nb_config, logger
         )
         if exec_data:
-            # TODO note this is a different location to previous env.nb_execution_data
-            # but it is a more standard place, which will be merged on parallel builds
-            # (via MetadataCollector)
-            # Also to note, in docutils we store it on the document
-            # TODO should we deal with this getting overwritten by docinfo?
-            self.env.metadata[self.env.docname]["nb_exec_data"] = exec_data
-            # self.env.nb_exec_data_changed = True
-            # TODO how to do this in a "parallel friendly" way? perhaps we don't store
-            # this and just check the mtime of the exec_data instead,
-            # using that for the the exec_table extension
+            store_doc_metadata(self.env, self.env.docname, "exec_data", exec_data)
 
             # TODO store error traceback in outdir and log its path
 
@@ -232,12 +275,40 @@ class SphinxNbRenderer(SphinxRenderer):
         # TODO handle KeyError better
         return self.config["nb_config"][key]
 
-    def render_nb_spec_data(self, token: SyntaxTreeNode) -> None:
-        """Add a notebook spec data to the document attributes."""
-        # This is different to docutils-only, where we store it on the document
+    def render_nb_metadata(self, token: SyntaxTreeNode) -> None:
+        """Render the notebook metadata."""
+        metadata = dict(token.meta)
+
+        # save these special keys on the metadata, rather than as docinfo
         env = self.sphinx_env
-        env.metadata[env.docname]["kernelspec"] = token.meta["kernelspec"]
-        env.metadata[env.docname]["language_info"] = token.meta["language_info"]
+        env.metadata[env.docname]["kernelspec"] = metadata.pop("kernelspec", None)
+        env.metadata[env.docname]["language_info"] = metadata.pop("language_info", None)
+
+        # TODO should we provide hook for NbElementRenderer?
+
+        # store ipywidgets state in metadata,
+        # which will be later added to HTML page context
+        # The JSON inside the script tag is identified and parsed by:
+        # https://github.com/jupyter-widgets/ipywidgets/blob/32f59acbc63c3ff0acf6afa86399cb563d3a9a86/packages/html-manager/src/libembed.ts#L36
+        ipywidgets = metadata.pop("widgets", None)
+        ipywidgets_mime = (ipywidgets or {}).get(WIDGET_STATE_MIMETYPE, {})
+        ipywidgets_state = ipywidgets_mime.get("state", None)
+        if ipywidgets_state:
+            string = sanitize_script_content(json.dumps(ipywidgets_state))
+            store_doc_metadata(
+                self.sphinx_env, self.sphinx_env.docname, "ipywidgets_state", string
+            )
+
+        # forward the rest to the front_matter renderer
+        self.render_front_matter(
+            Token(
+                "front_matter",
+                "",
+                0,
+                map=[0, 0],
+                content=metadata,  # type: ignore[arg-type]
+            ),
+        )
 
     def render_nb_cell_markdown(self, token: SyntaxTreeNode) -> None:
         """Render a notebook markdown cell."""
@@ -373,19 +444,6 @@ class SphinxNbRenderer(SphinxRenderer):
                     wtype=DEFAULT_LOG_TYPE,
                     subtype="output_type",
                 )
-
-    def render_nb_widget_state(self, token: SyntaxTreeNode) -> None:
-        """Render the HTML defining the ipywidget state."""
-        # TODO handle this more generally,
-        # by just passing all notebook metadata to the nb_renderer
-        # TODO in docutils we also need to load JS URLs if widgets are present and HTML
-        node = self.nb_renderer.render_widget_state(
-            mime_type=token.attrGet("type"), data=token.meta
-        )
-        node["nb_element"] = "widget_state"
-        self.add_line_and_source_path(node, token)
-        # always append to bottom of the document
-        self.document.append(node)
 
 
 class SelectMimeType(SphinxPostTransform):

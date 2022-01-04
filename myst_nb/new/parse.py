@@ -7,8 +7,6 @@ from markdown_it.rules_core import StateCore
 from markdown_it.token import Token
 from nbformat import NotebookNode
 
-from myst_nb.new.render import WIDGET_STATE_MIMETYPE
-
 
 def nb_node_to_dict(node: NotebookNode) -> Dict[str, Any]:
     """Recursively convert a notebook node to a dict."""
@@ -35,32 +33,19 @@ def notebook_to_tokens(
     # Parse block tokens only first, leaving inline parsing to a second phase
     # (required to collect all reference definitions, before assessing references).
     metadata = nb_node_to_dict(notebook.metadata)
-    # save these special keys on the document, rather than as docinfo
-    spec_data = {
-        key: metadata.pop(key, None) for key in ("kernelspec", "language_info")
-    }
 
     # attempt to get language lexer name
-    langinfo = spec_data.get("language_info") or {}
+    langinfo = metadata.get("language_info") or {}
     lexer = langinfo.get("pygments_lexer") or langinfo.get("name", None)
     if lexer is None:
-        lexer = (spec_data.get("kernelspec") or {}).get("language", None)
+        lexer = (metadata.get("kernelspec") or {}).get("language", None)
     if lexer is None:
         logger.warning(
             "No source code lexer found in notebook metadata", subtype="lexer"
         )
 
-    # extract widgets
-    widgets = metadata.pop("widgets", None)
     block_tokens = [
-        Token(
-            "front_matter",
-            "",
-            0,
-            map=[0, 0],
-            content=metadata,  # type: ignore[arg-type]
-        ),
-        Token("nb_spec_data", "", 0, meta=spec_data),
+        Token("nb_metadata", "", 0, meta=metadata, map=[0, 0]),
     ]
     for cell_index, nb_cell in enumerate(notebook.cells):
 
@@ -162,20 +147,6 @@ def notebook_to_tokens(
 
         # add tokens to list
         block_tokens.extend(tokens)
-
-    # The widget state will be embedded as a script, at the end of HTML output
-    widget_state = (widgets or {}).get(WIDGET_STATE_MIMETYPE, None)
-    if widget_state and widget_state.get("state", None):
-        block_tokens.append(
-            Token(
-                "nb_widget_state",
-                "script",
-                0,
-                attrs={"type": WIDGET_STATE_MIMETYPE},
-                meta={"state": widget_state},
-                map=[0, 0],
-            )
-        )
 
     # Now all definitions have been gathered, run the inline parsing phase
     state = StateCore("", mdit_parser, mdit_env, block_tokens)

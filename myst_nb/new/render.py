@@ -453,27 +453,13 @@ class NbElementRenderer:
         :param cell_index: the index of the cell containing the output
         :param source_line: the line number of the cell in the source document
         """
-        content = json.dumps(sanitize_script_content(data))
+        content = sanitize_script_content(json.dumps(data))
         return [
             nodes.raw(
                 text=f'<script type="{WIDGET_VIEW_MIMETYPE}">{content}</script>',
                 format="html",
             )
         ]
-
-    def render_widget_state(self, mime_type: str, data: dict) -> nodes.Element:
-        """Render a notebook application/vnd.jupyter.widget-state+json mime output.
-
-        :param mime_type: the key from the "notebook.metdata.widgets" dict
-        :param data: the value from the "notebook.metdata.widgets" dict
-        """
-        # The JSON inside the script tag is identified and parsed by:
-        # https://github.com/jupyter-widgets/ipywidgets/blob/32f59acbc63c3ff0acf6afa86399cb563d3a9a86/packages/html-manager/src/libembed.ts#L36
-        content = json.dumps(sanitize_script_content(data["state"]))
-        return nodes.raw(
-            text=f'<script type="{mime_type}">\n{content}\n</script>',
-            format="html",
-        )
 
 
 @lru_cache(maxsize=10)

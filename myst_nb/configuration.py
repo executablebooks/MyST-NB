@@ -134,6 +134,22 @@ def render_priority_factory() -> Dict[str, Sequence[str]]:
     return output
 
 
+def ipywidgets_js_factory() -> Dict[str, Dict[str, str]]:
+    """Create a default ipywidgets js dict."""
+    # see: https://ipywidgets.readthedocs.io/en/7.6.5/embedding.html
+    return {
+        # Load RequireJS, used by the IPywidgets for dependency management
+        "https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js": {
+            "integrity": "sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=",
+            "crossorigin": "anonymous",
+        },
+        # Load IPywidgets bundle for embedding.
+        "https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js": {
+            "crossorigin": "anonymous",
+        },
+    }
+
+
 @attr.s()
 class NbParserConfig:
     """Global configuration options for the MyST-NB parser.
@@ -327,6 +343,17 @@ class NbParserConfig:
             "help": "The entry point for the execution output render class "
             "(in group `myst_nb.output_renderer`)"
         },
+    )
+    ipywidgets_js: Dict[str, Dict[str, str]] = attr.ib(
+        factory=ipywidgets_js_factory,
+        validator=deep_mapping(
+            instance_of(str), deep_mapping(instance_of(str), instance_of(str))
+        ),
+        metadata={
+            "help": "Javascript to be loaded on pages containing ipywidgets",
+            "docutils_exclude": True,
+        },
+        repr=False,
     )
 
     @classmethod

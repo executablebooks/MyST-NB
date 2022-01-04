@@ -6,6 +6,7 @@ import nbformat
 from docutils import nodes
 from docutils.core import default_description, publish_cmdline
 from docutils.parsers.rst.directives import register_directive
+from markdown_it.token import Token
 from markdown_it.tree import SyntaxTreeNode
 from myst_parser.docutils_ import DOCUTILS_EXCLUDED_ARGS as DOCUTILS_EXCLUDED_ARGS_MYST
 from myst_parser.docutils_ import Parser as MystParser
@@ -132,6 +133,7 @@ class Parser(MystParser):
         path = ["rendered.ipynb"]
         nb_renderer.write_file(path, content, overwrite=True)
         # TODO also write CSS to output folder if necessary or always?
+        # TODO we also need to load JS URLs if ipywidgets are present and HTML
 
 
 class DocutilsNbRenderer(DocutilsRenderer):
@@ -151,11 +153,43 @@ class DocutilsNbRenderer(DocutilsRenderer):
         # TODO handle KeyError better
         return self.config["nb_config"][key]
 
-    def render_nb_spec_data(self, token: SyntaxTreeNode) -> None:
-        """Add a notebook spec data to the document attributes."""
-        # TODO in sphinx moves these to env metadata?
-        self.document["nb_kernelspec"] = token.meta["kernelspec"]
-        self.document["nb_language_info"] = token.meta["language_info"]
+    def render_nb_metadata(self, token: SyntaxTreeNode) -> None:
+        """Render the notebook metadata."""
+        metadata = dict(token.meta)
+
+        # save these special keys on the document, rather than as docinfo
+        self.document["nb_kernelspec"] = metadata.pop("kernelspec", None)
+        self.document["nb_language_info"] = metadata.pop("language_info", None)
+
+        # TODO should we provide hook for NbElementRenderer?
+
+        # TODO how to handle ipywidgets in docutils?
+        ipywidgets = metadata.pop("widgets", None)  # noqa: F841
+        # ipywidgets_mime = (ipywidgets or {}).get(WIDGET_STATE_MIMETYPE, {})
+        # ipywidgets_state = ipywidgets_mime.get("state", None)
+
+        # forward the rest to the front_matter renderer
+        self.render_front_matter(
+            Token(
+                "front_matter",
+                "",
+                0,
+                map=[0, 0],
+                content=metadata,  # type: ignore[arg-type]
+            ),
+        )
+
+    def render_nb_widget_state(self, token: SyntaxTreeNode) -> None:
+        """Render the HTML defining the ipywidget state."""
+        # TODO handle this more generally,
+        # by just passing all notebook metadata to the nb_renderer
+        node = self.nb_renderer.render_widget_state(
+            mime_type=token.attrGet("type"), data=token.meta
+        )
+        node["nb_element"] = "widget_state"
+        self.add_line_and_source_path(node, token)
+        # always append to bottom of the document
+        self.document.append(node)
 
     def render_nb_cell_markdown(self, token: SyntaxTreeNode) -> None:
         """Render a notebook markdown cell."""
@@ -297,19 +331,6 @@ class DocutilsNbRenderer(DocutilsRenderer):
                     wtype=DEFAULT_LOG_TYPE,
                     subtype="output_type",
                 )
-
-    def render_nb_widget_state(self, token: SyntaxTreeNode) -> None:
-        """Render the HTML defining the ipywidget state."""
-        # TODO handle this more generally,
-        # by just passing all notebook metadata to the nb_renderer
-        # TODO in docutils we also need to load JS URLs if widgets are present and HTML
-        node = self.nb_renderer.render_widget_state(
-            mime_type=token.attrGet("type"), data=token.meta
-        )
-        node["nb_element"] = "widget_state"
-        self.add_line_and_source_path(node, token)
-        # always append to bottom of the document
-        self.document.append(node)
 
 
 def _run_cli(writer_name: str, writer_description: str, argv: Optional[List[str]]):

@@ -1,4 +1,5 @@
 """Test full sphinx builds."""
+import bs4
 import pytest
 
 
@@ -52,3 +53,19 @@ def test_complex_outputs_run(sphinx_run, file_regression):
             extension=".resolved.xml",
             encoding="utf8",
         )
+
+
+@pytest.mark.sphinx_params(
+    "ipywidgets.ipynb",
+    conf={"extensions": ["myst_nb.new.sphinx_"], "nb_execution_mode": "off"},
+)
+def test_ipywidgets(sphinx_run):
+    """Test that ipywidget state is extracted and JS is included in the HTML head."""
+    sphinx_run.build()
+    # print(sphinx_run.status())
+    assert sphinx_run.warnings() == ""
+    assert "__mystnb__ipywidgets_state" in sphinx_run.env.metadata["ipywidgets"]
+    html = bs4.BeautifulSoup(sphinx_run.get_html(), "html.parser")
+    head_scripts = html.select("head > script")
+    assert any("require.js" in script.get("src", "") for script in head_scripts)
+    assert any("embed-amd.js" in script.get("src", "") for script in head_scripts)
