@@ -28,7 +28,10 @@ class ExecutionResult(TypedDict):
     """method used to execute the notebook"""
     succeeded: bool
     """True if the notebook executed successfully"""
-    # TODO error
+    error: Optional[str]
+    """error type if the notebook failed to execute"""
+    traceback: Optional[str]
+    """traceback if the notebook failed"""
 
 
 def update_notebook(
@@ -48,10 +51,13 @@ def update_notebook(
 
     :returns: The updated notebook, and the (optional) execution metadata.
     """
-    # path should only be None when using docutils programmatically
+    # path should only be None when using docutils programmatically,
+    # e.g. source="<string>"
     path = Path(source) if Path(source).is_file() else None
 
     exec_metadata: Optional[ExecutionResult] = None
+
+    # TODO deal with nb_config.execution_excludepatterns
 
     if nb_config.execution_mode == "force":
 
@@ -88,6 +94,8 @@ def update_notebook(
             "runtime": result.time,
             "method": nb_config.execution_mode,
             "succeeded": False if result.err else True,
+            "error": f"{result.err.__class__.__name__}" if result.err else None,
+            "traceback": result.exc_string if result.err else None,
         }
 
     elif nb_config.execution_mode == "cache":
@@ -110,6 +118,8 @@ def update_notebook(
                 "runtime": cache_record.data.get("execution_seconds", None),
                 "method": nb_config.execution_mode,
                 "succeeded": True,
+                "error": None,
+                "traceback": None,
             }
             return notebook, exec_metadata
 
@@ -161,6 +171,8 @@ def update_notebook(
             "runtime": result.time,
             "method": nb_config.execution_mode,
             "succeeded": False if result.err else True,
+            "error": f"{result.err.__class__.__name__}" if result.err else None,
+            "traceback": result.exc_string if result.err else None,
         }
 
     return notebook, exec_metadata

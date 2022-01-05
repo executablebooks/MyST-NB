@@ -36,7 +36,7 @@ class SphinxDocLogger(logging.LoggerAdapter):
         self.logger = sphinx_logging.getLogger(f"{type_name}-{docname}")
         # default extras to parse to sphinx logger
         # location can be: docname, (docname, lineno), or a node
-        self.extra = {"location": docname, "type": type_name}
+        self.extra = {"docname": docname, "type": type_name}
 
     def process(self, msg, kwargs):
         kwargs["extra"] = self.extra
@@ -45,7 +45,9 @@ class SphinxDocLogger(logging.LoggerAdapter):
         subtype = ("." + kwargs["subtype"]) if "subtype" in kwargs else ""
         if "line" in kwargs:  # add line to location
             # note this will be overridden by the location keyword
-            self.extra["location"] = (self.extra["location"], kwargs.pop("line"))
+            self.extra["location"] = (self.extra["docname"], kwargs.pop("line"))
+        else:
+            self.extra["location"] = self.extra["docname"]
         if "parent" in kwargs:
             # TODO ideally here we would append a system_message to this node,
             # then it could replace myst_parser.SphinxRenderer.create_warning

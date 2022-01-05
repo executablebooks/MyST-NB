@@ -12,7 +12,7 @@ Python API
 Miscellaneous
 -------------
 
-.. autoclass:: myst_nb.ansi_lexer.AnsiColorLexer
+.. autoclass:: myst_nb.lexers.AnsiColorLexer
     :members:
     :undoc-members:
     :show-inheritance:

@@ -158,8 +158,11 @@ class NbParserConfig:
     these option names are prepended with ``nb_``
     """
 
-    # TODO: nb_render_key, execution_show_tb, execution_excludepatterns
-    # jupyter_sphinx_require_url, jupyter_sphinx_embed_url
+    # TODO: nb_render_key
+
+    # TODO jupyter_sphinx_require_url, jupyter_sphinx_embed_url,
+    # are no longer used by this package, replaced by ipywidgets_js
+    # do we add any deprecation warnings?
 
     # TODO mark which config are allowed per notebook/cell
 
@@ -208,6 +211,15 @@ class NbParserConfig:
         metadata={
             "help": "Path to folder for caching notebooks",
             "legacy_name": "jupyter_cache",
+        },
+    )
+    execution_excludepatterns: Sequence[str] = attr.ib(
+        default=(),
+        validator=deep_iterable(instance_of(str)),
+        metadata={
+            "help": "Exclude patterns for notebooks",
+            "legacy_name": "execution_excludepatterns",
+            "docutils_exclude": True,
         },
     )
     execution_timeout: int = attr.ib(

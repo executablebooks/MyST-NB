@@ -4,7 +4,7 @@ from IPython.display import display as ipy_display
 GLUE_PREFIX = "application/papermill.record/"
 
 
-def glue(name, variable, display=True):
+def glue(name: str, variable, display: bool = True) -> None:
     """Glue a variable into the notebook's cell metadata.
 
     Parameters

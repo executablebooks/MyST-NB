@@ -166,7 +166,6 @@ class DocutilsNbRenderer(DocutilsRenderer):
         # TODO how to handle ipywidgets in docutils?
         ipywidgets = metadata.pop("widgets", None)  # noqa: F841
         # ipywidgets_mime = (ipywidgets or {}).get(WIDGET_STATE_MIMETYPE, {})
-        # ipywidgets_state = ipywidgets_mime.get("state", None)
 
         # forward the rest to the front_matter renderer
         self.render_front_matter(

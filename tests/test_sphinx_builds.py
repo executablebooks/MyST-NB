@@ -3,10 +3,7 @@ import bs4
 import pytest
 
 
-@pytest.mark.sphinx_params(
-    "basic_run.ipynb",
-    conf={"extensions": ["myst_nb.new.sphinx_"], "nb_execution_mode": "off"},
-)
+@pytest.mark.sphinx_params("basic_run.ipynb", conf={"nb_execution_mode": "off"})
 def test_basic_run(sphinx_run, file_regression):
     sphinx_run.build()
     # print(sphinx_run.status())
@@ -22,10 +19,7 @@ def test_basic_run(sphinx_run, file_regression):
     )
 
 
-@pytest.mark.sphinx_params(
-    "basic_unrun.md",
-    conf={"extensions": ["myst_nb.new.sphinx_"], "nb_execution_mode": "off"},
-)
+@pytest.mark.sphinx_params("basic_unrun.md", conf={"nb_execution_mode": "off"})
 def test_basic_run_md(sphinx_run, file_regression):
     sphinx_run.build()
     # print(sphinx_run.status())
@@ -35,10 +29,7 @@ def test_basic_run_md(sphinx_run, file_regression):
     )
 
 
-@pytest.mark.sphinx_params(
-    "complex_outputs.ipynb",
-    conf={"extensions": ["myst_nb.new.sphinx_"], "nb_execution_mode": "off"},
-)
+@pytest.mark.sphinx_params("complex_outputs.ipynb", conf={"nb_execution_mode": "off"})
 def test_complex_outputs_run(sphinx_run, file_regression):
     sphinx_run.build()
     # print(sphinx_run.status())
@@ -55,10 +46,7 @@ def test_complex_outputs_run(sphinx_run, file_regression):
         )
 
 
-@pytest.mark.sphinx_params(
-    "ipywidgets.ipynb",
-    conf={"extensions": ["myst_nb.new.sphinx_"], "nb_execution_mode": "off"},
-)
+@pytest.mark.sphinx_params("ipywidgets.ipynb", conf={"nb_execution_mode": "off"})
 def test_ipywidgets(sphinx_run):
     """Test that ipywidget state is extracted and JS is included in the HTML head."""
     sphinx_run.build()

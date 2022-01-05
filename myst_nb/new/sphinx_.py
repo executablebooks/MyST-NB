@@ -1,5 +1,6 @@
 """An extension for sphinx"""
 import json
+import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
 
@@ -13,14 +14,17 @@ from myst_parser.main import MdParserConfig, create_md_parser
 from myst_parser.sphinx_parser import MystParser
 from myst_parser.sphinx_renderer import SphinxRenderer
 from nbformat import NotebookNode
+from sphinx.addnodes import download_reference
 from sphinx.application import Sphinx
 from sphinx.environment import BuildEnvironment
 from sphinx.transforms.post_transforms import SphinxPostTransform
 from sphinx.util import logging as sphinx_logging
+from sphinx.util.docutils import ReferenceRole
 
 from myst_nb import __version__
 from myst_nb.configuration import NbParserConfig
 from myst_nb.new.execute import update_notebook
+from myst_nb.new.execution_tables import setup_exec_table_extension
 from myst_nb.new.loggers import DEFAULT_LOG_TYPE, SphinxDocLogger
 from myst_nb.new.parse import notebook_to_tokens
 from myst_nb.new.read import UnexpectedCellDirective, create_nb_reader
@@ -34,21 +38,18 @@ from myst_nb.new.render import (
 
 SPHINX_LOGGER = sphinx_logging.getLogger(__name__)
 UNSET = "--unset--"
-
-
-def setup(app):
-    return sphinx_setup(app)
+OUTPUT_FOLDER = "jupyter_execute"
 
 
 def sphinx_setup(app: Sphinx):
     """Initialize Sphinx extension."""
-    app.add_source_suffix(".md", "myst-nb")
-    app.add_source_suffix(".ipynb", "myst-nb")
-    app.add_source_parser(MystNbParser)
+    # note, for core events overview, see:
+    # https://www.sphinx-doc.org/en/master/extdev/appapi.html#sphinx-core-events
 
-    # Add myst-parser configuration and transforms
+    # Add myst-parser configuration and transforms (but does not add the parser)
     setup_myst_parser(app)
 
+    # add myst-nb configuration variables
     for name, default, field in NbParserConfig().as_triple():
         if not field.metadata.get("sphinx_exclude"):
             # TODO add types?
@@ -59,14 +60,27 @@ def sphinx_setup(app: Sphinx):
                 )
 
     # generate notebook configuration from Sphinx configuration
+    # this also validates the configuration values
     app.connect("builder-inited", create_mystnb_config)
 
+    # add parser and default associated file suffixes
+    app.add_source_parser(MystNbParser)
+    app.add_source_suffix(".md", "myst-nb", override=True)
+    app.add_source_suffix(".ipynb", "myst-nb")
+    # add additional file suffixes for parsing
+    app.connect("config-inited", add_nb_custom_formats)
     # ensure notebook checkpoints are excluded from parsing
     app.connect("config-inited", add_exclude_patterns)
+
+    # TODO add an event which, if any files have been removed,
+    # all stage records with a non-existent path are removed
 
     # add directive to ensure all notebook cells are converted
     app.add_directive("code-cell", UnexpectedCellDirective)
     app.add_directive("raw-cell", UnexpectedCellDirective)
+
+    # add directive for downloading an executed notebook
+    app.add_role("nb-download", NbDownloadRole())
 
     # add post-transform for selecting mime type from a bundle
     app.add_post_transform(SelectMimeType)
@@ -77,13 +91,22 @@ def sphinx_setup(app: Sphinx):
     # note, this event is only available in Sphinx >= 3.5
     app.connect("html-page-context", install_ipywidgets)
 
-    # TODO do we need to add lexers, if they are anyhow added via entry-points?
+    # Note lexers are registered as `pygments.lexers` entry-points
+    # and so do not need to be added here.
+
+    setup_exec_table_extension(app)
 
     return {
         "version": __version__,
         "parallel_read_safe": True,
         "parallel_write_safe": True,
     }
+
+
+def add_nb_custom_formats(app: Sphinx, config):
+    """Add custom conversion formats."""
+    for suffix in config.nb_custom_formats:
+        app.add_source_suffix(suffix, "myst-nb", override=True)
 
 
 def create_mystnb_config(app):
@@ -120,7 +143,7 @@ def create_mystnb_config(app):
     # update the output_folder (for writing external files like images),
     # and the execution_cache_path (for caching notebook outputs)
     # to a set path within the sphinx build folder
-    output_folder = Path(app.outdir).parent.joinpath("jupyter_execute").resolve()
+    output_folder = Path(app.outdir).parent.joinpath(OUTPUT_FOLDER).resolve()
     exec_cache_path = app.env.mystnb_config.execution_cache_path
     if not exec_cache_path:
         exec_cache_path = Path(app.outdir).parent.joinpath(".jupyter_cache").resolve()
@@ -137,7 +160,8 @@ def add_exclude_patterns(app: Sphinx, config):
 
 def add_static_path(app: Sphinx):
     """Add static path for myst-nb."""
-    static_path = Path(__file__).absolute().with_name("_static")
+    # TODO better to use importlib_resources here, or perhaps now there is another way?
+    static_path = Path(__file__).parent.absolute().with_name("_static")
     app.config.html_static_path.append(str(static_path))
 
 
@@ -292,9 +316,8 @@ class SphinxNbRenderer(SphinxRenderer):
         # https://github.com/jupyter-widgets/ipywidgets/blob/32f59acbc63c3ff0acf6afa86399cb563d3a9a86/packages/html-manager/src/libembed.ts#L36
         ipywidgets = metadata.pop("widgets", None)
         ipywidgets_mime = (ipywidgets or {}).get(WIDGET_STATE_MIMETYPE, {})
-        ipywidgets_state = ipywidgets_mime.get("state", None)
-        if ipywidgets_state:
-            string = sanitize_script_content(json.dumps(ipywidgets_state))
+        if ipywidgets_mime.get("state", None):
+            string = sanitize_script_content(json.dumps(ipywidgets_mime))
             store_doc_metadata(
                 self.sphinx_env, self.sphinx_env.docname, "ipywidgets_state", string
             )
@@ -490,6 +513,7 @@ class SelectMimeType(SphinxPostTransform):
                 else:
                     break
             if index is None:
+                # TODO ignore if glue mime types present?
                 SPHINX_LOGGER.warning(
                     f"No mime type available in priority list builder {name!r} "
                     f"[{DEFAULT_LOG_TYPE}.mime_priority]",
@@ -500,3 +524,26 @@ class SelectMimeType(SphinxPostTransform):
                 node.parent.remove(node)
             else:
                 node.replace_self(node.children[index])
+
+
+class NbDownloadRole(ReferenceRole):
+    """Role to download an executed notebook."""
+
+    def run(self):
+        """Run the role."""
+        # get a path relative to the current document
+        path = Path(self.env.mystnb_config.output_folder).joinpath(
+            *(self.env.docname.split("/")[:-1] + self.target.split("/"))
+        )
+        reftarget = (
+            path.as_posix()
+            if os.name == "nt"
+            else ("/" + os.path.relpath(path, self.env.app.srcdir))
+        )
+        node = download_reference(self.rawtext, reftarget=reftarget)
+        self.set_source_info(node)
+        title = self.title if self.has_explicit_title else self.target
+        node += nodes.literal(
+            self.rawtext, title, classes=["xref", "download", "myst-nb"]
+        )
+        return [node], []

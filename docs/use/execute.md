@@ -28,7 +28,7 @@ See the sections below for each configuration option and its effect.
 To trigger the execution of notebook pages, use the following configuration in `conf.py`:
 
 ```python
-jupyter_execute_notebooks = "auto"
+nb_execution_mode = "auto"
 ```
 
 By default, this will only execute notebooks that are missing at least one output.
@@ -37,13 +37,13 @@ If a notebook has *all* of its outputs populated, then it will not be executed.
 **To force the execution of all notebooks, regardless of their outputs**, change the above configuration value to:
 
 ```python
-jupyter_execute_notebooks = "force"
+nb_execution_mode = "force"
 ```
 
 **To cache execution outputs with [jupyter-cache]**, change the above configuration value to:
 
 ```python
-jupyter_execute_notebooks = "cache"
+nb_execution_mode = "cache"
 ```
 
 See {ref}`execute/cache` for more information.
@@ -51,16 +51,16 @@ See {ref}`execute/cache` for more information.
 **To turn off notebook execution**, change the above configuration value to:
 
 ```python
-jupyter_execute_notebooks = "off"
+nb_execution_mode = "off"
 ```
 
 **To exclude certain file patterns from execution**, use the following configuration:
 
 ```python
-execution_excludepatterns = ['list', 'of', '*patterns']
+nb_execution_excludepatterns = ['list', 'of', '*patterns']
 ```
 
-Any file that matches one of the items in `execution_excludepatterns` will not be executed.
+Any file that matches one of the items in `nb_execution_excludepatterns` will not be executed.
 
 (execute/cache)=
 ## Cache execution outputs
@@ -68,7 +68,7 @@ Any file that matches one of the items in `execution_excludepatterns` will not b
 As mentioned above, you can **cache the results of executing a notebook page** by setting:
 
 ```python
-jupyter_execute_notebooks = "cache"
+nb_execution_mode = "cache"
 ```
 
 in your conf.py file.
@@ -89,7 +89,7 @@ Generally, this is in `_build/.jupyter_cache`.
 You may also specify a path to the location of a jupyter cache you'd like to use:
 
 ```python
-jupyter_cache = "path/to/mycache"
+nb_execution_cache_path = "path/to/mycache"
 ```
 
 The path should point to an **empty folder**, or a folder where a **jupyter cache already exists**.
@@ -99,14 +99,14 @@ The path should point to an **empty folder**, or a folder where a **jupyter cach
 ## Executing in temporary folders
 
 By default, the command working directory (cwd) that a notebook runs in will be the directory it is located in.
-However, you can set `execution_in_temp=True` in your `conf.py`, to change this behaviour such that, for each execution, a temporary directory will be created and used as the cwd.
+However, you can set `nb_execution_in_temp=True` in your `conf.py`, to change this behaviour such that, for each execution, a temporary directory will be created and used as the cwd.
 
 (execute/timeout)=
 ## Execution Timeout
 
 The execution of notebooks is managed by {doc}`nbclient <nbclient:client>`.
 
-The `execution_timeout` sphinx option defines the maximum time (in seconds) each notebook cell is allowed to run.
+The `nb_execution_timeout` sphinx option defines the maximum time (in seconds) each notebook cell is allowed to run.
 If the execution takes longer an exception will be raised.
 The default is 30 s, so in cases of long-running cells you may want to specify an higher value.
 The timeout option can also be set to `None` or -1 to remove any restriction on execution time.
@@ -128,7 +128,7 @@ This global value can also be overridden per notebook by adding this to you note
 In some cases, you may want to intentionally show code that doesn't work (e.g., to show the error message).
 You can achieve this at "three levels":
 
-Globally, by setting `execution_allow_errors=True` in your `conf.py`.
+Globally, by setting `nb_execution_allow_errors=True` in your `conf.py`.
 
 Per notebook (overrides global), by adding this to you notebooks metadata:
 
@@ -164,7 +164,7 @@ print(thisvariabledoesntexist)
 (execute/statistics)=
 ## Execution statistics
 
-As notebooks are executed, certain statistics are stored in a dictionary (`{docname:data}`), and saved on the [sphinx environment object](https://www.sphinx-doc.org/en/master/extdev/envapi.html#sphinx.environment.BuildEnvironment) as `env.nb_execution_data`.
+As notebooks are executed, certain statistics are stored in a dictionary, and saved on the [sphinx environment object](https://www.sphinx-doc.org/en/master/extdev/envapi.html#sphinx.environment.BuildEnvironment) in `env.metadata[docname]`.
 
 You can access this in a post-transform in your own sphinx extensions, or use the built-in `nb-exec-table` directive:
 

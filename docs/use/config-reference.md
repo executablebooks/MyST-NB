@@ -26,7 +26,7 @@ This configuration is used to control how Jupyter Notebooks are executed at buil
 * - `execution_excludepatterns`
   - ()
   - Exclude certain file patterns from execution, [see here](execute/config) for details.
-* - `jupyter_execute_notebooks`
+* - `nb_execution_mode`
   - "auto"
   - The logic for executing notebooks, [see here](execute/config) for details.
 * - `execution_in_temp`
