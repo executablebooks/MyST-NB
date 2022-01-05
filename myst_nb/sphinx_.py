@@ -74,7 +74,8 @@ def sphinx_setup(app: Sphinx):
     app.connect("config-inited", add_exclude_patterns)
 
     # TODO add an event which, if any files have been removed,
-    # all stage records with a non-existent path are removed
+    # all jupyter-cache stage records with a non-existent path are removed
+    # (just to keep it "tidy", but won't affect run)
 
     # add directive to ensure all notebook cells are converted
     app.add_directive("code-cell", UnexpectedCellDirective)
@@ -474,15 +475,21 @@ class SphinxNbRenderer(SphinxRenderer):
                 # cache all rendered outputs, then choose one from the priority list
                 # in a post-transform, once we know which builder is required.
                 mime_bundle = nodes.container(nb_element="mime_bundle")
-                with self.current_node_context(mime_bundle, append=True):
+                with self.current_node_context(mime_bundle):
                     for mime_type, data in output["data"].items():
+                        if mime_type.startswith("application/papermill.record/"):
+                            # TODO this is the glue prefix, just ignore this for now
+                            continue
                         container = nodes.container(mime_type=mime_type)
                         with self.current_node_context(container, append=True):
                             _nodes = self.nb_renderer.render_mime_type(
                                 mime_type, data, cell_index, line
                             )
                             self.current_node.extend(_nodes)
-                self.add_line_and_source_path_r([mime_bundle], token)
+                if mime_bundle.children:
+                    # only add if we have something to render
+                    self.add_line_and_source_path_r([mime_bundle], token)
+                    self.current_node.append(mime_bundle)
             else:
                 self.create_warning(
                     f"Unsupported output type: {output.output_type}",
