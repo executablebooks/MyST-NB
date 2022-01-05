@@ -218,7 +218,7 @@ class NbParserConfig:
         default=(),
         validator=deep_iterable(instance_of(str)),
         metadata={
-            "help": "Exclude patterns for notebooks",
+            "help": "Exclude (POSIX) glob patterns for notebooks",
             "legacy_name": "execution_excludepatterns",
             "docutils_exclude": True,
         },

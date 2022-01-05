@@ -3,7 +3,7 @@ from contextlib import nullcontext, suppress
 from datetime import datetime
 from logging import Logger
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from tempfile import TemporaryDirectory
 from typing import Optional, Tuple
 
@@ -42,7 +42,7 @@ def update_notebook(
 ) -> Tuple[NotebookNode, Optional[ExecutionResult]]:
     """Update a notebook using the given configuration.
 
-    This function may execute the notebook if necessary.
+    This function may execute the notebook if necessary, to update its outputs.
 
     :param notebook: The notebook to update.
     :param source: Path to or description of the input source being processed.
@@ -51,21 +51,31 @@ def update_notebook(
 
     :returns: The updated notebook, and the (optional) execution metadata.
     """
+    # TODO should any of the logging messages be debug instead of info?
+
     # path should only be None when using docutils programmatically,
     # e.g. source="<string>"
     path = Path(source) if Path(source).is_file() else None
 
     exec_metadata: Optional[ExecutionResult] = None
 
-    # TODO deal with nb_config.execution_excludepatterns
+    # check if the notebook is excluded from execution by pattern
+    if path is not None and nb_config.execution_excludepatterns:
+        posix_path = PurePosixPath(path.as_posix())
+        for pattern in nb_config.execution_excludepatterns:
+            if posix_path.match(pattern):
+                logger.info(f"Excluded from execution by pattern: {pattern!r}")
+                return notebook, exec_metadata
 
+    # 'auto' mode only executes the notebook if it is missing at least one output
     missing_outputs = (
         len(cell.outputs) == 0 for cell in notebook.cells if cell["cell_type"] == "code"
     )
+    if nb_config.execution_mode == "auto" and not any(missing_outputs):
+        logger.info("Skipped execution in 'auto' mode (all outputs present)")
+        return notebook, exec_metadata
 
-    if nb_config.execution_mode == "force" or (
-        nb_config.execution_mode == "auto" and any(missing_outputs)
-    ):
+    if nb_config.execution_mode in ("auto", "force"):
 
         # setup the execution current working directory
         if nb_config.execution_in_temp:
