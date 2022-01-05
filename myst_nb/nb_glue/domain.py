@@ -7,14 +7,14 @@ from docutils import nodes
 from docutils.parsers.rst import directives
 from sphinx.domains import Domain
 from sphinx.domains.math import MathDomain
+
+# from myst_nb.nodes import CellOutputBundleNode, CellOutputNode
+from sphinx.ext.autodoc.directive import DummyOptionSpec
 from sphinx.util import logging
 from sphinx.util.docutils import SphinxDirective, SphinxRole
 
 from myst_nb.nb_glue import GLUE_PREFIX
 from myst_nb.nb_glue.utils import find_all_keys
-
-# from myst_nb.nodes import CellOutputBundleNode, CellOutputNode
-from sphinx.ext.autodoc.directive import DummyOptionSpec
 
 SPHINX_LOGGER = logging.getLogger(__name__)
 

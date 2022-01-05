@@ -19,7 +19,7 @@ from sphinx.application import Sphinx
 from sphinx.environment import BuildEnvironment
 from sphinx.transforms.post_transforms import SphinxPostTransform
 from sphinx.util import logging as sphinx_logging
-from sphinx.util.docutils import ReferenceRole, SphinxDirective
+from sphinx.util.docutils import ReferenceRole
 
 from myst_nb import __version__
 from myst_nb.configuration import NbParserConfig

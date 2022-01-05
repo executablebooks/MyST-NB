@@ -11,9 +11,7 @@ def regress_nb_doc(file_regression, sphinx_run, check_nbs):
     file_regression.check(doctree.pformat(), extension=".xml", encoding="utf8")
 
 
-@pytest.mark.sphinx_params(
-    "basic_unrun.ipynb", conf={"nb_execution_mode": "auto"}
-)
+@pytest.mark.sphinx_params("basic_unrun.ipynb", conf={"nb_execution_mode": "auto"})
 def test_basic_unrun_auto(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
     # print(sphinx_run.status())
@@ -30,9 +28,7 @@ def test_basic_unrun_auto(sphinx_run, file_regression, check_nbs):
     assert sphinx_run.env.nb_execution_data["basic_unrun"]["succeeded"] is True
 
 
-@pytest.mark.sphinx_params(
-    "basic_unrun.ipynb", conf={"nb_execution_mode": "cache"}
-)
+@pytest.mark.sphinx_params("basic_unrun.ipynb", conf={"nb_execution_mode": "cache"})
 def test_basic_unrun_cache(sphinx_run, file_regression, check_nbs):
     """The outputs should be populated."""
     sphinx_run.build()
@@ -49,9 +45,7 @@ def test_basic_unrun_cache(sphinx_run, file_regression, check_nbs):
     assert sphinx_run.env.nb_execution_data["basic_unrun"]["succeeded"] is True
 
 
-@pytest.mark.sphinx_params(
-    "basic_unrun.ipynb", conf={"nb_execution_mode": "cache"}
-)
+@pytest.mark.sphinx_params("basic_unrun.ipynb", conf={"nb_execution_mode": "cache"})
 def test_rebuild_cache(sphinx_run):
     """The notebook should only be executed once."""
     sphinx_run.build()
@@ -61,9 +55,7 @@ def test_rebuild_cache(sphinx_run):
     assert "Executing" not in sphinx_run.status(), sphinx_run.status()
 
 
-@pytest.mark.sphinx_params(
-    "basic_unrun.ipynb", conf={"nb_execution_mode": "force"}
-)
+@pytest.mark.sphinx_params("basic_unrun.ipynb", conf={"nb_execution_mode": "force"})
 def test_rebuild_force(sphinx_run):
     """The notebook should be executed twice."""
     sphinx_run.build()
@@ -90,9 +82,7 @@ def test_exclude_path(sphinx_run, file_regression):
     )
 
 
-@pytest.mark.sphinx_params(
-    "basic_failing.ipynb", conf={"nb_execution_mode": "cache"}
-)
+@pytest.mark.sphinx_params("basic_failing.ipynb", conf={"nb_execution_mode": "cache"})
 def test_basic_failing_cache(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
     assert "Execution Failed" in sphinx_run.warnings()
@@ -110,9 +100,7 @@ def test_basic_failing_cache(sphinx_run, file_regression, check_nbs):
     assert "error_log" in sphinx_run.env.nb_execution_data["basic_failing"]
 
 
-@pytest.mark.sphinx_params(
-    "basic_failing.ipynb", conf={"nb_execution_mode": "auto"}
-)
+@pytest.mark.sphinx_params("basic_failing.ipynb", conf={"nb_execution_mode": "auto"})
 def test_basic_failing_auto(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
     # print(sphinx_run.status())
@@ -149,9 +137,7 @@ def test_allow_errors_auto(sphinx_run, file_regression, check_nbs):
     regress_nb_doc(file_regression, sphinx_run, check_nbs)
 
 
-@pytest.mark.sphinx_params(
-    "basic_unrun.ipynb", conf={"nb_execution_mode": "force"}
-)
+@pytest.mark.sphinx_params("basic_unrun.ipynb", conf={"nb_execution_mode": "force"})
 def test_outputs_present(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
     # print(sphinx_run.status())
@@ -190,9 +176,7 @@ def test_complex_outputs_unrun_auto(sphinx_run, file_regression, check_nbs):
     assert '<script type="application/vnd.jupyter.widget-state+json">' in html
 
 
-@pytest.mark.sphinx_params(
-    "basic_unrun.ipynb", conf={"nb_execution_mode": "off"}
-)
+@pytest.mark.sphinx_params("basic_unrun.ipynb", conf={"nb_execution_mode": "off"})
 def test_no_execute(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
     # print(sphinx_run.status())
@@ -200,9 +184,7 @@ def test_no_execute(sphinx_run, file_regression, check_nbs):
     regress_nb_doc(file_regression, sphinx_run, check_nbs)
 
 
-@pytest.mark.sphinx_params(
-    "basic_unrun.ipynb", conf={"nb_execution_mode": "cache"}
-)
+@pytest.mark.sphinx_params("basic_unrun.ipynb", conf={"nb_execution_mode": "cache"})
 def test_jupyter_cache_path(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
     assert "Execution Succeeded" in sphinx_run.status()
@@ -211,17 +193,13 @@ def test_jupyter_cache_path(sphinx_run, file_regression, check_nbs):
 
 
 # Testing relative paths within the notebook
-@pytest.mark.sphinx_params(
-    "basic_relative.ipynb", conf={"nb_execution_mode": "cache"}
-)
+@pytest.mark.sphinx_params("basic_relative.ipynb", conf={"nb_execution_mode": "cache"})
 def test_relative_path_cache(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
     assert "Execution Failed" not in sphinx_run.status(), sphinx_run.status()
 
 
-@pytest.mark.sphinx_params(
-    "basic_relative.ipynb", conf={"nb_execution_mode": "force"}
-)
+@pytest.mark.sphinx_params("basic_relative.ipynb", conf={"nb_execution_mode": "force"})
 def test_relative_path_force(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
     assert "Execution Failed" not in sphinx_run.status(), sphinx_run.status()

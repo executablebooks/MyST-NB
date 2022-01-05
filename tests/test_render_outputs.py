@@ -6,6 +6,7 @@ import pytest
 
 def test_load_renderer_not_found():
     from myst_nb.render_outputs import MystNbEntryPointError, load_renderer
+
     with pytest.raises(MystNbEntryPointError, match="No Entry Point found"):
         load_renderer("other")
 
@@ -13,6 +14,7 @@ def test_load_renderer_not_found():
 @patch.object(EntryPoint, "load", lambda self: EntryPoint)
 def test_load_renderer_not_subclass():
     from myst_nb.render_outputs import MystNbEntryPointError, load_renderer
+
     with pytest.raises(MystNbEntryPointError, match="Entry Point .* not a subclass"):
         load_renderer("default")
 
@@ -25,9 +27,7 @@ def test_basic_run(sphinx_run, file_regression):
     file_regression.check(doctree.pformat(), extension=".xml", encoding="utf8")
 
 
-@pytest.mark.sphinx_params(
-    "complex_outputs.ipynb", conf={"nb_execution_mode": "off"}
-)
+@pytest.mark.sphinx_params("complex_outputs.ipynb", conf={"nb_execution_mode": "off"})
 def test_complex_outputs(sphinx_run, clean_doctree, file_regression):
     sphinx_run.build()
     assert sphinx_run.warnings() == ""
@@ -51,9 +51,7 @@ def test_complex_outputs_latex(sphinx_run, clean_doctree, file_regression):
     )
 
 
-@pytest.mark.sphinx_params(
-    "basic_stderr.ipynb", conf={"nb_execution_mode": "off"}
-)
+@pytest.mark.sphinx_params("basic_stderr.ipynb", conf={"nb_execution_mode": "off"})
 def test_stderr_tag(sphinx_run, file_regression):
     sphinx_run.build()
     assert sphinx_run.warnings() == ""

@@ -28,6 +28,7 @@ def mock_ipython():
 def test_check_priority():
     """Assert that the default transform priority is less than CellOutputsToNodes"""
     from myst_nb.render_outputs import CellOutputsToNodes
+
     assert PasteNodesToDocutils.default_priority < CellOutputsToNodes.default_priority
 
 

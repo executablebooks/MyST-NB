@@ -27,9 +27,7 @@ def test_basic_run(sphinx_run, file_regression):
     assert filenames == {"basic_run.py", "basic_run.ipynb"}
 
 
-@pytest.mark.sphinx_params(
-    "complex_outputs.ipynb", conf={"nb_execution_mode": "off"}
-)
+@pytest.mark.sphinx_params("complex_outputs.ipynb", conf={"nb_execution_mode": "off"})
 def test_complex_outputs(sphinx_run, file_regression):
     sphinx_run.build()
     assert sphinx_run.warnings() == ""

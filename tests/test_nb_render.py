@@ -16,6 +16,7 @@ FIXTURE_PATH = Path(__file__).parent.joinpath("nb_fixtures")
 )
 def test_render(line, title, input, expected):
     from myst_nb.parser import nb_to_tokens, tokens_to_docutils
+
     dct = yaml.safe_load(input)
     dct.setdefault("metadata", {})
     ntbk = nbformat.from_dict(dct)
@@ -35,6 +36,7 @@ def test_render(line, title, input, expected):
 )
 def test_reporting(line, title, input, expected):
     from myst_nb.parser import nb_to_tokens, tokens_to_docutils
+
     dct = yaml.safe_load(input)
     dct.setdefault("metadata", {})
     ntbk = nbformat.from_dict(dct)
