@@ -86,14 +86,20 @@ def sphinx_setup(app: Sphinx):
     app.add_post_transform(SelectMimeType)
 
     # add HTML resources
-    app.connect("builder-inited", add_static_path)
+    app.connect("builder-inited", add_html_static_path)
     app.add_css_file("mystnb.css")
     # note, this event is only available in Sphinx >= 3.5
     app.connect("html-page-context", install_ipywidgets)
 
+    # add configuration for hiding cell input/output
+    # TODO replace this, or make it optional
+    app.setup_extension("sphinx_togglebutton")
+    app.connect("config-inited", update_togglebutton_classes)
+
     # Note lexers are registered as `pygments.lexers` entry-points
     # and so do not need to be added here.
 
+    # setup extension for execution statistics tables
     setup_exec_table_extension(app)
 
     return {
@@ -158,8 +164,8 @@ def add_exclude_patterns(app: Sphinx, config):
         config.exclude_patterns.append("**.ipynb_checkpoints")
 
 
-def add_static_path(app: Sphinx):
-    """Add static path for myst-nb."""
+def add_html_static_path(app: Sphinx):
+    """Add static path for HTML resources."""
     # TODO better to use importlib_resources here, or perhaps now there is another way?
     static_path = Path(__file__).parent.absolute().with_name("_static")
     app.config.html_static_path.append(str(static_path))
@@ -183,6 +189,20 @@ def install_ipywidgets(app: Sphinx, pagename: str, *args: Any, **kwargs: Any) ->
             type="application/vnd.jupyter.widget-state+json",
             body=ipywidgets_state,
         )
+
+
+def update_togglebutton_classes(app: Sphinx, config):
+    """Update togglebutton classes to recognise hidden cell inputs/outputs."""
+    to_add = [
+        ".tag_hide_input div.cell_input",
+        ".tag_hide-input div.cell_input",
+        ".tag_hide_output div.cell_output",
+        ".tag_hide-output div.cell_output",
+        ".tag_hide_cell.cell",
+        ".tag_hide-cell.cell",
+    ]
+    for selector in to_add:
+        config.togglebutton_selector += f", {selector}"
 
 
 def store_doc_metadata(env: BuildEnvironment, docname: str, key: str, value: Any):

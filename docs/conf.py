@@ -18,7 +18,6 @@ master_doc = "index"
 # ones.
 extensions = [
     "myst_nb",
-    "sphinx_togglebutton",
     "sphinx_copybutton",
     "sphinx.ext.intersphinx",
     "sphinx.ext.autodoc",
