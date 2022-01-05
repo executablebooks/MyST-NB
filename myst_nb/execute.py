@@ -1,8 +1,8 @@
 """Module for executing notebooks."""
-import os
 from contextlib import nullcontext, suppress
 from datetime import datetime
 from logging import Logger
+import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Optional, Tuple
@@ -59,7 +59,13 @@ def update_notebook(
 
     # TODO deal with nb_config.execution_excludepatterns
 
-    if nb_config.execution_mode == "force":
+    missing_outputs = (
+        len(cell.outputs) == 0 for cell in notebook.cells if cell["cell_type"] == "code"
+    )
+
+    if nb_config.execution_mode == "force" or (
+        nb_config.execution_mode == "auto" and any(missing_outputs)
+    ):
 
         # setup the execution current working directory
         if nb_config.execution_in_temp:

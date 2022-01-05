@@ -4,9 +4,9 @@ The `nb-exec-table` directive adds a placeholder node to the document,
 which is then replaced by a table of statistics in a post-transformation
 (once all the documents have been executed and these statistics are available).
 """
-import posixpath
 from datetime import datetime
-from typing import Any, Dict
+import posixpath
+from typing import Any, Callable, Dict
 
 from docutils import nodes
 from sphinx.addnodes import pending_xref
@@ -82,14 +82,14 @@ class ExecutionStatsPostTransform(SphinxPostTransform):
             node.replace_self(make_stat_table(self.env.docname, self.env.metadata))
 
 
-_key2header = {
+_key2header: Dict[str, str] = {
     "mtime": "Modified",
     "method": "Method",
     "runtime": "Run Time (s)",
     "succeeded": "Status",
 }
 
-_key2transform = {
+_key2transform: Dict[str, Callable[[Any], str]] = {
     "mtime": lambda x: datetime.fromtimestamp(x).strftime("%Y-%m-%d %H:%M")
     if x
     else "",

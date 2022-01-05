@@ -8,11 +8,13 @@ from docutils.parsers.rst import directives
 from sphinx.domains import Domain
 from sphinx.domains.math import MathDomain
 from sphinx.util import logging
-from sphinx.util.docutils import SphinxDirective
+from sphinx.util.docutils import SphinxDirective, SphinxRole
 
 from myst_nb.nb_glue import GLUE_PREFIX
 from myst_nb.nb_glue.utils import find_all_keys
-from myst_nb.nodes import CellOutputBundleNode, CellOutputNode
+
+# from myst_nb.nodes import CellOutputBundleNode, CellOutputNode
+from sphinx.ext.autodoc.directive import DummyOptionSpec
 
 SPHINX_LOGGER = logging.getLogger(__name__)
 
@@ -248,6 +250,25 @@ def paste_text_role(name, rawtext, text, lineno, inliner, options=None, content=
     return [PasteTextNode(key, formatting=formatting, location=(path, lineno))], []
 
 
+class DummyDirective(SphinxDirective):
+    required_arguments = 1
+    final_argument_whitespace = True
+    has_content = False
+    option_spec = DummyOptionSpec()
+
+    def run(self):
+        return []
+
+
+class DummyDirective2(DummyDirective):
+    has_content = True
+
+
+class DummyRole(SphinxRole):
+    def run(self):
+        return [nodes.inline(text=self.text)], []
+
+
 class NbGlueDomain(Domain):
     """A sphinx domain for handling glue data"""
 
@@ -260,9 +281,16 @@ class NbGlueDomain(Domain):
     # - docmap is the mapping of docnames to the set of keys it contains
     initial_data = {"cache": {}, "docmap": {}}
 
-    directives = {"": Paste, "any": Paste, "figure": PasteFigure, "math": PasteMath}
-
-    roles = {"": paste_any_role, "any": paste_any_role, "text": paste_text_role}
+    # TODO placeholders for glue roles/directives which need re-working
+    # directives = {"": Paste, "any": Paste, "figure": PasteFigure, "math": PasteMath}
+    # roles = {"": paste_any_role, "any": paste_any_role, "text": paste_text_role}
+    directives = {
+        "": DummyDirective,
+        "any": DummyDirective,
+        "figure": DummyDirective2,
+        "math": DummyDirective,
+    }
+    roles = {"": DummyRole(), "any": DummyRole(), "text": DummyRole()}
 
     @property
     def cache(self) -> dict:
@@ -329,7 +357,7 @@ class NbGlueDomain(Domain):
         inventory (coming from a subprocess in parallel builds).
         """
         # TODO need to deal with key clashes
-        raise NotImplementedError(
-            "merge_domaindata must be implemented in %s "
-            "to be able to do parallel builds!" % self.__class__
-        )
+        # raise NotImplementedError(
+        #     "merge_domaindata must be implemented in %s "
+        #     "to be able to do parallel builds!" % self.__class__
+        # )

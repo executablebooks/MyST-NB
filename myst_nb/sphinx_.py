@@ -4,7 +4,6 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
 
-import nbformat
 from docutils import nodes
 from markdown_it.token import Token
 from markdown_it.tree import SyntaxTreeNode
@@ -13,22 +12,24 @@ from myst_parser.docutils_renderer import token_line
 from myst_parser.main import MdParserConfig, create_md_parser
 from myst_parser.sphinx_parser import MystParser
 from myst_parser.sphinx_renderer import SphinxRenderer
+import nbformat
 from nbformat import NotebookNode
 from sphinx.addnodes import download_reference
 from sphinx.application import Sphinx
 from sphinx.environment import BuildEnvironment
 from sphinx.transforms.post_transforms import SphinxPostTransform
 from sphinx.util import logging as sphinx_logging
-from sphinx.util.docutils import ReferenceRole
+from sphinx.util.docutils import ReferenceRole, SphinxDirective
 
 from myst_nb import __version__
 from myst_nb.configuration import NbParserConfig
-from myst_nb.new.execute import update_notebook
-from myst_nb.new.execution_tables import setup_exec_table_extension
-from myst_nb.new.loggers import DEFAULT_LOG_TYPE, SphinxDocLogger
-from myst_nb.new.parse import notebook_to_tokens
-from myst_nb.new.read import UnexpectedCellDirective, create_nb_reader
-from myst_nb.new.render import (
+from myst_nb.execute import update_notebook
+from myst_nb.execution_tables import setup_exec_table_extension
+from myst_nb.loggers import DEFAULT_LOG_TYPE, SphinxDocLogger
+from myst_nb.nb_glue.domain import NbGlueDomain
+from myst_nb.parse import notebook_to_tokens
+from myst_nb.read import UnexpectedCellDirective, create_nb_reader
+from myst_nb.render import (
     WIDGET_STATE_MIMETYPE,
     NbElementRenderer,
     coalesce_streams,
@@ -102,6 +103,9 @@ def sphinx_setup(app: Sphinx):
     # setup extension for execution statistics tables
     setup_exec_table_extension(app)
 
+    # add glue domain
+    app.add_domain(NbGlueDomain)
+
     return {
         "version": __version__,
         "parallel_read_safe": True,
@@ -167,7 +171,7 @@ def add_exclude_patterns(app: Sphinx, config):
 def add_html_static_path(app: Sphinx):
     """Add static path for HTML resources."""
     # TODO better to use importlib_resources here, or perhaps now there is another way?
-    static_path = Path(__file__).parent.absolute().with_name("_static")
+    static_path = Path(__file__).absolute().with_name("_static")
     app.config.html_static_path.append(str(static_path))
 
 

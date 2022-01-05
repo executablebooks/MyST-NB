@@ -1,11 +1,10 @@
-import pytest
 from IPython.core.displaypub import DisplayPublisher
 from IPython.core.interactiveshell import InteractiveShell
+import pytest
 
 from myst_nb.nb_glue import glue, utils
 from myst_nb.nb_glue.domain import NbGlueDomain
 from myst_nb.nb_glue.transform import PasteNodesToDocutils
-from myst_nb.render_outputs import CellOutputsToNodes
 
 
 class MockDisplayPublisher(DisplayPublisher):
@@ -28,6 +27,7 @@ def mock_ipython():
 
 def test_check_priority():
     """Assert that the default transform priority is less than CellOutputsToNodes"""
+    from myst_nb.render_outputs import CellOutputsToNodes
     assert PasteNodesToDocutils.default_priority < CellOutputsToNodes.default_priority
 
 
@@ -104,7 +104,7 @@ def test_find_all_keys(get_test_path):
     }
 
 
-@pytest.mark.sphinx_params("with_glue.ipynb", conf={"jupyter_execute_notebooks": "off"})
+@pytest.mark.sphinx_params("with_glue.ipynb", conf={"nb_execution_mode": "off"})
 def test_parser(sphinx_run, clean_doctree, file_regression):
     sphinx_run.build()
     # print(sphinx_run.status())

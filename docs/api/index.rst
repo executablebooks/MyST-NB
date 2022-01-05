@@ -3,12 +3,6 @@
 Python API
 ==========
 
-.. toctree::
-    :maxdepth: 2
-
-    nodes
-    render_outputs
-
 Miscellaneous
 -------------
 

@@ -1,13 +1,13 @@
 """Module for rendering notebook components to docutils nodes."""
+from binascii import a2b_base64
+from functools import lru_cache
 import hashlib
 import json
 import logging
-import os
-import re
-from binascii import a2b_base64
-from functools import lru_cache
 from mimetypes import guess_extension
+import os
 from pathlib import Path
+import re
 from typing import TYPE_CHECKING, List, Union
 
 from docutils import nodes

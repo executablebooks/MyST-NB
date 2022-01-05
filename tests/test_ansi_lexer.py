@@ -1,5 +1,5 @@
-import pytest
 from pygments.token import Text, Token
+import pytest
 
 from myst_nb import lexers
 

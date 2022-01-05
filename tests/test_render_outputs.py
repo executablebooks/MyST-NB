@@ -1,23 +1,23 @@
 from unittest.mock import patch
 
-import pytest
 from importlib_metadata import EntryPoint
-
-from myst_nb.render_outputs import MystNbEntryPointError, load_renderer
+import pytest
 
 
 def test_load_renderer_not_found():
+    from myst_nb.render_outputs import MystNbEntryPointError, load_renderer
     with pytest.raises(MystNbEntryPointError, match="No Entry Point found"):
         load_renderer("other")
 
 
 @patch.object(EntryPoint, "load", lambda self: EntryPoint)
 def test_load_renderer_not_subclass():
+    from myst_nb.render_outputs import MystNbEntryPointError, load_renderer
     with pytest.raises(MystNbEntryPointError, match="Entry Point .* not a subclass"):
         load_renderer("default")
 
 
-@pytest.mark.sphinx_params("basic_run.ipynb", conf={"jupyter_execute_notebooks": "off"})
+@pytest.mark.sphinx_params("basic_run.ipynb", conf={"nb_execution_mode": "off"})
 def test_basic_run(sphinx_run, file_regression):
     sphinx_run.build()
     assert sphinx_run.warnings() == ""
@@ -26,7 +26,7 @@ def test_basic_run(sphinx_run, file_regression):
 
 
 @pytest.mark.sphinx_params(
-    "complex_outputs.ipynb", conf={"jupyter_execute_notebooks": "off"}
+    "complex_outputs.ipynb", conf={"nb_execution_mode": "off"}
 )
 def test_complex_outputs(sphinx_run, clean_doctree, file_regression):
     sphinx_run.build()
@@ -39,7 +39,7 @@ def test_complex_outputs(sphinx_run, clean_doctree, file_regression):
 
 @pytest.mark.sphinx_params(
     "complex_outputs.ipynb",
-    conf={"jupyter_execute_notebooks": "off"},
+    conf={"nb_execution_mode": "off"},
     buildername="latex",
 )
 def test_complex_outputs_latex(sphinx_run, clean_doctree, file_regression):
@@ -52,7 +52,7 @@ def test_complex_outputs_latex(sphinx_run, clean_doctree, file_regression):
 
 
 @pytest.mark.sphinx_params(
-    "basic_stderr.ipynb", conf={"jupyter_execute_notebooks": "off"}
+    "basic_stderr.ipynb", conf={"nb_execution_mode": "off"}
 )
 def test_stderr_tag(sphinx_run, file_regression):
     sphinx_run.build()
@@ -63,7 +63,7 @@ def test_stderr_tag(sphinx_run, file_regression):
 
 @pytest.mark.sphinx_params(
     "basic_stderr.ipynb",
-    conf={"jupyter_execute_notebooks": "off", "nb_output_stderr": "remove"},
+    conf={"nb_execution_mode": "off", "nb_output_stderr": "remove"},
 )
 def test_stderr_remove(sphinx_run, file_regression):
     sphinx_run.build()
@@ -74,7 +74,7 @@ def test_stderr_remove(sphinx_run, file_regression):
 
 @pytest.mark.sphinx_params(
     "merge_streams.ipynb",
-    conf={"jupyter_execute_notebooks": "off", "nb_merge_streams": True},
+    conf={"nb_execution_mode": "off", "nb_merge_streams": True},
 )
 def test_merge_streams(sphinx_run, file_regression):
     sphinx_run.build()
@@ -85,7 +85,7 @@ def test_merge_streams(sphinx_run, file_regression):
 
 @pytest.mark.sphinx_params(
     "metadata_image.ipynb",
-    conf={"jupyter_execute_notebooks": "off", "nb_render_key": "myst"},
+    conf={"nb_execution_mode": "off", "nb_render_key": "myst"},
 )
 def test_metadata_image(sphinx_run, clean_doctree, file_regression):
     sphinx_run.build()
@@ -96,8 +96,9 @@ def test_metadata_image(sphinx_run, clean_doctree, file_regression):
     )
 
 
+# TODO re-enable test
 # @pytest.mark.sphinx_params(
-#     "unknown_mimetype.ipynb", conf={"jupyter_execute_notebooks": "off"}
+#     "unknown_mimetype.ipynb", conf={"nb_execution_mode": "off"}
 # )
 # def test_unknown_mimetype(sphinx_run, file_regression):
 #     sphinx_run.build()

@@ -189,14 +189,15 @@ class NbParserConfig:
 
     # notebook execution options
 
-    execution_mode: Literal["off", "force", "cache"] = attr.ib(
+    execution_mode: Literal["off", "force", "auto", "cache"] = attr.ib(
         # TODO different default for docutils (off) and sphinx (cache)?
-        # TODO deprecate auto
-        default="off",
+        # TODO deprecate auto and set cache as default instead
+        default="auto",
         validator=in_(
             [
                 "off",
                 "force",
+                "auto",
                 "cache",
             ]
         ),

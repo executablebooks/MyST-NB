@@ -1,14 +1,12 @@
 from pathlib import Path
 
-import nbformat
-import pytest
-import yaml
 from markdown_it.utils import read_fixture_file
 from myst_parser.docutils_renderer import make_document
 from myst_parser.main import MdParserConfig
 from myst_parser.sphinx_renderer import mock_sphinx_env
-
-from myst_nb.parser import nb_to_tokens, tokens_to_docutils
+import nbformat
+import pytest
+import yaml
 
 FIXTURE_PATH = Path(__file__).parent.joinpath("nb_fixtures")
 
@@ -17,6 +15,7 @@ FIXTURE_PATH = Path(__file__).parent.joinpath("nb_fixtures")
     "line,title,input,expected", read_fixture_file(FIXTURE_PATH.joinpath("basic.txt"))
 )
 def test_render(line, title, input, expected):
+    from myst_nb.parser import nb_to_tokens, tokens_to_docutils
     dct = yaml.safe_load(input)
     dct.setdefault("metadata", {})
     ntbk = nbformat.from_dict(dct)
@@ -35,6 +34,7 @@ def test_render(line, title, input, expected):
     read_fixture_file(FIXTURE_PATH.joinpath("reporter_warnings.txt")),
 )
 def test_reporting(line, title, input, expected):
+    from myst_nb.parser import nb_to_tokens, tokens_to_docutils
     dct = yaml.safe_load(input)
     dct.setdefault("metadata", {})
     ntbk = nbformat.from_dict(dct)

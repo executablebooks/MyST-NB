@@ -1,6 +1,6 @@
 <document source="merge_streams">
-    <CellNode cell_type="code" classes="cell">
-        <CellInputNode classes="cell_input">
+    <container cell_index="0" cell_metadata="{}" classes="cell" exec_count="1" nb_element="cell_code">
+        <container classes="cell_input" nb_element="cell_code_source">
             <literal_block language="ipython3" linenos="False" xml:space="preserve">
                 import sys
                 print('stdout1', file=sys.stdout)
@@ -10,7 +10,7 @@
                 print('stdout3', file=sys.stdout)
                 print('stderr3', file=sys.stderr)
                 1
-        <CellOutputNode classes="cell_output">
+        <container classes="cell_output" nb_element="cell_code_output">
             <literal_block classes="output stream" language="myst-ansi" linenos="False" xml:space="preserve">
                 stdout1
                 stdout2
@@ -19,5 +19,6 @@
                 stderr1
                 stderr2
                 stderr3
-            <literal_block classes="output text_plain" language="myst-ansi" linenos="False" xml:space="preserve">
-                1
+            <container mime_type="text/plain">
+                <literal_block classes="output text_plain" language="myst-ansi" linenos="False" xml:space="preserve">
+                    1

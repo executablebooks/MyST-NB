@@ -12,7 +12,7 @@ def regress_nb_doc(file_regression, sphinx_run, check_nbs):
 
 
 @pytest.mark.sphinx_params(
-    "basic_unrun.ipynb", conf={"jupyter_execute_notebooks": "auto"}
+    "basic_unrun.ipynb", conf={"nb_execution_mode": "auto"}
 )
 def test_basic_unrun_auto(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
@@ -31,7 +31,7 @@ def test_basic_unrun_auto(sphinx_run, file_regression, check_nbs):
 
 
 @pytest.mark.sphinx_params(
-    "basic_unrun.ipynb", conf={"jupyter_execute_notebooks": "cache"}
+    "basic_unrun.ipynb", conf={"nb_execution_mode": "cache"}
 )
 def test_basic_unrun_cache(sphinx_run, file_regression, check_nbs):
     """The outputs should be populated."""
@@ -50,7 +50,7 @@ def test_basic_unrun_cache(sphinx_run, file_regression, check_nbs):
 
 
 @pytest.mark.sphinx_params(
-    "basic_unrun.ipynb", conf={"jupyter_execute_notebooks": "cache"}
+    "basic_unrun.ipynb", conf={"nb_execution_mode": "cache"}
 )
 def test_rebuild_cache(sphinx_run):
     """The notebook should only be executed once."""
@@ -62,7 +62,7 @@ def test_rebuild_cache(sphinx_run):
 
 
 @pytest.mark.sphinx_params(
-    "basic_unrun.ipynb", conf={"jupyter_execute_notebooks": "force"}
+    "basic_unrun.ipynb", conf={"nb_execution_mode": "force"}
 )
 def test_rebuild_force(sphinx_run):
     """The notebook should be executed twice."""
@@ -76,8 +76,8 @@ def test_rebuild_force(sphinx_run):
 @pytest.mark.sphinx_params(
     "basic_unrun.ipynb",
     conf={
-        "jupyter_execute_notebooks": "cache",
-        "execution_excludepatterns": ["basic_*"],
+        "nb_execution_mode": "cache",
+        "nb_execution_excludepatterns": ["basic_*"],
     },
 )
 def test_exclude_path(sphinx_run, file_regression):
@@ -91,7 +91,7 @@ def test_exclude_path(sphinx_run, file_regression):
 
 
 @pytest.mark.sphinx_params(
-    "basic_failing.ipynb", conf={"jupyter_execute_notebooks": "cache"}
+    "basic_failing.ipynb", conf={"nb_execution_mode": "cache"}
 )
 def test_basic_failing_cache(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
@@ -111,7 +111,7 @@ def test_basic_failing_cache(sphinx_run, file_regression, check_nbs):
 
 
 @pytest.mark.sphinx_params(
-    "basic_failing.ipynb", conf={"jupyter_execute_notebooks": "auto"}
+    "basic_failing.ipynb", conf={"nb_execution_mode": "auto"}
 )
 def test_basic_failing_auto(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
@@ -129,7 +129,7 @@ def test_basic_failing_auto(sphinx_run, file_regression, check_nbs):
 
 @pytest.mark.sphinx_params(
     "basic_failing.ipynb",
-    conf={"jupyter_execute_notebooks": "cache", "execution_allow_errors": True},
+    conf={"nb_execution_mode": "cache", "nb_execution_allow_errors": True},
 )
 def test_allow_errors_cache(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
@@ -140,7 +140,7 @@ def test_allow_errors_cache(sphinx_run, file_regression, check_nbs):
 
 @pytest.mark.sphinx_params(
     "basic_failing.ipynb",
-    conf={"jupyter_execute_notebooks": "auto", "execution_allow_errors": True},
+    conf={"nb_execution_mode": "auto", "nb_execution_allow_errors": True},
 )
 def test_allow_errors_auto(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
@@ -150,7 +150,7 @@ def test_allow_errors_auto(sphinx_run, file_regression, check_nbs):
 
 
 @pytest.mark.sphinx_params(
-    "basic_unrun.ipynb", conf={"jupyter_execute_notebooks": "force"}
+    "basic_unrun.ipynb", conf={"nb_execution_mode": "force"}
 )
 def test_outputs_present(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
@@ -161,7 +161,7 @@ def test_outputs_present(sphinx_run, file_regression, check_nbs):
 
 
 @pytest.mark.sphinx_params(
-    "complex_outputs_unrun.ipynb", conf={"jupyter_execute_notebooks": "cache"}
+    "complex_outputs_unrun.ipynb", conf={"nb_execution_mode": "cache"}
 )
 def test_complex_outputs_unrun_cache(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
@@ -176,7 +176,7 @@ def test_complex_outputs_unrun_cache(sphinx_run, file_regression, check_nbs):
 
 
 @pytest.mark.sphinx_params(
-    "complex_outputs_unrun.ipynb", conf={"jupyter_execute_notebooks": "auto"}
+    "complex_outputs_unrun.ipynb", conf={"nb_execution_mode": "auto"}
 )
 def test_complex_outputs_unrun_auto(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
@@ -191,7 +191,7 @@ def test_complex_outputs_unrun_auto(sphinx_run, file_regression, check_nbs):
 
 
 @pytest.mark.sphinx_params(
-    "basic_unrun.ipynb", conf={"jupyter_execute_notebooks": "off"}
+    "basic_unrun.ipynb", conf={"nb_execution_mode": "off"}
 )
 def test_no_execute(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
@@ -201,7 +201,7 @@ def test_no_execute(sphinx_run, file_regression, check_nbs):
 
 
 @pytest.mark.sphinx_params(
-    "basic_unrun.ipynb", conf={"jupyter_execute_notebooks": "cache"}
+    "basic_unrun.ipynb", conf={"nb_execution_mode": "cache"}
 )
 def test_jupyter_cache_path(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
@@ -212,7 +212,7 @@ def test_jupyter_cache_path(sphinx_run, file_regression, check_nbs):
 
 # Testing relative paths within the notebook
 @pytest.mark.sphinx_params(
-    "basic_relative.ipynb", conf={"jupyter_execute_notebooks": "cache"}
+    "basic_relative.ipynb", conf={"nb_execution_mode": "cache"}
 )
 def test_relative_path_cache(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
@@ -220,7 +220,7 @@ def test_relative_path_cache(sphinx_run, file_regression, check_nbs):
 
 
 @pytest.mark.sphinx_params(
-    "basic_relative.ipynb", conf={"jupyter_execute_notebooks": "force"}
+    "basic_relative.ipynb", conf={"nb_execution_mode": "force"}
 )
 def test_relative_path_force(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
@@ -230,7 +230,7 @@ def test_relative_path_force(sphinx_run, file_regression, check_nbs):
 # Execution timeout configuration
 @pytest.mark.sphinx_params(
     "sleep_10.ipynb",
-    conf={"jupyter_execute_notebooks": "cache", "execution_timeout": 1},
+    conf={"nb_execution_mode": "cache", "nb_execution_timeout": 1},
 )
 def test_execution_timeout(sphinx_run, file_regression, check_nbs):
     """execution should fail given the low timeout value"""
@@ -241,7 +241,7 @@ def test_execution_timeout(sphinx_run, file_regression, check_nbs):
 
 @pytest.mark.sphinx_params(
     "sleep_10_metadata_timeout.ipynb",
-    conf={"jupyter_execute_notebooks": "cache", "execution_timeout": 60},
+    conf={"nb_execution_mode": "cache", "nb_execution_timeout": 60},
 )
 def test_execution_metadata_timeout(sphinx_run, file_regression, check_nbs):
     """notebook timeout metadata has higher preference then execution_timeout config"""
@@ -251,7 +251,7 @@ def test_execution_metadata_timeout(sphinx_run, file_regression, check_nbs):
 
 @pytest.mark.sphinx_params(
     "nb_exec_table.md",
-    conf={"jupyter_execute_notebooks": "auto"},
+    conf={"nb_execution_mode": "auto"},
 )
 def test_nb_exec_table(sphinx_run, file_regression, check_nbs):
     """Test that the table gets output into the HTML,
@@ -268,7 +268,7 @@ def test_nb_exec_table(sphinx_run, file_regression, check_nbs):
 @pytest.mark.sphinx_params(
     "custom-formats.Rmd",
     conf={
-        "jupyter_execute_notebooks": "auto",
+        "nb_execution_mode": "auto",
         "nb_custom_formats": {".Rmd": ["jupytext.reads", {"fmt": "Rmd"}]},
     },
 )
@@ -287,7 +287,7 @@ def test_custom_convert_auto(sphinx_run, file_regression, check_nbs):
 @pytest.mark.sphinx_params(
     "custom-formats.Rmd",
     conf={
-        "jupyter_execute_notebooks": "cache",
+        "nb_execution_mode": "cache",
         "nb_custom_formats": {".Rmd": ["jupytext.reads", {"fmt": "Rmd"}]},
     },
 )

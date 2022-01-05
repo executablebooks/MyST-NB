@@ -2,11 +2,10 @@
 """Pygments lexers"""
 import re
 
-import pygments.lexer
-import pygments.token
-
 # this is not added as an entry point in ipython, so we add it in this package
 from IPython.lib.lexers import IPythonTracebackLexer  # noqa: F401
+import pygments.lexer
+import pygments.token
 
 _ansi_code_to_color = {
     0: "Black",

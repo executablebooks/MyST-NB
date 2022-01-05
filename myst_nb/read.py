@@ -1,18 +1,18 @@
 """Module for reading notebook formats from a string input."""
-import json
 from functools import partial
+import json
 from pathlib import Path
 from typing import Callable, Iterator, Optional, Union
 
 import attr
-import nbformat as nbf
-import yaml
 from docutils.parsers.rst import Directive
 from markdown_it.renderer import RendererHTML
 from myst_parser.main import MdParserConfig, create_md_parser
+import nbformat as nbf
+import yaml
 
 from myst_nb.configuration import NbParserConfig
-from myst_nb.new.loggers import DocutilsDocLogger, SphinxDocLogger
+from myst_nb.loggers import DocutilsDocLogger, SphinxDocLogger
 
 NOTEBOOK_VERSION = 4
 """The notebook version that readers should return."""

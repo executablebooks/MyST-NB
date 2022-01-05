@@ -3,7 +3,7 @@ import pytest
 
 @pytest.mark.sphinx_params(
     "basic_unrun.md",
-    conf={"jupyter_execute_notebooks": "cache", "source_suffix": {".md": "myst-nb"}},
+    conf={"nb_execution_mode": "cache", "source_suffix": {".md": "myst-nb"}},
 )
 def test_basic_run(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
@@ -32,7 +32,7 @@ def test_basic_run(sphinx_run, file_regression, check_nbs):
 
 @pytest.mark.sphinx_params(
     "basic_unrun.md",
-    conf={"jupyter_execute_notebooks": "off", "source_suffix": {".md": "myst-nb"}},
+    conf={"nb_execution_mode": "off", "source_suffix": {".md": "myst-nb"}},
 )
 def test_basic_run_exec_off(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
@@ -50,7 +50,7 @@ def test_basic_run_exec_off(sphinx_run, file_regression, check_nbs):
 
 @pytest.mark.sphinx_params(
     "basic_nometadata.md",
-    conf={"jupyter_execute_notebooks": "off", "source_suffix": {".md": "myst-nb"}},
+    conf={"nb_execution_mode": "off", "source_suffix": {".md": "myst-nb"}},
 )
 def test_basic_nometadata(sphinx_run, file_regression, check_nbs):
     """A myst-markdown notebook with no jupytext metadata should raise a warning."""

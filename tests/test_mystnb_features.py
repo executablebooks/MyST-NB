@@ -4,7 +4,7 @@ from sphinx.util.fileutil import copy_asset_file
 
 @pytest.mark.sphinx_params(
     "mystnb_codecell_file.md",
-    conf={"jupyter_execute_notebooks": "cache", "source_suffix": {".md": "myst-nb"}},
+    conf={"nb_execution_mode": "cache", "source_suffix": {".md": "myst-nb"}},
 )
 def test_codecell_file(sphinx_run, file_regression, check_nbs, get_test_path):
     asset_path = get_test_path("mystnb_codecell_file.py")
@@ -34,7 +34,7 @@ def test_codecell_file(sphinx_run, file_regression, check_nbs, get_test_path):
 
 @pytest.mark.sphinx_params(
     "mystnb_codecell_file_warnings.md",
-    conf={"jupyter_execute_notebooks": "force", "source_suffix": {".md": "myst-nb"}},
+    conf={"nb_execution_mode": "force", "source_suffix": {".md": "myst-nb"}},
 )
 def test_codecell_file_warnings(sphinx_run, file_regression, check_nbs, get_test_path):
     asset_path = get_test_path("mystnb_codecell_file.py")

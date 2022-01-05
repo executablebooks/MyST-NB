@@ -1,7 +1,7 @@
 import pytest
 
 
-@pytest.mark.sphinx_params("basic_run.ipynb", conf={"jupyter_execute_notebooks": "off"})
+@pytest.mark.sphinx_params("basic_run.ipynb", conf={"nb_execution_mode": "off"})
 def test_basic_run(sphinx_run, file_regression):
     sphinx_run.build()
     # print(sphinx_run.status())
@@ -28,7 +28,7 @@ def test_basic_run(sphinx_run, file_regression):
 
 
 @pytest.mark.sphinx_params(
-    "complex_outputs.ipynb", conf={"jupyter_execute_notebooks": "off"}
+    "complex_outputs.ipynb", conf={"nb_execution_mode": "off"}
 )
 def test_complex_outputs(sphinx_run, file_regression):
     sphinx_run.build()
@@ -76,7 +76,7 @@ def test_complex_outputs(sphinx_run, file_regression):
 @pytest.mark.sphinx_params(
     "latex_build/index.ipynb",
     "latex_build/other.ipynb",
-    conf={"jupyter_execute_notebooks": "off"},
+    conf={"nb_execution_mode": "off"},
     buildername="latex",
     # working_dir="/Users/cjs14/GitHub/MyST-NB-actual/outputs"
 )

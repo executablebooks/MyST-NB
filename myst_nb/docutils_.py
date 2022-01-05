@@ -2,7 +2,6 @@
 from functools import partial
 from typing import Any, Dict, List, Optional, Tuple
 
-import nbformat
 from docutils import nodes
 from docutils.core import default_description, publish_cmdline
 from docutils.parsers.rst.directives import register_directive
@@ -13,19 +12,20 @@ from myst_parser.docutils_ import Parser as MystParser
 from myst_parser.docutils_ import create_myst_config, create_myst_settings_spec
 from myst_parser.docutils_renderer import DocutilsRenderer, token_line
 from myst_parser.main import MdParserConfig, create_md_parser
+import nbformat
 from nbformat import NotebookNode
 
 from myst_nb.configuration import NbParserConfig
-from myst_nb.new.execute import update_notebook
-from myst_nb.new.loggers import DEFAULT_LOG_TYPE, DocutilsDocLogger
-from myst_nb.new.parse import notebook_to_tokens
-from myst_nb.new.read import (
+from myst_nb.execute import update_notebook
+from myst_nb.loggers import DEFAULT_LOG_TYPE, DocutilsDocLogger
+from myst_nb.parse import notebook_to_tokens
+from myst_nb.read import (
     NbReader,
     UnexpectedCellDirective,
     read_myst_markdown_notebook,
     standard_nb_read,
 )
-from myst_nb.new.render import NbElementRenderer, coalesce_streams, load_renderer
+from myst_nb.render import NbElementRenderer, coalesce_streams, load_renderer
 
 DOCUTILS_EXCLUDED_ARGS = {
     f.name for f in NbParserConfig.get_fields() if f.metadata.get("docutils_exclude")
