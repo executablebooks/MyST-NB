@@ -28,7 +28,7 @@ from myst_nb.configuration import NbParserConfig
 from myst_nb.execute import ExecutionResult, update_notebook
 from myst_nb.loggers import DEFAULT_LOG_TYPE, SphinxDocLogger
 from myst_nb.nb_glue.domain import NbGlueDomain
-from myst_nb.parse import notebook_to_tokens
+from myst_nb.parse import nb_node_to_dict, notebook_to_tokens
 from myst_nb.read import UnexpectedCellDirective, create_nb_reader
 from myst_nb.render import (
     WIDGET_STATE_MIMETYPE,
@@ -244,14 +244,26 @@ class MystNbParser(MystParser):
 
         # create a reader for the notebook
         nb_reader = create_nb_reader(document_path, md_config, nb_config, inputstring)
-
         # If the nb_reader is None, then we default to a standard Markdown parser
         if nb_reader is None:
             return super().parse(inputstring, document)
-
         notebook = nb_reader.read(inputstring)
 
-        # TODO update nb_config from notebook metadata
+        # Update mystnb configuration with notebook level metadata
+        if nb_config.metadata_key in notebook.metadata:
+            overrides = nb_node_to_dict(notebook.metadata[nb_config.metadata_key])
+            overrides.pop("output_folder", None)  # this should not be overridden
+            try:
+                nb_config = nb_config.copy(**overrides)
+            except Exception as exc:
+                logger.warning(
+                    f"Failed to update configuration with notebook metadata: {exc}",
+                    subtype="config",
+                )
+            else:
+                logger.debug(
+                    "Updated configuration with notebook metadata", subtype="config"
+                )
 
         # potentially execute notebook and/or populate outputs from cache
         notebook, exec_data = update_notebook(
@@ -291,7 +303,7 @@ class MystNbParser(MystParser):
         # convert to docutils AST, which is added to the document
         mdit_parser.renderer.render(mdit_tokens, mdit_parser.options, mdit_env)
 
-        # write updated notebook to output folder
+        # write final (updated) notebook to output folder
         # TODO currently this has to be done after the render has been called/setup
         # utf-8 is the de-facto standard encoding for notebooks.
         content = nbformat.writes(notebook).encode("utf-8")
@@ -315,8 +327,10 @@ class SphinxNbRenderer(SphinxRenderer):
 
     def get_nb_config(self, key: str, cell_index: Optional[int]) -> Any:
         # TODO selection between config/notebook/cell level
+        # do we also apply the validator here, at least for cell level metadata
         # (we can maybe update the nb_config with notebook level metadata in parser)
         # TODO handle KeyError better
+        # TODO should this be on NbElementRenderer?
         return self.config["nb_config"][key]
 
     def render_nb_metadata(self, token: SyntaxTreeNode) -> None:

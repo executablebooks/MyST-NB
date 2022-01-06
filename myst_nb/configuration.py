@@ -51,7 +51,6 @@ def render_priority_factory() -> Dict[str, Sequence[str]]:
     # generated with:
     # [(b.name, b.format, b.supported_image_types)
     # for b in app.registry.builders.values()]
-    # TODO potentially could auto-generate
     html_builders = [
         ("epub", "html", ["image/svg+xml", "image/png", "image/gif", "image/jpeg"]),
         ("html", "html", ["image/svg+xml", "image/png", "image/gif", "image/jpeg"]),
@@ -158,14 +157,6 @@ class NbParserConfig:
     these option names are prepended with ``nb_``
     """
 
-    # TODO: nb_render_key
-
-    # TODO jupyter_sphinx_require_url, jupyter_sphinx_embed_url,
-    # are no longer used by this package, replaced by ipywidgets_js
-    # do we add any deprecation warnings?
-
-    # TODO mark which config are allowed per notebook/cell
-
     # file read options
 
     custom_formats: Dict[str, Tuple[str, dict, bool]] = attr.ib(
@@ -176,7 +167,7 @@ class NbParserConfig:
             "docutils_exclude": True,
         },
     )
-    # docutils does not support directly the custom format mechanism
+    # docutils does not support the custom formats mechanism
     read_as_md: bool = attr.ib(
         default=False,
         validator=instance_of(bool),
@@ -187,6 +178,25 @@ class NbParserConfig:
         repr=False,
     )
 
+    # configuration override keys (applied after file read)
+
+    # TODO mark which config are allowed per notebook/cell
+    # TODO previously we had `nb_render_key` (default: "render"),
+    # for cell.metadata.render.image and cell.metadata.render.figure`,
+    # and also `timeout`/`allow_errors` in notebook.metadata.execution
+    # do we still support these or deprecate?
+    # (plus also cell.metadata.tags:
+    #   nbclient: `skip-execution` and `raises-exception`,
+    #   myst_nb: `remove_cell`, `remove-cell`, `remove_input`, `remove-input`,
+    #            `remove_output`, `remove-output`, `remove-stderr`
+    # )
+    # see also:
+    # https://nbformat.readthedocs.io/en/latest/format_description.html#cell-metadata
+    metadata_key: str = attr.ib(
+        default="mystnb",  # TODO agree this as the default
+        validator=instance_of(str),
+        metadata={"help": "Notebook level metadata key for config overrides"},
+    )
     # notebook execution options
 
     execution_mode: Literal["off", "force", "auto", "cache"] = attr.ib(
@@ -266,6 +276,14 @@ class NbParserConfig:
             "sphinx_exclude": True,  # in sphinx we always output to the build folder
         },
     )
+    render_plugin: str = attr.ib(
+        default="default",
+        validator=instance_of(str),  # TODO check it can be loaded?
+        metadata={
+            "help": "The entry point for the execution output render class "
+            "(in group `myst_nb.output_renderer`)"
+        },
+    )
     remove_code_source: bool = attr.ib(
         default=False,
         validator=instance_of(bool),
@@ -302,6 +320,7 @@ class NbParserConfig:
         ),
         metadata={"help": "Behaviour for stderr output"},
     )
+    # TODO this needs to be implemented
     embed_markdown_outputs: bool = attr.ib(
         default=False,
         validator=instance_of(bool),
@@ -349,14 +368,18 @@ class NbParserConfig:
         validator=optional(instance_of(str)),  # TODO check it can be loaded?
         metadata={"help": "Pygments lexer applied to error/traceback outputs"},
     )
-    render_plugin: str = attr.ib(
-        default="default",
-        validator=instance_of(str),  # TODO check it can be loaded?
+    render_image_options: Dict[str, str] = attr.ib(
+        factory=dict,
+        validator=deep_mapping(instance_of(str), instance_of((str, int))),
+        # see https://docutils.sourceforge.io/docs/ref/rst/directives.html#image
         metadata={
-            "help": "The entry point for the execution output render class "
-            "(in group `myst_nb.output_renderer`)"
+            "help": "Options for image outputs (class|alt|height|width|scale|align)",
+            "docutils_exclude": True,
         },
     )
+    # TODO jupyter_sphinx_require_url and jupyter_sphinx_embed_url (undocumented),
+    # are no longer used by this package, replaced by ipywidgets_js
+    # do we add any deprecation warnings?
     ipywidgets_js: Dict[str, Dict[str, str]] = attr.ib(
         factory=ipywidgets_js_factory,
         validator=deep_mapping(

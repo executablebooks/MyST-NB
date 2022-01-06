@@ -11,6 +11,7 @@ import re
 from typing import TYPE_CHECKING, List, Union
 
 from docutils import nodes
+from docutils.parsers.rst import directives as options_spec
 from importlib_metadata import entry_points
 from myst_parser.main import MdParserConfig, create_md_parser
 from nbformat import NotebookNode
@@ -208,7 +209,7 @@ class NbElementRenderer:
         :param source_line: the line number of the cell in the source document
         """
         metadata = self.get_cell_metadata(cell_index)
-        if "remove-stdout" in metadata.get("tags", []):
+        if "remove-stderr" in metadata.get("tags", []):
             return []
         output_stderr = self.renderer.get_nb_config("output_stderr", cell_index)
         msg = f"stderr was found in the cell outputs of cell {cell_index + 1}"
@@ -423,8 +424,26 @@ class NbElementRenderer:
         data_hash = hashlib.sha256(data_bytes).hexdigest()
         filename = f"{data_hash}{extension}"
         uri = self.write_file([filename], data_bytes, overwrite=False, exists_ok=True)
-        # TODO add additional attributes
-        return [nodes.image(uri=uri)]
+        image_node = nodes.image(uri=uri)
+        # apply attributes to the image node
+        image_options = self.renderer.get_nb_config("render_image_options", cell_index)
+        for key, spec in [
+            ("classes", options_spec.class_option),  # only for back-compatibility
+            ("class", options_spec.class_option),
+            ("alt", options_spec.unchanged),
+            ("height", options_spec.length_or_unitless),
+            ("width", options_spec.length_or_percentage_or_unitless),
+            ("scale", options_spec.percentage),
+            ("align", lambda a: options_spec.choice(a, ("left", "center", "right"))),
+        ]:
+            if key not in image_options:
+                continue
+            try:
+                image_node[key] = spec(image_options[key])
+            except Exception as exc:
+                msg = f"Invalid image option ({key!r}; {image_options[key]!r}): {exc}"
+                self.logger.warning(msg, subtype="image", line=source_line)
+        return [image_node]
 
     def render_javascript(
         self, data: str, cell_index: int, source_line: int

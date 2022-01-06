@@ -18,7 +18,7 @@ from nbformat import NotebookNode
 from myst_nb.configuration import NbParserConfig
 from myst_nb.execute import update_notebook
 from myst_nb.loggers import DEFAULT_LOG_TYPE, DocutilsDocLogger
-from myst_nb.parse import notebook_to_tokens
+from myst_nb.parse import nb_node_to_dict, notebook_to_tokens
 from myst_nb.read import (
     NbReader,
     UnexpectedCellDirective,
@@ -96,7 +96,20 @@ class Parser(MystParser):
             nb_reader = NbReader(standard_nb_read, md_config)
         notebook = nb_reader.read(inputstring)
 
-        # TODO update nb_config from notebook metadata
+        # Update mystnb configuration with notebook level metadata
+        if nb_config.metadata_key in notebook.metadata:
+            overrides = nb_node_to_dict(notebook.metadata[nb_config.metadata_key])
+            try:
+                nb_config = nb_config.copy(**overrides)
+            except Exception as exc:
+                logger.warning(
+                    f"Failed to update configuration with notebook metadata: {exc}",
+                    subtype="config",
+                )
+            else:
+                logger.debug(
+                    "Updated configuration with notebook metadata", subtype="config"
+                )
 
         # potentially execute notebook and/or populate outputs from cache
         notebook, exec_data = update_notebook(

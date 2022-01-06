@@ -100,6 +100,7 @@ def update_notebook(
                 cwd=cwd,
                 allow_errors=nb_config.execution_allow_errors,
                 timeout=nb_config.execution_timeout,
+                meta_override=True,  # TODO still support this?
             )
 
         if result.err is not None:
@@ -123,7 +124,7 @@ def update_notebook(
 
         # setup the cache
         cache = get_cache(nb_config.execution_cache_path or ".jupyter_cache")
-        # TODO config on what notebook/cell metadata to merge
+        # TODO config on what notebook/cell metadata to hash/merge
 
         # attempt to match the notebook to one in the cache
         cache_record = None
@@ -170,6 +171,7 @@ def update_notebook(
                 cwd=cwd,
                 allow_errors=nb_config.execution_allow_errors,
                 timeout=nb_config.execution_timeout,
+                meta_override=True,  # TODO still support this?
             )
 
         # handle success / failure cases

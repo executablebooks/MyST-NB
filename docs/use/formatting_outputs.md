@@ -19,7 +19,7 @@ kernelspec:
 
 When Jupyter executes a code cell it can produce multiple outputs, and each of these outputs can contain multiple [MIME media types](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types), for use by different output formats (like HTML or LaTeX).
 
-MyST-NB stores a default priority dictionary for most of the common [Sphinx builders](https://www.sphinx-doc.org/en/master/usage/builders/index.html), which you can be also update in your `conf.py`.
+MyST-NB stores a default priority dictionary for most of the common [Sphinx builder names](https://www.sphinx-doc.org/en/master/usage/builders/index.html), which you can be also update in your `conf.py`.
 For example, this is the default priority list for HTML:
 
 ```python
