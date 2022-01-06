@@ -197,6 +197,7 @@ class NbParserConfig:
         validator=instance_of(str),
         metadata={"help": "Notebook level metadata key for config overrides"},
     )
+
     # notebook execution options
 
     execution_mode: Literal["off", "force", "auto", "cache"] = attr.ib(
@@ -284,25 +285,36 @@ class NbParserConfig:
             "(in group `myst_nb.output_renderer`)"
         },
     )
+    cell_render_key: str = attr.ib(
+        default="render",
+        validator=instance_of(str),
+        metadata={
+            "help": "Cell level metadata key to use for render config",
+            "legacy_name": "nb_render_key",
+        },
+    )
     remove_code_source: bool = attr.ib(
         default=False,
         validator=instance_of(bool),
-        metadata={"help": "Remove code cell source"},
+        metadata={"help": "Remove code cell source", "cell_metadata": True},
     )
     remove_code_outputs: bool = attr.ib(
         default=False,
         validator=instance_of(bool),
-        metadata={"help": "Remove code cell outputs"},
+        metadata={"help": "Remove code cell outputs", "cell_metadata": True},
     )
     number_source_lines: bool = attr.ib(
         default=False,
         validator=instance_of(bool),
-        metadata={"help": "Number code cell source lines"},
+        metadata={"help": "Number code cell source lines", "cell_metadata": True},
     )
     merge_streams: bool = attr.ib(
         default=False,
         validator=instance_of(bool),
-        metadata={"help": "Merge stdout/stderr execution output streams"},
+        metadata={
+            "help": "Merge stdout/stderr execution output streams",
+            "cell_metadata": True,
+        },
     )
     output_stderr: Literal[
         "show", "remove", "remove-warn", "warn", "error", "severe"
@@ -318,13 +330,16 @@ class NbParserConfig:
                 "severe",
             ]
         ),
-        metadata={"help": "Behaviour for stderr output"},
+        metadata={"help": "Behaviour for stderr output", "cell_metadata": True},
     )
     # TODO this needs to be implemented
     embed_markdown_outputs: bool = attr.ib(
         default=False,
         validator=instance_of(bool),
-        metadata={"help": "Embed markdown outputs"},  # TODO better help text
+        metadata={
+            "help": "Embed markdown outputs",  # TODO better help text
+            "cell_metadata": True,
+        },
     )
     # docutils does not allow for the dictionaries in its configuration,
     # and also there is no API for the parser to know the output format, so
@@ -342,7 +357,11 @@ class NbParserConfig:
             "text/plain",
         ),
         validator=deep_iterable(instance_of(str)),
-        metadata={"help": "Render priority for mime types", "sphinx_exclude": True},
+        metadata={
+            "help": "Render priority for mime types",
+            "sphinx_exclude": True,
+            "cell_metadata": True,
+        },
         repr=False,
     )
     render_priority: Dict[str, Sequence[str]] = attr.ib(
@@ -359,14 +378,18 @@ class NbParserConfig:
         # TODO allow None -> "none"?
         validator=optional(instance_of(str)),  # TODO check it can be loaded?
         metadata={
-            "help": "Pygments lexer applied to stdout/stderr and text/plain outputs"
+            "help": "Pygments lexer applied to stdout/stderr and text/plain outputs",
+            "cell_metadata": "text_lexer",
         },
     )
     render_error_lexer: str = attr.ib(
         default="ipythontb",
         # TODO allow None -> "none"?
         validator=optional(instance_of(str)),  # TODO check it can be loaded?
-        metadata={"help": "Pygments lexer applied to error/traceback outputs"},
+        metadata={
+            "help": "Pygments lexer applied to error/traceback outputs",
+            "cell_metadata": "error_lexer",
+        },
     )
     render_image_options: Dict[str, str] = attr.ib(
         factory=dict,
@@ -375,6 +398,8 @@ class NbParserConfig:
         metadata={
             "help": "Options for image outputs (class|alt|height|width|scale|align)",
             "docutils_exclude": True,
+            # TODO backward-compatible change to "image_options"?
+            "cell_metadata": "image",
         },
     )
     # TODO jupyter_sphinx_require_url and jupyter_sphinx_embed_url (undocumented),
@@ -408,3 +433,12 @@ class NbParserConfig:
     def copy(self, **changes) -> "NbParserConfig":
         """Return a copy of the configuration with optional changes applied."""
         return attr.evolve(self, **changes)
+
+    def __getitem__(self, field: str) -> Any:
+        """Get a field value by name."""
+        if field in ("get_fields", "as_dict", "as_triple", "copy"):
+            raise KeyError(field)
+        try:
+            return getattr(self, field)
+        except AttributeError:
+            raise KeyError(field)

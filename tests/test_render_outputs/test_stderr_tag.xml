@@ -13,5 +13,3 @@
                 import sys
                 print('hallo', file=sys.stderr)
         <container classes="cell_output" nb_element="cell_code_output">
-            <literal_block classes="output stderr" language="myst-ansi" linenos="False" xml:space="preserve">
-                hallo

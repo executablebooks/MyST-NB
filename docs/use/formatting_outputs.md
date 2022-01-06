@@ -104,7 +104,7 @@ Normally, slight differences in timing may result in different orders of `stderr
 ## Images
 
 With the default renderer, for any image types output by the code, we can apply formatting *via* cell metadata.
-The top-level metadata key can be set using `nb_render_key` in your `conf.py`, and is set to `render` by default.
+The top-level metadata key can be set using `nb_cell_render_key` in your `conf.py`, and is set to `render` by default.
 Then for the image we can apply all the variables of the standard [image directive](https://docutils.sourceforge.io/docs/ref/rst/directives.html#image):
 
 - **width**: length or percentage (%) of the current line width
@@ -122,6 +122,7 @@ We can also set a caption (which is rendered as [CommonMark](https://commonmark.
 ```{code-cell} ipython3
 ---
 render:
+  number_source_lines: true
   image:
     width: 200px
     alt: fun-fish
@@ -139,6 +140,7 @@ Image("images/fun-fish.png")
 ```{code-cell} ipython3
 ---
 render:
+  number_source_lines: true
   image:
     width: 300px
     alt: fun-fish

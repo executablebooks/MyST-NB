@@ -122,7 +122,7 @@ class Parser(MystParser):
         mdit_parser = create_md_parser(nb_reader.md_config, DocutilsNbRenderer)
         mdit_parser.options["document"] = document
         mdit_parser.options["notebook"] = notebook
-        mdit_parser.options["nb_config"] = nb_config.as_dict()
+        mdit_parser.options["nb_config"] = nb_config
         mdit_env: Dict[str, Any] = {}
 
         # load notebook element renderer class from entry-point name
@@ -157,14 +157,40 @@ class DocutilsNbRenderer(DocutilsRenderer):
         """Get the notebook element renderer."""
         return self.config["nb_renderer"]
 
-    # TODO maybe move more things to NbOutputRenderer?
-    # and change name to e.g. NbElementRenderer
+    def get_nb_config(self, key: str) -> Any:
+        """Get a notebook level configuration value.
 
-    def get_nb_config(self, key: str, cell_index: Optional[int]) -> Any:
-        # TODO selection between config/notebook/cell level
-        # (we can maybe update the nb_config with notebook level metadata in parser)
-        # TODO handle KeyError better
+        :raises: KeyError if the key is not found
+        """
         return self.config["nb_config"][key]
+
+    def get_cell_render_config(
+        self,
+        cell_index: int,
+        key: str,
+        nb_key: Optional[str] = None,
+        has_nb_key: bool = True,
+    ) -> Any:
+        """Get a cell level render configuration value.
+
+        :param has_nb_key: Whether to also look in the notebook level configuration
+        :param nb_key: The notebook level configuration key to use if the cell
+            level key is not found. if None, use the ``key`` argument
+
+        :raises: IndexError if the cell index is out of range
+        :raises: KeyError if the key is not found
+        """
+        cell = self.config["notebook"].cells[cell_index]
+        cell_metadata_key = self.get_nb_config("cell_render_key")
+        if (
+            cell_metadata_key not in cell.metadata
+            or key not in cell.metadata[cell_metadata_key]
+        ):
+            if not has_nb_key:
+                raise KeyError(key)
+            return self.get_nb_config(nb_key if nb_key is not None else key)
+        # TODO validate?
+        return cell.metadata[cell_metadata_key][key]
 
     def render_nb_metadata(self, token: SyntaxTreeNode) -> None:
         """Render the notebook metadata."""
@@ -239,7 +265,7 @@ class DocutilsNbRenderer(DocutilsRenderer):
 
             # render the code source code
             if (
-                (not self.get_nb_config("remove_code_source", cell_index))
+                (not self.get_cell_render_config(cell_index, "remove_code_source"))
                 and ("remove_input" not in tags)
                 and ("remove-input" not in tags)
             ):
@@ -255,7 +281,7 @@ class DocutilsNbRenderer(DocutilsRenderer):
             )
             if (
                 has_outputs
-                and (not self.get_nb_config("remove_code_outputs", cell_index))
+                and (not self.get_cell_render_config(cell_index, "remove_code_outputs"))
                 and ("remove_output" not in tags)
                 and ("remove-output" not in tags)
             ):
@@ -273,7 +299,7 @@ class DocutilsNbRenderer(DocutilsRenderer):
         node = self.create_highlighted_code_block(
             token.content,
             lexer,
-            number_lines=self.get_nb_config("number_source_lines", cell_index),
+            number_lines=self.get_cell_render_config(cell_index, "number_source_lines"),
             source=self.document["source"],
             line=token_line(token),
         )
@@ -287,11 +313,10 @@ class DocutilsNbRenderer(DocutilsRenderer):
         outputs: List[NotebookNode] = self.config["notebook"]["cells"][cell_index].get(
             "outputs", []
         )
-        if self.get_nb_config("merge_streams", cell_index):
-            # TODO should this be moved to the parsing phase?
+        if self.get_cell_render_config(cell_index, "merge_streams"):
             outputs = coalesce_streams(outputs)
 
-        mime_priority = self.get_nb_config("mime_priority", cell_index)
+        mime_priority = self.get_cell_render_config(cell_index, "mime_priority")
 
         # render the outputs
         for output in outputs:

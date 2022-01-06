@@ -148,7 +148,7 @@ class NbElementRenderer:
 
         :returns: URI to use for referencing the file
         """
-        output_folder = Path(self.renderer.get_nb_config("output_folder", None))
+        output_folder = Path(self.renderer.get_nb_config("output_folder"))
         filepath = output_folder.joinpath(*path)
         if filepath.exists():
             if overwrite:
@@ -190,7 +190,9 @@ class NbElementRenderer:
         metadata = self.get_cell_metadata(cell_index)
         if "remove-stdout" in metadata.get("tags", []):
             return []
-        lexer = self.renderer.get_nb_config("render_text_lexer", cell_index)
+        lexer = self.renderer.get_cell_render_config(
+            cell_index, "text_lexer", "render_text_lexer"
+        )
         node = self.renderer.create_highlighted_code_block(
             output["text"], lexer, source=self.source, line=source_line
         )
@@ -211,7 +213,9 @@ class NbElementRenderer:
         metadata = self.get_cell_metadata(cell_index)
         if "remove-stderr" in metadata.get("tags", []):
             return []
-        output_stderr = self.renderer.get_nb_config("output_stderr", cell_index)
+        output_stderr = self.renderer.get_cell_render_config(
+            cell_index, "output_stderr"
+        )
         msg = f"stderr was found in the cell outputs of cell {cell_index + 1}"
         outputs = []
         if output_stderr == "remove":
@@ -225,7 +229,9 @@ class NbElementRenderer:
             self.logger.error(msg, subtype="stderr", line=source_line)
         elif output_stderr == "severe":
             self.logger.critical(msg, subtype="stderr", line=source_line)
-        lexer = self.renderer.get_nb_config("render_text_lexer", cell_index)
+        lexer = self.renderer.get_cell_render_config(
+            cell_index, "text_lexer", "render_text_lexer"
+        )
         node = self.renderer.create_highlighted_code_block(
             output["text"], lexer, source=self.source, line=source_line
         )
@@ -245,7 +251,9 @@ class NbElementRenderer:
         :param source_line: the line number of the cell in the source document
         """
         traceback = strip_ansi("\n".join(output["traceback"]))
-        lexer = self.renderer.get_nb_config("render_error_lexer", cell_index)
+        lexer = self.renderer.get_cell_render_config(
+            cell_index, "error_lexer", "render_error_lexer"
+        )
         node = self.renderer.create_highlighted_code_block(
             traceback, lexer, source=self.source, line=source_line
         )
@@ -319,7 +327,7 @@ class NbElementRenderer:
         # setup temporary renderer config
         md = self.renderer.md
         match_titles = self.renderer.md_env.get("match_titles", None)
-        if self.renderer.get_nb_config("embed_markdown_outputs", cell_index):
+        if self.renderer.get_cell_render_config(cell_index, "embed_markdown_outputs"):
             # this configuration is used in conjunction with a transform,
             # which move this content outside & below the output container
             # in this way the Markdown output can contain headings,
@@ -352,7 +360,9 @@ class NbElementRenderer:
         :param cell_index: the index of the cell containing the output
         :param source_line: the line number of the cell in the source document
         """
-        lexer = self.renderer.get_nb_config("render_text_lexer", cell_index)
+        lexer = self.renderer.get_cell_render_config(
+            cell_index, "text_lexer", "render_text_lexer"
+        )
         node = self.renderer.create_highlighted_code_block(
             data, lexer, source=self.source, line=source_line
         )
@@ -426,7 +436,10 @@ class NbElementRenderer:
         uri = self.write_file([filename], data_bytes, overwrite=False, exists_ok=True)
         image_node = nodes.image(uri=uri)
         # apply attributes to the image node
-        image_options = self.renderer.get_nb_config("render_image_options", cell_index)
+        # TODO backwards-compatible re-naming to image_options?
+        image_options = self.renderer.get_cell_render_config(
+            cell_index, "image", "render_image_options"
+        )
         for key, spec in [
             ("classes", options_spec.class_option),  # only for back-compatibility
             ("class", options_spec.class_option),
@@ -481,6 +494,10 @@ class NbElementRenderer:
         ]
 
 
+class EntryPointError(Exception):
+    """Exception raised when an entry point cannot be loaded."""
+
+
 @lru_cache(maxsize=10)
 def load_renderer(name: str) -> NbElementRenderer:
     """Load a renderer,
@@ -497,10 +514,10 @@ def load_renderer(name: str) -> NbElementRenderer:
     if found:
         klass = eps[name].load()
         if not issubclass(klass, NbElementRenderer):
-            raise Exception(
+            raise EntryPointError(
                 f"Entry Point for {RENDER_ENTRY_GROUP}:{name} "
                 f"is not a subclass of `NbElementRenderer`: {klass}"
             )
         return klass
 
-    raise Exception(f"No Entry Point found for {RENDER_ENTRY_GROUP}:{name}")
+    raise EntryPointError(f"No Entry Point found for {RENDER_ENTRY_GROUP}:{name}")

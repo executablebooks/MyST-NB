@@ -315,23 +315,45 @@ class MystNbParser(MystParser):
 class SphinxNbRenderer(SphinxRenderer):
     """A sphinx renderer for Jupyter Notebooks."""
 
-    # TODO de-duplication with DocutilsNbRenderer
-
     @property
     def nb_renderer(self) -> NbElementRenderer:
         """Get the notebook element renderer."""
         return self.config["nb_renderer"]
 
-    # TODO maybe move more things to NbOutputRenderer?
-    # and change name to e.g. NbElementRenderer
+    def get_nb_config(self, key: str) -> Any:
+        """Get a notebook level configuration value.
 
-    def get_nb_config(self, key: str, cell_index: Optional[int]) -> Any:
-        # TODO selection between config/notebook/cell level
-        # do we also apply the validator here, at least for cell level metadata
-        # (we can maybe update the nb_config with notebook level metadata in parser)
-        # TODO handle KeyError better
-        # TODO should this be on NbElementRenderer?
+        :raises: KeyError if the key is not found
+        """
         return self.config["nb_config"][key]
+
+    def get_cell_render_config(
+        self,
+        cell_index: int,
+        key: str,
+        nb_key: Optional[str] = None,
+        has_nb_key: bool = True,
+    ) -> Any:
+        """Get a cell level render configuration value.
+
+        :param has_nb_key: Whether to also look in the notebook level configuration
+        :param nb_key: The notebook level configuration key to use if the cell
+            level key is not found. if None, use the ``key`` argument
+
+        :raises: IndexError if the cell index is out of range
+        :raises: KeyError if the key is not found
+        """
+        cell = self.config["notebook"].cells[cell_index]
+        cell_metadata_key = self.get_nb_config("cell_render_key")
+        if (
+            cell_metadata_key not in cell.metadata
+            or key not in cell.metadata[cell_metadata_key]
+        ):
+            if not has_nb_key:
+                raise KeyError(key)
+            return self.get_nb_config(nb_key if nb_key is not None else key)
+        # TODO validate?
+        return cell.metadata[cell_metadata_key][key]
 
     def render_nb_metadata(self, token: SyntaxTreeNode) -> None:
         """Render the notebook metadata."""
@@ -405,7 +427,7 @@ class SphinxNbRenderer(SphinxRenderer):
 
             # render the code source code
             if (
-                (not self.get_nb_config("remove_code_source", cell_index))
+                (not self.get_cell_render_config(cell_index, "remove_code_source"))
                 and ("remove_input" not in tags)
                 and ("remove-input" not in tags)
             ):
@@ -421,7 +443,7 @@ class SphinxNbRenderer(SphinxRenderer):
             )
             if (
                 has_outputs
-                and (not self.get_nb_config("remove_code_outputs", cell_index))
+                and (not self.get_cell_render_config(cell_index, "remove_code_outputs"))
                 and ("remove_output" not in tags)
                 and ("remove-output" not in tags)
             ):
@@ -439,7 +461,7 @@ class SphinxNbRenderer(SphinxRenderer):
         node = self.create_highlighted_code_block(
             token.content,
             lexer,
-            number_lines=self.get_nb_config("number_source_lines", cell_index),
+            number_lines=self.get_cell_render_config(cell_index, "number_source_lines"),
             source=self.document["source"],
             line=token_line(token),
         )
@@ -453,8 +475,7 @@ class SphinxNbRenderer(SphinxRenderer):
         outputs: List[NotebookNode] = self.config["notebook"]["cells"][cell_index].get(
             "outputs", []
         )
-        if self.get_nb_config("merge_streams", cell_index):
-            # TODO should this be moved to the parsing phase?
+        if self.get_cell_render_config(cell_index, "merge_streams"):
             outputs = coalesce_streams(outputs)
 
         # render the outputs
@@ -491,14 +512,15 @@ class SphinxNbRenderer(SphinxRenderer):
                         if mime_type.startswith("application/papermill.record/"):
                             # TODO this is the glue prefix, just ignore this for now
                             continue
-                        container = nodes.container(mime_type=mime_type)
-                        with self.current_node_context(container, append=True):
+                        mime_container = nodes.container(mime_type=mime_type)
+                        with self.current_node_context(mime_container):
                             _nodes = self.nb_renderer.render_mime_type(
                                 mime_type, data, cell_index, line
                             )
                             self.current_node.extend(_nodes)
+                        if mime_container.children:
+                            self.current_node.append(mime_container)
                 if mime_bundle.children:
-                    # only add if we have something to render
                     self.add_line_and_source_path_r([mime_bundle], token)
                     self.current_node.append(mime_bundle)
             else:
@@ -521,7 +543,7 @@ class SelectMimeType(SphinxPostTransform):
     def run(self, **kwargs: Any) -> None:
         """Run the transform."""
         # get priority list for this builder
-        # TODO allow for per-notebook/cell priority dicts
+        # TODO allow for per-notebook/cell priority dicts?
         priority_lookup: Dict[str, Sequence[str]] = self.config["nb_render_priority"]
         name = self.app.builder.name
         if name not in priority_lookup:
@@ -545,6 +567,9 @@ class SelectMimeType(SphinxPostTransform):
         for node in list(iterator(condition)):
             # get available mime types
             mime_types = [node["mime_type"] for node in node.children]
+            if not mime_types:
+                node.parent.remove(node)
+                continue
             # select top priority
             index = None
             for mime_type in priority_list:
@@ -555,7 +580,6 @@ class SelectMimeType(SphinxPostTransform):
                 else:
                     break
             if index is None:
-                # TODO ignore if glue mime types present?
                 SPHINX_LOGGER.warning(
                     f"No mime type available in priority list builder {name!r} "
                     f"[{DEFAULT_LOG_TYPE}.mime_priority]",
