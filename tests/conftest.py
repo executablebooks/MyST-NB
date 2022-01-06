@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 import uuid
 
+import bs4
 from docutils.nodes import image as image_node
 from nbconvert.filters import strip_ansi
 from nbdime.diffing.notebooks import (
@@ -107,7 +108,7 @@ class SphinxFixture:
         _path = self.app.outdir / (name + ".html")
         if not _path.exists():
             pytest.fail("html not output")
-        return read_text(_path)
+        return bs4.BeautifulSoup(read_text(_path), "html.parser")
 
     def get_nb(self, index=0):
         """Return the output notebook (after any execution)."""
@@ -120,7 +121,7 @@ class SphinxFixture:
     def get_report_file(self, index=0):
         """Return the report file for a failed execution."""
         name = self.files[index][0]
-        _path = self.app.outdir / "reports" / (name + ".log")
+        _path = self.app.outdir / "reports" / (name + ".err.log")
         if not _path.exists():
             pytest.fail("report log not output")
         return read_text(_path)

@@ -1,8 +1,9 @@
 """An extension for sphinx"""
+from collections import defaultdict
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any, DefaultDict, Dict, List, Optional, Sequence, Set, cast
 
 from docutils import nodes
 from markdown_it.token import Token
@@ -17,14 +18,14 @@ from nbformat import NotebookNode
 from sphinx.addnodes import download_reference
 from sphinx.application import Sphinx
 from sphinx.environment import BuildEnvironment
+from sphinx.environment.collectors import EnvironmentCollector
 from sphinx.transforms.post_transforms import SphinxPostTransform
 from sphinx.util import logging as sphinx_logging
 from sphinx.util.docutils import ReferenceRole
 
 from myst_nb import __version__
 from myst_nb.configuration import NbParserConfig
-from myst_nb.execute import update_notebook
-from myst_nb.execution_tables import setup_exec_table_extension
+from myst_nb.execute import ExecutionResult, update_notebook
 from myst_nb.loggers import DEFAULT_LOG_TYPE, SphinxDocLogger
 from myst_nb.nb_glue.domain import NbGlueDomain
 from myst_nb.parse import notebook_to_tokens
@@ -102,6 +103,8 @@ def sphinx_setup(app: Sphinx):
     # and so do not need to be added here.
 
     # setup extension for execution statistics tables
+    from myst_nb.execution_tables import setup_exec_table_extension  # circular import
+
     setup_exec_table_extension(app)
 
     # add glue domain
@@ -180,7 +183,9 @@ def install_ipywidgets(app: Sphinx, pagename: str, *args: Any, **kwargs: Any) ->
     """Install ipywidgets Javascript, if required on the page."""
     if app.builder.format != "html":
         return
-    ipywidgets_state = get_doc_metadata(app.env, pagename, "ipywidgets_state")
+    ipywidgets_state = NbMetadataCollector.get_doc_data(app.env)[pagename].get(
+        "ipywidgets_state", None
+    )
     if ipywidgets_state is not None:
         # see: https://ipywidgets.readthedocs.io/en/7.6.5/embedding.html
 
@@ -208,27 +213,6 @@ def update_togglebutton_classes(app: Sphinx, config):
     ]
     for selector in to_add:
         config.togglebutton_selector += f", {selector}"
-
-
-def store_doc_metadata(env: BuildEnvironment, docname: str, key: str, value: Any):
-    """Store myst-nb metadata for a document."""
-    # Data in env.metadata is correctly handled, by sphinx.MetadataCollector,
-    # for clearing removed documents and for merging on parallel builds
-
-    # however, one drawback is that it also extracts all docinfo to here,
-    # so we prepend the key name to hopefully avoid it being overwritten
-
-    # TODO is it worth implementing a custom MetadataCollector?
-    if docname not in env.metadata:
-        env.metadata[docname] = {}
-    env.metadata[docname][f"__mystnb__{key}"] = value
-
-
-def get_doc_metadata(
-    env: BuildEnvironment, docname: str, key: str, default=None
-) -> Any:
-    """Get myst-nb metadata for a document."""
-    return env.metadata.get(docname, {}).get(f"__mystnb__{key}", default)
 
 
 class MystNbParser(MystParser):
@@ -272,9 +256,18 @@ class MystNbParser(MystParser):
             notebook, document_path, nb_config, logger
         )
         if exec_data:
-            store_doc_metadata(self.env, self.env.docname, "exec_data", exec_data)
-
-            # TODO store error traceback in outdir and log its path
+            NbMetadataCollector.set_exec_data(self.env, self.env.docname, exec_data)
+            if exec_data["traceback"]:
+                # store error traceback in outdir and log its path
+                reports_file = Path(self.env.app.outdir).joinpath(
+                    "reports", *(self.env.docname + ".err.log").split("/")
+                )
+                reports_file.parent.mkdir(parents=True, exist_ok=True)
+                reports_file.write_text(exec_data["traceback"], encoding="utf8")
+                logger.warning(
+                    f"Notebook exception traceback saved in: {reports_file}",
+                    subtype="exec",
+                )
 
         # Setup the parser
         mdit_parser = create_md_parser(nb_reader.md_config, SphinxNbRenderer)
@@ -327,11 +320,13 @@ class SphinxNbRenderer(SphinxRenderer):
     def render_nb_metadata(self, token: SyntaxTreeNode) -> None:
         """Render the notebook metadata."""
         metadata = dict(token.meta)
+        env = cast(BuildEnvironment, self.sphinx_env)
 
         # save these special keys on the metadata, rather than as docinfo
-        env = self.sphinx_env
-        env.metadata[env.docname]["kernelspec"] = metadata.pop("kernelspec", None)
-        env.metadata[env.docname]["language_info"] = metadata.pop("language_info", None)
+        for key in ("kernelspec", "language_info"):
+            NbMetadataCollector.set_doc_data(
+                env, env.docname, key, metadata.pop(key, None)
+            )
 
         # TODO should we provide hook for NbElementRenderer?
 
@@ -343,8 +338,8 @@ class SphinxNbRenderer(SphinxRenderer):
         ipywidgets_mime = (ipywidgets or {}).get(WIDGET_STATE_MIMETYPE, {})
         if ipywidgets_mime.get("state", None):
             string = sanitize_script_content(json.dumps(ipywidgets_mime))
-            store_doc_metadata(
-                self.sphinx_env, self.sphinx_env.docname, "ipywidgets_state", string
+            NbMetadataCollector.set_doc_data(
+                env, env.docname, "ipywidgets_state", string
             )
 
         # forward the rest to the front_matter renderer
@@ -578,3 +573,79 @@ class NbDownloadRole(ReferenceRole):
             self.rawtext, title, classes=["xref", "download", "myst-nb"]
         )
         return [node], []
+
+
+class NbMetadataCollector(EnvironmentCollector):
+    """Collect myst-nb specific metdata, and handle merging of parallel builds."""
+
+    @staticmethod
+    def set_doc_data(env: BuildEnvironment, docname: str, key: str, value: Any) -> None:
+        """Add nb metadata for a docname to the environment."""
+        if not hasattr(env, "nb_metadata"):
+            env.nb_metadata = defaultdict(dict)
+        env.nb_metadata.setdefault(docname, {})[key] = value
+
+    @staticmethod
+    def get_doc_data(env: BuildEnvironment) -> DefaultDict[str, dict]:
+        """Get myst-nb docname -> metadata dict."""
+        if not hasattr(env, "nb_metadata"):
+            env.nb_metadata = defaultdict(dict)
+        return env.nb_metadata
+
+    @classmethod
+    def set_exec_data(
+        cls, env: BuildEnvironment, docname: str, value: ExecutionResult
+    ) -> None:
+        """Add nb metadata for a docname to the environment."""
+        cls.set_doc_data(env, docname, "exec_data", value)
+        # TODO this does not take account of cache data
+        cls.note_exec_update(env)
+
+    @classmethod
+    def get_exec_data(
+        cls, env: BuildEnvironment, docname: str
+    ) -> Optional[ExecutionResult]:
+        """Get myst-nb docname -> execution data."""
+        return cls.get_doc_data(env)[docname].get("exec_data")
+
+    def get_outdated_docs(
+        self,
+        app: "Sphinx",
+        env: BuildEnvironment,
+        added: Set[str],
+        changed: Set[str],
+        removed: Set[str],
+    ) -> List[str]:
+        # called before any docs are read
+        env.nb_new_exec_data = False
+        return []
+
+    @staticmethod
+    def note_exec_update(env: BuildEnvironment) -> None:
+        """Note that a notebook has been executed."""
+        env.nb_new_exec_data = True
+
+    @staticmethod
+    def new_exec_data(env: BuildEnvironment) -> bool:
+        """Return whether any notebooks have updated execution data."""
+        return getattr(env, "nb_new_exec_data", False)
+
+    def clear_doc(self, app: Sphinx, env: BuildEnvironment, docname: str) -> None:
+        if not hasattr(env, "nb_metadata"):
+            env.nb_metadata = defaultdict(dict)
+        env.nb_metadata.pop(docname, None)
+
+    def merge_other(
+        self,
+        app: Sphinx,
+        env: BuildEnvironment,
+        docnames: Set[str],
+        other: BuildEnvironment,
+    ) -> None:
+        if not hasattr(env, "nb_metadata"):
+            env.nb_metadata = defaultdict(dict)
+        other_metadata = getattr(other, "nb_metadata", defaultdict(dict))
+        for docname in docnames:
+            env.nb_metadata[docname] = other_metadata[docname]
+        if other.nb_new_exec_data:
+            env.nb_new_exec_data = True

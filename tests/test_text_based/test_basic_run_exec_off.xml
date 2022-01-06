@@ -6,8 +6,8 @@
             this was created using 
             <literal>
                 jupytext --to myst tests/notebooks/basic_unrun.ipynb
-        <CellNode cell_type="code" classes="cell">
-            <CellInputNode classes="cell_input">
-                <literal_block xml:space="preserve">
+        <container cell_index="1" cell_metadata="{}" classes="cell" exec_count="True" nb_element="cell_code">
+            <container classes="cell_input" nb_element="cell_code_source">
+                <literal_block language="python" xml:space="preserve">
                     a=1
                     print(a)

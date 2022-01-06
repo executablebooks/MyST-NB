@@ -226,7 +226,7 @@ This is currently not supported, but we hope to introduce it at a later date
 (use/format/cutomise)=
 ## Customise the render process
 
-The render process is goverened by subclasses of {py:class}`myst_nb.render_outputs.CellOutputRendererBase`, which dictate how to create the `docutils` AST nodes for a particular MIME type. the default implementation is {py:class}`~myst_nb.render_outputs.CellOutputRenderer`.
+The render process is governed by subclasses of {py:class}`myst_nb.render_outputs.CellOutputRendererBase`, which dictate how to create the `docutils` AST nodes for a particular MIME type. the default implementation is {py:class}`~myst_nb.render_outputs.CellOutputRenderer`.
 
 Implementations are loaded *via* Python [entry points](https://packaging.python.org/guides/distributing-packages-using-setuptools/#entry-points), in the `myst_nb.mime_render` group.
 So it is possible to inject your own subclass to handle rendering.

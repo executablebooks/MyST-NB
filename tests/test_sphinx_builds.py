@@ -1,5 +1,4 @@
 """Test full sphinx builds."""
-import bs4
 import pytest
 
 
@@ -53,7 +52,6 @@ def test_ipywidgets(sphinx_run):
     # print(sphinx_run.status())
     assert sphinx_run.warnings() == ""
     assert "__mystnb__ipywidgets_state" in sphinx_run.env.metadata["ipywidgets"]
-    html = bs4.BeautifulSoup(sphinx_run.get_html(), "html.parser")
-    head_scripts = html.select("head > script")
+    head_scripts = sphinx_run.get_html().select("head > script")
     assert any("require.js" in script.get("src", "") for script in head_scripts)
     assert any("embed-amd.js" in script.get("src", "") for script in head_scripts)

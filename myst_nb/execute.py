@@ -90,20 +90,25 @@ def update_notebook(
         # execute in the context of the current working directory
         with cwd_context as cwd:
             cwd = os.path.abspath(cwd)
-            logger.info(f"Executing notebook: CWD={cwd!r}")
+            logger.info(
+                "Executing notebook using"
+                + ("tempdir" if nb_config.execution_in_temp else "local")
+                + " CWD"
+            )
             result = single_nb_execution(
                 notebook,
                 cwd=cwd,
                 allow_errors=nb_config.execution_allow_errors,
                 timeout=nb_config.execution_timeout,
             )
-            logger.info(f"Executed notebook in {result.time:.2f} seconds")
 
-        if result.err:
+        if result.err is not None:
             msg = f"Executing notebook failed: {result.err.__class__.__name__}"
             if nb_config.execution_show_tb:
                 msg += f"\n{result.exc_string}"
             logger.warning(msg, subtype="exec")
+        else:
+            logger.info(f"Executed notebook in {result.time:.2f} seconds")
 
         exec_metadata = {
             "mtime": datetime.now().timestamp(),
@@ -155,24 +160,28 @@ def update_notebook(
         )
         with cwd_context as cwd:
             cwd = os.path.abspath(cwd)
-            logger.info(f"Executing notebook: CWD={cwd!r}")
+            logger.info(
+                "Executing notebook using"
+                + ("tempdir" if nb_config.execution_in_temp else "local")
+                + " CWD"
+            )
             result = single_nb_execution(
                 notebook,
                 cwd=cwd,
                 allow_errors=nb_config.execution_allow_errors,
                 timeout=nb_config.execution_timeout,
             )
-            logger.info(f"Executed notebook in {result.time:.2f} seconds")
 
         # handle success / failure cases
         # TODO do in try/except to be careful (in case of database write errors?
-        if result.err:
+        if result.err is not None:
             msg = f"Executing notebook failed: {result.err.__class__.__name__}"
             if nb_config.execution_show_tb:
                 msg += f"\n{result.exc_string}"
             logger.warning(msg, subtype="exec")
             NbStageRecord.set_traceback(stage_record.uri, result.exc_string, cache.db)
         else:
+            logger.info(f"Executed notebook in {result.time:.2f} seconds")
             cache_record = cache.cache_notebook_bundle(
                 NbBundleIn(
                     notebook, stage_record.uri, data={"execution_seconds": result.time}

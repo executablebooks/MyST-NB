@@ -6,7 +6,7 @@ which is then replaced by a table of statistics in a post-transformation
 """
 from datetime import datetime
 import posixpath
-from typing import Any, Callable, Dict
+from typing import Any, Callable, DefaultDict, Dict
 
 from docutils import nodes
 from sphinx.addnodes import pending_xref
@@ -15,14 +15,17 @@ from sphinx.transforms.post_transforms import SphinxPostTransform
 from sphinx.util import logging
 from sphinx.util.docutils import SphinxDirective
 
+from myst_nb.sphinx_ import NbMetadataCollector
+
 SPHINX_LOGGER = logging.getLogger(__name__)
+
+METADATA_KEY = "has_exec_table"
 
 
 def setup_exec_table_extension(app: Sphinx) -> None:
     """Add the Sphinx extension to the Sphinx application."""
     app.add_node(ExecutionStatsNode)
     app.add_directive("nb-exec-table", ExecutionStatsTable)
-    app.connect("env-before-read-docs", check_if_executing)
     app.connect("env-updated", update_exec_tables)
     app.add_post_transform(ExecutionStatsPostTransform)
 
@@ -39,17 +42,8 @@ class ExecutionStatsTable(SphinxDirective):
 
     def run(self):
         """Add a placeholder node to the document, and mark it as having a table."""
-        self.env.metadata[self.env.docname]["__mystnb__has_exec_table"] = True
+        NbMetadataCollector.set_doc_data(self.env, self.env.docname, METADATA_KEY, True)
         return [ExecutionStatsNode()]
-
-
-def check_if_executing(app: Sphinx, env, docnames) -> None:
-    """Check if a document might be executed."""
-    # TODO this is a sub-optimal solution, since it only stops exec tables from being
-    # updated if any document is reparsed.
-    # Ideally we would only update the tables if a document is re-executed, but
-    # but we need to store this on the env, whilst accounting for parallel env merges.
-    env.mystnb_update_exec_tables = True if docnames else False
 
 
 def update_exec_tables(app: Sphinx, env):
@@ -57,12 +51,12 @@ def update_exec_tables(app: Sphinx, env):
 
     These documents will be updated with the new statistics.
     """
-    if not env.mystnb_update_exec_tables:
+    if not NbMetadataCollector.new_exec_data(env):
         return None
     to_update = [
         docname
-        for docname in env.metadata
-        if "__mystnb__has_exec_table" in env.metadata[docname]
+        for docname, data in NbMetadataCollector.get_doc_data(env).items()
+        if data.get(METADATA_KEY)
     ]
     if to_update:
         SPHINX_LOGGER.info(
@@ -79,7 +73,11 @@ class ExecutionStatsPostTransform(SphinxPostTransform):
     def run(self, **kwargs) -> None:
         """Replace the placeholder node with the final table nodes."""
         for node in self.document.traverse(ExecutionStatsNode):
-            node.replace_self(make_stat_table(self.env.docname, self.env.metadata))
+            node.replace_self(
+                make_stat_table(
+                    self.env.docname, NbMetadataCollector.get_doc_data(self.env)
+                )
+            )
 
 
 _key2header: Dict[str, str] = {
@@ -100,7 +98,7 @@ _key2transform: Dict[str, Callable[[Any], str]] = {
 
 
 def make_stat_table(
-    parent_docname: str, metadata: Dict[str, Dict[str, Any]]
+    parent_docname: str, metadata: DefaultDict[str, dict]
 ) -> nodes.table:
     """Create a table of statistics on executed notebooks."""
 
@@ -132,9 +130,9 @@ def make_stat_table(
     tgroup += tbody
 
     for docname in sorted(metadata):
-        if "__mystnb__exec_data" not in metadata[docname]:
+        data = metadata[docname].get("exec_data")
+        if not data:
             continue
-        data = metadata[docname]["__mystnb__exec_data"]
         row = nodes.row()
         tbody += row
 

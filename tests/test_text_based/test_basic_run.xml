@@ -6,10 +6,11 @@
             this was created using 
             <literal>
                 jupytext --to myst tests/notebooks/basic_unrun.ipynb
-        <CellNode cell_type="code" classes="cell">
-            <CellInputNode classes="cell_input">
+        <container cell_index="1" cell_metadata="{}" classes="cell" exec_count="1" nb_element="cell_code">
+            <container classes="cell_input" nb_element="cell_code_source">
                 <literal_block language="ipython3" xml:space="preserve">
                     a=1
                     print(a)
-            <CellOutputNode classes="cell_output">
-                <CellOutputBundleNode output_count="1">
+            <container classes="cell_output" nb_element="cell_code_output">
+                <literal_block classes="output stream" language="myst-ansi" xml:space="preserve">
+                    1
