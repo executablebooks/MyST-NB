@@ -91,8 +91,8 @@ def update_notebook(
         with cwd_context as cwd:
             cwd = os.path.abspath(cwd)
             logger.info(
-                "Executing notebook using"
-                + ("tempdir" if nb_config.execution_in_temp else "local")
+                "Executing notebook using "
+                + ("temporary" if nb_config.execution_in_temp else "local")
                 + " CWD"
             )
             result = single_nb_execution(
@@ -161,8 +161,8 @@ def update_notebook(
         with cwd_context as cwd:
             cwd = os.path.abspath(cwd)
             logger.info(
-                "Executing notebook using"
-                + ("tempdir" if nb_config.execution_in_temp else "local")
+                "Executing notebook using "
+                + ("temporary" if nb_config.execution_in_temp else "local")
                 + " CWD"
             )
             result = single_nb_execution(
