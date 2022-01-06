@@ -101,7 +101,7 @@ This also makes cell outputs more deterministic.
 Normally, slight differences in timing may result in different orders of `stderr` and `stdout` in the cell output, while this setting will sort them properly.
 
 (use/format/images)=
-## Images
+## Images and Figures
 
 With the default renderer, for any image types output by the code, we can apply formatting *via* cell metadata.
 The top-level metadata key can be set using `nb_cell_render_key` in your `conf.py`, and is set to `render` by default.
@@ -116,7 +116,13 @@ Then for the image we can apply all the variables of the standard [image directi
 
 Units of length are: 'em', 'ex', 'px', 'in', 'cm', 'mm', 'pt', 'pc'
 
-We can also set a `caption`, which must be a single paragraph and is rendered as MyST Markdown, and `name`, by which to reference the figure:
+You can also wrap the output in a `figure`, that can include:
+
+- **align**: "left", "center", or "right"
+- **caption**: a string, which must be a single paragraph and is rendered as MyST Markdown
+- **caption_before**: a boolean, if true, the caption is rendered before the figure (default is false)
+- **name**: by which to reference the figure
+- **classes**: space separated strings
 
 ````md
 ```{code-cell} ipython3

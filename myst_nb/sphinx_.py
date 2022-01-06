@@ -409,7 +409,24 @@ class SphinxNbRenderer(SphinxRenderer):
         """Render a notebook code cell."""
         cell_index = token.meta["index"]
         tags = token.meta["metadata"].get("tags", [])
-        # create a container for all the output
+
+        # TODO do we need this -/_ duplication of tag names, or can we deprecate one?
+        remove_input = (
+            self.get_cell_render_config(cell_index, "remove_code_source")
+            or ("remove_input" in tags)
+            or ("remove-input" in tags)
+        )
+        remove_output = (
+            self.get_cell_render_config(cell_index, "remove_code_outputs")
+            or ("remove_output" in tags)
+            or ("remove-output" in tags)
+        )
+
+        # if we are remove both the input and output, we can skip the cell
+        if remove_input and remove_output:
+            return
+
+        # create a container for all the input/output
         classes = ["cell"]
         for tag in tags:
             classes.append(f"tag_{tag.replace(' ', '_')}")
@@ -424,31 +441,20 @@ class SphinxNbRenderer(SphinxRenderer):
         self.add_line_and_source_path(cell_container, token)
         with self.current_node_context(cell_container, append=True):
 
-            # TODO do we need this -/_ duplication of tag names, or can deprecate one?
-            # TODO it would be nice if remove_input/remove_output were also config
-
             # render the code source code
-            if (
-                (not self.get_cell_render_config(cell_index, "remove_code_source"))
-                and ("remove_input" not in tags)
-                and ("remove-input" not in tags)
-            ):
+            if not remove_input:
                 cell_input = nodes.container(
                     nb_element="cell_code_source", classes=["cell_input"]
                 )
                 self.add_line_and_source_path(cell_input, token)
                 with self.current_node_context(cell_input, append=True):
                     self.render_nb_cell_code_source(token)
+
             # render the execution output, if any
             has_outputs = self.config["notebook"]["cells"][cell_index].get(
                 "outputs", []
             )
-            if (
-                has_outputs
-                and (not self.get_cell_render_config(cell_index, "remove_code_outputs"))
-                and ("remove_output" not in tags)
-                and ("remove-output" not in tags)
-            ):
+            if (not remove_output) and has_outputs:
                 cell_output = nodes.container(
                     nb_element="cell_code_output", classes=["cell_output"]
                 )

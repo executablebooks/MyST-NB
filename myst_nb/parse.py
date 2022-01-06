@@ -54,7 +54,6 @@ def notebook_to_tokens(
             continue
 
         # skip cells tagged for removal
-        # TODO make configurable
         tags = nb_cell.metadata.get("tags", [])
         if ("remove_cell" in tags) or ("remove-cell" in tags):
             continue

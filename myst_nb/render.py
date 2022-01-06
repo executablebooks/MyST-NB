@@ -368,8 +368,7 @@ class NbElementRenderer:
             cell_index, "image", "render_image_options"
         )
         for key, spec in [
-            ("classes", options_spec.class_option),  # only for back-compatibility
-            ("class", options_spec.class_option),
+            ("classes", options_spec.class_option),
             ("alt", options_spec.unchanged),
             ("height", options_spec.length_or_unitless),
             ("width", options_spec.length_or_percentage_or_unitless),
@@ -540,10 +539,14 @@ def create_figure_context(
 
     # create figure node
     figure_node = nodes.figure()
-    if figure_options.get("align") in ("center", "left", "right"):
-        figure_node["align"] = figure_options["align"]
     figure_node.line = line
     figure_node.source = self.document["source"]
+
+    # add attributes to figure node
+    if figure_options.get("classes"):
+        figure_node["classes"] += str(figure_options["classes"]).split()
+    if figure_options.get("align") in ("center", "left", "right"):
+        figure_node["align"] = figure_options["align"]
 
     # add target name
     if figure_options.get("name"):
