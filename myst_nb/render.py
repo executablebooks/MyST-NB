@@ -1,5 +1,6 @@
 """Module for rendering notebook components to docutils nodes."""
 from binascii import a2b_base64
+from contextlib import contextmanager
 from functools import lru_cache
 import hashlib
 import json
@@ -8,13 +9,15 @@ from mimetypes import guess_extension
 import os
 from pathlib import Path
 import re
-from typing import TYPE_CHECKING, List, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterator, List, Optional, Union
 
 from docutils import nodes
 from docutils.parsers.rst import directives as options_spec
 from importlib_metadata import entry_points
 from myst_parser.main import MdParserConfig, create_md_parser
 from nbformat import NotebookNode
+
+from myst_nb.loggers import DEFAULT_LOG_TYPE
 
 if TYPE_CHECKING:
     from myst_nb.docutils_ import DocutilsNbRenderer
@@ -23,87 +26,11 @@ if TYPE_CHECKING:
 WIDGET_STATE_MIMETYPE = "application/vnd.jupyter.widget-state+json"
 WIDGET_VIEW_MIMETYPE = "application/vnd.jupyter.widget-view+json"
 RENDER_ENTRY_GROUP = "myst_nb.renderers"
+
+# useful regexes
 _ANSI_RE = re.compile("\x1b\\[(.*?)([@-~])")
-
-
-def strip_ansi(text: str) -> str:
-    """Strip ANSI escape sequences from a string"""
-    return _ANSI_RE.sub("", text)
-
-
-def sanitize_script_content(content: str) -> str:
-    """Sanitize the content of a ``<script>`` tag."""
-    # note escaping addresses https://github.com/jupyter/jupyter-sphinx/issues/184
-    return content.replace("</script>", r"<\/script>")
-
-
-def strip_latex_delimiters(source):
-    r"""Remove LaTeX math delimiters that would be rendered by the math block.
-
-    These are: ``\(…\)``, ``\[…\]``, ``$…$``, and ``$$…$$``.
-    This is necessary because sphinx does not have a dedicated role for
-    generic LaTeX, while Jupyter only defines generic LaTeX output, see
-    https://github.com/jupyter/jupyter-sphinx/issues/90 for discussion.
-    """
-    source = source.strip()
-    delimiter_pairs = (pair.split() for pair in r"\( \),\[ \],$$ $$,$ $".split(","))
-    for start, end in delimiter_pairs:
-        if source.startswith(start) and source.endswith(end):
-            return source[len(start) : -len(end)]
-
-    return source
-
-
 _RGX_CARRIAGERETURN = re.compile(r".*\r(?=[^\n])")
 _RGX_BACKSPACE = re.compile(r"[^\n]\b")
-
-
-def coalesce_streams(outputs: List[NotebookNode]) -> List[NotebookNode]:
-    """Merge all stream outputs with shared names into single streams.
-
-    This ensure deterministic outputs.
-
-    Adapted from:
-    https://github.com/computationalmodelling/nbval/blob/master/nbval/plugin.py.
-    """
-    if not outputs:
-        return []
-
-    new_outputs = []
-    streams = {}
-    for output in outputs:
-        if output["output_type"] == "stream":
-            if output["name"] in streams:
-                streams[output["name"]]["text"] += output["text"]
-            else:
-                new_outputs.append(output)
-                streams[output["name"]] = output
-        else:
-            new_outputs.append(output)
-
-    # process \r and \b characters
-    for output in streams.values():
-        old = output["text"]
-        while len(output["text"]) < len(old):
-            old = output["text"]
-            # Cancel out anything-but-newline followed by backspace
-            output["text"] = _RGX_BACKSPACE.sub("", output["text"])
-        # Replace all carriage returns not followed by newline
-        output["text"] = _RGX_CARRIAGERETURN.sub("", output["text"])
-
-    # We also want to ensure stdout and stderr are always in the same consecutive order,
-    # because they are asynchronous, so order isn't guaranteed.
-    for i, output in enumerate(new_outputs):
-        if output["output_type"] == "stream" and output["name"] == "stderr":
-            if (
-                len(new_outputs) >= i + 2
-                and new_outputs[i + 1]["output_type"] == "stream"
-                and new_outputs[i + 1]["name"] == "stdout"
-            ):
-                stdout = new_outputs.pop(i + 1)
-                new_outputs.insert(i, stdout)
-
-    return new_outputs
 
 
 class NbElementRenderer:
@@ -521,3 +448,137 @@ def load_renderer(name: str) -> NbElementRenderer:
         return klass
 
     raise EntryPointError(f"No Entry Point found for {RENDER_ENTRY_GROUP}:{name}")
+
+
+def strip_ansi(text: str) -> str:
+    """Strip ANSI escape sequences from a string"""
+    return _ANSI_RE.sub("", text)
+
+
+def sanitize_script_content(content: str) -> str:
+    """Sanitize the content of a ``<script>`` tag."""
+    # note escaping addresses https://github.com/jupyter/jupyter-sphinx/issues/184
+    return content.replace("</script>", r"<\/script>")
+
+
+def strip_latex_delimiters(source):
+    r"""Remove LaTeX math delimiters that would be rendered by the math block.
+
+    These are: ``\(…\)``, ``\[…\]``, ``$…$``, and ``$$…$$``.
+    This is necessary because sphinx does not have a dedicated role for
+    generic LaTeX, while Jupyter only defines generic LaTeX output, see
+    https://github.com/jupyter/jupyter-sphinx/issues/90 for discussion.
+    """
+    source = source.strip()
+    delimiter_pairs = (pair.split() for pair in r"\( \),\[ \],$$ $$,$ $".split(","))
+    for start, end in delimiter_pairs:
+        if source.startswith(start) and source.endswith(end):
+            return source[len(start) : -len(end)]
+
+    return source
+
+
+def coalesce_streams(outputs: List[NotebookNode]) -> List[NotebookNode]:
+    """Merge all stream outputs with shared names into single streams.
+
+    This ensure deterministic outputs.
+
+    Adapted from:
+    https://github.com/computationalmodelling/nbval/blob/master/nbval/plugin.py.
+    """
+    if not outputs:
+        return []
+
+    new_outputs = []
+    streams = {}
+    for output in outputs:
+        if output["output_type"] == "stream":
+            if output["name"] in streams:
+                streams[output["name"]]["text"] += output["text"]
+            else:
+                new_outputs.append(output)
+                streams[output["name"]] = output
+        else:
+            new_outputs.append(output)
+
+    # process \r and \b characters
+    for output in streams.values():
+        old = output["text"]
+        while len(output["text"]) < len(old):
+            old = output["text"]
+            # Cancel out anything-but-newline followed by backspace
+            output["text"] = _RGX_BACKSPACE.sub("", output["text"])
+        # Replace all carriage returns not followed by newline
+        output["text"] = _RGX_CARRIAGERETURN.sub("", output["text"])
+
+    # We also want to ensure stdout and stderr are always in the same consecutive order,
+    # because they are asynchronous, so order isn't guaranteed.
+    for i, output in enumerate(new_outputs):
+        if output["output_type"] == "stream" and output["name"] == "stderr":
+            if (
+                len(new_outputs) >= i + 2
+                and new_outputs[i + 1]["output_type"] == "stream"
+                and new_outputs[i + 1]["name"] == "stdout"
+            ):
+                stdout = new_outputs.pop(i + 1)
+                new_outputs.insert(i, stdout)
+
+    return new_outputs
+
+
+@contextmanager
+def create_figure_context(
+    self: "DocutilsNbRenderer", figure_options: Optional[Dict[str, Any]], line: int
+) -> Iterator:
+    """Create a context manager, which optionally wraps new nodes in a figure node.
+
+    A caption may also be added before or after the nodes.
+    """
+    if not isinstance(figure_options, dict):
+        yield
+        return
+
+    # create figure node
+    figure_node = nodes.figure()
+    if figure_options.get("align") in ("center", "left", "right"):
+        figure_node["align"] = figure_options["align"]
+    figure_node.line = line
+    figure_node.source = self.document["source"]
+
+    # add target name
+    if figure_options.get("name"):
+        name = nodes.fully_normalize_name(str(figure_options.get("name")))
+        figure_node["names"].append(name)
+        self.document.note_explicit_target(figure_node, figure_node)
+
+    # create caption node
+    caption = None
+    if figure_options.get("caption", ""):
+        caption = nodes.caption(str(figure_options["caption"]))
+        caption.line = line
+        caption.source = self.document["source"]
+        with self.current_node_context(caption):
+            self.nested_render_text(str(figure_options["caption"]), line)
+        if caption.children and isinstance(caption.children[0], nodes.paragraph):
+            caption.children = caption.children[0].children
+        else:
+            self.create_warning(
+                "Figure caption is not a single paragraph",
+                line=line,
+                wtype=DEFAULT_LOG_TYPE,
+                subtype="fig_caption",
+            )
+
+    self.current_node.append(figure_node)
+    old_current_node = self.current_node
+    self.current_node = figure_node
+
+    if caption and figure_options.get("caption_before", False):
+        figure_node.append(caption)
+
+    yield
+
+    if caption and not figure_options.get("caption_before", False):
+        figure_node.append(caption)
+
+    self.current_node = old_current_node

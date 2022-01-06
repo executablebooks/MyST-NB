@@ -1,5 +1,6 @@
 """An extension for sphinx"""
 from collections import defaultdict
+from contextlib import suppress
 import json
 import os
 from pathlib import Path
@@ -34,6 +35,7 @@ from myst_nb.render import (
     WIDGET_STATE_MIMETYPE,
     NbElementRenderer,
     coalesce_streams,
+    create_figure_context,
     load_renderer,
     sanitize_script_content,
 )
@@ -471,7 +473,7 @@ class SphinxNbRenderer(SphinxRenderer):
     def render_nb_cell_code_outputs(self, token: SyntaxTreeNode) -> None:
         """Render a notebook code cell's outputs."""
         cell_index = token.meta["index"]
-        line = token_line(token)
+        line = token_line(token, 0)
         outputs: List[NotebookNode] = self.config["notebook"]["cells"][cell_index].get(
             "outputs", []
         )
@@ -496,33 +498,40 @@ class SphinxNbRenderer(SphinxRenderer):
                 self.add_line_and_source_path_r(_nodes, token)
                 self.current_node.extend(_nodes)
             elif output.output_type in ("display_data", "execute_result"):
-                # TODO how to handle figures and other means of wrapping an output:
+
                 # TODO unwrapped Markdown (so you can output headers)
                 # maybe in a transform, we grab the containers and move them
                 # "below" the code cell container?
                 # if embed_markdown_outputs is True,
                 # this should be top priority and we "mark" the container for the transform
 
-                # We differ from the docutils-only renderer here, because we need to
-                # cache all rendered outputs, then choose one from the priority list
-                # in a post-transform, once we know which builder is required.
-                mime_bundle = nodes.container(nb_element="mime_bundle")
-                with self.current_node_context(mime_bundle):
-                    for mime_type, data in output["data"].items():
-                        if mime_type.startswith("application/papermill.record/"):
-                            # TODO this is the glue prefix, just ignore this for now
-                            continue
-                        mime_container = nodes.container(mime_type=mime_type)
-                        with self.current_node_context(mime_container):
-                            _nodes = self.nb_renderer.render_mime_type(
-                                mime_type, data, cell_index, line
-                            )
-                            self.current_node.extend(_nodes)
-                        if mime_container.children:
-                            self.current_node.append(mime_container)
-                if mime_bundle.children:
-                    self.add_line_and_source_path_r([mime_bundle], token)
-                    self.current_node.append(mime_bundle)
+                figure_options = None
+                with suppress(KeyError):
+                    figure_options = self.get_cell_render_config(
+                        cell_index, "figure", has_nb_key=False
+                    )
+
+                with create_figure_context(self, figure_options, line):
+                    # We differ from the docutils-only renderer here, because we need to
+                    # cache all rendered outputs, then choose one from the priority list
+                    # in a post-transform, once we know which builder is required.
+                    mime_bundle = nodes.container(nb_element="mime_bundle")
+                    with self.current_node_context(mime_bundle):
+                        for mime_type, data in output["data"].items():
+                            if mime_type.startswith("application/papermill.record/"):
+                                # TODO this is the glue prefix, just ignore this for now
+                                continue
+                            mime_container = nodes.container(mime_type=mime_type)
+                            with self.current_node_context(mime_container):
+                                _nodes = self.nb_renderer.render_mime_type(
+                                    mime_type, data, cell_index, line
+                                )
+                                self.current_node.extend(_nodes)
+                            if mime_container.children:
+                                self.current_node.append(mime_container)
+                    if mime_bundle.children:
+                        self.add_line_and_source_path_r([mime_bundle], token)
+                        self.current_node.append(mime_bundle)
             else:
                 self.create_warning(
                     f"Unsupported output type: {output.output_type}",

@@ -1,6 +1,4 @@
-from unittest.mock import patch
-
-from importlib_metadata import EntryPoint
+"""Tests for rendering code cell outputs."""
 import pytest
 
 from myst_nb.render import EntryPointError, load_renderer
@@ -15,6 +13,7 @@ def test_load_renderer_not_found():
 # TODO sometimes fails in full tests
 # def test_load_renderer_not_subclass(monkeypatch):
 #     """Test that an error is raised when the renderer is not a subclass."""
+#     from importlib_metadata import EntryPoint
 #     monkeypatch.setattr(EntryPoint, "load", lambda self: object)
 #     with pytest.raises(EntryPointError, match="Entry Point .* not a subclass"):
 #         load_renderer("default")
@@ -101,7 +100,18 @@ def test_metadata_image(sphinx_run, clean_doctree, file_regression):
     )
 
 
-# TODO add test for figures
+@pytest.mark.sphinx_params(
+    "metadata_figure.ipynb",
+    conf={"nb_execution_mode": "off", "nb_cell_render_key": "myst"},
+)
+def test_metadata_figure(sphinx_run, clean_doctree, file_regression):
+    """Test configuring figure attributes to be rendered from cell metadata."""
+    sphinx_run.build()
+    assert sphinx_run.warnings() == ""
+    doctree = clean_doctree(sphinx_run.get_resolved_doctree("metadata_figure"))
+    file_regression.check(
+        doctree.pformat().replace(".jpeg", ".jpg"), extension=".xml", encoding="utf8"
+    )
 
 
 @pytest.mark.sphinx_params("unknown_mimetype.ipynb", conf={"nb_execution_mode": "off"})

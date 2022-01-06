@@ -1,4 +1,5 @@
 """A parser for docutils."""
+from contextlib import suppress
 from functools import partial
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -25,7 +26,12 @@ from myst_nb.read import (
     read_myst_markdown_notebook,
     standard_nb_read,
 )
-from myst_nb.render import NbElementRenderer, coalesce_streams, load_renderer
+from myst_nb.render import (
+    NbElementRenderer,
+    coalesce_streams,
+    create_figure_context,
+    load_renderer,
+)
 
 DOCUTILS_EXCLUDED_ARGS = {
     f.name for f in NbParserConfig.get_fields() if f.metadata.get("docutils_exclude")
@@ -336,12 +342,13 @@ class DocutilsNbRenderer(DocutilsRenderer):
                 self.add_line_and_source_path_r(_nodes, token)
                 self.current_node.extend(_nodes)
             elif output.output_type in ("display_data", "execute_result"):
-                # TODO how to handle figures and other means of wrapping an output:
+
                 # TODO unwrapped Markdown (so you can output headers)
                 # maybe in a transform, we grab the containers and move them
                 # "below" the code cell container?
                 # if embed_markdown_outputs is True,
                 # this should be top priority and we "mark" the container for the transform
+
                 try:
                     mime_type = next(x for x in mime_priority if x in output["data"])
                 except StopIteration:
@@ -353,13 +360,20 @@ class DocutilsNbRenderer(DocutilsRenderer):
                         subtype="mime_type",
                     )
                 else:
-                    container = nodes.container(mime_type=mime_type)
-                    with self.current_node_context(container, append=True):
-                        _nodes = self.nb_renderer.render_mime_type(
-                            mime_type, output["data"][mime_type], cell_index, line
+                    figure_options = None
+                    with suppress(KeyError):
+                        figure_options = self.get_cell_render_config(
+                            cell_index, "figure", has_nb_key=False
                         )
-                        self.current_node.extend(_nodes)
-                    self.add_line_and_source_path_r([container], token)
+
+                    with create_figure_context(self, figure_options, line):
+                        container = nodes.container(mime_type=mime_type)
+                        with self.current_node_context(container, append=True):
+                            _nodes = self.nb_renderer.render_mime_type(
+                                mime_type, output["data"][mime_type], cell_index, line
+                            )
+                            self.current_node.extend(_nodes)
+                        self.add_line_and_source_path_r([container], token)
             else:
                 self.create_warning(
                     f"Unsupported output type: {output.output_type}",

@@ -1,0 +1,23 @@
+<document source="metadata_figure">
+    <section classes="tex2jax_ignore mathjax_ignore" ids="formatting-code-outputs" names="formatting\ code\ outputs">
+        <title>
+            Formatting code outputs
+        <container cell_index="1" cell_metadata="{'myst': {'figure': {'caption': 'Hey everyone its **party** time!\n', 'name': 'fun-fish'}}}" classes="cell" exec_count="1" nb_element="cell_code">
+            <container classes="cell_input" nb_element="cell_code_source">
+                <literal_block language="ipython3" linenos="False" xml:space="preserve">
+                    from IPython.display import Image
+                    Image("fun-fish.png")
+            <container classes="cell_output" nb_element="cell_code_output">
+                <figure ids="fun-fish" names="fun-fish">
+                    <container mime_type="image/png">
+                        <image candidates="{'*': '_build/jupyter_execute/3eacaf6adad1a4305807616181bbee897bb29177e79e2092ddd0264b848ddb4e.png'}" uri="_build/jupyter_execute/3eacaf6adad1a4305807616181bbee897bb29177e79e2092ddd0264b848ddb4e.png">
+                    <caption>
+                        Hey everyone its 
+                        <strong>
+                            party
+                         time!
+        <paragraph>
+            Link: 
+            <reference internal="True" refid="fun-fish">
+                <inline classes="std std-ref">
+                    swim to the fish

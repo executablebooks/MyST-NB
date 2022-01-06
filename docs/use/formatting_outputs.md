@@ -116,7 +116,7 @@ Then for the image we can apply all the variables of the standard [image directi
 
 Units of length are: 'em', 'ex', 'px', 'in', 'cm', 'mm', 'pt', 'pc'
 
-We can also set a caption (which is rendered as [CommonMark](https://commonmark.org/)) and name, by which to reference the figure:
+We can also set a `caption`, which must be a single paragraph and is rendered as MyST Markdown, and `name`, by which to reference the figure:
 
 ````md
 ```{code-cell} ipython3
@@ -130,7 +130,7 @@ render:
   figure:
     caption: |
       Hey everyone its **party** time!
-    name: fun-fish
+    name: fun-fish-ref
 ---
 from IPython.display import Image
 Image("images/fun-fish.png")
@@ -148,13 +148,41 @@ render:
   figure:
     caption: |
       Hey everyone its **party** time!
-    name: fun-fish
+    name: fun-fish-ref
 ---
 from IPython.display import Image
 Image("images/fun-fish.png")
 ```
 
-Now we can link to the image from anywhere in our documentation: [swim to the fish](fun-fish)
+Now we can link to the image from anywhere in our documentation: [swim to the fish](fun-fish-ref)
+
+You can create figures for any mime outputs:
+
+````md
+```{code-cell} ipython3
+---
+render:
+  figure:
+    align: left
+    caption_before: true
+    caption: This is my table caption, aligned left
+---
+import pandas
+pandas.DataFrame({"column 1": [1, 2, 3]})
+```
+````
+
+```{code-cell} ipython3
+---
+render:
+  figure:
+    align: left
+    caption_before: true
+    caption: This is my table caption, aligned left
+---
+import pandas
+pandas.DataFrame({"column 1": [1, 2, 3]})
+```
 
 (use/format/markdown)=
 ## Markdown
