@@ -73,6 +73,8 @@ def sphinx_setup(app: Sphinx):
     app.connect("config-inited", add_nb_custom_formats)
     # ensure notebook checkpoints are excluded from parsing
     app.connect("config-inited", add_exclude_patterns)
+    # add collector for myst nb specific data
+    app.add_env_collector(NbMetadataCollector)
 
     # TODO add an event which, if any files have been removed,
     # all jupyter-cache stage records with a non-existent path are removed
@@ -634,6 +636,9 @@ class NbMetadataCollector(EnvironmentCollector):
         if not hasattr(env, "nb_metadata"):
             env.nb_metadata = defaultdict(dict)
         env.nb_metadata.pop(docname, None)
+
+    def process_doc(self, app: Sphinx, doctree: nodes.document) -> None:
+        pass
 
     def merge_other(
         self,

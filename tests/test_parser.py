@@ -89,3 +89,15 @@ def test_toctree_in_ipynb(sphinx_run, file_regression):
         sphinx_run.get_doctree("latex_build/other").pformat(), extension=".xml"
     )
     assert sphinx_run.warnings() == ""
+
+
+@pytest.mark.sphinx_params("ipywidgets.ipynb", conf={"nb_execution_mode": "off"})
+def test_ipywidgets(sphinx_run):
+    """Test that ipywidget state is extracted and JS is included in the HTML head."""
+    sphinx_run.build()
+    # print(sphinx_run.status())
+    assert sphinx_run.warnings() == ""
+    assert "ipywidgets_state" in sphinx_run.env.nb_metadata["ipywidgets"]
+    head_scripts = sphinx_run.get_html().select("head > script")
+    assert any("require.js" in script.get("src", "") for script in head_scripts)
+    assert any("embed-amd.js" in script.get("src", "") for script in head_scripts)
