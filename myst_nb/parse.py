@@ -91,6 +91,7 @@ def notebook_to_tokens(
             )
         elif nb_cell["cell_type"] == "raw":
             # https://nbformat.readthedocs.io/en/5.1.3/format_description.html#raw-nbconvert-cells
+            metadata = nb_node_to_dict(nb_cell["metadata"])
             tokens = [
                 Token(
                     "nb_cell_raw",

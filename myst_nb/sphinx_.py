@@ -403,7 +403,12 @@ class SphinxNbRenderer(SphinxRenderer):
 
     def render_nb_cell_raw(self, token: SyntaxTreeNode) -> None:
         """Render a notebook raw cell."""
-        # TODO
+        line = token_line(token, 0)
+        _nodes = self.nb_renderer.render_raw_cell(
+            token.content, token.meta["metadata"], token.meta["index"], line
+        )
+        self.add_line_and_source_path_r(_nodes, token)
+        self.current_node.extend(_nodes)
 
     def render_nb_cell_code(self, token: SyntaxTreeNode) -> None:
         """Render a notebook code cell."""
@@ -504,6 +509,9 @@ class SphinxNbRenderer(SphinxRenderer):
                 self.add_line_and_source_path_r(_nodes, token)
                 self.current_node.extend(_nodes)
             elif output.output_type in ("display_data", "execute_result"):
+
+                # TODO these output have their own 'metadata' key,
+                # we should parse these to render_mime_type
 
                 # TODO unwrapped Markdown (so you can output headers)
                 # maybe in a transform, we grab the containers and move them

@@ -80,6 +80,23 @@ cells:
                 1
 .
 
+Raw Cell
+.
+cells:
+  - cell_type: raw
+    metadata: {"format": "text/html"}
+    source: |
+        <div>
+            <h1>A Title</h1>
+        </div>
+.
+<document nb_kernelspec="True" nb_language_info="True" source="<string>">
+    <raw classes="output text_html" format="html" xml:space="preserve">
+        <div>
+            <h1>A Title</h1>
+        </div>
+.
+
 Mixed Cells:
 .
 cells:

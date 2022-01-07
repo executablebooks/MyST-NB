@@ -187,6 +187,21 @@ class NbElementRenderer:
         node["classes"] += ["output", "traceback"]
         return [node]
 
+    def render_raw_cell(
+        self, content: str, metadata: dict, cell_index: int, source_line: int
+    ) -> List[nodes.Element]:
+        """Render a raw cell.
+
+        https://nbformat.readthedocs.io/en/5.1.3/format_description.html#raw-nbconvert-cells
+
+        :param content: the raw cell content
+        :param metadata: the cell metadata
+        :param cell_index: the index of the cell
+        :param source_line: the line number of the cell in the source document
+        """
+        mime_type = metadata.get("format", "text/plain")
+        return self.render_mime_type(mime_type, content, cell_index, source_line)
+
     def render_mime_type(
         self, mime_type: str, data: Union[str, bytes], cell_index: int, source_line: int
     ) -> List[nodes.Element]:
@@ -329,8 +344,8 @@ class NbElementRenderer:
 
     def render_image(
         self,
-        mime_type: Union[str, bytes],
-        data: bytes,
+        mime_type: str,
+        data: Union[str, bytes],
         cell_index: int,
         source_line: int,
     ) -> List[nodes.Element]:
