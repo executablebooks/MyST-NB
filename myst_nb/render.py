@@ -26,11 +26,7 @@ if TYPE_CHECKING:
 WIDGET_STATE_MIMETYPE = "application/vnd.jupyter.widget-state+json"
 WIDGET_VIEW_MIMETYPE = "application/vnd.jupyter.widget-view+json"
 RENDER_ENTRY_GROUP = "myst_nb.renderers"
-
-# useful regexes
 _ANSI_RE = re.compile("\x1b\\[(.*?)([@-~])")
-_RGX_CARRIAGERETURN = re.compile(r".*\r(?=[^\n])")
-_RGX_BACKSPACE = re.compile(r"[^\n]\b")
 
 
 class NbElementRenderer:
@@ -53,7 +49,11 @@ class NbElementRenderer:
 
     @property
     def logger(self) -> logging.Logger:
-        """The logger for this renderer."""
+        """The logger for this renderer.
+
+        In extension to a standard logger,
+        this logger also for `line` and `subtype` kwargs to the `log` methods.
+        """
         # TODO the only problem with logging here, is that we cannot generate
         # nodes.system_message to append to the document.
         return self._logger
@@ -62,6 +62,14 @@ class NbElementRenderer:
     def source(self):
         """The source of the notebook."""
         return self.renderer.document["source"]
+
+    def get_cell_metadata(self, cell_index: int) -> NotebookNode:
+        # TODO handle key/index error
+        return self.renderer.config["notebook"]["cells"][cell_index]["metadata"]
+
+    def get_resources(self) -> Dict[str, Any]:
+        """Get the resources from the notebook preprocessing."""
+        return self.renderer.config["nb_resources"]
 
     def write_file(
         self, path: List[str], content: bytes, overwrite=False, exists_ok=False
@@ -75,9 +83,11 @@ class NbElementRenderer:
 
         :returns: URI to use for referencing the file
         """
-        output_folder = Path(self.renderer.get_nb_config("output_folder"))
-        filepath = output_folder.joinpath(*path)
-        if filepath.exists():
+        output_folder = self.renderer.get_nb_config("output_folder")
+        filepath = Path(output_folder).joinpath(*path)
+        if not output_folder:
+            pass  # do not output anything if output_folder is not set (docutils only)
+        elif filepath.exists():
             if overwrite:
                 filepath.write_bytes(content)
             elif not exists_ok:
@@ -99,9 +109,23 @@ class NbElementRenderer:
         else:
             return str(filepath)
 
-    def get_cell_metadata(self, cell_index: int) -> NotebookNode:
-        # TODO handle key/index error
-        return self.renderer.config["notebook"]["cells"][cell_index]["metadata"]
+    def render_raw_cell(
+        self, content: str, metadata: dict, cell_index: int, source_line: int
+    ) -> List[nodes.Element]:
+        """Render a raw cell.
+
+        https://nbformat.readthedocs.io/en/5.1.3/format_description.html#raw-nbconvert-cells
+
+        :param content: the raw cell content
+        :param metadata: the cell metadata
+        :param cell_index: the index of the cell
+        :param source_line: the line number of the cell in the source document
+        """
+        mime_type = metadata.get("format")
+        if not mime_type:
+            # skip without warning, since e.g. jupytext saves raw cells with no format
+            return []
+        return self.render_mime_type(mime_type, content, cell_index, source_line)
 
     def render_stdout(
         self, output: NotebookNode, cell_index: int, source_line: int
@@ -186,21 +210,6 @@ class NbElementRenderer:
         )
         node["classes"] += ["output", "traceback"]
         return [node]
-
-    def render_raw_cell(
-        self, content: str, metadata: dict, cell_index: int, source_line: int
-    ) -> List[nodes.Element]:
-        """Render a raw cell.
-
-        https://nbformat.readthedocs.io/en/5.1.3/format_description.html#raw-nbconvert-cells
-
-        :param content: the raw cell content
-        :param metadata: the cell metadata
-        :param cell_index: the index of the cell
-        :param source_line: the line number of the cell in the source document
-        """
-        mime_type = metadata.get("format", "text/plain")
-        return self.render_mime_type(mime_type, content, cell_index, source_line)
 
     def render_mime_type(
         self, mime_type: str, data: Union[str, bytes], cell_index: int, source_line: int
@@ -492,54 +501,6 @@ def strip_latex_delimiters(source):
     return source
 
 
-def coalesce_streams(outputs: List[NotebookNode]) -> List[NotebookNode]:
-    """Merge all stream outputs with shared names into single streams.
-
-    This ensure deterministic outputs.
-
-    Adapted from:
-    https://github.com/computationalmodelling/nbval/blob/master/nbval/plugin.py.
-    """
-    if not outputs:
-        return []
-
-    new_outputs = []
-    streams = {}
-    for output in outputs:
-        if output["output_type"] == "stream":
-            if output["name"] in streams:
-                streams[output["name"]]["text"] += output["text"]
-            else:
-                new_outputs.append(output)
-                streams[output["name"]] = output
-        else:
-            new_outputs.append(output)
-
-    # process \r and \b characters
-    for output in streams.values():
-        old = output["text"]
-        while len(output["text"]) < len(old):
-            old = output["text"]
-            # Cancel out anything-but-newline followed by backspace
-            output["text"] = _RGX_BACKSPACE.sub("", output["text"])
-        # Replace all carriage returns not followed by newline
-        output["text"] = _RGX_CARRIAGERETURN.sub("", output["text"])
-
-    # We also want to ensure stdout and stderr are always in the same consecutive order,
-    # because they are asynchronous, so order isn't guaranteed.
-    for i, output in enumerate(new_outputs):
-        if output["output_type"] == "stream" and output["name"] == "stderr":
-            if (
-                len(new_outputs) >= i + 2
-                and new_outputs[i + 1]["output_type"] == "stream"
-                and new_outputs[i + 1]["name"] == "stdout"
-            ):
-                stdout = new_outputs.pop(i + 1)
-                new_outputs.insert(i, stdout)
-
-    return new_outputs
-
-
 @contextmanager
 def create_figure_context(
     self: "DocutilsNbRenderer", figure_options: Optional[Dict[str, Any]], line: int
@@ -551,6 +512,8 @@ def create_figure_context(
     if not isinstance(figure_options, dict):
         yield
         return
+
+    # note: most of this is copied directly from sphinx.Figure
 
     # create figure node
     figure_node = nodes.figure()
@@ -572,16 +535,18 @@ def create_figure_context(
     # create caption node
     caption = None
     if figure_options.get("caption", ""):
-        caption = nodes.caption(str(figure_options["caption"]))
-        caption.line = line
-        caption.source = self.document["source"]
-        with self.current_node_context(caption):
+        node = nodes.Element()  # anonymous container for parsing
+        with self.current_node_context(node):
             self.nested_render_text(str(figure_options["caption"]), line)
-        if caption.children and isinstance(caption.children[0], nodes.paragraph):
-            caption.children = caption.children[0].children
-        else:
+        first_node = node.children[0]
+        legend_nodes = node.children[1:]
+        if isinstance(first_node, nodes.paragraph):
+            caption = nodes.caption(first_node.rawsource, "", *first_node.children)
+            caption.source = self.document["source"]
+            caption.line = line
+        elif not (isinstance(first_node, nodes.comment) and len(first_node) == 0):
             self.create_warning(
-                "Figure caption is not a single paragraph",
+                "Figure caption must be a paragraph or empty comment.",
                 line=line,
                 wtype=DEFAULT_LOG_TYPE,
                 subtype="fig_caption",
@@ -593,10 +558,14 @@ def create_figure_context(
 
     if caption and figure_options.get("caption_before", False):
         figure_node.append(caption)
+        if legend_nodes:
+            figure_node += nodes.legend("", *legend_nodes)
 
     yield
 
     if caption and not figure_options.get("caption_before", False):
         figure_node.append(caption)
+        if legend_nodes:
+            figure_node += nodes.legend("", *legend_nodes)
 
     self.current_node = old_current_node

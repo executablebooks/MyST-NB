@@ -116,10 +116,10 @@ Then for the image we can apply all the variables of the standard [image directi
 
 Units of length are: 'em', 'ex', 'px', 'in', 'cm', 'mm', 'pt', 'pc'
 
-You can also wrap the output in a `figure`, that can include:
+You can also wrap the output in a [`figure`](https://docutils.sourceforge.io/docs/ref/rst/directives.html#figure), that can include:
 
 - **align**: "left", "center", or "right"
-- **caption**: a string, which must be a single paragraph and is rendered as MyST Markdown
+- **caption**: a string, which must contain a single paragraph and is rendered as MyST Markdown (subsequent paragraphs are added as a legend)
 - **caption_before**: a boolean, if true, the caption is rendered before the figure (default is false)
 - **name**: by which to reference the figure
 - **classes**: space separated strings
@@ -136,6 +136,8 @@ render:
   figure:
     caption: |
       Hey everyone its **party** time!
+
+      (and I'm a legend)
     name: fun-fish-ref
 ---
 from IPython.display import Image
@@ -154,6 +156,8 @@ render:
   figure:
     caption: |
       Hey everyone its **party** time!
+
+      (and I'm a legend)
     name: fun-fish-ref
 ---
 from IPython.display import Image

@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from docutils import nodes
 from docutils.core import default_description, publish_cmdline
-from docutils.parsers.rst.directives import register_directive
+from docutils.parsers.rst.directives import _directives
 from markdown_it.token import Token
 from markdown_it.tree import SyntaxTreeNode
 from myst_parser.docutils_ import DOCUTILS_EXCLUDED_ARGS as DOCUTILS_EXCLUDED_ARGS_MYST
@@ -17,21 +17,18 @@ import nbformat
 from nbformat import NotebookNode
 
 from myst_nb.configuration import NbParserConfig
-from myst_nb.execute import update_notebook
+from myst_nb.execute import execute_notebook
 from myst_nb.loggers import DEFAULT_LOG_TYPE, DocutilsDocLogger
+from myst_nb.nb_glue.elements import PasteDirective, PasteFigureDirective
 from myst_nb.parse import nb_node_to_dict, notebook_to_tokens
+from myst_nb.preprocess import preprocess_notebook
 from myst_nb.read import (
     NbReader,
     UnexpectedCellDirective,
     read_myst_markdown_notebook,
     standard_nb_read,
 )
-from myst_nb.render import (
-    NbElementRenderer,
-    coalesce_streams,
-    create_figure_context,
-    load_renderer,
-)
+from myst_nb.render import NbElementRenderer, create_figure_context, load_renderer
 
 DOCUTILS_EXCLUDED_ARGS = {
     f.name for f in NbParserConfig.get_fields() if f.metadata.get("docutils_exclude")
@@ -55,16 +52,29 @@ class Parser(MystParser):
     config_section = "myst-nb parser"
 
     def parse(self, inputstring: str, document: nodes.document) -> None:
+        # register/unregister special directives and roles
+        new_directives = (
+            ("code-cell", UnexpectedCellDirective),
+            ("raw-cell", UnexpectedCellDirective),
+            ("glue:", PasteDirective),
+            ("glue:any", PasteDirective),
+            ("glue:figure", PasteFigureDirective),
+        )
+        for name, directive in new_directives:
+            _directives[name] = directive
+        try:
+            return self._parse(inputstring, document)
+        finally:
+            for name, _ in new_directives:
+                _directives.pop(name, None)
+
+    def _parse(self, inputstring: str, document: nodes.document) -> None:
         """Parse source text.
 
         :param inputstring: The source string to parse
         :param document: The root docutils node to add AST elements to
         """
         document_source = document["source"]
-
-        # register special directives
-        register_directive("code-cell", UnexpectedCellDirective)
-        register_directive("raw-cell", UnexpectedCellDirective)
 
         # get a logger for this document
         logger = DocutilsDocLogger(document)
@@ -118,7 +128,7 @@ class Parser(MystParser):
                 )
 
         # potentially execute notebook and/or populate outputs from cache
-        notebook, exec_data = update_notebook(
+        notebook, exec_data = execute_notebook(
             notebook, document_source, nb_config, logger
         )
         if exec_data:
@@ -138,21 +148,31 @@ class Parser(MystParser):
             mdit_parser.renderer, logger
         )
         mdit_parser.options["nb_renderer"] = nb_renderer
+        # we currently do this early, so that the nb_renderer has access to things
+        mdit_parser.renderer.setup_render(mdit_parser.options, mdit_env)
+
+        # pre-process notebook and store resources for render
+        resources = preprocess_notebook(
+            notebook, logger, mdit_parser.renderer.get_cell_render_config
+        )
+        mdit_parser.renderer.config["nb_resources"] = resources
+        # we temporarily store nb_renderer on the document,
+        # so that roles/directives can access it
+        document.attributes["nb_renderer"] = nb_renderer
 
         # parse to tokens
         mdit_tokens = notebook_to_tokens(notebook, mdit_parser, mdit_env, logger)
         # convert to docutils AST, which is added to the document
         mdit_parser.renderer.render(mdit_tokens, mdit_parser.options, mdit_env)
 
-        # write updated notebook to output folder
-        # TODO currently this has to be done after the render has been called/setup
-        # TODO maybe docutils should be optional on whether to do this?
-        # utf-8 is the de-facto standard encoding for notebooks.
+        # write final (updated) notebook to output folder (utf8 is standard encoding)
         content = nbformat.writes(notebook).encode("utf-8")
-        path = ["rendered.ipynb"]
+        path = ["processed.ipynb"]
         nb_renderer.write_file(path, content, overwrite=True)
         # TODO also write CSS to output folder if necessary or always?
         # TODO we also need to load JS URLs if ipywidgets are present and HTML
+
+        document.attributes.pop("nb_renderer")
 
 
 class DocutilsNbRenderer(DocutilsRenderer):
@@ -203,8 +223,9 @@ class DocutilsNbRenderer(DocutilsRenderer):
         metadata = dict(token.meta)
 
         # save these special keys on the document, rather than as docinfo
-        self.document["nb_kernelspec"] = metadata.pop("kernelspec", None)
-        self.document["nb_language_info"] = metadata.pop("language_info", None)
+        for key in ("kernelspec", "language_info", "source_map"):
+            if key in metadata:
+                self.document[f"nb_{key}"] = metadata.pop(key)
 
         # TODO should we provide hook for NbElementRenderer?
 
@@ -288,8 +309,6 @@ class DocutilsNbRenderer(DocutilsRenderer):
         self.add_line_and_source_path(cell_container, token)
         with self.current_node_context(cell_container, append=True):
 
-            # TODO do we need this -/_ duplication of tag names, or can deprecate one?
-
             # render the code source code
             if not remove_input:
                 cell_input = nodes.container(
@@ -332,12 +351,8 @@ class DocutilsNbRenderer(DocutilsRenderer):
         outputs: List[NotebookNode] = self.config["notebook"]["cells"][cell_index].get(
             "outputs", []
         )
-        if self.get_cell_render_config(cell_index, "merge_streams"):
-            outputs = coalesce_streams(outputs)
-
-        mime_priority = self.get_cell_render_config(cell_index, "mime_priority")
-
         # render the outputs
+        mime_priority = self.get_cell_render_config(cell_index, "mime_priority")
         for output in outputs:
             if output.output_type == "stream":
                 if output.name == "stdout":

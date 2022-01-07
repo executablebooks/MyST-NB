@@ -201,14 +201,12 @@ class NbParserConfig:
     # notebook execution options
 
     execution_mode: Literal["off", "force", "auto", "cache"] = attr.ib(
-        # TODO different default for docutils (off) and sphinx (cache)?
-        # TODO deprecate auto and set cache as default instead
         default="auto",
         validator=in_(
             [
                 "off",
-                "force",
                 "auto",
+                "force",
                 "cache",
             ]
         ),
@@ -273,7 +271,7 @@ class NbParserConfig:
         default="build",
         validator=instance_of(str),
         metadata={
-            "help": "Output folder for external outputs",
+            "help": "Folder for external outputs (like images), skipped if empty",
             "sphinx_exclude": True,  # in sphinx we always output to the build folder
         },
     )

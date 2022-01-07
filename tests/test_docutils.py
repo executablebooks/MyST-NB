@@ -29,6 +29,7 @@ def test_basic(line, title, input, expected):
         parser=Parser(),
         settings_overrides={
             "nb_execution_mode": "off",
+            "nb_output_folder": "",
             "myst_all_links_external": True,
             "warning_stream": report_stream,
         },
@@ -60,6 +61,7 @@ def test_reporting(line, title, input, expected):
         parser=Parser(),
         settings_overrides={
             "nb_execution_mode": "off",
+            "nb_output_folder": "",
             "warning_stream": report_stream,
         },
     )

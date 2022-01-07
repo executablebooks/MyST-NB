@@ -26,15 +26,15 @@ from sphinx.util.docutils import ReferenceRole
 
 from myst_nb import __version__
 from myst_nb.configuration import NbParserConfig
-from myst_nb.execute import ExecutionResult, update_notebook
+from myst_nb.execute import ExecutionResult, execute_notebook
 from myst_nb.loggers import DEFAULT_LOG_TYPE, SphinxDocLogger
 from myst_nb.nb_glue.domain import NbGlueDomain
 from myst_nb.parse import nb_node_to_dict, notebook_to_tokens
+from myst_nb.preprocess import preprocess_notebook
 from myst_nb.read import UnexpectedCellDirective, create_nb_reader
 from myst_nb.render import (
     WIDGET_STATE_MIMETYPE,
     NbElementRenderer,
-    coalesce_streams,
     create_figure_context,
     load_renderer,
     sanitize_script_content,
@@ -168,6 +168,7 @@ def create_mystnb_config(app):
     app.env.mystnb_config = app.env.mystnb_config.copy(
         output_folder=str(output_folder), execution_cache_path=str(exec_cache_path)
     )
+    SPHINX_LOGGER.info(f"Using jupyter-cache at: {exec_cache_path}")
 
 
 def add_exclude_patterns(app: Sphinx, config):
@@ -268,7 +269,7 @@ class Parser(MystParser):
                 )
 
         # potentially execute notebook and/or populate outputs from cache
-        notebook, exec_data = update_notebook(
+        notebook, exec_data = execute_notebook(
             notebook, document_path, nb_config, logger
         )
         if exec_data:
@@ -289,7 +290,7 @@ class Parser(MystParser):
         mdit_parser = create_md_parser(nb_reader.md_config, SphinxNbRenderer)
         mdit_parser.options["document"] = document
         mdit_parser.options["notebook"] = notebook
-        mdit_parser.options["nb_config"] = nb_config.as_dict()
+        mdit_parser.options["nb_config"] = nb_config
         mdit_env: Dict[str, Any] = {}
 
         # load notebook element renderer class from entry-point name
@@ -299,19 +300,30 @@ class Parser(MystParser):
             mdit_parser.renderer, logger
         )
         mdit_parser.options["nb_renderer"] = nb_renderer
+        # we currently do this early, so that the nb_renderer has access to things
+        mdit_parser.renderer.setup_render(mdit_parser.options, mdit_env)
+
+        # pre-process notebook and store resources for render
+        resources = preprocess_notebook(
+            notebook, logger, mdit_parser.renderer.get_cell_render_config
+        )
+        mdit_parser.renderer.config["nb_resources"] = resources
+        # we temporarily store nb_renderer on the document,
+        # so that roles/directives can access it
+        document.attributes["nb_renderer"] = nb_renderer
 
         # parse to tokens
         mdit_tokens = notebook_to_tokens(notebook, mdit_parser, mdit_env, logger)
         # convert to docutils AST, which is added to the document
         mdit_parser.renderer.render(mdit_tokens, mdit_parser.options, mdit_env)
 
-        # write final (updated) notebook to output folder
-        # TODO currently this has to be done after the render has been called/setup
-        # utf-8 is the de-facto standard encoding for notebooks.
+        # write final (updated) notebook to output folder (utf8 is standard encoding)
         content = nbformat.writes(notebook).encode("utf-8")
         path = self.env.docname.split("/")
         path[-1] += ".ipynb"
         nb_renderer.write_file(path, content, overwrite=True)
+
+        document.attributes.pop("nb_renderer")
 
 
 class SphinxNbRenderer(SphinxRenderer):
@@ -369,6 +381,7 @@ class SphinxNbRenderer(SphinxRenderer):
             )
 
         # TODO should we provide hook for NbElementRenderer?
+        # Also add method to NbElementRenderer, to store scripts to load
 
         # store ipywidgets state in metadata,
         # which will be later added to HTML page context
@@ -488,9 +501,6 @@ class SphinxNbRenderer(SphinxRenderer):
         outputs: List[NotebookNode] = self.config["notebook"]["cells"][cell_index].get(
             "outputs", []
         )
-        if self.get_cell_render_config(cell_index, "merge_streams"):
-            outputs = coalesce_streams(outputs)
-
         # render the outputs
         for output in outputs:
             if output.output_type == "stream":
@@ -532,9 +542,6 @@ class SphinxNbRenderer(SphinxRenderer):
                     mime_bundle = nodes.container(nb_element="mime_bundle")
                     with self.current_node_context(mime_bundle):
                         for mime_type, data in output["data"].items():
-                            if mime_type.startswith("application/papermill.record/"):
-                                # TODO this is the glue prefix, just ignore this for now
-                                continue
                             mime_container = nodes.container(mime_type=mime_type)
                             with self.current_node_context(mime_container):
                                 _nodes = self.nb_renderer.render_mime_type(

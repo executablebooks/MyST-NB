@@ -34,15 +34,16 @@ class ExecutionResult(TypedDict):
     """traceback if the notebook failed"""
 
 
-def update_notebook(
+def execute_notebook(
     notebook: NotebookNode,
     source: str,
     nb_config: NbParserConfig,
     logger: Logger,
 ) -> Tuple[NotebookNode, Optional[ExecutionResult]]:
-    """Update a notebook using the given configuration.
+    """Update a notebook's outputs using the given configuration.
 
-    This function may execute the notebook if necessary, to update its outputs.
+    This function may execute the notebook if necessary, to update its outputs,
+    or populate from a cache.
 
     :param notebook: The notebook to update.
     :param source: Path to or description of the input source being processed.

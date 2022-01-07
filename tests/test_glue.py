@@ -1,10 +1,9 @@
 from IPython.core.displaypub import DisplayPublisher
 from IPython.core.interactiveshell import InteractiveShell
+import nbformat
 import pytest
 
-from myst_nb.nb_glue import glue, utils
-from myst_nb.nb_glue.domain import NbGlueDomain
-from myst_nb.nb_glue.transform import PasteNodesToDocutils
+from myst_nb.nb_glue import extract_glue_data, glue
 
 
 class MockDisplayPublisher(DisplayPublisher):
@@ -19,17 +18,11 @@ class MockDisplayPublisher(DisplayPublisher):
 
 @pytest.fixture()
 def mock_ipython():
+    """A mock IPython shell for testing notebook cell executions."""
     shell = InteractiveShell.instance()  # type: InteractiveShell
     shell.display_pub = MockDisplayPublisher()
     yield shell.display_pub
     InteractiveShell.clear_instance()
-
-
-def test_check_priority():
-    """Assert that the default transform priority is less than CellOutputsToNodes"""
-    from myst_nb.render_outputs import CellOutputsToNodes
-
-    assert PasteNodesToDocutils.default_priority < CellOutputsToNodes.default_priority
 
 
 def test_glue_func_text(mock_ipython):
@@ -84,18 +77,13 @@ def test_glue_func_obj_no_display(mock_ipython):
     ]
 
 
-def test_find_glued_key(get_test_path):
-
-    bundle = utils.find_glued_key(get_test_path("with_glue.ipynb"), "key_text1")
-    assert bundle == {"key_text1": "'text1'"}
-
-    with pytest.raises(KeyError):
-        utils.find_glued_key(get_test_path("with_glue.ipynb"), "unknown")
-
-
-def test_find_all_keys(get_test_path):
-    keys = utils.find_all_keys(get_test_path("with_glue.ipynb"))
-    assert set(keys) == {
+def test_extract_glue_data(get_test_path):
+    path = get_test_path("with_glue.ipynb")
+    with open(path, "r") as handle:
+        notebook = nbformat.read(handle, as_version=4)
+    resources = {}
+    extract_glue_data(notebook, resources, [], None)
+    assert set(resources["glue"]) == {
         "key_text1",
         "key_float",
         "key_undisplayed",
@@ -107,8 +95,11 @@ def test_find_all_keys(get_test_path):
 
 @pytest.mark.sphinx_params("with_glue.ipynb", conf={"nb_execution_mode": "off"})
 def test_parser(sphinx_run, clean_doctree, file_regression):
+    """Test a sphinx build."""
+    # TODO test duplicate warning in docutils
     sphinx_run.build()
     # print(sphinx_run.status())
+    # print(sphinx_run.warnings())
     assert sphinx_run.warnings() == ""
     doctree = clean_doctree(sphinx_run.get_resolved_doctree("with_glue"))
     file_regression.check(
@@ -116,15 +107,16 @@ def test_parser(sphinx_run, clean_doctree, file_regression):
         extension=f"{sphinx_run.software_versions}.xml",
         encoding="utf8",
     )
-    glue_domain = NbGlueDomain.from_env(sphinx_run.app.env)
-    assert set(glue_domain.cache) == {
-        "key_text1",
-        "key_float",
-        "key_undisplayed",
-        "key_df",
-        "key_plt",
-        "sym_eq",
-    }
-    glue_domain.clear_doc("with_glue")
-    assert glue_domain.cache == {}
-    assert glue_domain.docmap == {}
+    # from myst_nb.nb_glue.domain import NbGlueDomain
+    # glue_domain = NbGlueDomain.from_env(sphinx_run.app.env)
+    # assert set(glue_domain.cache) == {
+    #     "key_text1",
+    #     "key_float",
+    #     "key_undisplayed",
+    #     "key_df",
+    #     "key_plt",
+    #     "sym_eq",
+    # }
+    # glue_domain.clear_doc("with_glue")
+    # assert glue_domain.cache == {}
+    # assert glue_domain.docmap == {}
