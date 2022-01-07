@@ -1,10 +1,19 @@
+"""A domain to register in sphinx.
+
+This is required for any directive/role names using `:`.
+"""
 from typing import List
 
 from sphinx.domains import Domain
 from sphinx.ext.autodoc.directive import DummyOptionSpec
-from sphinx.util.docutils import SphinxDirective, SphinxRole
+from sphinx.util.docutils import SphinxDirective
 
-from myst_nb.nb_glue.elements import PasteDirective, PasteFigureDirective
+from myst_nb.nb_glue.elements import (
+    PasteDirective,
+    PasteFigureDirective,
+    PasteRole,
+    PasteTextRole,
+)
 
 
 class DummyDirective(SphinxDirective):
@@ -15,15 +24,6 @@ class DummyDirective(SphinxDirective):
 
     def run(self):
         return []
-
-
-class DummyDirective2(DummyDirective):
-    has_content = True
-
-
-class DummyRole(SphinxRole):
-    def run(self):
-        return [], []
 
 
 class NbGlueDomain(Domain):
@@ -41,7 +41,7 @@ class NbGlueDomain(Domain):
         "figure": PasteFigureDirective,
         "math": DummyDirective,
     }
-    roles = {"": DummyRole(), "any": DummyRole(), "text": DummyRole()}
+    roles = {"": PasteRole(), "any": PasteRole(), "text": PasteTextRole()}
 
     def merge_domaindata(self, docnames: List[str], otherdata: dict) -> None:
         pass

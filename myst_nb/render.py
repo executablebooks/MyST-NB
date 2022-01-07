@@ -259,7 +259,7 @@ class NbElementRenderer:
         return [node]
 
     def render_mime_type(self, data: MimeData) -> List[nodes.Element]:
-        """Render a notebook mime output."""
+        """Render a notebook mime output, as a block level element."""
         if data.mime_type == "text/plain":
             return self.render_text_plain(data)
         if data.mime_type in {
@@ -310,7 +310,7 @@ class NbElementRenderer:
             # TODO create transform and for sphinx prioritise this output for all output formats
             self.renderer.md_env["match_titles"] = True
         else:
-            # otherwise we render as simple Markdown and heading are not allowed
+            # otherwise we render as simple Markdown and headings are not allowed
             self.renderer.md_env["match_titles"] = False
             self.renderer.md = create_md_parser(
                 MdParserConfig(commonmark_only=True), self.renderer.__class__
@@ -327,12 +327,7 @@ class NbElementRenderer:
         return temp_container.children
 
     def render_text_plain(self, data: MimeData) -> List[nodes.Element]:
-        """Render a notebook text/plain mime data output.
-
-        :param data: the value from the "data" dict
-        :param cell_index: the index of the cell containing the output
-        :param source_line: the line number of the cell in the source document
-        """
+        """Render a notebook text/plain mime data output."""
         lexer = self.renderer.get_cell_render_config(
             data.cell_metadata, "text_lexer", "render_text_lexer"
         )
@@ -343,24 +338,13 @@ class NbElementRenderer:
         return [node]
 
     def render_text_html(self, data: MimeData) -> List[nodes.Element]:
-        """Render a notebook text/html mime data output.
-
-        :param data: the value from the "data" dict
-        :param cell_index: the index of the cell containing the output
-        :param source_line: the line number of the cell in the source document
-        :param inline: create inline nodes instead of block nodes
-        """
+        """Render a notebook text/html mime data output."""
         return [
             nodes.raw(text=data.string, format="html", classes=["output", "text_html"])
         ]
 
     def render_text_latex(self, data: MimeData) -> List[nodes.Element]:
-        """Render a notebook text/latex mime data output.
-
-        :param data: the value from the "data" dict
-        :param cell_index: the index of the cell containing the output
-        :param source_line: the line number of the cell in the source document
-        """
+        """Render a notebook text/latex mime data output."""
         # TODO should we always assume this is math?
         return [
             nodes.math_block(
@@ -371,17 +355,8 @@ class NbElementRenderer:
             )
         ]
 
-    def render_image(
-        self,
-        data: MimeData,
-    ) -> List[nodes.Element]:
-        """Render a notebook image mime data output.
-
-        :param mime_type: the key from the "data" dict
-        :param data: the value from the "data" dict
-        :param cell_index: the index of the cell containing the output
-        :param source_line: the line number of the cell in the source document
-        """
+    def render_image(self, data: MimeData) -> List[nodes.Element]:
+        """Render a notebook image mime data output."""
         # Adapted from:
         # https://github.com/jupyter/nbconvert/blob/45df4b6089b3bbab4b9c504f9e6a892f5b8692e3/nbconvert/preprocessors/extractoutput.py#L43
 
@@ -433,12 +408,7 @@ class NbElementRenderer:
         return [image_node]
 
     def render_javascript(self, data: MimeData) -> List[nodes.Element]:
-        """Render a notebook application/javascript mime data output.
-
-        :param data: the value from the "data" dict
-        :param cell_index: the index of the cell containing the output
-        :param source_line: the line number of the cell in the source document
-        """
+        """Render a notebook application/javascript mime data output."""
         content = sanitize_script_content(data.string)
         mime_type = "application/javascript"
         return [
@@ -449,12 +419,7 @@ class NbElementRenderer:
         ]
 
     def render_widget_view(self, data: MimeData) -> List[nodes.Element]:
-        """Render a notebook application/vnd.jupyter.widget-view+json mime output.
-
-        :param data: the value from the "data" dict
-        :param cell_index: the index of the cell containing the output
-        :param source_line: the line number of the cell in the source document
-        """
+        """Render a notebook application/vnd.jupyter.widget-view+json mime output."""
         # TODO note ipywidgets present?
         content = sanitize_script_content(json.dumps(data.string))
         return [
@@ -463,6 +428,89 @@ class NbElementRenderer:
                 format="html",
             )
         ]
+
+    def render_mime_type_inline(self, data: MimeData) -> List[nodes.Element]:
+        """Render a notebook mime output, as an inline level element."""
+        if data.mime_type == "text/plain":
+            return self.render_text_plain_inline(data)
+        if data.mime_type in {
+            "image/png",
+            "image/jpeg",
+            "application/pdf",
+            "image/svg+xml",
+            "image/gif",
+        }:
+            return self.render_image_inline(data)
+        if data.mime_type == "text/html":
+            return self.render_text_html_inline(data)
+        if data.mime_type == "text/latex":
+            return self.render_text_latex_inline(data)
+        if data.mime_type == "application/javascript":
+            return self.render_javascript_inline(data)
+        if data.mime_type == WIDGET_VIEW_MIMETYPE:
+            return self.render_widget_view_inline(data)
+        if data.mime_type == "text/markdown":
+            return self.render_markdown_inline(data)
+
+        return self.render_unknown_inline(data)
+
+    def render_unknown_inline(self, data: MimeData) -> List[nodes.Element]:
+        """Render a notebook output of unknown mime type."""
+        self.logger.warning(
+            f"skipping unknown output mime type: {data.mime_type}",
+            subtype="unknown_mime_type",
+            line=data.line,
+        )
+        return []
+
+    def render_markdown_inline(self, data: MimeData) -> List[nodes.Element]:
+        """Render a notebook text/markdown mime data output."""
+        # TODO render_markdown_inline
+        return []
+
+    def render_text_plain_inline(self, data: MimeData) -> List[nodes.Element]:
+        """Render a notebook text/plain mime data output."""
+        # TODO previously this was not syntax highlighted?
+        lexer = self.renderer.get_cell_render_config(
+            data.cell_metadata, "text_lexer", "render_text_lexer"
+        )
+        node = self.renderer.create_highlighted_code_block(
+            data.string,
+            lexer,
+            source=self.source,
+            line=data.line,
+            node_cls=nodes.literal,
+        )
+        node["classes"] += ["output", "text_plain"]
+        return [node]
+
+    def render_text_html_inline(self, data: MimeData) -> List[nodes.Element]:
+        """Render a notebook text/html mime data output."""
+        return self.render_text_html(data)
+
+    def render_text_latex_inline(self, data: MimeData) -> List[nodes.Element]:
+        """Render a notebook text/latex mime data output."""
+        # TODO should we always assume this is math?
+        return [
+            nodes.math(
+                text=strip_latex_delimiters(data.string),
+                nowrap=False,
+                number=None,
+                classes=["output", "text_latex"],
+            )
+        ]
+
+    def render_image_inline(self, data: MimeData) -> List[nodes.Element]:
+        """Render a notebook image mime data output."""
+        return self.render_image(data)
+
+    def render_javascript_inline(self, data: MimeData) -> List[nodes.Element]:
+        """Render a notebook application/javascript mime data output."""
+        return self.render_javascript(data)
+
+    def render_widget_view_inline(self, data: MimeData) -> List[nodes.Element]:
+        """Render a notebook application/vnd.jupyter.widget-view+json mime output."""
+        return self.render_widget_view(data)
 
 
 class EntryPointError(Exception):

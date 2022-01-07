@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from docutils import nodes
 from docutils.core import default_description, publish_cmdline
 from docutils.parsers.rst.directives import _directives
+from docutils.parsers.rst.roles import _roles
 from markdown_it.token import Token
 from markdown_it.tree import SyntaxTreeNode
 from myst_parser.docutils_ import DOCUTILS_EXCLUDED_ARGS as DOCUTILS_EXCLUDED_ARGS_MYST
@@ -19,7 +20,12 @@ from nbformat import NotebookNode
 from myst_nb.configuration import NbParserConfig
 from myst_nb.execute import execute_notebook
 from myst_nb.loggers import DEFAULT_LOG_TYPE, DocutilsDocLogger
-from myst_nb.nb_glue.elements import PasteDirective, PasteFigureDirective
+from myst_nb.nb_glue.elements import (
+    PasteDirective,
+    PasteFigureDirective,
+    PasteRole,
+    PasteTextRole,
+)
 from myst_nb.parse import nb_node_to_dict, notebook_to_tokens
 from myst_nb.preprocess import preprocess_notebook
 from myst_nb.read import (
@@ -65,13 +71,22 @@ class Parser(MystParser):
             ("glue:any", PasteDirective),
             ("glue:figure", PasteFigureDirective),
         )
+        new_roles = (
+            ("glue:", PasteRole()),
+            ("glue:any", PasteRole()),
+            ("glue:text", PasteTextRole()),
+        )
         for name, directive in new_directives:
             _directives[name] = directive
+        for name, role in new_roles:
+            _roles[name] = role
         try:
             return self._parse(inputstring, document)
         finally:
             for name, _ in new_directives:
                 _directives.pop(name, None)
+            for name, _ in new_roles:
+                _roles.pop(name, None)
 
     def _parse(self, inputstring: str, document: nodes.document) -> None:
         """Parse source text.
