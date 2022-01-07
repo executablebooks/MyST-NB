@@ -21,6 +21,7 @@ class PasteDirective(Directive):
         return hasattr(self.state.document.settings, "env")
 
     def warning(self, message: str) -> nodes.system_message:
+        """Create a warning."""
         if self.is_sphinx:
             logger = SphinxDocLogger(self.state.document)
         else:
@@ -35,7 +36,7 @@ class PasteDirective(Directive):
         )
 
     def set_source_info(self, node: nodes.Node) -> None:
-        """Set source and line number to the node."""
+        """Set source and line number for the node."""
         node.source, node.line = self.state_machine.get_source_and_line(self.lineno)
 
     def run(self) -> List[nodes.Node]:
@@ -59,6 +60,7 @@ class PasteDirective(Directive):
     def render_output_docutils(
         self, nb_renderer: NbElementRenderer, output: Dict[str, Any]
     ) -> List[nodes.Node]:
+        """Render the output in docutils (select mime priority directly)."""
         mime_priority = nb_renderer.renderer.get_nb_config("mime_priority")
         try:
             mime_type = next(x for x in mime_priority if x in output["data"])
@@ -73,6 +75,7 @@ class PasteDirective(Directive):
     def render_output_sphinx(
         self, nb_renderer: NbElementRenderer, output: Dict[str, Any]
     ) -> List[nodes.Node]:
+        """Render the output in sphinx (defer mime priority selection)."""
         mime_bundle = nodes.container(nb_element="mime_bundle")
         self.set_source_info(mime_bundle)
         for mime_type, data in output["data"].items():
@@ -87,6 +90,8 @@ class PasteDirective(Directive):
 
 
 class PasteFigureDirective(PasteDirective):
+    """A directive for pasting code outputs from notebooks, wrapped in a figure."""
+
     def align(argument):
         return directives.choice(argument, ("left", "center", "right"))
 
