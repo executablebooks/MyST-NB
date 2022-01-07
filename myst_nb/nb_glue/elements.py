@@ -5,7 +5,7 @@ from docutils import nodes
 from docutils.parsers.rst import Directive, directives
 
 from myst_nb.loggers import DocutilsDocLogger, SphinxDocLogger
-from myst_nb.render import NbElementRenderer
+from myst_nb.render import MimeData, NbElementRenderer
 
 
 class PasteDirective(Directive):
@@ -67,9 +67,13 @@ class PasteDirective(Directive):
         except StopIteration:
             return self.warning("No output mime type found from render_priority")
         else:
-            cell_index = 0  # TODO make this optional, and actually just pass metadata?
             return nb_renderer.render_mime_type(
-                mime_type, output["data"][mime_type], cell_index, self.lineno
+                MimeData(
+                    mime_type,
+                    output["data"][mime_type],
+                    output_metadata=output.get("metadata", {}),
+                    line=self.lineno,
+                )
             )
 
     def render_output_sphinx(
@@ -81,8 +85,14 @@ class PasteDirective(Directive):
         for mime_type, data in output["data"].items():
             mime_container = nodes.container(mime_type=mime_type)
             self.set_source_info(mime_container)
-            cell_index = 0  # TODO make this optional, and actually just pass metadata?
-            nds = nb_renderer.render_mime_type(mime_type, data, cell_index, self.lineno)
+            nds = nb_renderer.render_mime_type(
+                MimeData(
+                    mime_type,
+                    data,
+                    output_metadata=output.get("metadata", {}),
+                    line=self.lineno,
+                )
+            )
             if nds:
                 mime_container.extend(nds)
                 mime_bundle.append(mime_container)

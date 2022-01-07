@@ -34,6 +34,7 @@ from myst_nb.preprocess import preprocess_notebook
 from myst_nb.read import UnexpectedCellDirective, create_nb_reader
 from myst_nb.render import (
     WIDGET_STATE_MIMETYPE,
+    MimeData,
     NbElementRenderer,
     create_figure_context,
     load_renderer,
@@ -343,7 +344,7 @@ class SphinxNbRenderer(SphinxRenderer):
 
     def get_cell_render_config(
         self,
-        cell_index: int,
+        cell_metadata: Dict[str, Any],
         key: str,
         nb_key: Optional[str] = None,
         has_nb_key: bool = True,
@@ -357,17 +358,17 @@ class SphinxNbRenderer(SphinxRenderer):
         :raises: IndexError if the cell index is out of range
         :raises: KeyError if the key is not found
         """
-        cell = self.config["notebook"].cells[cell_index]
+        # TODO allow output level configuration?
         cell_metadata_key = self.get_nb_config("cell_render_key")
         if (
-            cell_metadata_key not in cell.metadata
-            or key not in cell.metadata[cell_metadata_key]
+            cell_metadata_key not in cell_metadata
+            or key not in cell_metadata[cell_metadata_key]
         ):
             if not has_nb_key:
                 raise KeyError(key)
             return self.get_nb_config(nb_key if nb_key is not None else key)
         # TODO validate?
-        return cell.metadata[cell_metadata_key][key]
+        return cell_metadata[cell_metadata_key][key]
 
     def render_nb_metadata(self, token: SyntaxTreeNode) -> None:
         """Render the notebook metadata."""
@@ -430,12 +431,12 @@ class SphinxNbRenderer(SphinxRenderer):
 
         # TODO do we need this -/_ duplication of tag names, or can we deprecate one?
         remove_input = (
-            self.get_cell_render_config(cell_index, "remove_code_source")
+            self.get_cell_render_config(token.meta["metadata"], "remove_code_source")
             or ("remove_input" in tags)
             or ("remove-input" in tags)
         )
         remove_output = (
-            self.get_cell_render_config(cell_index, "remove_code_outputs")
+            self.get_cell_render_config(token.meta["metadata"], "remove_code_outputs")
             or ("remove_output" in tags)
             or ("remove-output" in tags)
         )
@@ -482,12 +483,14 @@ class SphinxNbRenderer(SphinxRenderer):
 
     def render_nb_cell_code_source(self, token: SyntaxTreeNode) -> None:
         """Render a notebook code cell's source."""
-        cell_index = token.meta["index"]
+        # cell_index = token.meta["index"]
         lexer = token.meta.get("lexer", None)
         node = self.create_highlighted_code_block(
             token.content,
             lexer,
-            number_lines=self.get_cell_render_config(cell_index, "number_source_lines"),
+            number_lines=self.get_cell_render_config(
+                token.meta["metadata"], "number_source_lines"
+            ),
             source=self.document["source"],
             line=token_line(token),
         )
@@ -496,26 +499,33 @@ class SphinxNbRenderer(SphinxRenderer):
 
     def render_nb_cell_code_outputs(self, token: SyntaxTreeNode) -> None:
         """Render a notebook code cell's outputs."""
-        cell_index = token.meta["index"]
         line = token_line(token, 0)
+        cell_index = token.meta["index"]
+        metadata = token.meta["metadata"]
         outputs: List[NotebookNode] = self.config["notebook"]["cells"][cell_index].get(
             "outputs", []
         )
         # render the outputs
-        for output in outputs:
+        for output_index, output in enumerate(outputs):
             if output.output_type == "stream":
                 if output.name == "stdout":
-                    _nodes = self.nb_renderer.render_stdout(output, cell_index, line)
+                    _nodes = self.nb_renderer.render_stdout(
+                        output, metadata, cell_index, line
+                    )
                     self.add_line_and_source_path_r(_nodes, token)
                     self.current_node.extend(_nodes)
                 elif output.name == "stderr":
-                    _nodes = self.nb_renderer.render_stderr(output, cell_index, line)
+                    _nodes = self.nb_renderer.render_stderr(
+                        output, metadata, cell_index, line
+                    )
                     self.add_line_and_source_path_r(_nodes, token)
                     self.current_node.extend(_nodes)
                 else:
                     pass  # TODO warning
             elif output.output_type == "error":
-                _nodes = self.nb_renderer.render_error(output, cell_index, line)
+                _nodes = self.nb_renderer.render_error(
+                    output, metadata, cell_index, line
+                )
                 self.add_line_and_source_path_r(_nodes, token)
                 self.current_node.extend(_nodes)
             elif output.output_type in ("display_data", "execute_result"):
@@ -532,7 +542,7 @@ class SphinxNbRenderer(SphinxRenderer):
                 figure_options = None
                 with suppress(KeyError):
                     figure_options = self.get_cell_render_config(
-                        cell_index, "figure", has_nb_key=False
+                        metadata, "figure", has_nb_key=False
                     )
 
                 with create_figure_context(self, figure_options, line):
@@ -545,7 +555,15 @@ class SphinxNbRenderer(SphinxRenderer):
                             mime_container = nodes.container(mime_type=mime_type)
                             with self.current_node_context(mime_container):
                                 _nodes = self.nb_renderer.render_mime_type(
-                                    mime_type, data, cell_index, line
+                                    MimeData(
+                                        mime_type,
+                                        data,
+                                        cell_metadata=metadata,
+                                        output_metadata=output.get("metadata", {}),
+                                        cell_index=cell_index,
+                                        output_index=output_index,
+                                        line=line,
+                                    )
                                 )
                                 self.current_node.extend(_nodes)
                             if mime_container.children:

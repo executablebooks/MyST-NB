@@ -43,7 +43,7 @@ class SphinxDocLogger(logging.LoggerAdapter):
         if "type" in kwargs:  # override type
             self.extra["type"] = kwargs.pop("type")
         subtype = ("." + kwargs["subtype"]) if "subtype" in kwargs else ""
-        if "line" in kwargs:  # add line to location
+        if kwargs.get("line", None) is not None:  # add line to location
             # note this will be overridden by the location keyword
             self.extra["location"] = (self.extra["docname"], kwargs.pop("line"))
         else:
@@ -120,7 +120,9 @@ class DocutilsLogHandler(logging.Handler):
         levelname = record.levelname.upper()
         level = self._name_to_level.get(levelname, self._document.reporter.DEBUG_LEVEL)
         node = self._document.reporter.system_message(
-            level, record.msg, **({"line": record.line} if record.line else {})
+            level,
+            record.msg,
+            **({"line": record.line} if record.line is not None else {}),
         )
         if record.parent is not None:
             record.parent.append(node)

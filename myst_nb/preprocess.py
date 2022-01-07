@@ -27,9 +27,9 @@ def preprocess_notebook(
     ]
 
     # coalesce_streams
-    for index, cell in enumerate(notebook.cells):
+    for _, cell in enumerate(notebook.cells):
         if cell.cell_type == "code":
-            if get_cell_render_config(index, "merge_streams"):
+            if get_cell_render_config(cell.metadata, "merge_streams"):
                 cell["outputs"] = coalesce_streams(cell.get("outputs", []))
 
     # extract all scrapbook (aka glue) outputs from notebook
