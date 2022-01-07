@@ -68,7 +68,7 @@ def sphinx_setup(app: Sphinx):
     app.connect("builder-inited", create_mystnb_config)
 
     # add parser and default associated file suffixes
-    app.add_source_parser(MystNbParser)
+    app.add_source_parser(Parser)
     app.add_source_suffix(".md", "myst-nb", override=True)
     app.add_source_suffix(".ipynb", "myst-nb")
     # add additional file suffixes for parsing
@@ -83,8 +83,8 @@ def sphinx_setup(app: Sphinx):
     # (just to keep it "tidy", but won't affect run)
 
     # add directive to ensure all notebook cells are converted
-    app.add_directive("code-cell", UnexpectedCellDirective)
-    app.add_directive("raw-cell", UnexpectedCellDirective)
+    app.add_directive("code-cell", UnexpectedCellDirective, override=True)
+    app.add_directive("raw-cell", UnexpectedCellDirective, override=True)
 
     # add directive for downloading an executed notebook
     app.add_role("nb-download", NbDownloadRole())
@@ -219,7 +219,7 @@ def update_togglebutton_classes(app: Sphinx, config):
         config.togglebutton_selector += f", {selector}"
 
 
-class MystNbParser(MystParser):
+class Parser(MystParser):
     """Sphinx parser for Jupyter Notebook formats, containing MyST Markdown."""
 
     supported = ("myst-nb",)
