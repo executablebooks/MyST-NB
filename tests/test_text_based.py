@@ -14,14 +14,14 @@ def test_basic_run(sphinx_run, file_regression, check_nbs):
         "author",
         "source_map",
         "wordcount",
-    }
-    assert set(sphinx_run.env.nb_metadata["basic_unrun"].keys()) == {
-        "exec_data",
         "kernelspec",
         "language_info",
     }
+    assert set(sphinx_run.env.nb_metadata["basic_unrun"].keys()) == {
+        "exec_data",
+    }
     assert sphinx_run.env.metadata["basic_unrun"]["author"] == "Chris"
-    assert sphinx_run.env.nb_metadata["basic_unrun"]["kernelspec"] == {
+    assert sphinx_run.env.metadata["basic_unrun"]["kernelspec"] == {
         "display_name": "Python 3",
         "language": "python",
         "name": "python3",
@@ -41,10 +41,15 @@ def test_basic_run(sphinx_run, file_regression, check_nbs):
 def test_basic_run_exec_off(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
     # print(sphinx_run.status())
-    assert set(sphinx_run.env.nb_metadata["basic_unrun"].keys()) == {
+    assert set(sphinx_run.env.metadata["basic_unrun"].keys()) == {
+        "jupytext",
+        "author",
+        "source_map",
+        "wordcount",
         "kernelspec",
         "language_info",
     }
+    assert set(sphinx_run.env.nb_metadata["basic_unrun"].keys()) == set()
     assert sphinx_run.env.metadata["basic_unrun"]["author"] == "Chris"
 
     file_regression.check(

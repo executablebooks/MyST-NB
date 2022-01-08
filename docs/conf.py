@@ -19,6 +19,7 @@ master_doc = "index"
 extensions = [
     "myst_nb",
     "sphinx_copybutton",
+    "sphinx_book_theme",
     "sphinx.ext.intersphinx",
     "sphinx.ext.autodoc",
     "sphinx.ext.viewcode",
@@ -92,9 +93,15 @@ html_theme_options = {
     "github_url": "https://github.com/executablebooks/myst-nb",
     "repository_url": "https://github.com/executablebooks/myst-nb",
     "repository_branch": "master",
-    "use_edit_page_button": True,
-    "path_to_docs": "docs/",
+    "path_to_docs": "docs",
     "show_navbar_depth": 2,
+    "use_edit_page_button": True,
+    "use_repository_button": True,
+    "use_download_button": True,
+    "launch_buttons": {
+        "binderhub_url": "https://mybinder.org",
+        "notebook_interface": "classic",
+    },
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,

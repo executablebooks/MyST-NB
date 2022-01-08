@@ -10,13 +10,12 @@ def test_basic_run(sphinx_run, file_regression):
     assert set(sphinx_run.env.metadata["basic_run"].keys()) == {
         "test_name",
         "wordcount",
-    }
-    assert set(sphinx_run.env.nb_metadata["basic_run"].keys()) == {
         "kernelspec",
         "language_info",
     }
+    assert set(sphinx_run.env.nb_metadata["basic_run"].keys()) == set()
     assert sphinx_run.env.metadata["basic_run"]["test_name"] == "notebook1"
-    assert sphinx_run.env.nb_metadata["basic_run"]["kernelspec"] == {
+    assert sphinx_run.env.metadata["basic_run"]["kernelspec"] == {
         "display_name": "Python 3",
         "language": "python",
         "name": "python3",
@@ -46,14 +45,13 @@ def test_complex_outputs(sphinx_run, file_regression):
         "toc",
         "varInspector",
         "wordcount",
-    }
-    assert set(sphinx_run.env.nb_metadata["complex_outputs"].keys()) == {
         "kernelspec",
         "language_info",
     }
+    assert set(sphinx_run.env.nb_metadata["complex_outputs"].keys()) == set()
     assert sphinx_run.env.metadata["complex_outputs"]["celltoolbar"] == "Edit Metadata"
     assert sphinx_run.env.metadata["complex_outputs"]["hide_input"] == "False"
-    assert sphinx_run.env.nb_metadata["complex_outputs"]["kernelspec"] == {
+    assert sphinx_run.env.metadata["complex_outputs"]["kernelspec"] == {
         "display_name": "Python 3",
         "language": "python",
         "name": "python3",

@@ -17,14 +17,14 @@ def test_codecell_file(sphinx_run, file_regression, check_nbs, get_test_path):
         "author",
         "source_map",
         "wordcount",
-    }
-    assert set(sphinx_run.env.nb_metadata["mystnb_codecell_file"].keys()) == {
-        "exec_data",
         "kernelspec",
         "language_info",
     }
+    assert set(sphinx_run.env.nb_metadata["mystnb_codecell_file"].keys()) == {
+        "exec_data",
+    }
     assert sphinx_run.env.metadata["mystnb_codecell_file"]["author"] == "Matt"
-    assert sphinx_run.env.nb_metadata["mystnb_codecell_file"]["kernelspec"] == {
+    assert sphinx_run.env.metadata["mystnb_codecell_file"]["kernelspec"] == {
         "display_name": "Python 3",
         "language": "python",
         "name": "python3",
@@ -57,18 +57,20 @@ def test_codecell_file_warnings(sphinx_run, file_regression, check_nbs, get_test
         "author",
         "source_map",
         "wordcount",
+        "kernelspec",
+        "language_info",
     }
     assert set(sphinx_run.env.nb_metadata["mystnb_codecell_file_warnings"].keys()) == {
         "exec_data",
-        "kernelspec",
-        "language_info",
     }
     assert (
         sphinx_run.env.metadata["mystnb_codecell_file_warnings"]["author"] == "Aakash"
     )
-    assert sphinx_run.env.nb_metadata["mystnb_codecell_file_warnings"][
-        "kernelspec"
-    ] == {"display_name": "Python 3", "language": "python", "name": "python3"}
+    assert sphinx_run.env.metadata["mystnb_codecell_file_warnings"]["kernelspec"] == {
+        "display_name": "Python 3",
+        "language": "python",
+        "name": "python3",
+    }
     try:
         file_regression.check(
             sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb", encoding="utf8"

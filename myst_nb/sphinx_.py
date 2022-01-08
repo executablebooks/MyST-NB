@@ -380,9 +380,11 @@ class SphinxNbRenderer(SphinxRenderer):
 
         # save these special keys on the metadata, rather than as docinfo
         for key in ("kernelspec", "language_info"):
-            NbMetadataCollector.set_doc_data(
-                env, env.docname, key, metadata.pop(key, None)
-            )
+            # TODO sphinx_book_theme checks kernelspec in `_is_notebook` check
+            # NbMetadataCollector.set_doc_data(
+            #     env, env.docname, key, metadata.pop(key, None)
+            # )
+            env.metadata[env.docname][key] = metadata.pop(key, None)
 
         # TODO should we provide hook for NbElementRenderer?
         # Also add method to NbElementRenderer, to store scripts to load
