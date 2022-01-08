@@ -266,18 +266,16 @@ This is currently not supported, but we hope to introduce it at a later date
 (use/format/cutomise)=
 ## Customise the render process
 
-The render process is governed by subclasses of {py:class}`myst_nb.render_outputs.CellOutputRendererBase`, which dictate how to create the `docutils` AST nodes for a particular MIME type. the default implementation is {py:class}`~myst_nb.render_outputs.CellOutputRenderer`.
-
-Implementations are loaded *via* Python [entry points](https://packaging.python.org/guides/distributing-packages-using-setuptools/#entry-points), in the `myst_nb.mime_render` group.
+The render process is governed by subclasses of {py:class}`myst_nb.render.NbElementRenderer`, which dictate how to create the `docutils` AST nodes for a particular MIME type.
+Implementations are loaded *via* Python [entry points](https://packaging.python.org/guides/distributing-packages-using-setuptools/#entry-points), in the `myst_nb.renderers` group.
 So it is possible to inject your own subclass to handle rendering.
 
-For example, the renderers loaded in this package are:
+For example, the renderer loaded in this package is:
 
 ```python
 entry_points={
-    "myst_nb.mime_render": [
-        "default = myst_nb.render_outputs:CellOutputRenderer",
-        "inline = myst_nb.render_outputs:CellOutputRendererInline",
+    "myst_nb.renderers": [
+        "default = myst_nb.render:NbElementRenderer",
     ],
 }
 ```
@@ -287,3 +285,5 @@ You can then select the renderer plugin in your `conf.py`:
 ```python
 nb_render_plugin = "default"
 ```
+
+TODO and example of overriding the renderer ...

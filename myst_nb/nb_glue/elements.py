@@ -1,13 +1,14 @@
 """Directives and roles which can be used by both docutils and sphinx."""
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
+import attr
 from docutils import nodes
 from docutils.parsers.rst import Directive, directives
 from docutils.parsers.rst.states import Inliner
 from docutils.utils import unescape
 
 from myst_nb.loggers import DocutilsDocLogger, SphinxDocLogger
-from myst_nb.render import MimeData, NbElementRenderer
+from myst_nb.render import MimeData, NbElementRenderer, strip_latex_delimiters
 
 
 def is_sphinx(document) -> bool:
@@ -110,16 +111,57 @@ def render_glue_output(
         )
 
 
+@attr.s
+class RetrievedData:
+    """A class to store retrieved mime data."""
+
+    warning: Optional[str] = attr.ib()
+    data: Union[None, str, bytes] = attr.ib(default=None)
+    metadata: Dict[str, Any] = attr.ib(factory=dict)
+    nb_renderer: Optional[NbElementRenderer] = attr.ib(default=None)
+
+
+def retrieve_mime_data(
+    document: nodes.document, key: str, mime_type: str
+) -> RetrievedData:
+    """Retrieve the mime data from the document."""
+    if "nb_renderer" not in document:
+        return RetrievedData("No 'nb_renderer' found on the document.")
+    nb_renderer: NbElementRenderer = document["nb_renderer"]
+    resources = nb_renderer.get_resources()
+    if "glue" not in resources:
+        return RetrievedData(f"No key {key!r} found in glue data.")
+
+    if key not in resources["glue"]:
+        return RetrievedData(f"No key {key!r} found in glue data.")
+
+    if mime_type not in resources["glue"][key].get("data", {}):
+        return RetrievedData(f"{key!r} does not contain {mime_type!r} data.")
+
+    return RetrievedData(
+        None,
+        resources["glue"][key]["data"][mime_type],
+        resources["glue"][key].get("metadata", {}),
+        nb_renderer,
+    )
+
+
 class PasteRole:
     """A role for pasting inline code outputs from notebooks."""
 
     def get_source_info(self, lineno: int = None) -> Tuple[str, int]:
+        """Get source and line number."""
         if lineno is None:
             lineno = self.lineno
         return self.inliner.reporter.get_source_and_line(lineno)  # type: ignore
 
     def set_source_info(self, node: nodes.Node, lineno: int = None) -> None:
-        node.source, node.line = self.get_source_info(lineno)
+        """Set the source info for a node and its descendants."""
+        source, line = self.get_source_info(lineno)
+        iterator = getattr(node, "findall", node.traverse)  # findall for docutils 0.18
+        for _node in iterator(include_self=True):
+            _node.source = source
+            _node.line = line
 
     def __call__(
         self,
@@ -155,7 +197,7 @@ class PasteTextRole(PasteRole):
     """A role for pasting text outputs from notebooks."""
 
     def run(self) -> Tuple[List[nodes.Node], List[nodes.system_message]]:
-        # now check if we have both key:format in the key
+        # check if we have both key:format in the key
         parts = self.text.rsplit(":", 1)
         if len(parts) == 2:
             key, formatting = parts
@@ -165,35 +207,17 @@ class PasteTextRole(PasteRole):
 
         # now retrieve the data
         document = self.inliner.document
-        if "nb_renderer" not in document:
+        result = retrieve_mime_data(document, key, "text/plain")
+        if result.warning is not None:
             return [], [
                 warning(
-                    "No 'nb_renderer' found on the document.", document, self.lineno
-                )
-            ]
-        nb_renderer: NbElementRenderer = document["nb_renderer"]
-        resources = nb_renderer.get_resources()
-        if "glue" not in resources:
-            return [], [
-                warning(
-                    "No glue data found in the notebook resources.",
+                    result.warning,
                     document,
                     self.lineno,
                 )
             ]
-        if key not in resources["glue"]:
-            return [], [
-                warning(f"No key {key!r} found in glue data.", document, self.lineno)
-            ]
-        if "text/plain" not in resources["glue"][key].get("data", {}):
-            return [], [
-                warning(
-                    f"{key!r} does not contain 'text/plain' data.",
-                    document,
-                    self.lineno,
-                )
-            ]
-        text = resources["glue"][key]["data"]["text/plain"].strip("'")
+        text = str(result.data).strip("'")
+
         # If formatting is specified, see if we have a number of some kind
         if formatting:
             try:
@@ -201,30 +225,98 @@ class PasteTextRole(PasteRole):
                 text = f"{newtext:>{formatting}}"
             except ValueError:
                 pass
+
         node = nodes.inline(text, text, classes=["pasted-text"])
         self.set_source_info(node)
         return [node], []
 
 
-class PasteDirective(Directive):
-    """A directive for pasting code outputs from notebooks."""
+class PasteMystRole(PasteRole):
+    """A role for pasting markdown outputs from notebooks as inline MyST Markdown."""
+
+    def run(self) -> Tuple[List[nodes.Node], List[nodes.system_message]]:
+        # retrieve the data
+        document = self.inliner.document
+        result = retrieve_mime_data(document, self.text, "text/markdown")
+        if result.warning is not None:
+            return [], [
+                warning(
+                    result.warning,
+                    document,
+                    self.lineno,
+                )
+            ]
+        mime = MimeData(
+            "text/markdown",
+            result.data,
+            output_metadata=result.metadata,
+            line=self.lineno,
+            md_commonmark=False,
+        )
+        _nodes = result.nb_renderer.render_markdown_inline(mime)
+        for node in _nodes:
+            self.set_source_info(node)
+        return _nodes, []
+
+
+class _PasteBaseDirective(Directive):
 
     required_arguments = 1  # the key
     final_argument_whitespace = True
     has_content = False
+
+    @property
+    def document(self) -> nodes.document:
+        return self.state.document
 
     def get_source_info(self) -> Tuple[str, int]:
         """Get source and line number."""
         return self.state_machine.get_source_and_line(self.lineno)
 
     def set_source_info(self, node: nodes.Node) -> None:
-        """Set source and line number to the node."""
-        node.source, node.line = self.get_source_info()
+        """Set source and line number to the node and its descendants."""
+        source, line = self.get_source_info()
+        iterator = getattr(node, "findall", node.traverse)  # findall for docutils 0.18
+        for _node in iterator(include_self=True):
+            _node.source = source
+            _node.line = line
+
+
+class PasteMystDirective(_PasteBaseDirective):
+    """A directive for pasting markdown outputs from notebooks as MyST Markdown."""
+
+    def run(self) -> List[nodes.Node]:
+        """Run the directive."""
+        result = retrieve_mime_data(self.document, self.arguments[0], "text/markdown")
+        if result.warning is not None:
+            return [
+                warning(
+                    result.warning,
+                    self.document,
+                    self.lineno,
+                )
+            ]
+        mime = MimeData(
+            "text/markdown",
+            result.data,
+            output_metadata=result.metadata,
+            line=self.lineno,
+            md_commonmark=False,
+            md_headings=True,
+        )
+        _nodes = result.nb_renderer.render_markdown(mime)
+        for node in _nodes:
+            self.set_source_info(node)
+        return _nodes
+
+
+class PasteDirective(_PasteBaseDirective):
+    """A directive for pasting code outputs from notebooks."""
 
     def run(self) -> List[nodes.Node]:
         """Run the directive."""
         return render_glue_output(
-            self.arguments[0], self.state.document, self.lineno, self.set_source_info
+            self.arguments[0], self.document, self.lineno, self.set_source_info
         )
 
 
@@ -282,7 +374,7 @@ class PasteFigureDirective(PasteDirective):
             elif not (isinstance(first_node, nodes.comment) and len(first_node) == 0):
                 error = warning(
                     "Figure caption must be a paragraph or empty comment.",
-                    self.state.document,
+                    self.document,
                     self.lineno,
                 )
                 return [figure_node, error]
@@ -290,3 +382,70 @@ class PasteFigureDirective(PasteDirective):
                 figure_node += nodes.legend("", *node[1:])
 
         return [figure_node]
+
+
+class PasteMathDirective(_PasteBaseDirective):
+    """A directive for pasting latex outputs from notebooks as math."""
+
+    option_spec = {
+        "label": directives.unchanged,
+        "name": directives.unchanged,
+        "class": directives.class_option,
+        "nowrap": directives.flag,
+    }
+
+    def run(self) -> List[nodes.Node]:
+        """Run the directive."""
+        result = retrieve_mime_data(self.document, self.arguments[0], "text/latex")
+        if result.warning is not None:
+            return [
+                warning(
+                    result.warning,
+                    self.document,
+                    self.lineno,
+                )
+            ]
+        latex = strip_latex_delimiters(str(result.data))
+        label = self.options.get("label", self.options.get("name"))
+        node = nodes.math_block(
+            latex,
+            latex,
+            nowrap="nowrap" in self.options,
+            label=label,
+            number=None,
+            classes=["pasted-math"] + (self.options.get("class") or []),
+        )
+        self.add_name(node)
+        self.set_source_info(node)
+        if is_sphinx(self.document):
+            return self.add_target(node)
+        return [node]
+
+    def add_target(self, node: nodes.math_block) -> List[nodes.Node]:
+        """Add target to the node."""
+        # adapted from sphinx.directives.patches.MathDirective
+
+        env = self.state.document.settings.env
+
+        node["docname"] = env.docname
+
+        # assign label automatically if math_number_all enabled
+        if node["label"] == "" or (env.config.math_number_all and not node["label"]):
+            seq = env.new_serialno("sphinx.ext.math#equations")
+            node["label"] = "%s:%d" % (env.docname, seq)
+
+        # no targets and numbers are needed
+        if not node["label"]:
+            return [node]
+
+        # register label to domain
+        domain = env.get_domain("math")
+        domain.note_equation(env.docname, node["label"], location=node)
+        node["number"] = domain.get_equation_number_for(node["label"])
+
+        # add target node
+        node_id = nodes.make_id("equation-%s" % node["label"])
+        target = nodes.target("", "", ids=[node_id])
+        self.document.note_explicit_target(target)
+
+        return [target, node]

@@ -77,3 +77,10 @@ These configuration options affect the look and feel of notebook parsing and out
   - `False`
   - If `True`, ensure all stdout / stderr output streams are merged into single outputs. This ensures deterministic outputs.
 `````
+
+
+## Auto-generated config
+
+```{mystnb-config}
+:sphinx:
+```

@@ -19,6 +19,5 @@
                 stderr1
                 stderr2
                 stderr3
-            <container mime_type="text/plain">
-                <literal_block classes="output text_plain" language="myst-ansi" linenos="False" xml:space="preserve">
-                    1
+            <literal_block classes="output text_plain" language="myst-ansi" linenos="False" xml:space="preserve">
+                1

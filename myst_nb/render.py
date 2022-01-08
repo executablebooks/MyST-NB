@@ -53,6 +53,14 @@ class MimeData:
     """Index of the output in the cell"""
     line: Optional[int] = attr.ib(default=None)
     """Source line of the cell"""
+    md_commonmark: bool = attr.ib(default=True)
+    """Whether to parse the content as "isolated" CommonMark"""
+    # as opposed to using the current render and its environment
+    md_headings: bool = attr.ib(default=False)
+    """Whether to render headings in text/markdown blocks."""
+    # we can only do this if know the content will be rendered into the main body
+    # of the document, e.g. not inside a container node
+    # (otherwise it will break the structure of the AST)
 
     @property
     def string(self) -> str:
@@ -295,34 +303,27 @@ class NbElementRenderer:
     def render_markdown(self, data: MimeData) -> List[nodes.Element]:
         """Render a notebook text/markdown mime data output."""
         # create a container to parse the markdown into
-        temp_container = nodes.container()
+        temp_container = nodes.Element()
 
-        # setup temporary renderer config
+        # store the current renderer config
         md = self.renderer.md
         match_titles = self.renderer.md_env.get("match_titles", None)
-        if self.renderer.get_cell_render_config(
-            data.cell_metadata, "embed_markdown_outputs"
-        ):
-            # this configuration is used in conjunction with a transform,
-            # which move this content outside & below the output container
-            # in this way the Markdown output can contain headings,
-            # and not break the structure of the docutils AST
-            # TODO create transform and for sphinx prioritise this output for all output formats
-            self.renderer.md_env["match_titles"] = True
-        else:
-            # otherwise we render as simple Markdown and headings are not allowed
-            self.renderer.md_env["match_titles"] = False
+
+        # setup temporary renderer config
+        self.renderer.md_env["match_titles"] = data.md_headings
+        if data.md_commonmark:
             self.renderer.md = create_md_parser(
                 MdParserConfig(commonmark_only=True), self.renderer.__class__
             )
 
-        # parse markdown
-        with self.renderer.current_node_context(temp_container):
-            self.renderer.nested_render_text(data.string, data.line)
-
-        # restore renderer config
-        self.renderer.md = md
-        self.renderer.md_env["match_titles"] = match_titles
+        try:
+            # parse markdown
+            with self.renderer.current_node_context(temp_container):
+                self.renderer.nested_render_text(data.string, data.line)
+        finally:
+            # restore renderer config
+            self.renderer.md = md
+            self.renderer.md_env["match_titles"] = match_titles
 
         return temp_container.children
 
@@ -465,8 +466,23 @@ class NbElementRenderer:
 
     def render_markdown_inline(self, data: MimeData) -> List[nodes.Element]:
         """Render a notebook text/markdown mime data output."""
-        # TODO render_markdown_inline
-        return []
+        # TODO upstream this to myst-parser (replace MockState.inline_text)?
+        if data.md_commonmark:
+            parser = create_md_parser(
+                MdParserConfig(commonmark_only=True), self.renderer.__class__
+            )
+            tokens = parser.parseInline(data.string)
+        else:
+            tokens = self.renderer.md.parseInline(data.string, self.renderer.md_env)
+        if data.line is not None:
+            for token in tokens:
+                if token.map:
+                    token.map = [token.map[0] + data.line, token.map[1] + data.line]
+        node = nodes.Element()  # anonymous container for parsing
+        with self.renderer.current_node_context(node):
+            self.renderer._render_tokens(tokens)
+
+        return node.children
 
     def render_text_plain_inline(self, data: MimeData) -> List[nodes.Element]:
         """Render a notebook text/plain mime data output."""

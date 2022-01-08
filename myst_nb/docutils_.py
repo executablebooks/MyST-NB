@@ -23,6 +23,9 @@ from myst_nb.loggers import DEFAULT_LOG_TYPE, DocutilsDocLogger
 from myst_nb.nb_glue.elements import (
     PasteDirective,
     PasteFigureDirective,
+    PasteMathDirective,
+    PasteMystDirective,
+    PasteMystRole,
     PasteRole,
     PasteTextRole,
 )
@@ -70,11 +73,14 @@ class Parser(MystParser):
             ("glue:", PasteDirective),
             ("glue:any", PasteDirective),
             ("glue:figure", PasteFigureDirective),
+            ("glue:math", PasteMathDirective),
+            ("glue:myst", PasteMystDirective),
         )
         new_roles = (
             ("glue:", PasteRole()),
             ("glue:any", PasteRole()),
             ("glue:text", PasteTextRole()),
+            ("glue:myst", PasteMystRole()),
         )
         for name, directive in new_directives:
             _directives[name] = directive
@@ -399,14 +405,21 @@ class DocutilsNbRenderer(DocutilsRenderer):
                 self.current_node.extend(_nodes)
             elif output.output_type in ("display_data", "execute_result"):
 
-                # TODO these output have their own 'metadata' key,
-                # we should parse these to render_mime_type
+                # Note, this is different to the sphinx implementation,
+                # here we directly select a single output, based on the mime_priority,
+                # as opposed to output all mime types, and select in a post-transform
+                # (the mime_priority must then be set for the output format)
 
-                # TODO unwrapped Markdown (so you can output headers)
-                # maybe in a transform, we grab the containers and move them
-                # "below" the code cell container?
-                # if embed_markdown_outputs is True,
-                # this should be top priority and we "mark" the container for the transform
+                # TODO how to output MyST Markdown?
+                # currently text/markdown is set to be rendered as CommonMark only,
+                # with headings dissallowed,
+                # to avoid "side effects" if the mime is discarded but contained
+                # targets, etc, and because we can't parse headings within containers.
+                # perhaps we could have a config option to allow this?
+                # - for non-commonmark, the text/markdown would always be considered
+                #   the top priority, and all other mime types would be ignored.
+                # - for headings, we would also need to parsing the markdown
+                #   at the "top-level", i.e. not nested in container(s)
 
                 try:
                     mime_type = next(x for x in mime_priority if x in output["data"])
@@ -426,21 +439,19 @@ class DocutilsNbRenderer(DocutilsRenderer):
                         )
 
                     with create_figure_context(self, figure_options, line):
-                        container = nodes.container(mime_type=mime_type)
-                        with self.current_node_context(container, append=True):
-                            _nodes = self.nb_renderer.render_mime_type(
-                                MimeData(
-                                    mime_type,
-                                    output["data"][mime_type],
-                                    cell_metadata=metadata,
-                                    output_metadata=output.get("metadata", {}),
-                                    cell_index=cell_index,
-                                    output_index=output_index,
-                                    line=line,
-                                ),
-                            )
-                            self.current_node.extend(_nodes)
-                        self.add_line_and_source_path_r([container], token)
+                        _nodes = self.nb_renderer.render_mime_type(
+                            MimeData(
+                                mime_type,
+                                output["data"][mime_type],
+                                cell_metadata=metadata,
+                                output_metadata=output.get("metadata", {}),
+                                cell_index=cell_index,
+                                output_index=output_index,
+                                line=line,
+                            ),
+                        )
+                        self.current_node.extend(_nodes)
+                        self.add_line_and_source_path_r(_nodes, token)
             else:
                 self.create_warning(
                     f"Unsupported output type: {output.output_type}",

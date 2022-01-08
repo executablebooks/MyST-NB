@@ -330,15 +330,6 @@ class NbParserConfig:
         ),
         metadata={"help": "Behaviour for stderr output", "cell_metadata": True},
     )
-    # TODO this needs to be implemented
-    embed_markdown_outputs: bool = attr.ib(
-        default=False,
-        validator=instance_of(bool),
-        metadata={
-            "help": "Embed markdown outputs",  # TODO better help text
-            "cell_metadata": True,
-        },
-    )
     # docutils does not allow for the dictionaries in its configuration,
     # and also there is no API for the parser to know the output format, so
     # we use two different options for docutils(mime_priority)/sphinx(render_priority)

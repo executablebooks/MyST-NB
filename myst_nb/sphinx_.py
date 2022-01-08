@@ -42,8 +42,11 @@ from myst_nb.render import (
 )
 
 SPHINX_LOGGER = sphinx_logging.getLogger(__name__)
-UNSET = "--unset--"
 OUTPUT_FOLDER = "jupyter_execute"
+
+# used for deprecated config values,
+# so we can tell if they have been set by a user, and warn them
+UNSET = "--unset--"
 
 
 def sphinx_setup(app: Sphinx):
@@ -530,14 +533,24 @@ class SphinxNbRenderer(SphinxRenderer):
                 self.current_node.extend(_nodes)
             elif output.output_type in ("display_data", "execute_result"):
 
-                # TODO these output have their own 'metadata' key,
-                # we should parse these to render_mime_type
+                # Note, this is different to the docutils implementation,
+                # where we directly select a single output, based on the mime_priority.
+                # Here, we do not know the mime priority until we know the output format
+                # so we output all the outputs during this parsing phase
+                # (this is what sphinx caches as "output format agnostic" AST),
+                # and replace the mime_bundle with the format specific output
+                # in a post-transform (run per output format on the cached AST)
 
-                # TODO unwrapped Markdown (so you can output headers)
-                # maybe in a transform, we grab the containers and move them
-                # "below" the code cell container?
-                # if embed_markdown_outputs is True,
-                # this should be top priority and we "mark" the container for the transform
+                # TODO how to output MyST Markdown?
+                # currently text/markdown is set to be rendered as CommonMark only,
+                # with headings dissallowed,
+                # to avoid "side effects" if the mime is discarded but contained
+                # targets, etc, and because we can't parse headings within containers.
+                # perhaps we could have a config option to allow this?
+                # - for non-commonmark, the text/markdown would always be considered
+                #   the top priority, and all other mime types would be ignored.
+                # - for headings, we would also need to parsing the markdown
+                #   at the "top-level", i.e. not nested in container(s)
 
                 figure_options = None
                 with suppress(KeyError):
@@ -546,9 +559,6 @@ class SphinxNbRenderer(SphinxRenderer):
                     )
 
                 with create_figure_context(self, figure_options, line):
-                    # We differ from the docutils-only renderer here, because we need to
-                    # cache all rendered outputs, then choose one from the priority list
-                    # in a post-transform, once we know which builder is required.
                     mime_bundle = nodes.container(nb_element="mime_bundle")
                     with self.current_node_context(mime_bundle):
                         for mime_type, data in output["data"].items():
@@ -636,8 +646,10 @@ class SelectMimeType(SphinxPostTransform):
                     location=node,
                 )
                 node.parent.remove(node)
+            elif not node.children[index].children:
+                node.parent.remove(node)
             else:
-                node.replace_self(node.children[index])
+                node.replace_self(node.children[index].children)
 
 
 class NbDownloadRole(ReferenceRole):

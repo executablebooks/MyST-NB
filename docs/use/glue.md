@@ -11,16 +11,17 @@ kernelspec:
   name: python3
 ---
 
-(glue)=
+(glue/main)=
 
 # Insert variables into pages with `glue`
 
-You often wish to run analyses in one notebook and insert them into your
-documents text elsewhere. For example, if you'd like to include a figure,
+You often wish to run analyses in a notebook and insert them into your
+documents text elsewhere.
+For example, if you'd like to include a figure,
 or if you want to cite a statistic that you have run.
 
-The **`glue` submodule** allows you to add a key to variables in a notebook,
-then display those variables in your book by referencing the key.
+The **`glue` submodule** allows you to add a key to variables in a notebook code cell,
+then display those variables in a Markdown cell by referencing the key.
 
 This page describes how to add keys to variables in notebooks, and how to insert them
 into your book's content in a variety of ways.[^download]
@@ -205,7 +206,7 @@ generic command that doesn't make many assumptions about what you are gluing.
 
 ### The `glue:text` role
 
-The `glue:text` role, is specific to text outputs.
+The `glue:text` role, is specific to `text/plain` outputs.
 For example, the following text:
 
 ```
@@ -316,20 +317,49 @@ Which we reference as Equation {eq}`eq-sym`.
 `glue:math` only works with glued variables that contain a `text/latex` output.
 ```
 
+### The `glue:myst` role/directive
+
+With `glue:myst`, you can output `text/markdown` as MyST Markdown text, that will be integrated into your page (by default `text/markdown` will be parsed as CommonMark only):
+
+````{code-cell} ipython3
+from IPython.display import Markdown
+glue("inline_md", Markdown(
+  "inline **markdown** with a [link](glue/main), "
+  "and a nested glue value: {glue:}`boot_mean`"
+))
+glue("block_md", Markdown("""
+#### A heading
+
+Then some text, and anything nested.
+
+```python
+print("Hello world!")
+```
+"""
+))
+````
+
+Now, when we glue, the Markdown will be evaluated as block/inline MyST Markdown, as if it was part of the original document.
+
+````md
+Here is some {glue:myst}`inline_md`!
+
+```{glue:myst} block_md
+```
+````
+
+Here is some {glue:myst}`inline_md`!
+
+```{glue:myst} block_md
+```
+
 +++
 
 ## Advanced glue usecases
 
 Here are a few more specific and advanced uses of the `glue` submodule.
 
-### Pasting from pages you don't include in the documentation
-
-Sometimes you'd like to use variables from notebooks that are not meant to be
-shown to users. In this case, you should bundle the notebook with the rest of your
-content pages, but include `orphan:` in the metadata of the notebook.
-
-For example, the following text: `` {glue:}`orphaned_var` was created in {ref}`orphaned-nb` ``.
-Results in: {glue:}`orphaned_var` was created in {ref}`orphaned-nb`
+### Pasting
 
 ### Pasting into tables
 
@@ -350,3 +380,17 @@ Results in:
 |:-------------------------------:|:---------------------------:|---------------------------|---------------------------------------------------|
 | histogram and raw text          | {glue:}`boot_fig`             | {glue:}`boot_mean`          | {glue:}`boot_clo`-{glue:}`boot_chi`                   |
 | sorted means and formatted text | {glue:}`sorted_means_fig`     | {glue:text}`boot_mean:.3f` | {glue:text}`boot_clo:.3f`-{glue:text}`boot_chi:.3f` |
+
+
+### Pasting from pages you don't include in the documentation
+
+:::{warning}
+This is now deprecated: keys can only be pasted if they originate in the same notebook.
+:::
+
+Sometimes you'd like to use variables from notebooks that are not meant to be
+shown to users. In this case, you should bundle the notebook with the rest of your
+content pages, but include `orphan:` in the metadata of the notebook.
+
+For example, the following text: `` {glue:}`orphaned_var` was created in {ref}`orphaned-nb` ``.
+<!-- Results in: {glue:}`orphaned_var` was created in {ref}`orphaned-nb` -->
