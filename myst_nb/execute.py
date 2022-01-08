@@ -56,7 +56,10 @@ def execute_notebook(
 
     # path should only be None when using docutils programmatically,
     # e.g. source="<string>"
-    path = Path(source) if Path(source).is_file() else None
+    try:
+        path = Path(source) if Path(source).is_file() else None
+    except OSError:
+        path = None  # occurs on Windows for `source="<string>"`
 
     exec_metadata: Optional[ExecutionResult] = None
 

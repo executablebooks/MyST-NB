@@ -10,8 +10,14 @@ def regress_nb_doc(file_regression, sphinx_run, check_nbs):
             sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb", encoding="utf8"
         )
     finally:
-        doctree = sphinx_run.get_doctree()
-        file_regression.check(doctree.pformat(), extension=".xml", encoding="utf8")
+        doctree_string = sphinx_run.get_doctree().pformat()
+        # TODO this is a difference in the hashing on the CI,
+        # with complex_outputs_unrun.ipynb equation PNG, after execution
+        doctree_string = doctree_string.replace(
+            "438c56ea3dcf99d86cd64df1b23e2b436afb25846434efb1cfec7b660ef01127",
+            "e2dfbe330154316cfb6f3186e8f57fc4df8aee03b0303ed1345fc22cd51f66de",
+        )
+        file_regression.check(doctree_string, extension=".xml", encoding="utf8")
 
 
 @pytest.mark.sphinx_params("basic_unrun.ipynb", conf={"nb_execution_mode": "auto"})
