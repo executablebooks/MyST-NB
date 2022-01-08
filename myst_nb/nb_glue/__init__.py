@@ -62,4 +62,7 @@ def extract_glue_data(
                 )
             output["data"] = {k[mime_prefix:]: v for k, v in output["data"].items()}
             data[key] = output
+            if not mime_prefix:
+                # assume that the output is a displayable object
+                outputs.append(output)
         cell.outputs = outputs

@@ -265,6 +265,17 @@ class NbParserConfig:
         },
     )
 
+    # pre-processing options
+
+    merge_streams: bool = attr.ib(
+        default=False,
+        validator=instance_of(bool),
+        metadata={
+            "help": "Merge stdout/stderr execution output streams",
+            "cell_metadata": True,
+        },
+    )
+
     # render options
 
     output_folder: str = attr.ib(
@@ -305,14 +316,6 @@ class NbParserConfig:
         default=False,
         validator=instance_of(bool),
         metadata={"help": "Number code cell source lines", "cell_metadata": True},
-    )
-    merge_streams: bool = attr.ib(
-        default=False,
-        validator=instance_of(bool),
-        metadata={
-            "help": "Merge stdout/stderr execution output streams",
-            "cell_metadata": True,
-        },
     )
     output_stderr: Literal[
         "show", "remove", "remove-warn", "warn", "error", "severe"
