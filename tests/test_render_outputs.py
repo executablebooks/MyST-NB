@@ -109,8 +109,14 @@ def test_metadata_figure(sphinx_run, clean_doctree, file_regression):
     sphinx_run.build()
     assert sphinx_run.warnings() == ""
     doctree = clean_doctree(sphinx_run.get_resolved_doctree("metadata_figure"))
+    doctree_string = doctree.pformat()
+    # change, presumably with new docutils version
+    doctree_string = doctree_string.replace(
+        '<figure ids="fun-fish" names="fun-fish">',
+        '<figure align="default" ids="fun-fish" names="fun-fish">',
+    )
     file_regression.check(
-        doctree.pformat().replace(".jpeg", ".jpg"), extension=".xml", encoding="utf8"
+        doctree_string.replace(".jpeg", ".jpg"), extension=".xml", encoding="utf8"
     )
 
 
