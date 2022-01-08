@@ -326,7 +326,7 @@ from IPython.display import Markdown
 glue("inline_md", Markdown(
   "inline **markdown** with a [link](glue/main), "
   "and a nested glue value: {glue:}`boot_mean`"
-))
+), display=False)
 glue("block_md", Markdown("""
 #### A heading
 
@@ -336,7 +336,7 @@ Then some text, and anything nested.
 print("Hello world!")
 ```
 """
-))
+), display=False)
 ````
 
 Now, when we glue, the Markdown will be evaluated as block/inline MyST Markdown, as if it was part of the original document.
