@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from docutils.core import publish_doctree
-from pytest_param_files import with_parameters
+import pytest
 import yaml
 
 from myst_nb.docutils_ import Parser
@@ -12,7 +12,7 @@ from myst_nb.docutils_ import Parser
 FIXTURE_PATH = Path(__file__).parent.joinpath("nb_fixtures")
 
 
-@with_parameters(FIXTURE_PATH / "basic.txt")
+@pytest.mark.param_file(FIXTURE_PATH / "basic.txt")
 def test_basic(file_params):
     """Test basic parsing."""
     dct = yaml.safe_load(file_params.content)
@@ -34,7 +34,7 @@ def test_basic(file_params):
     file_params.assert_expected(doctree.pformat(), rstrip=True)
 
 
-@with_parameters(FIXTURE_PATH / "reporter_warnings.txt")
+@pytest.mark.param_file(FIXTURE_PATH / "reporter_warnings.txt")
 def test_reporting(file_params):
     """Test that warnings and errors are reported as expected."""
     dct = yaml.safe_load(file_params.content)
