@@ -4,7 +4,6 @@ import json
 from pathlib import Path
 
 from docutils.core import publish_doctree
-import pytest
 from pytest_param_files import with_parameters
 import yaml
 
