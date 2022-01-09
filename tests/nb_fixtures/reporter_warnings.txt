@@ -66,5 +66,5 @@ cells:
 
         [a]: c
 .
-<string>:20004: (WARNING/2) Duplicate reference definition: A
+<string>:20004: (WARNING/2) Duplicate reference definition: A [myst.ref]
 .

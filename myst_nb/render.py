@@ -107,7 +107,7 @@ class NbElementRenderer:
 
     def get_resources(self) -> Dict[str, Any]:
         """Get the resources from the notebook pre-processing."""
-        return self.renderer.config["nb_resources"]
+        return self.renderer.md_options["nb_resources"]
 
     def write_file(
         self, path: List[str], content: bytes, overwrite=False, exists_ok=False
@@ -121,7 +121,7 @@ class NbElementRenderer:
 
         :returns: URI to use for referencing the file
         """
-        output_folder = self.renderer.get_nb_config("output_folder")
+        output_folder = self.renderer.nb_config.output_folder
         filepath = Path(output_folder).joinpath(*path)
         if not output_folder:
             pass  # do not output anything if output_folder is not set (docutils only)

@@ -36,7 +36,7 @@ def render_output_docutils(
     document, line, nb_renderer: NbElementRenderer, output: Dict[str, Any], inline=False
 ) -> List[nodes.Node]:
     """Render the output in docutils (select mime priority directly)."""
-    mime_priority = nb_renderer.renderer.get_nb_config("mime_priority")
+    mime_priority = nb_renderer.renderer.nb_config.mime_priority
     try:
         mime_type = next(x for x in mime_priority if x in output["data"])
     except StopIteration:

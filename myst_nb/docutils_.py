@@ -181,7 +181,7 @@ class Parser(MystParser):
         resources = preprocess_notebook(
             notebook, logger, mdit_parser.renderer.get_cell_render_config
         )
-        mdit_parser.renderer.config["nb_resources"] = resources
+        mdit_parser.renderer.md_options["nb_resources"] = resources
         # we temporarily store nb_renderer on the document,
         # so that roles/directives can access it
         document.attributes["nb_renderer"] = nb_renderer
@@ -205,16 +205,14 @@ class DocutilsNbRenderer(DocutilsRenderer):
     """A docutils-only renderer for Jupyter Notebooks."""
 
     @property
+    def nb_config(self) -> NbParserConfig:
+        """Get the notebook element renderer."""
+        return self.md_options["nb_config"]
+
+    @property
     def nb_renderer(self) -> NbElementRenderer:
         """Get the notebook element renderer."""
-        return self.config["nb_renderer"]
-
-    def get_nb_config(self, key: str) -> Any:
-        """Get a notebook level configuration value.
-
-        :raises: KeyError if the key is not found
-        """
-        return self.config["nb_config"][key]
+        return self.md_options["nb_renderer"]
 
     def get_cell_render_config(
         self,
@@ -233,14 +231,14 @@ class DocutilsNbRenderer(DocutilsRenderer):
         :raises: KeyError if the key is not found
         """
         # TODO allow output level configuration?
-        cell_metadata_key = self.get_nb_config("cell_render_key")
+        cell_metadata_key = self.nb_config.cell_render_key
         if (
             cell_metadata_key not in cell_metadata
             or key not in cell_metadata[cell_metadata_key]
         ):
             if not has_nb_key:
                 raise KeyError(key)
-            return self.get_nb_config(nb_key if nb_key is not None else key)
+            return self.nb_config[nb_key if nb_key is not None else key]
         # TODO validate?
         return cell_metadata[cell_metadata_key][key]
 
@@ -345,7 +343,7 @@ class DocutilsNbRenderer(DocutilsRenderer):
                     self.render_nb_cell_code_source(token)
 
             # render the execution output, if any
-            has_outputs = self.config["notebook"]["cells"][cell_index].get(
+            has_outputs = self.md_options["notebook"]["cells"][cell_index].get(
                 "outputs", []
             )
             if (not remove_output) and has_outputs:
@@ -376,7 +374,7 @@ class DocutilsNbRenderer(DocutilsRenderer):
         cell_index = token.meta["index"]
         metadata = token.meta["metadata"]
         line = token_line(token)
-        outputs: List[NotebookNode] = self.config["notebook"]["cells"][cell_index].get(
+        outputs: List[NotebookNode] = self.md_options["notebook"]["cells"][cell_index].get(
             "outputs", []
         )
         # render the outputs
