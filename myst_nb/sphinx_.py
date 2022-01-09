@@ -505,9 +505,9 @@ class SphinxNbRenderer(SphinxRenderer):
         line = token_line(token, 0)
         cell_index = token.meta["index"]
         metadata = token.meta["metadata"]
-        outputs: List[NotebookNode] = self.md_options["notebook"]["cells"][cell_index].get(
-            "outputs", []
-        )
+        outputs: List[NotebookNode] = self.md_options["notebook"]["cells"][
+            cell_index
+        ].get("outputs", [])
         # render the outputs
         for output_index, output in enumerate(outputs):
             if output.output_type == "stream":

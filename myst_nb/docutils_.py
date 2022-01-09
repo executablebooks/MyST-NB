@@ -374,9 +374,9 @@ class DocutilsNbRenderer(DocutilsRenderer):
         cell_index = token.meta["index"]
         metadata = token.meta["metadata"]
         line = token_line(token)
-        outputs: List[NotebookNode] = self.md_options["notebook"]["cells"][cell_index].get(
-            "outputs", []
-        )
+        outputs: List[NotebookNode] = self.md_options["notebook"]["cells"][
+            cell_index
+        ].get("outputs", [])
         # render the outputs
         mime_priority = self.get_cell_render_config(metadata, "mime_priority")
         for output_index, output in enumerate(outputs):

@@ -4,8 +4,8 @@ import json
 from pathlib import Path
 
 from docutils.core import publish_doctree
-from pytest_param_files import with_parameters
 import pytest
+from pytest_param_files import with_parameters
 import yaml
 
 from myst_nb.docutils_ import Parser
