@@ -23,9 +23,9 @@ from myst_nb.loggers import DEFAULT_LOG_TYPE, DocutilsDocLogger
 from myst_nb.nb_glue.elements import (
     PasteDirective,
     PasteFigureDirective,
+    PasteMarkdownDirective,
+    PasteMarkdownRole,
     PasteMathDirective,
-    PasteMystDirective,
-    PasteMystRole,
     PasteRole,
     PasteTextRole,
 )
@@ -74,13 +74,13 @@ class Parser(MystParser):
             ("glue:any", PasteDirective),
             ("glue:figure", PasteFigureDirective),
             ("glue:math", PasteMathDirective),
-            ("glue:myst", PasteMystDirective),
+            ("glue:md", PasteMarkdownDirective),
         )
         new_roles = (
             ("glue:", PasteRole()),
             ("glue:any", PasteRole()),
             ("glue:text", PasteTextRole()),
-            ("glue:myst", PasteMystRole()),
+            ("glue:md", PasteMarkdownRole()),
         )
         for name, directive in new_directives:
             _directives[name] = directive
@@ -231,11 +231,16 @@ class DocutilsNbRenderer(DocutilsRenderer):
         :raises: KeyError if the key is not found
         """
         # TODO allow output level configuration?
+        use_nb_level = True
         cell_metadata_key = self.nb_config.cell_render_key
-        if (
-            cell_metadata_key not in cell_metadata
-            or key not in cell_metadata[cell_metadata_key]
-        ):
+        if cell_metadata_key in cell_metadata:
+            if isinstance(cell_metadata[cell_metadata_key], dict):
+                if key in cell_metadata[cell_metadata_key]:
+                    use_nb_level = False
+            else:
+                # TODO log warning
+                pass
+        if use_nb_level:
             if not has_nb_key:
                 raise KeyError(key)
             return self.nb_config[nb_key if nb_key is not None else key]

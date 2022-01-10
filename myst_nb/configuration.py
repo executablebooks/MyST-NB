@@ -317,22 +317,6 @@ class NbParserConfig:
         validator=instance_of(bool),
         metadata={"help": "Number code cell source lines", "cell_metadata": True},
     )
-    output_stderr: Literal[
-        "show", "remove", "remove-warn", "warn", "error", "severe"
-    ] = attr.ib(
-        default="show",
-        validator=in_(
-            [
-                "show",
-                "remove",
-                "remove-warn",
-                "warn",
-                "error",
-                "severe",
-            ]
-        ),
-        metadata={"help": "Behaviour for stderr output", "cell_metadata": True},
-    )
     # docutils does not allow for the dictionaries in its configuration,
     # and also there is no API for the parser to know the output format, so
     # we use two different options for docutils(mime_priority)/sphinx(render_priority)
@@ -365,6 +349,22 @@ class NbParserConfig:
         },
         repr=False,
     )
+    output_stderr: Literal[
+        "show", "remove", "remove-warn", "warn", "error", "severe"
+    ] = attr.ib(
+        default="show",
+        validator=in_(
+            [
+                "show",
+                "remove",
+                "remove-warn",
+                "warn",
+                "error",
+                "severe",
+            ]
+        ),
+        metadata={"help": "Behaviour for stderr output", "cell_metadata": True},
+    )
     render_text_lexer: str = attr.ib(
         default="myst-ansi",
         # TODO allow None -> "none"?
@@ -392,6 +392,14 @@ class NbParserConfig:
             "docutils_exclude": True,
             # TODO backward-compatible change to "image_options"?
             "cell_metadata": "image",
+        },
+    )
+    render_markdown_format: Literal["commonmark", "gfm", "myst"] = attr.ib(
+        default="commonmark",
+        validator=in_(["commonmark", "gfm", "myst"]),
+        metadata={
+            "help": "The format to use for text/markdown rendering",
+            "cell_metadata": "markdown_format",
         },
     )
     # TODO jupyter_sphinx_require_url and jupyter_sphinx_embed_url (undocumented),

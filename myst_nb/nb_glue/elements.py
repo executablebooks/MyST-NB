@@ -231,13 +231,21 @@ class PasteTextRole(PasteRole):
         return [node], []
 
 
-class PasteMystRole(PasteRole):
+class PasteMarkdownRole(PasteRole):
     """A role for pasting markdown outputs from notebooks as inline MyST Markdown."""
 
     def run(self) -> Tuple[List[nodes.Node], List[nodes.system_message]]:
+        # check if we have both key:format in the key
+        parts = self.text.rsplit(":", 1)
+        if len(parts) == 2:
+            key, fmt = parts
+        else:
+            key = parts[0]
+            fmt = "commonmark"
+        # TODO - check fmt is valid
         # retrieve the data
         document = self.inliner.document
-        result = retrieve_mime_data(document, self.text, "text/markdown")
+        result = retrieve_mime_data(document, key, "text/markdown")
         if result.warning is not None:
             return [], [
                 warning(
@@ -246,12 +254,16 @@ class PasteMystRole(PasteRole):
                     self.lineno,
                 )
             ]
+        # TODO this feels a bit hacky
+        cell_key = result.nb_renderer.renderer.nb_config.cell_render_key
         mime = MimeData(
             "text/markdown",
             result.data,
+            cell_metadata={
+                cell_key: {"markdown_format": fmt},
+            },
             output_metadata=result.metadata,
             line=self.lineno,
-            md_commonmark=False,
         )
         _nodes = result.nb_renderer.render_markdown_inline(mime)
         for node in _nodes:
@@ -282,8 +294,15 @@ class _PasteBaseDirective(Directive):
             _node.line = line
 
 
-class PasteMystDirective(_PasteBaseDirective):
+class PasteMarkdownDirective(_PasteBaseDirective):
     """A directive for pasting markdown outputs from notebooks as MyST Markdown."""
+
+    def fmt(argument):
+        return directives.choice(argument, ("commonmark", "gfm", "myst"))
+
+    option_spec = {
+        "format": fmt,
+    }
 
     def run(self) -> List[nodes.Node]:
         """Run the directive."""
@@ -296,12 +315,16 @@ class PasteMystDirective(_PasteBaseDirective):
                     self.lineno,
                 )
             ]
+        # TODO this "override" feels a bit hacky
+        cell_key = result.nb_renderer.renderer.nb_config.cell_render_key
         mime = MimeData(
             "text/markdown",
             result.data,
+            cell_metadata={
+                cell_key: {"markdown_format": self.options.get("format", "commonmark")},
+            },
             output_metadata=result.metadata,
             line=self.lineno,
-            md_commonmark=False,
             md_headings=True,
         )
         _nodes = result.nb_renderer.render_markdown(mime)

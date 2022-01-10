@@ -71,12 +71,16 @@ nitpick_ignore = [
         "myst_parser.main.MdParserConfig",
         "nbformat.notebooknode.NotebookNode",
         "pygments.lexer.RegexLexer",
+        # Literal values are not supported
         "typing_extensions.Literal",
         "typing_extensions.Literal[show, remove, remove - warn, warn, error, severe]",
         "off",
         "force",
         "auto",
         "cache",
+        "commonmark",
+        "gfm",
+        "myst",
     ]
 ]
 

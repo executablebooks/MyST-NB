@@ -224,7 +224,7 @@ With `glue:text` we can **add formatting to the output**.
 This is particularly useful if you are displaying numbers and
 want to round the results. To add formatting, use this pattern:
 
-* `` {glue:text}`mykey:formatstring` ``
+- `` {glue:text}`mykey:formatstring` ``
 
 For example, the following: ``My rounded mean: {glue:text}`boot_mean:.2f` `` will be rendered like this: My rounded mean: {glue:text}`boot_mean:.2f` (95% CI: {glue:text}`boot_clo:.2f`/{glue:text}`boot_chi:.2f`).
 
@@ -317,9 +317,9 @@ Which we reference as Equation {eq}`eq-sym`.
 `glue:math` only works with glued variables that contain a `text/latex` output.
 ```
 
-### The `glue:myst` role/directive
+### The `glue:md` role/directive
 
-With `glue:myst`, you can output `text/markdown` as MyST Markdown text, that will be integrated into your page (by default `text/markdown` will be parsed as CommonMark only):
+With `glue:md`, you can output `text/markdown`, that will be integrated into your page.
 
 ````{code-cell} ipython3
 from IPython.display import Markdown
@@ -339,18 +339,27 @@ print("Hello world!")
 ), display=False)
 ````
 
-Now, when we glue, the Markdown will be evaluated as block/inline MyST Markdown, as if it was part of the original document.
+The format of the markdown can be specified as:
+
+- `commonmark` (default): Restricted to the [CommonMark specification](https://commonmark.org/).
+- `gfm`: Restricted to the [GitHub-flavored markdown](https://github.github.com/gfm/).
+  - Note, this requires the installation of the [linkify-it-py package](https://pypi.org/project/linkify-it-py)
+- `myst`: The MyST parser configuration for the the current document.
+
+For example, the following role/directive will glue inline/block MyST Markdown, as if it was part of the original document.
 
 ````md
-Here is some {glue:myst}`inline_md`!
+Here is some {glue:md}`inline_md:myst`!
 
-```{glue:myst} block_md
+```{glue:md} block_md
+:format: myst
 ```
 ````
 
-Here is some {glue:myst}`inline_md`!
+Here is some {glue:md}`inline_md:myst`!
 
-```{glue:myst} block_md
+```{glue:md} block_md
+:format: myst
 ```
 
 +++

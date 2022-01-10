@@ -197,13 +197,18 @@ pandas.DataFrame({"column 1": [1, 2, 3]})
 (use/format/markdown)=
 ## Markdown
 
-Markdown output is parsed by MyST-Parser, currently with the configuration set to `myst_commonmark_only=True` (see [MyST configuration options](myst:sphinx/config-options)).
+The format of output `text/markdown` can be specified by `render_markdown_format` configuration:
 
-The parsed Markdown is integrated into the wider documentation, and so it is possible, for example, to include internal references:
+- `commonmark` (default): Restricted to the [CommonMark specification](https://commonmark.org/).
+- `gfm`: Restricted to the [GitHub-flavored markdown](https://github.github.com/gfm/).
+  - Note, this requires the installation of the [linkify-it-py package](https://pypi.org/project/linkify-it-py)
+- `myst`: The MyST parser configuration for the the current document.
+
+CommonMark formatting will ouput basic Markdown syntax:
 
 ```{code-cell} ipython3
 from IPython.display import display, Markdown
-display(Markdown('**_some_ markdown** and an [internal reference](use/format/markdown)!'))
+display(Markdown('**_some_ markdown** and an [a reference](https://example.com)!'))
 ```
 
 and even internal images can be rendered!
@@ -211,6 +216,49 @@ and even internal images can be rendered!
 ```{code-cell} ipython3
 display(Markdown('![figure](../_static/logo-wide.svg)'))
 ```
+
+But setting the `render_markdown_format` to `myst` will allow for more advanced formatting,
+such as including internal references, tables, and even other directives:
+
+`````md
+````{code-cell} ipython3
+---
+render:
+  markdown_format: myst
+---
+display(Markdown('**_some_ markdown** and an [internal reference](use/format/markdown)!'))
+display(Markdown("""
+| a | b | c |
+|---|---|---|
+| 1 | 2 | 3 |
+"""))
+display(Markdown("""
+```{note}
+A note admonition!
+```
+"""))
+````
+`````
+
+The parsed Markdown is integrated into the wider documentation, and so it is possible, for example, to include internal references:
+
+````{code-cell} ipython3
+---
+render:
+  markdown_format: myst
+---
+display(Markdown('**_some_ markdown** and an [internal reference](use/format/markdown)!'))
+display(Markdown("""
+| a | b | c |
+|---|---|---|
+| 1 | 2 | 3 |
+"""))
+display(Markdown("""
+```{note}
+A note admonition!
+```
+"""))
+````
 
 (use/format/ansi)=
 ## ANSI Outputs

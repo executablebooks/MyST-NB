@@ -53,9 +53,6 @@ class MimeData:
     """Index of the output in the cell"""
     line: Optional[int] = attr.ib(default=None)
     """Source line of the cell"""
-    md_commonmark: bool = attr.ib(default=True)
-    """Whether to parse the content as "isolated" CommonMark"""
-    # as opposed to using the current render and its environment
     md_headings: bool = attr.ib(default=False)
     """Whether to render headings in text/markdown blocks."""
     # we can only do this if know the content will be rendered into the main body
@@ -302,30 +299,12 @@ class NbElementRenderer:
 
     def render_markdown(self, data: MimeData) -> List[nodes.Element]:
         """Render a notebook text/markdown mime data output."""
-        # create a container to parse the markdown into
-        temp_container = nodes.Element()
-
-        # store the current renderer config
-        md = self.renderer.md
-        match_titles = self.renderer.md_env.get("match_titles", None)
-
-        # setup temporary renderer config
-        self.renderer.md_env["match_titles"] = data.md_headings
-        if data.md_commonmark:
-            self.renderer.md = create_md_parser(
-                MdParserConfig(commonmark_only=True), self.renderer.__class__
-            )
-
-        try:
-            # parse markdown
-            with self.renderer.current_node_context(temp_container):
-                self.renderer.nested_render_text(data.string, data.line)
-        finally:
-            # restore renderer config
-            self.renderer.md = md
-            self.renderer.md_env["match_titles"] = match_titles
-
-        return temp_container.children
+        fmt = self.renderer.get_cell_render_config(
+            data.cell_metadata, "markdown_format", "render_markdown_format"
+        )
+        return self._render_markdown_base(
+            data, fmt=fmt, inline=False, allow_headings=data.md_headings
+        )
 
     def render_text_plain(self, data: MimeData) -> List[nodes.Element]:
         """Render a notebook text/plain mime data output."""
@@ -384,6 +363,7 @@ class NbElementRenderer:
         # which names by {notbook_name}-{cell_index}-{output-index}.{extension}
         data_hash = hashlib.sha256(data_bytes).hexdigest()
         filename = f"{data_hash}{extension}"
+        # TODO should we be trying to clear old files?
         uri = self.write_file([filename], data_bytes, overwrite=False, exists_ok=True)
         image_node = nodes.image(uri=uri)
         # apply attributes to the image node
@@ -466,23 +446,12 @@ class NbElementRenderer:
 
     def render_markdown_inline(self, data: MimeData) -> List[nodes.Element]:
         """Render a notebook text/markdown mime data output."""
-        # TODO upstream this to myst-parser (replace MockState.inline_text)?
-        if data.md_commonmark:
-            parser = create_md_parser(
-                MdParserConfig(commonmark_only=True), self.renderer.__class__
-            )
-            tokens = parser.parseInline(data.string)
-        else:
-            tokens = self.renderer.md.parseInline(data.string, self.renderer.md_env)
-        if data.line is not None:
-            for token in tokens:
-                if token.map:
-                    token.map = [token.map[0] + data.line, token.map[1] + data.line]
-        node = nodes.Element()  # anonymous container for parsing
-        with self.renderer.current_node_context(node):
-            self.renderer._render_tokens(tokens)
-
-        return node.children
+        fmt = self.renderer.get_cell_render_config(
+            data.cell_metadata, "markdown_format", "render_markdown_format"
+        )
+        return self._render_markdown_base(
+            data, fmt=fmt, inline=True, allow_headings=data.md_headings
+        )
 
     def render_text_plain_inline(self, data: MimeData) -> List[nodes.Element]:
         """Render a notebook text/plain mime data output."""
@@ -527,6 +496,52 @@ class NbElementRenderer:
     def render_widget_view_inline(self, data: MimeData) -> List[nodes.Element]:
         """Render a notebook application/vnd.jupyter.widget-view+json mime output."""
         return self.render_widget_view(data)
+
+    def _render_markdown_base(
+        self, data: MimeData, *, fmt: str, inline: bool, allow_headings: bool
+    ) -> List[nodes.Element]:
+        """Base render for a notebook markdown mime output (block or inline)."""
+        psuedo_element = nodes.Element()  # element to hold the parsed markdown
+        current_parser = self.renderer.md
+        current_md_config = self.renderer.md_config
+        try:
+            # potentially replace the parser temporarily
+            if fmt == "myst":
+                # use the current configuration to render the markdown
+                pass
+            elif fmt == "commonmark":
+                # use an isolated, CommonMark only, parser
+                self.renderer.md_config = MdParserConfig(commonmark_only=True)
+                self.renderer.md = create_md_parser(
+                    self.renderer.md_config, self.renderer.__class__
+                )
+            elif fmt == "gfm":
+                # use an isolated, GitHub Flavoured Markdown only, parser
+                self.renderer.md_config = MdParserConfig(gfm_only=True)
+                self.renderer.md = create_md_parser(
+                    self.renderer.md_config, self.renderer.__class__
+                )
+            else:
+                self.logger.warning(
+                    f"skipping unknown markdown format: {fmt}",
+                    subtype="unknown_markdown_format",
+                    line=data.line,
+                )
+                return []
+
+            with self.renderer.current_node_context(psuedo_element):
+                self.renderer.nested_render_text(
+                    data.string,
+                    data.line or 0,
+                    inline=inline,
+                    allow_headings=allow_headings,
+                )
+        finally:
+            # restore the parser
+            self.renderer.md = current_parser
+            self.renderer.md_config = current_md_config
+
+        return psuedo_element.children
 
 
 class EntryPointError(Exception):

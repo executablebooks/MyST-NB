@@ -9,9 +9,9 @@ from sphinx.domains import Domain
 from myst_nb.nb_glue.elements import (
     PasteDirective,
     PasteFigureDirective,
+    PasteMarkdownDirective,
+    PasteMarkdownRole,
     PasteMathDirective,
-    PasteMystDirective,
-    PasteMystRole,
     PasteRole,
     PasteTextRole,
 )
@@ -31,13 +31,13 @@ class NbGlueDomain(Domain):
         "any": PasteDirective,
         "figure": PasteFigureDirective,
         "math": PasteMathDirective,
-        "myst": PasteMystDirective,
+        "md": PasteMarkdownDirective,
     }
     roles = {
         "": PasteRole(),
         "any": PasteRole(),
         "text": PasteTextRole(),
-        "myst": PasteMystRole(),
+        "md": PasteMarkdownRole(),
     }
 
     def merge_domaindata(self, docnames: List[str], otherdata: dict) -> None:
