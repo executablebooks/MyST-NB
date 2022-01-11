@@ -202,7 +202,7 @@ The format of output `text/markdown` can be specified by `render_markdown_format
 - `commonmark` (default): Restricted to the [CommonMark specification](https://commonmark.org/).
 - `gfm`: Restricted to the [GitHub-flavored markdown](https://github.github.com/gfm/).
   - Note, this requires the installation of the [linkify-it-py package](https://pypi.org/project/linkify-it-py)
-- `myst`: The MyST parser configuration for the the current document.
+- `myst`: Uses [the MyST parser](https://myst-parser.readthedocs.io/en/latest/) with the same configuration as the current document.
 
 CommonMark formatting will output basic Markdown syntax:
 
