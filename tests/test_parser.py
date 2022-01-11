@@ -95,7 +95,12 @@ def test_ipywidgets(sphinx_run):
     sphinx_run.build()
     # print(sphinx_run.status())
     assert sphinx_run.warnings() == ""
-    assert "ipywidgets_state" in sphinx_run.env.nb_metadata["ipywidgets"]
+    assert "js_files" in sphinx_run.env.nb_metadata["ipywidgets"]
+    assert set(sphinx_run.env.nb_metadata["ipywidgets"]["js_files"]) == {
+        "ipywidgets_state",
+        "ipywidgets_0",
+        "ipywidgets_1",
+    }
     head_scripts = sphinx_run.get_html().select("head > script")
     assert any("require.js" in script.get("src", "") for script in head_scripts)
     assert any("embed-amd.js" in script.get("src", "") for script in head_scripts)

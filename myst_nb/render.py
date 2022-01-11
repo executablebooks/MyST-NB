@@ -1,4 +1,8 @@
-"""Module for rendering notebook components to docutils nodes."""
+"""Module for rendering notebook components to docutils nodes.
+
+Note, this module purposely does not import any Sphinx modules at the top-level,
+in order for docutils-only use.
+"""
 from binascii import a2b_base64
 from contextlib import contextmanager
 from functools import lru_cache
@@ -143,6 +147,13 @@ class NbElementRenderer:
             return "/" + os.path.relpath(filepath, self.renderer.sphinx_env.app.srcdir)
         else:
             return str(filepath)
+
+    def add_js_file(self, key: str, uri: Optional[str], kwargs: Dict[str, str]) -> None:
+        """Register a JavaScript file to include in the HTML output of this document."""
+        if "nb_js_files" not in self.renderer.document:
+            self.renderer.document["nb_js_files"] = {}
+        # TODO handle duplicate keys (whether to override/ignore)
+        self.renderer.document["nb_js_files"][key] = (uri, kwargs)
 
     def render_raw_cell(
         self, content: str, metadata: dict, cell_index: int, source_line: int

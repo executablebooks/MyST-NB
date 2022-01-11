@@ -1,6 +1,7 @@
 """A parser for docutils."""
 from contextlib import suppress
 from functools import partial
+import json
 from typing import Any, Dict, List, Optional, Tuple
 
 from docutils import nodes
@@ -38,10 +39,12 @@ from myst_nb.read import (
     standard_nb_read,
 )
 from myst_nb.render import (
+    WIDGET_STATE_MIMETYPE,
     MimeData,
     NbElementRenderer,
     create_figure_context,
     load_renderer,
+    sanitize_script_content,
 )
 
 DOCUTILS_EXCLUDED_ARGS = {
@@ -173,7 +176,9 @@ class Parser(MystParser):
         nb_renderer: NbElementRenderer = load_renderer(renderer_name)(
             mdit_parser.renderer, logger
         )
-        mdit_parser.options["nb_renderer"] = nb_renderer
+        # we temporarily store nb_renderer on the document,
+        # so that roles/directives can access it
+        document.attributes["nb_renderer"] = nb_renderer
         # we currently do this early, so that the nb_renderer has access to things
         mdit_parser.renderer.setup_render(mdit_parser.options, mdit_env)
 
@@ -182,9 +187,6 @@ class Parser(MystParser):
             notebook, logger, mdit_parser.renderer.get_cell_render_config
         )
         mdit_parser.renderer.md_options["nb_resources"] = resources
-        # we temporarily store nb_renderer on the document,
-        # so that roles/directives can access it
-        document.attributes["nb_renderer"] = nb_renderer
 
         # parse to tokens
         mdit_tokens = notebook_to_tokens(notebook, mdit_parser, mdit_env, logger)
@@ -196,8 +198,10 @@ class Parser(MystParser):
         path = ["processed.ipynb"]
         nb_renderer.write_file(path, content, overwrite=True)
         # TODO also write CSS to output folder if necessary or always?
-        # TODO we also need to load JS URLs if ipywidgets are present and HTML
+        # TODO we also need to load JS URLs from document["nb_js_files"],
+        # if HTML output is requested
 
+        # remove temporary state
         document.attributes.pop("nb_renderer")
 
 
@@ -212,7 +216,7 @@ class DocutilsNbRenderer(DocutilsRenderer):
     @property
     def nb_renderer(self) -> NbElementRenderer:
         """Get the notebook element renderer."""
-        return self.md_options["nb_renderer"]
+        return self.document["nb_renderer"]
 
     def get_cell_render_config(
         self,
@@ -258,9 +262,24 @@ class DocutilsNbRenderer(DocutilsRenderer):
 
         # TODO should we provide hook for NbElementRenderer?
 
-        # TODO how to handle ipywidgets in docutils?
-        ipywidgets = metadata.pop("widgets", None)  # noqa: F841
-        # ipywidgets_mime = (ipywidgets or {}).get(WIDGET_STATE_MIMETYPE, {})
+        # store ipywidgets state in metadata,
+        # which will be later added to HTML page context
+        # The JSON inside the script tag is identified and parsed by:
+        # https://github.com/jupyter-widgets/ipywidgets/blob/32f59acbc63c3ff0acf6afa86399cb563d3a9a86/packages/html-manager/src/libembed.ts#L36
+        # see also: https://ipywidgets.readthedocs.io/en/7.6.5/embedding.html
+        ipywidgets = metadata.pop("widgets", None)
+        ipywidgets_mime = (ipywidgets or {}).get(WIDGET_STATE_MIMETYPE, {})
+        if ipywidgets_mime.get("state", None):
+            self.nb_renderer.add_js_file(
+                "ipywidgets_state",
+                None,
+                {
+                    "type": "application/vnd.jupyter.widget-state+json",
+                    "body": sanitize_script_content(json.dumps(ipywidgets_mime)),
+                },
+            )
+            for i, (path, kwargs) in enumerate(self.nb_config.ipywidgets_js.items()):
+                self.nb_renderer.add_js_file(f"ipywidgets_{i}", path, kwargs)
 
         # forward the rest to the front_matter renderer
         self.render_front_matter(

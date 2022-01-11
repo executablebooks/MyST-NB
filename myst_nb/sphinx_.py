@@ -4,7 +4,7 @@ from contextlib import suppress
 import json
 import os
 from pathlib import Path
-from typing import Any, DefaultDict, Dict, List, Optional, Sequence, Set, cast
+from typing import Any, DefaultDict, Dict, List, Optional, Sequence, Set, Tuple, cast
 
 from docutils import nodes
 from markdown_it.token import Token
@@ -100,7 +100,7 @@ def sphinx_setup(app: Sphinx):
     app.connect("builder-inited", add_html_static_path)
     app.add_css_file("mystnb.css")
     # note, this event is only available in Sphinx >= 3.5
-    app.connect("html-page-context", install_ipywidgets)
+    app.connect("html-page-context", add_js_files)
 
     # add configuration for hiding cell input/output
     # TODO replace this, or make it optional
@@ -188,26 +188,13 @@ def add_html_static_path(app: Sphinx):
     app.config.html_static_path.append(str(static_path))
 
 
-def install_ipywidgets(app: Sphinx, pagename: str, *args: Any, **kwargs: Any) -> None:
-    """Install ipywidgets Javascript, if required on the page."""
+def add_js_files(app: Sphinx, pagename: str, *args: Any, **kwargs: Any) -> None:
+    """Add JS files for this page, identified from the parsing of the notebook."""
     if app.builder.format != "html":
         return
-    ipywidgets_state = NbMetadataCollector.get_doc_data(app.env)[pagename].get(
-        "ipywidgets_state", None
-    )
-    if ipywidgets_state is not None:
-        # see: https://ipywidgets.readthedocs.io/en/7.6.5/embedding.html
-
-        for path, kwargs in app.env.config["nb_ipywidgets_js"].items():
-            app.add_js_file(path, **kwargs)
-
-        # The state of all the widget models on the page
-        # TODO how to add data-jupyter-widgets-cdn="https://cdn.jsdelivr.net/npm/"?
-        app.add_js_file(
-            None,
-            type="application/vnd.jupyter.widget-state+json",
-            body=ipywidgets_state,
-        )
+    js_files = NbMetadataCollector.get_js_files(app.env, pagename)
+    for path, kwargs in js_files.values():
+        app.add_js_file(path, **kwargs)
 
 
 def update_togglebutton_classes(app: Sphinx, config):
@@ -303,7 +290,9 @@ class Parser(MystParser):
         nb_renderer: NbElementRenderer = load_renderer(renderer_name)(
             mdit_parser.renderer, logger
         )
-        mdit_parser.options["nb_renderer"] = nb_renderer
+        # we temporarily store nb_renderer on the document,
+        # so that roles/directives can access it
+        document.attributes["nb_renderer"] = nb_renderer
         # we currently do this early, so that the nb_renderer has access to things
         mdit_parser.renderer.setup_render(mdit_parser.options, mdit_env)
 
@@ -312,9 +301,6 @@ class Parser(MystParser):
             notebook, logger, mdit_parser.renderer.get_cell_render_config
         )
         mdit_parser.renderer.md_options["nb_resources"] = resources
-        # we temporarily store nb_renderer on the document,
-        # so that roles/directives can access it
-        document.attributes["nb_renderer"] = nb_renderer
 
         # parse to tokens
         mdit_tokens = notebook_to_tokens(notebook, mdit_parser, mdit_env, logger)
@@ -327,6 +313,15 @@ class Parser(MystParser):
         path[-1] += ".ipynb"
         nb_renderer.write_file(path, content, overwrite=True)
 
+        # move some document metadata to environment metadata,
+        # so that we can later read it from the environment,
+        # rather than having to load the doctree
+        for key, (uri, kwargs) in document.attributes.pop("nb_js_files", {}).items():
+            NbMetadataCollector.add_js_file(
+                self.env, self.env.docname, key, uri, kwargs
+            )
+
+        # remove temporary state
         document.attributes.pop("nb_renderer")
 
 
@@ -341,7 +336,7 @@ class SphinxNbRenderer(SphinxRenderer):
     @property
     def nb_renderer(self) -> NbElementRenderer:
         """Get the notebook element renderer."""
-        return self.md_options["nb_renderer"]
+        return self.document["nb_renderer"]
 
     def get_cell_render_config(
         self,
@@ -385,19 +380,25 @@ class SphinxNbRenderer(SphinxRenderer):
             env.metadata[env.docname][key] = metadata.pop(key, None)
 
         # TODO should we provide hook for NbElementRenderer?
-        # Also add method to NbElementRenderer, to store scripts to load
 
         # store ipywidgets state in metadata,
         # which will be later added to HTML page context
         # The JSON inside the script tag is identified and parsed by:
         # https://github.com/jupyter-widgets/ipywidgets/blob/32f59acbc63c3ff0acf6afa86399cb563d3a9a86/packages/html-manager/src/libembed.ts#L36
+        # see also: https://ipywidgets.readthedocs.io/en/7.6.5/embedding.html
         ipywidgets = metadata.pop("widgets", None)
         ipywidgets_mime = (ipywidgets or {}).get(WIDGET_STATE_MIMETYPE, {})
         if ipywidgets_mime.get("state", None):
-            string = sanitize_script_content(json.dumps(ipywidgets_mime))
-            NbMetadataCollector.set_doc_data(
-                env, env.docname, "ipywidgets_state", string
+            self.nb_renderer.add_js_file(
+                "ipywidgets_state",
+                None,
+                {
+                    "type": "application/vnd.jupyter.widget-state+json",
+                    "body": sanitize_script_content(json.dumps(ipywidgets_mime)),
+                },
             )
+            for i, (path, kwargs) in enumerate(self.nb_config.ipywidgets_js.items()):
+                self.nb_renderer.add_js_file(f"ipywidgets_{i}", path, kwargs)
 
         # forward the rest to the front_matter renderer
         self.render_front_matter(
@@ -729,6 +730,29 @@ class NbMetadataCollector(EnvironmentCollector):
     def new_exec_data(env: BuildEnvironment) -> bool:
         """Return whether any notebooks have updated execution data."""
         return getattr(env, "nb_new_exec_data", False)
+
+    @classmethod
+    def add_js_file(
+        cls,
+        env: BuildEnvironment,
+        docname: str,
+        key: str,
+        uri: Optional[str],
+        kwargs: Dict[str, str],
+    ):
+        """Register a JavaScript file to include in the HTML output."""
+        if not hasattr(env, "nb_metadata"):
+            env.nb_metadata = defaultdict(dict)
+        js_files = env.nb_metadata.setdefault(docname, {}).setdefault("js_files", {})
+        # TODO handle whether overrides are allowed
+        js_files[key] = (uri, kwargs)
+
+    @classmethod
+    def get_js_files(
+        cls, env: BuildEnvironment, docname: str
+    ) -> Dict[str, Tuple[Optional[str], Dict[str, str]]]:
+        """Get myst-nb docname -> execution data."""
+        return cls.get_doc_data(env)[docname].get("js_files", {})
 
     def clear_doc(self, app: Sphinx, env: BuildEnvironment, docname: str) -> None:
         if not hasattr(env, "nb_metadata"):
