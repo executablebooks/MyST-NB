@@ -368,8 +368,6 @@ Here is some {glue:md}`inline_md:myst`!
 
 Here are a few more specific and advanced uses of the `glue` submodule.
 
-### Pasting
-
 ### Pasting into tables
 
 In addition to pasting blocks of outputs, or in-line with text, you can also paste directly
