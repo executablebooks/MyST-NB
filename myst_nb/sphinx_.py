@@ -28,6 +28,7 @@ from myst_nb import __version__
 from myst_nb.configuration import NbParserConfig
 from myst_nb.execute import ExecutionResult, execute_notebook
 from myst_nb.loggers import DEFAULT_LOG_TYPE, SphinxDocLogger
+from myst_nb.nb_glue import glue_dict_to_nb
 from myst_nb.nb_glue.domain import NbGlueDomain
 from myst_nb.parse import nb_node_to_dict, notebook_to_tokens
 from myst_nb.preprocess import preprocess_notebook
@@ -308,14 +309,26 @@ class Parser(MystParser):
         mdit_parser.renderer.render(mdit_tokens, mdit_parser.options, mdit_env)
 
         # write final (updated) notebook to output folder (utf8 is standard encoding)
-        content = nbformat.writes(notebook).encode("utf-8")
         path = self.env.docname.split("/")
-        path[-1] += ".ipynb"
-        nb_renderer.write_file(path, content, overwrite=True)
+        ipynb_path = path[:-1] + [path[-1] + ".ipynb"]
+        content = nbformat.writes(notebook).encode("utf-8")
+        nb_renderer.write_file(ipynb_path, content, overwrite=True)
+
+        # write glue data to the output folder,
+        # and store the keys to environment doc metadata,
+        # so that they may be used in any post-transform steps
+        if resources.get("glue", None):
+            glue_notebook = glue_dict_to_nb(resources["glue"])
+            content = nbformat.writes(glue_notebook).encode("utf-8")
+            glue_path = path[:-1] + [path[-1] + ".__glue__.ipynb"]
+            nb_renderer.write_file(glue_path, content, overwrite=True)
+            NbMetadataCollector.set_doc_data(
+                self.env, self.env.docname, "glue", list(resources["glue"].keys())
+            )
 
         # move some document metadata to environment metadata,
         # so that we can later read it from the environment,
-        # rather than having to load the doctree
+        # rather than having to load the whole doctree
         for key, (uri, kwargs) in document.attributes.pop("nb_js_files", {}).items():
             NbMetadataCollector.add_js_file(
                 self.env, self.env.docname, key, uri, kwargs

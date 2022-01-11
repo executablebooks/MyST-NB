@@ -6,7 +6,7 @@ from typing import Any, Dict, List
 
 import IPython
 from IPython.display import display as ipy_display
-from nbformat import NotebookNode
+from nbformat import NotebookNode, v4
 
 GLUE_PREFIX = "application/papermill.record/"
 
@@ -42,7 +42,8 @@ def extract_glue_data(
     logger: Logger,
 ) -> None:
     """Extract all the glue data from the notebook, into the resources dictionary."""
-    data = resources.setdefault("glue", {})
+    # note this assumes v4 notebook format
+    data: Dict[str, NotebookNode] = resources.setdefault("glue", {})
     for index, cell in enumerate(notebook.cells):
         if cell.cell_type != "code":
             continue
@@ -66,3 +67,18 @@ def extract_glue_data(
                 # assume that the output is a displayable object
                 outputs.append(output)
         cell.outputs = outputs
+
+
+def glue_dict_to_nb(data: Dict[str, NotebookNode]) -> NotebookNode:
+    """Convert glue data to a notebook that can be written to disk by nbformat.
+
+    The notebook contains a single code cell that contains the glue outputs,
+    and the key for each output in a list at ``cell["metadata"]["glue"]``.
+
+    This can be read in any post-processing step, where the glue outputs are
+    required.
+    """
+    # note this assumes v4 notebook format
+    code_cell = v4.new_code_cell(outputs=list(data.values()))
+    code_cell.metadata["glue"] = list(data.keys())
+    return v4.new_notebook(cells=[code_cell])

@@ -195,11 +195,9 @@ class Parser(MystParser):
 
         # write final (updated) notebook to output folder (utf8 is standard encoding)
         content = nbformat.writes(notebook).encode("utf-8")
-        path = ["processed.ipynb"]
-        nb_renderer.write_file(path, content, overwrite=True)
+        nb_renderer.write_file(["processed.ipynb"], content, overwrite=True)
+
         # TODO also write CSS to output folder if necessary or always?
-        # TODO we also need to load JS URLs from document["nb_js_files"],
-        # if HTML output is requested
 
         # remove temporary state
         document.attributes.pop("nb_renderer")

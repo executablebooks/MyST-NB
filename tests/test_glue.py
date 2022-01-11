@@ -101,22 +101,17 @@ def test_parser(sphinx_run, clean_doctree, file_regression):
     # print(sphinx_run.status())
     # print(sphinx_run.warnings())
     assert sphinx_run.warnings() == ""
+    assert sphinx_run.env.nb_metadata["with_glue"]["glue"] == [
+        "key_text1",
+        "key_float",
+        "key_undisplayed",
+        "key_df",
+        "key_plt",
+        "sym_eq",
+    ]
     doctree = clean_doctree(sphinx_run.get_resolved_doctree("with_glue"))
     file_regression.check(
         doctree.pformat(),
         extension=f"{sphinx_run.software_versions}.xml",
         encoding="utf8",
     )
-    # from myst_nb.nb_glue.domain import NbGlueDomain
-    # glue_domain = NbGlueDomain.from_env(sphinx_run.app.env)
-    # assert set(glue_domain.cache) == {
-    #     "key_text1",
-    #     "key_float",
-    #     "key_undisplayed",
-    #     "key_df",
-    #     "key_plt",
-    #     "sym_eq",
-    # }
-    # glue_domain.clear_doc("with_glue")
-    # assert glue_domain.cache == {}
-    # assert glue_domain.docmap == {}
