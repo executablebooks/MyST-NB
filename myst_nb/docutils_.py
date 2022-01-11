@@ -21,12 +21,12 @@ from myst_nb.configuration import NbParserConfig
 from myst_nb.execute import execute_notebook
 from myst_nb.loggers import DEFAULT_LOG_TYPE, DocutilsDocLogger
 from myst_nb.nb_glue.elements import (
-    PasteDirective,
+    PasteAnyDirective,
     PasteFigureDirective,
     PasteMarkdownDirective,
     PasteMarkdownRole,
     PasteMathDirective,
-    PasteRole,
+    PasteRoleAny,
     PasteTextRole,
 )
 from myst_nb.parse import nb_node_to_dict, notebook_to_tokens
@@ -70,15 +70,15 @@ class Parser(MystParser):
         new_directives = (
             ("code-cell", UnexpectedCellDirective),
             ("raw-cell", UnexpectedCellDirective),
-            ("glue:", PasteDirective),
-            ("glue:any", PasteDirective),
+            ("glue:", PasteAnyDirective),
+            ("glue:any", PasteAnyDirective),
             ("glue:figure", PasteFigureDirective),
             ("glue:math", PasteMathDirective),
             ("glue:md", PasteMarkdownDirective),
         )
         new_roles = (
-            ("glue:", PasteRole()),
-            ("glue:any", PasteRole()),
+            ("glue:", PasteRoleAny()),
+            ("glue:any", PasteRoleAny()),
             ("glue:text", PasteTextRole()),
             ("glue:md", PasteMarkdownRole()),
         )

@@ -204,7 +204,7 @@ The format of output `text/markdown` can be specified by `render_markdown_format
   - Note, this requires the installation of the [linkify-it-py package](https://pypi.org/project/linkify-it-py)
 - `myst`: The MyST parser configuration for the the current document.
 
-CommonMark formatting will ouput basic Markdown syntax:
+CommonMark formatting will output basic Markdown syntax:
 
 ```{code-cell} ipython3
 from IPython.display import display, Markdown

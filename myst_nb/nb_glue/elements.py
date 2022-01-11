@@ -1,4 +1,8 @@
-"""Directives and roles which can be used by both docutils and sphinx."""
+"""Directives and roles which can be used by both docutils and sphinx.
+
+We intentionally do no import sphinx in this module,
+in order to allow docutils-only use without sphinx installed.
+"""
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import attr
@@ -32,13 +36,92 @@ def warning(message: str, document: nodes.document, line: int) -> nodes.system_m
     )
 
 
+def set_source_info(node: nodes.Node, source: str, line: int) -> None:
+    """Set the source info for a node and its descendants."""
+    iterator = getattr(node, "findall", node.traverse)  # findall for docutils 0.18
+    for _node in iterator(include_self=True):
+        _node.source = source
+        _node.line = line
+
+
+@attr.s
+class RetrievedData:
+    """A class to store retrieved mime data."""
+
+    found: bool = attr.ib()
+    data: Union[None, str, bytes] = attr.ib(default=None)
+    metadata: Dict[str, Any] = attr.ib(factory=dict)
+    nb_renderer: Optional[NbElementRenderer] = attr.ib(default=None)
+    warning: Optional[str] = attr.ib(default=None)
+
+
+def retrieve_glue_data(document: nodes.document, key: str) -> RetrievedData:
+    """Retrieve the glue data from a specific document."""
+    if "nb_renderer" not in document:
+        return RetrievedData(False, warning="No 'nb_renderer' found on the document.")
+    nb_renderer: NbElementRenderer = document["nb_renderer"]
+    resources = nb_renderer.get_resources()
+    if "glue" not in resources:
+        return RetrievedData(False, warning=f"No key {key!r} found in glue data.")
+
+    if key not in resources["glue"]:
+        return RetrievedData(False, warning=f"No key {key!r} found in glue data.")
+
+    return RetrievedData(
+        True,
+        data=resources["glue"][key]["data"],
+        metadata=resources["glue"][key].get("metadata", {}),
+        nb_renderer=nb_renderer,
+    )
+
+
+def render_glue_output(
+    key: str,
+    document: nodes.document,
+    line: int,
+    source: str,
+    inline=False,
+) -> Tuple[bool, List[nodes.Node]]:
+    """Retrive the notebook output data for this glue key,
+    then return the docutils/sphinx nodes relevant to this data.
+
+    :param key: The glue key to retrieve.
+    :param document: The current docutils document.
+    :param line: The current source line number of the directive or role.
+    :param source: The current source path or description.
+    :param inline: Whether to render the output as inline (or block).
+
+    :returns: A tuple of (was the key found, the docutils/sphinx nodes).
+    """
+    data = retrieve_glue_data(document, key)
+    if not data.found:
+        return (False, [warning(data.warning, document, line)])
+    if is_sphinx(document):
+        _nodes = render_output_sphinx(
+            data.nb_renderer, data.data, data.metadata, source, line, inline
+        )
+    else:
+        _nodes = render_output_docutils(
+            data.nb_renderer, data.data, data.metadata, document, line, inline
+        )
+    # TODO rendering should perhaps return if it succeeded explicitly
+    if _nodes and isinstance(_nodes[0], nodes.system_message):
+        return False, _nodes
+    return True, _nodes
+
+
 def render_output_docutils(
-    document, line, nb_renderer: NbElementRenderer, output: Dict[str, Any], inline=False
+    nb_renderer: NbElementRenderer,
+    data: Dict[str, Any],
+    metadata: Dict[str, Any],
+    document: nodes.document,
+    line: int,
+    inline=False,
 ) -> List[nodes.Node]:
     """Render the output in docutils (select mime priority directly)."""
     mime_priority = nb_renderer.renderer.nb_config.mime_priority
     try:
-        mime_type = next(x for x in mime_priority if x in output["data"])
+        mime_type = next(x for x in mime_priority if x in data)
     except StopIteration:
         return [
             warning(
@@ -50,8 +133,8 @@ def render_output_docutils(
     else:
         data = MimeData(
             mime_type,
-            output["data"][mime_type],
-            output_metadata=output.get("metadata", {}),
+            data[mime_type],
+            output_metadata=metadata,
             line=line,
         )
         if inline:
@@ -60,22 +143,20 @@ def render_output_docutils(
 
 
 def render_output_sphinx(
-    document,
-    line,
     nb_renderer: NbElementRenderer,
-    output: Dict[str, Any],
-    set_source_info,
+    data: Dict[str, Any],
+    metadata: Dict[str, Any],
+    source: str,
+    line: int,
     inline=False,
 ) -> List[nodes.Node]:
     """Render the output in sphinx (defer mime priority selection)."""
     mime_bundle = nodes.container(nb_element="mime_bundle")
-    set_source_info(mime_bundle)
-    for mime_type, data in output["data"].items():
+    set_source_info(mime_bundle, source, line)
+    for mime_type, data in data.items():
         mime_container = nodes.container(mime_type=mime_type)
-        set_source_info(mime_container)
-        data = MimeData(
-            mime_type, data, output_metadata=output.get("metadata", {}), line=line
-        )
+        set_source_info(mime_container, source, line)
+        data = MimeData(mime_type, data, output_metadata=metadata, line=line)
         if inline:
             nds = nb_renderer.render_mime_type_inline(data)
         else:
@@ -86,67 +167,7 @@ def render_output_sphinx(
     return [mime_bundle]
 
 
-def render_glue_output(
-    key: str, document: nodes.document, line: int, set_source_info, inline=False
-) -> List[nodes.Node]:
-    if "nb_renderer" not in document:
-        return [warning("No 'nb_renderer' found on the document.", document, line)]
-    nb_renderer: NbElementRenderer = document["nb_renderer"]
-    resources = nb_renderer.get_resources()
-    if "glue" not in resources:
-        return [
-            warning("No glue data found in the notebook resources.", document, line)
-        ]
-    if key not in resources["glue"]:
-        return [warning(f"No key {key!r} found in glue data.", document, line)]
-    if not resources["glue"][key].get("data"):
-        return [warning(f"{key!r} does not contain any data.", document, line)]
-    if is_sphinx(document):
-        return render_output_sphinx(
-            document, line, nb_renderer, resources["glue"][key], set_source_info, inline
-        )
-    else:
-        return render_output_docutils(
-            document, line, nb_renderer, resources["glue"][key], inline
-        )
-
-
-@attr.s
-class RetrievedData:
-    """A class to store retrieved mime data."""
-
-    warning: Optional[str] = attr.ib()
-    data: Union[None, str, bytes] = attr.ib(default=None)
-    metadata: Dict[str, Any] = attr.ib(factory=dict)
-    nb_renderer: Optional[NbElementRenderer] = attr.ib(default=None)
-
-
-def retrieve_mime_data(
-    document: nodes.document, key: str, mime_type: str
-) -> RetrievedData:
-    """Retrieve the mime data from the document."""
-    if "nb_renderer" not in document:
-        return RetrievedData("No 'nb_renderer' found on the document.")
-    nb_renderer: NbElementRenderer = document["nb_renderer"]
-    resources = nb_renderer.get_resources()
-    if "glue" not in resources:
-        return RetrievedData(f"No key {key!r} found in glue data.")
-
-    if key not in resources["glue"]:
-        return RetrievedData(f"No key {key!r} found in glue data.")
-
-    if mime_type not in resources["glue"][key].get("data", {}):
-        return RetrievedData(f"{key!r} does not contain {mime_type!r} data.")
-
-    return RetrievedData(
-        None,
-        resources["glue"][key]["data"][mime_type],
-        resources["glue"][key].get("metadata", {}),
-        nb_renderer,
-    )
-
-
-class PasteRole:
+class _PasteRoleBase:
     """A role for pasting inline code outputs from notebooks."""
 
     def get_source_info(self, lineno: int = None) -> Tuple[str, int]:
@@ -158,10 +179,7 @@ class PasteRole:
     def set_source_info(self, node: nodes.Node, lineno: int = None) -> None:
         """Set the source info for a node and its descendants."""
         source, line = self.get_source_info(lineno)
-        iterator = getattr(node, "findall", node.traverse)  # findall for docutils 0.18
-        for _node in iterator(include_self=True):
-            _node.source = source
-            _node.line = line
+        set_source_info(node, source, line)
 
     def __call__(
         self,
@@ -181,19 +199,29 @@ class PasteRole:
 
     def run(self) -> Tuple[List[nodes.Node], List[nodes.system_message]]:
         """Run the role."""
-        paste_nodes = render_glue_output(
+        raise NotImplementedError
+
+
+class PasteRoleAny(_PasteRoleBase):
+    """A role for pasting inline code outputs from notebooks,
+    using render priority to decide the output mime type.
+    """
+
+    def run(self) -> Tuple[List[nodes.Node], List[nodes.system_message]]:
+        line, source = self.get_source_info()
+        found, paste_nodes = render_glue_output(
             self.text,
             self.inliner.document,
-            self.lineno,
-            self.set_source_info,
+            line,
+            source,
             inline=True,
         )
-        if not paste_nodes and isinstance(paste_nodes[0], nodes.system_message):
+        if not found:
             return [], paste_nodes
         return paste_nodes, []
 
 
-class PasteTextRole(PasteRole):
+class PasteTextRole(_PasteRoleBase):
     """A role for pasting text outputs from notebooks."""
 
     def run(self) -> Tuple[List[nodes.Node], List[nodes.system_message]]:
@@ -207,16 +235,16 @@ class PasteTextRole(PasteRole):
 
         # now retrieve the data
         document = self.inliner.document
-        result = retrieve_mime_data(document, key, "text/plain")
-        if result.warning is not None:
+
+        result = retrieve_glue_data(document, key)
+        if not result.found:
+            return [], [warning(result.warning, document, self.lineno)]
+        if "text/plain" not in result.data:
             return [], [
-                warning(
-                    result.warning,
-                    document,
-                    self.lineno,
-                )
+                warning(f"No text/plain found in {key!r} data", document, self.lineno)
             ]
-        text = str(result.data).strip("'")
+
+        text = str(result.data["text/plain"]).strip("'")
 
         # If formatting is specified, see if we have a number of some kind
         if formatting:
@@ -231,7 +259,7 @@ class PasteTextRole(PasteRole):
         return [node], []
 
 
-class PasteMarkdownRole(PasteRole):
+class PasteMarkdownRole(_PasteRoleBase):
     """A role for pasting markdown outputs from notebooks as inline MyST Markdown."""
 
     def run(self) -> Tuple[List[nodes.Node], List[nodes.system_message]]:
@@ -245,20 +273,22 @@ class PasteMarkdownRole(PasteRole):
         # TODO - check fmt is valid
         # retrieve the data
         document = self.inliner.document
-        result = retrieve_mime_data(document, key, "text/markdown")
-        if result.warning is not None:
+
+        result = retrieve_glue_data(document, key)
+        if not result.found:
+            return [], [warning(result.warning, document, self.lineno)]
+        if "text/markdown" not in result.data:
             return [], [
                 warning(
-                    result.warning,
-                    document,
-                    self.lineno,
+                    f"No text/markdown found in {key!r} data", document, self.lineno
                 )
             ]
+
         # TODO this feels a bit hacky
         cell_key = result.nb_renderer.renderer.nb_config.cell_render_key
         mime = MimeData(
             "text/markdown",
-            result.data,
+            result.data["text/markdown"],
             cell_metadata={
                 cell_key: {"markdown_format": fmt},
             },
@@ -271,7 +301,7 @@ class PasteMarkdownRole(PasteRole):
         return _nodes, []
 
 
-class _PasteBaseDirective(Directive):
+class _PasteDirectiveBase(Directive):
 
     required_arguments = 1  # the key
     final_argument_whitespace = True
@@ -288,13 +318,24 @@ class _PasteBaseDirective(Directive):
     def set_source_info(self, node: nodes.Node) -> None:
         """Set source and line number to the node and its descendants."""
         source, line = self.get_source_info()
-        iterator = getattr(node, "findall", node.traverse)  # findall for docutils 0.18
-        for _node in iterator(include_self=True):
-            _node.source = source
-            _node.line = line
+        set_source_info(node, source, line)
 
 
-class PasteMarkdownDirective(_PasteBaseDirective):
+class PasteAnyDirective(_PasteDirectiveBase):
+    """A directive for pasting code outputs from notebooks,
+    using render priority to decide the output mime type.
+    """
+
+    def run(self) -> List[nodes.Node]:
+        """Run the directive."""
+        line, source = self.get_source_info()
+        _, paste_nodes = render_glue_output(
+            self.arguments[0], self.document, line, source
+        )
+        return paste_nodes
+
+
+class PasteMarkdownDirective(_PasteDirectiveBase):
     """A directive for pasting markdown outputs from notebooks as MyST Markdown."""
 
     def fmt(argument):
@@ -306,20 +347,24 @@ class PasteMarkdownDirective(_PasteBaseDirective):
 
     def run(self) -> List[nodes.Node]:
         """Run the directive."""
-        result = retrieve_mime_data(self.document, self.arguments[0], "text/markdown")
-        if result.warning is not None:
+        key = self.arguments[0]
+        result = retrieve_glue_data(self.document, key)
+        if not result.found:
+            return [warning(result.warning, self.document, self.lineno)]
+        if "text/markdown" not in result.data:
             return [
                 warning(
-                    result.warning,
+                    f"No text/markdown found in {key!r} data",
                     self.document,
                     self.lineno,
                 )
             ]
+
         # TODO this "override" feels a bit hacky
         cell_key = result.nb_renderer.renderer.nb_config.cell_render_key
         mime = MimeData(
             "text/markdown",
-            result.data,
+            result.data["text/markdown"],
             cell_metadata={
                 cell_key: {"markdown_format": self.options.get("format", "commonmark")},
             },
@@ -333,17 +378,7 @@ class PasteMarkdownDirective(_PasteBaseDirective):
         return _nodes
 
 
-class PasteDirective(_PasteBaseDirective):
-    """A directive for pasting code outputs from notebooks."""
-
-    def run(self) -> List[nodes.Node]:
-        """Run the directive."""
-        return render_glue_output(
-            self.arguments[0], self.document, self.lineno, self.set_source_info
-        )
-
-
-class PasteFigureDirective(PasteDirective):
+class PasteFigureDirective(_PasteDirectiveBase):
     """A directive for pasting code outputs from notebooks, wrapped in a figure."""
 
     def align(argument):
@@ -352,16 +387,20 @@ class PasteFigureDirective(PasteDirective):
     def figwidth_value(argument):
         return directives.length_or_percentage_or_unitless(argument, "px")
 
-    option_spec = (PasteDirective.option_spec or {}).copy()
-    option_spec["figwidth"] = figwidth_value
-    option_spec["figclass"] = directives.class_option
-    option_spec["align"] = align
-    option_spec["name"] = directives.unchanged
+    option_spec = {
+        "figwidth": figwidth_value,
+        "figclass": directives.class_option,
+        "align": align,
+        "name": directives.unchanged,
+    }
     has_content = True
 
     def run(self):
-        paste_nodes = super().run()
-        if not paste_nodes or isinstance(paste_nodes[0], nodes.system_message):
+        line, source = self.get_source_info()
+        found, paste_nodes = render_glue_output(
+            self.arguments[0], self.document, line, source
+        )
+        if not found:
             return paste_nodes
 
         # note: most of this is copied directly from sphinx.Figure
@@ -407,7 +446,7 @@ class PasteFigureDirective(PasteDirective):
         return [figure_node]
 
 
-class PasteMathDirective(_PasteBaseDirective):
+class PasteMathDirective(_PasteDirectiveBase):
     """A directive for pasting latex outputs from notebooks as math."""
 
     option_spec = {
@@ -419,16 +458,20 @@ class PasteMathDirective(_PasteBaseDirective):
 
     def run(self) -> List[nodes.Node]:
         """Run the directive."""
-        result = retrieve_mime_data(self.document, self.arguments[0], "text/latex")
-        if result.warning is not None:
+        key = self.arguments[0]
+        result = retrieve_glue_data(self.document, key)
+        if not result.found:
+            return [warning(result.warning, self.document, self.lineno)]
+        if "text/latex" not in result.data:
             return [
                 warning(
-                    result.warning,
+                    f"No text/latex found in {key!r} data",
                     self.document,
                     self.lineno,
                 )
             ]
-        latex = strip_latex_delimiters(str(result.data))
+
+        latex = strip_latex_delimiters(str(result.data["text/latex"]))
         label = self.options.get("label", self.options.get("name"))
         node = nodes.math_block(
             latex,

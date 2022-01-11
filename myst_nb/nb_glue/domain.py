@@ -7,12 +7,12 @@ from typing import List
 from sphinx.domains import Domain
 
 from myst_nb.nb_glue.elements import (
-    PasteDirective,
+    PasteAnyDirective,
     PasteFigureDirective,
     PasteMarkdownDirective,
     PasteMarkdownRole,
     PasteMathDirective,
-    PasteRole,
+    PasteRoleAny,
     PasteTextRole,
 )
 
@@ -27,15 +27,15 @@ class NbGlueDomain(Domain):
     data_version = 0.2
 
     directives = {
-        "": PasteDirective,
-        "any": PasteDirective,
+        "": PasteAnyDirective,
+        "any": PasteAnyDirective,
         "figure": PasteFigureDirective,
         "math": PasteMathDirective,
         "md": PasteMarkdownDirective,
     }
     roles = {
-        "": PasteRole(),
-        "any": PasteRole(),
+        "": PasteRoleAny(),
+        "any": PasteRoleAny(),
         "text": PasteTextRole(),
         "md": PasteMarkdownRole(),
     }
