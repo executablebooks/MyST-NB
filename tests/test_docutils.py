@@ -3,7 +3,7 @@ from io import StringIO
 import json
 from pathlib import Path
 
-from docutils.core import publish_doctree
+from docutils.core import publish_doctree, publish_string
 import pytest
 import yaml
 
@@ -50,3 +50,25 @@ def test_reporting(file_params):
         },
     )
     file_params.assert_expected(report_stream.getvalue(), rstrip=True)
+
+
+def test_html_resources(tmp_path):
+    """Test HTML resources are correctly output."""
+    report_stream = StringIO()
+    result = publish_string(
+        json.dumps({"cells": [], "metadata": {}, "nbformat": 4, "nbformat_minor": 4}),
+        parser=Parser(),
+        writer_name="html",
+        settings_overrides={
+            "nb_execution_mode": "off",
+            "nb_output_folder": str(tmp_path),
+            "warning_stream": report_stream,
+            "output_encoding": "unicode",
+            "embed_stylesheet": False,
+        },
+    )
+    assert report_stream.getvalue().rstrip() == ""
+    assert "mystnb.css" in result
+    assert "pygments.css" in result
+    assert tmp_path.joinpath("mystnb.css").is_file()
+    assert tmp_path.joinpath("pygments.css").is_file()

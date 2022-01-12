@@ -181,7 +181,6 @@ class NbParserConfig:
 
     # configuration override keys (applied after file read)
 
-    # TODO mark which config are allowed per notebook/cell
     # TODO previously we had `nb_render_key` (default: "render"),
     # for cell.metadata.render.image and cell.metadata.render.figure`,
     # and also `timeout`/`allow_errors` in notebook.metadata.execution
@@ -279,14 +278,6 @@ class NbParserConfig:
 
     # render options
 
-    output_folder: str = attr.ib(
-        default="build",
-        validator=instance_of(str),
-        metadata={
-            "help": "Folder for external outputs (like images), skipped if empty",
-            "sphinx_exclude": True,  # in sphinx we always output to the build folder
-        },
-    )
     render_plugin: str = attr.ib(
         default="default",
         validator=instance_of(str),  # TODO check it can be loaded?
@@ -416,6 +407,32 @@ class NbParserConfig:
             "docutils_exclude": True,
         },
         repr=False,
+    )
+
+    # write options for docutils
+    output_folder: str = attr.ib(
+        default="build",
+        validator=instance_of(str),
+        metadata={
+            "help": "Folder for external outputs (like images), skipped if empty",
+            "sphinx_exclude": True,  # in sphinx we always output to the build folder
+        },
+    )
+    append_css: bool = attr.ib(
+        default=True,
+        validator=instance_of(bool),
+        metadata={
+            "help": "Add default MyST-NB CSS to HTML outputs",
+            "sphinx_exclude": True,
+        },
+    )
+    metadata_to_fm: bool = attr.ib(
+        default=False,
+        validator=instance_of(bool),
+        metadata={
+            "help": "Convert unhandled metadata to frontmatter",
+            "sphinx_exclude": True,
+        },
     )
 
     @classmethod

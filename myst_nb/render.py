@@ -155,6 +155,33 @@ class NbElementRenderer:
         # TODO handle duplicate keys (whether to override/ignore)
         self.renderer.document["nb_js_files"][key] = (uri, kwargs)
 
+    def render_nb_metadata(self, metadata: dict) -> dict:
+        """Render the notebook metadata.
+
+        :returns: unhandled metadata
+        """
+        # add ipywidgets state JavaScript,
+        # The JSON inside the script tag is identified and parsed by:
+        # https://github.com/jupyter-widgets/ipywidgets/blob/32f59acbc63c3ff0acf6afa86399cb563d3a9a86/packages/html-manager/src/libembed.ts#L36
+        # see also: https://ipywidgets.readthedocs.io/en/7.6.5/embedding.html
+        ipywidgets = metadata.pop("widgets", None)
+        ipywidgets_mime = (ipywidgets or {}).get(WIDGET_STATE_MIMETYPE, {})
+        if ipywidgets_mime.get("state", None):
+            self.add_js_file(
+                "ipywidgets_state",
+                None,
+                {
+                    "type": "application/vnd.jupyter.widget-state+json",
+                    "body": sanitize_script_content(json.dumps(ipywidgets_mime)),
+                },
+            )
+            for i, (path, kwargs) in enumerate(
+                self.renderer.nb_config.ipywidgets_js.items()
+            ):
+                self.add_js_file(f"ipywidgets_{i}", path, kwargs)
+
+        return metadata
+
     def render_raw_cell(
         self, content: str, metadata: dict, cell_index: int, source_line: int
     ) -> List[nodes.Element]:

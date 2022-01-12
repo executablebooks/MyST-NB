@@ -47,7 +47,6 @@ def test_basic_run_exec_off(sphinx_run, file_regression, check_nbs):
         "source_map",
         "wordcount",
         "kernelspec",
-        "language_info",
     }
     assert set(sphinx_run.env.nb_metadata["basic_unrun"].keys()) == set()
     assert sphinx_run.env.metadata["basic_unrun"]["author"] == "Chris"

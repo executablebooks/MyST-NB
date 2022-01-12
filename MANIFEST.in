@@ -11,4 +11,4 @@ exclude codecov.yml
 include LICENSE
 include CHANGELOG.md
 include README.md
-include myst_nb/_static/mystnb.css
+include myst_nb/static/mystnb.css

@@ -1,7 +1,7 @@
 """An extension for sphinx"""
 from collections import defaultdict
 from contextlib import suppress
-import json
+from importlib import resources as import_resources
 import os
 from pathlib import Path
 from typing import Any, DefaultDict, Dict, List, Optional, Sequence, Set, Tuple, cast
@@ -23,8 +23,9 @@ from sphinx.environment.collectors import EnvironmentCollector
 from sphinx.transforms.post_transforms import SphinxPostTransform
 from sphinx.util import logging as sphinx_logging
 from sphinx.util.docutils import ReferenceRole
+from sphinx.util.fileutil import copy_asset_file
 
-from myst_nb import __version__
+from myst_nb import __version__, static
 from myst_nb.configuration import NbParserConfig
 from myst_nb.execute import ExecutionResult, execute_notebook
 from myst_nb.loggers import DEFAULT_LOG_TYPE, SphinxDocLogger
@@ -34,12 +35,10 @@ from myst_nb.parse import nb_node_to_dict, notebook_to_tokens
 from myst_nb.preprocess import preprocess_notebook
 from myst_nb.read import UnexpectedCellDirective, create_nb_reader
 from myst_nb.render import (
-    WIDGET_STATE_MIMETYPE,
     MimeData,
     NbElementRenderer,
     create_figure_context,
     load_renderer,
-    sanitize_script_content,
 )
 
 SPHINX_LOGGER = sphinx_logging.getLogger(__name__)
@@ -98,10 +97,10 @@ def sphinx_setup(app: Sphinx):
     app.add_post_transform(SelectMimeType)
 
     # add HTML resources
-    app.connect("builder-inited", add_html_static_path)
     app.add_css_file("mystnb.css")
+    app.connect("build-finished", add_global_html_resources)
     # note, this event is only available in Sphinx >= 3.5
-    app.connect("html-page-context", add_js_files)
+    app.connect("html-page-context", add_per_page_html_resources)
 
     # add configuration for hiding cell input/output
     # TODO replace this, or make it optional
@@ -182,14 +181,18 @@ def add_exclude_patterns(app: Sphinx, config):
         config.exclude_patterns.append("**.ipynb_checkpoints")
 
 
-def add_html_static_path(app: Sphinx):
-    """Add static path for HTML resources."""
-    # TODO better to use importlib_resources here, or perhaps now there is another way?
-    static_path = Path(__file__).absolute().with_name("_static")
-    app.config.html_static_path.append(str(static_path))
+def add_global_html_resources(app: Sphinx, exception):
+    """Add HTML resources that apply to all pages."""
+    # see https://github.com/sphinx-doc/sphinx/issues/1379
+    if app.builder.format == "html" and not exception:
+        with import_resources.path(static, "mystnb.css") as source_path:
+            destination = os.path.join(app.builder.outdir, "_static", "mystnb.css")
+            copy_asset_file(str(source_path), destination)
 
 
-def add_js_files(app: Sphinx, pagename: str, *args: Any, **kwargs: Any) -> None:
+def add_per_page_html_resources(
+    app: Sphinx, pagename: str, *args: Any, **kwargs: Any
+) -> None:
     """Add JS files for this page, identified from the parsing of the notebook."""
     if app.builder.format != "html":
         return
@@ -381,46 +384,26 @@ class SphinxNbRenderer(SphinxRenderer):
 
     def render_nb_metadata(self, token: SyntaxTreeNode) -> None:
         """Render the notebook metadata."""
-        metadata = dict(token.meta)
         env = cast(BuildEnvironment, self.sphinx_env)
+        metadata = dict(token.meta)
+        special_keys = ("kernelspec", "language_info", "source_map")
+        for key in special_keys:
+            if key in metadata:
+                # save these special keys on the metadata, rather than as docinfo
+                # note, sphinx_book_theme checks kernelspec is in the metadata
+                env.metadata[env.docname][key] = metadata.get(key)
 
-        # save these special keys on the metadata, rather than as docinfo
-        for key in ("kernelspec", "language_info"):
-            # TODO sphinx_book_theme checks kernelspec in `_is_notebook` check
-            # NbMetadataCollector.set_doc_data(
-            #     env, env.docname, key, metadata.pop(key, None)
-            # )
-            env.metadata[env.docname][key] = metadata.pop(key, None)
+        metadata = self.nb_renderer.render_nb_metadata(metadata)
 
-        # TODO should we provide hook for NbElementRenderer?
-
-        # store ipywidgets state in metadata,
-        # which will be later added to HTML page context
-        # The JSON inside the script tag is identified and parsed by:
-        # https://github.com/jupyter-widgets/ipywidgets/blob/32f59acbc63c3ff0acf6afa86399cb563d3a9a86/packages/html-manager/src/libembed.ts#L36
-        # see also: https://ipywidgets.readthedocs.io/en/7.6.5/embedding.html
-        ipywidgets = metadata.pop("widgets", None)
-        ipywidgets_mime = (ipywidgets or {}).get(WIDGET_STATE_MIMETYPE, {})
-        if ipywidgets_mime.get("state", None):
-            self.nb_renderer.add_js_file(
-                "ipywidgets_state",
-                None,
-                {
-                    "type": "application/vnd.jupyter.widget-state+json",
-                    "body": sanitize_script_content(json.dumps(ipywidgets_mime)),
-                },
-            )
-            for i, (path, kwargs) in enumerate(self.nb_config.ipywidgets_js.items()):
-                self.nb_renderer.add_js_file(f"ipywidgets_{i}", path, kwargs)
-
-        # forward the rest to the front_matter renderer
+        # forward the remaining metadata to the front_matter renderer
+        top_matter = {k: v for k, v in metadata.items() if k not in special_keys}
         self.render_front_matter(
             Token(
                 "front_matter",
                 "",
                 0,
                 map=[0, 0],
-                content=metadata,  # type: ignore[arg-type]
+                content=top_matter,  # type: ignore[arg-type]
             ),
         )
 

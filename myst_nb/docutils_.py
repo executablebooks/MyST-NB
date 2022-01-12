@@ -1,7 +1,8 @@
 """A parser for docutils."""
 from contextlib import suppress
 from functools import partial
-import json
+from importlib import resources as import_resources
+import os
 from typing import Any, Dict, List, Optional, Tuple
 
 from docutils import nodes
@@ -17,7 +18,9 @@ from myst_parser.docutils_renderer import DocutilsRenderer, token_line
 from myst_parser.main import MdParserConfig, create_md_parser
 import nbformat
 from nbformat import NotebookNode
+from pygments.formatters import get_formatter_by_name
 
+from myst_nb import static
 from myst_nb.configuration import NbParserConfig
 from myst_nb.execute import execute_notebook
 from myst_nb.loggers import DEFAULT_LOG_TYPE, DocutilsDocLogger
@@ -39,12 +42,10 @@ from myst_nb.read import (
     standard_nb_read,
 )
 from myst_nb.render import (
-    WIDGET_STATE_MIMETYPE,
     MimeData,
     NbElementRenderer,
     create_figure_context,
     load_renderer,
-    sanitize_script_content,
 )
 
 DOCUTILS_EXCLUDED_ARGS = {
@@ -193,11 +194,38 @@ class Parser(MystParser):
         # convert to docutils AST, which is added to the document
         mdit_parser.renderer.render(mdit_tokens, mdit_parser.options, mdit_env)
 
-        # write final (updated) notebook to output folder (utf8 is standard encoding)
-        content = nbformat.writes(notebook).encode("utf-8")
-        nb_renderer.write_file(["processed.ipynb"], content, overwrite=True)
+        if nb_config.output_folder:
+            # write final (updated) notebook to output folder (utf8 is standard encoding)
+            content = nbformat.writes(notebook).encode("utf-8")
+            nb_renderer.write_file(["processed.ipynb"], content, overwrite=True)
 
-        # TODO also write CSS to output folder if necessary or always?
+            # if we are using an HTML writer, dynamically add the CSS to the output
+            if nb_config.append_css and hasattr(document.settings, "stylesheet"):
+                css_paths = []
+
+                css_paths.append(
+                    nb_renderer.write_file(
+                        ["mystnb.css"],
+                        import_resources.read_binary(static, "mystnb.css"),
+                        overwrite=True,
+                    )
+                )
+                fmt = get_formatter_by_name("html", style="default")
+                css_paths.append(
+                    nb_renderer.write_file(
+                        ["pygments.css"],
+                        fmt.get_style_defs(".code").encode("utf-8"),
+                        overwrite=True,
+                    )
+                )
+                css_paths = [os.path.abspath(path) for path in css_paths]
+                # stylesheet and stylesheet_path are mutually exclusive
+                if document.settings.stylesheet_path:
+                    document.settings.stylesheet_path.extend(css_paths)
+                if document.settings.stylesheet:
+                    document.settings.stylesheet.extend(css_paths)
+
+            # TODO also handle JavaScript
 
         # remove temporary state
         document.attributes.pop("nb_renderer")
@@ -252,43 +280,26 @@ class DocutilsNbRenderer(DocutilsRenderer):
     def render_nb_metadata(self, token: SyntaxTreeNode) -> None:
         """Render the notebook metadata."""
         metadata = dict(token.meta)
-
-        # save these special keys on the document, rather than as docinfo
-        for key in ("kernelspec", "language_info", "source_map"):
+        special_keys = ("kernelspec", "language_info", "source_map")
+        for key in special_keys:
+            # save these special keys on the document, rather than as docinfo
             if key in metadata:
-                self.document[f"nb_{key}"] = metadata.pop(key)
+                self.document[f"nb_{key}"] = metadata.get(key)
 
-        # TODO should we provide hook for NbElementRenderer?
+        metadata = self.nb_renderer.render_nb_metadata(dict(token.meta))
 
-        # store ipywidgets state in metadata,
-        # which will be later added to HTML page context
-        # The JSON inside the script tag is identified and parsed by:
-        # https://github.com/jupyter-widgets/ipywidgets/blob/32f59acbc63c3ff0acf6afa86399cb563d3a9a86/packages/html-manager/src/libembed.ts#L36
-        # see also: https://ipywidgets.readthedocs.io/en/7.6.5/embedding.html
-        ipywidgets = metadata.pop("widgets", None)
-        ipywidgets_mime = (ipywidgets or {}).get(WIDGET_STATE_MIMETYPE, {})
-        if ipywidgets_mime.get("state", None):
-            self.nb_renderer.add_js_file(
-                "ipywidgets_state",
-                None,
-                {
-                    "type": "application/vnd.jupyter.widget-state+json",
-                    "body": sanitize_script_content(json.dumps(ipywidgets_mime)),
-                },
+        if self.nb_config.metadata_to_fm:
+            # forward the remaining metadata to the front_matter renderer
+            top_matter = {k: v for k, v in metadata.items() if k not in special_keys}
+            self.render_front_matter(
+                Token(
+                    "front_matter",
+                    "",
+                    0,
+                    map=[0, 0],
+                    content=top_matter,  # type: ignore[arg-type]
+                ),
             )
-            for i, (path, kwargs) in enumerate(self.nb_config.ipywidgets_js.items()):
-                self.nb_renderer.add_js_file(f"ipywidgets_{i}", path, kwargs)
-
-        # forward the rest to the front_matter renderer
-        self.render_front_matter(
-            Token(
-                "front_matter",
-                "",
-                0,
-                map=[0, 0],
-                content=metadata,  # type: ignore[arg-type]
-            ),
-        )
 
     def render_nb_widget_state(self, token: SyntaxTreeNode) -> None:
         """Render the HTML defining the ipywidget state."""
@@ -484,14 +495,16 @@ class DocutilsNbRenderer(DocutilsRenderer):
 
 def _run_cli(writer_name: str, writer_description: str, argv: Optional[List[str]]):
     """Run the command line interface for a particular writer."""
-    # TODO note to run this with --report="info", to see notebook execution
     publish_cmdline(
         parser=Parser(),
         writer_name=writer_name,
         description=(
             f"Generates {writer_description} from standalone MyST Notebook sources.\n"
-            f"{default_description}"
+            f"{default_description}\n"
+            "External outputs are written to `--nb-output-folder`.\n"
         ),
+        # to see notebook execution info by default
+        settings_overrides={"report_level": 1},
         argv=argv,
     )
 
