@@ -301,18 +301,6 @@ class DocutilsNbRenderer(DocutilsRenderer):
                 ),
             )
 
-    def render_nb_widget_state(self, token: SyntaxTreeNode) -> None:
-        """Render the HTML defining the ipywidget state."""
-        # TODO handle this more generally,
-        # by just passing all notebook metadata to the nb_renderer
-        node = self.nb_renderer.render_widget_state(
-            mime_type=token.attrGet("type"), data=token.meta
-        )
-        node["nb_element"] = "widget_state"
-        self.add_line_and_source_path(node, token)
-        # always append to bottom of the document
-        self.document.append(node)
-
     def render_nb_cell_markdown(self, token: SyntaxTreeNode) -> None:
         """Render a notebook markdown cell."""
         # TODO this is currently just a "pass-through", but we could utilise the metadata
