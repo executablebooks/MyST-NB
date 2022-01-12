@@ -1,4 +1,7 @@
 """Test sphinx builds which execute notebooks."""
+import os
+from pathlib import Path
+
 import pytest
 
 from myst_nb.sphinx_ import NbMetadataCollector
@@ -17,6 +20,10 @@ def regress_nb_doc(file_regression, sphinx_run, check_nbs):
             "438c56ea3dcf99d86cd64df1b23e2b436afb25846434efb1cfec7b660ef01127",
             "e2dfbe330154316cfb6f3186e8f57fc4df8aee03b0303ed1345fc22cd51f66de",
         )
+        if os.name == "nt":  # on Windows image file paths are absolute
+            doctree_string = doctree_string.replace(
+                Path(sphinx_run.app.srcdir).as_posix() + "/", ""
+            )
         file_regression.check(doctree_string, extension=".xml", encoding="utf8")
 
 
