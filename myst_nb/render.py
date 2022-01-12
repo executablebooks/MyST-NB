@@ -324,9 +324,9 @@ class NbElementRenderer:
         if data.mime_type == "text/markdown":
             return self.render_markdown(data)
 
-        return self.render_unknown(data)
+        return self.render_unhandled(data)
 
-    def render_unknown(self, data: MimeData) -> List[nodes.Element]:
+    def render_unhandled(self, data: MimeData) -> List[nodes.Element]:
         """Render a notebook output of unknown mime type."""
         self.logger.warning(
             f"skipping unknown output mime type: {data.mime_type}",
@@ -471,9 +471,9 @@ class NbElementRenderer:
         if data.mime_type == "text/markdown":
             return self.render_markdown_inline(data)
 
-        return self.render_unknown_inline(data)
+        return self.render_unhandled_inline(data)
 
-    def render_unknown_inline(self, data: MimeData) -> List[nodes.Element]:
+    def render_unhandled_inline(self, data: MimeData) -> List[nodes.Element]:
         """Render a notebook output of unknown mime type."""
         self.logger.warning(
             f"skipping unknown output mime type: {data.mime_type}",
