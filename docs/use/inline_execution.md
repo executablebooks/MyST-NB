@@ -47,12 +47,16 @@ a=2
 
 Second call to `` {eval}`a` `` gives us: {eval}`a`
 
+```{note}
+The evaluation works in any nested environment: {eval}`a`
+```
+
 ```{code-cell} ipython3
 from IPython.display import Image
 image = Image("images/fun-fish.png")
 ```
 
-You can evaluate any type of variable:
+You can also evaluate any type of variable:
 
 ````md
 ```{eval} image
