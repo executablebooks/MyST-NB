@@ -82,3 +82,7 @@ This can have **nested syntax**.
 ```
 
 This will work for any Jupyter kernel, independent of language!
+
+Incorrect variables will currently like `` {eval}`b` ``, will currently log warnings:
+
+> `/docs/use/inline_execution.md:88: WARNING: NameError: name 'b' is not defined [mystnb.eval]`

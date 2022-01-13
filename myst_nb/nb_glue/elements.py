@@ -20,13 +20,15 @@ def is_sphinx(document) -> bool:
     return hasattr(document.settings, "env")
 
 
-def warning(message: str, document: nodes.document, line: int) -> nodes.system_message:
+def warning(
+    message: str, document: nodes.document, line: int, subtype="glue"
+) -> nodes.system_message:
     """Create a warning."""
     if is_sphinx(document):
         logger = SphinxDocLogger(document)
     else:
         logger = DocutilsDocLogger(document)
-    logger.warning(message, subtype="glue")
+    logger.warning(message, subtype=subtype, line=line)
     return nodes.system_message(
         message,
         type="WARNING",
@@ -208,35 +210,34 @@ class EvalRole(_PasteRoleBase):
 
     def run(self) -> Tuple[List[nodes.Node], List[nodes.system_message]]:
         document = self.inliner.document
+        source, line = self.get_source_info()
         if "nb_renderer" not in document:
             # TODO say this is because not a myst-document
             return [], [
-                warning(
-                    "No 'nb_renderer' found on the document.", document, self.lineno
-                )
+                warning("No 'nb_renderer' found on the document.", document, line)
             ]
         nb_renderer: NbElementRenderer = document["nb_renderer"]
         try:
             output = nb_renderer.renderer.get_nb_variable(self.text)
-            # TODO handle if output is stdout/stderr
-            data = output["data"]
-            metadata = output.get("metadata", {})
         except Exception as err:
-            return [], [
-                warning(f"variable retrieval failed: {err}", document, self.lineno)
-            ]
+            return [], [warning(f"variable retrieval failed: {err}", document, line)]
+        if output.get("output_type") == "error":
+            msg = f"{output.get('ename', '')}: {output.get('evalue', '')}"
+            return [], [warning(msg, document, line, subtype="eval")]
+        data = output.get("data", {})
+        metadata = output.get("metadata", {})
         if is_sphinx(document):
             _nodes = render_output_sphinx(
                 nb_renderer,
                 data,
                 metadata,
-                document["source"],
-                self.lineno,
+                source,
+                line,
                 inline=True,
             )
         else:
             _nodes = render_output_docutils(
-                nb_renderer, data, metadata, document, self.lineno, inline=True
+                nb_renderer, data, metadata, document, line, inline=True
             )
         if _nodes and isinstance(_nodes[0], nodes.system_message):
             return [], _nodes
@@ -381,6 +382,7 @@ class EvalDirective(_PasteDirectiveBase):
 
     def run(self) -> List[nodes.Node]:
         document = self.state.document
+        source, line = self.get_source_info()
         if "nb_renderer" not in document:
             # TODO say this is because not a myst-document
             return [
@@ -391,23 +393,32 @@ class EvalDirective(_PasteDirectiveBase):
         nb_renderer: NbElementRenderer = document["nb_renderer"]
         try:
             output = nb_renderer.renderer.get_nb_variable(self.arguments[0])
-            # TODO handle if output is stdout/stderr
-            data = output["data"]
-            metadata = output.get("metadata", {})
         except Exception as err:
-            return [warning(f"variable retrieval failed: {err}", document, self.lineno)]
+            return [
+                warning(
+                    f"variable retrieval failed: {err}",
+                    document,
+                    self.lineno,
+                    subtype="eval",
+                )
+            ]
+        if output.get("output_type") == "error":
+            msg = f"{output.get('ename', '')}: {output.get('evalue', '')}"
+            return [warning(msg, document, line, subtype="eval")]
+        data = output.get("data", {})
+        metadata = output.get("metadata", {})
         if is_sphinx(document):
             _nodes = render_output_sphinx(
                 nb_renderer,
                 data,
                 metadata,
-                document["source"],
-                self.lineno,
+                source,
+                line,
                 inline=False,
             )
         else:
             _nodes = render_output_docutils(
-                nb_renderer, data, metadata, document, self.lineno, inline=False
+                nb_renderer, data, metadata, document, line, inline=False
             )
         return _nodes
 

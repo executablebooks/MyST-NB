@@ -281,6 +281,7 @@ class NbElementRenderer:
         cell_metadata: Dict[str, Any],
         cell_index: int,
         source_line: int,
+        inline: bool = False,
     ) -> List[nodes.Element]:
         """Render a notebook error output.
 
@@ -296,7 +297,11 @@ class NbElementRenderer:
             cell_metadata, "error_lexer", "render_error_lexer"
         )
         node = self.renderer.create_highlighted_code_block(
-            traceback, lexer, source=self.source, line=source_line
+            traceback,
+            lexer,
+            source=self.source,
+            line=source_line,
+            node_cls=nodes.literal if inline else nodes.literal_block,
         )
         node["classes"] += ["output", "traceback"]
         return [node]
