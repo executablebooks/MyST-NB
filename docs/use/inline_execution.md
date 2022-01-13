@@ -29,7 +29,7 @@ mystnb:
 
 which turns on the experimental inline execution mode.
 
-Inline execution starts the Jupyter kernel, then executes code cells as they are visited during the conversion to docutils AST.
+Inline execution starts the Jupyter kernel then executes code cells, as they are visited, during the conversion to a docutils document.
 When an `eval` role or directive is encountered, the name is evaluated by the kernel and the result is inserted into the document.
 
 You can see here that the variable `a`, which is inserted by the `eval` role, will change based on the order of execution (relative to the code cells).
