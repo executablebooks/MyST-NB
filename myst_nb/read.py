@@ -147,7 +147,7 @@ def is_myst_markdown_notebook(text: Union[str, Iterator[str]]) -> bool:
 
 def read_myst_markdown_notebook(
     text,
-    config: MdParserConfig,
+    config: MdParserConfig = None,
     code_directive="{code-cell}",
     raw_directive="{raw-cell}",
     add_source_map=False,
@@ -162,11 +162,12 @@ def read_myst_markdown_notebook(
         which is a list of the starting source line number for each cell.
     :param path: path to notebook (required for :load:)
 
-    :raises _MystMetadataParsingError if the metadata block is not valid JSON/YAML
+    :raises MystMetadataParsingError if the metadata block is not valid JSON/YAML
 
     NOTE: we assume here that all of these directives are at the top-level,
     i.e. not nested in other directives.
     """
+    config = config or MdParserConfig()
     # parse markdown file up to the block level (i.e. don't worry about inline text)
     inline_config = attr.evolve(
         config, disable_syntax=(config.disable_syntax + ["inline"])
@@ -184,7 +185,7 @@ def read_myst_markdown_notebook(
         try:
             metadata_nb = yaml.safe_load(metadata.content)
         except (yaml.parser.ParserError, yaml.scanner.ScannerError) as error:
-            raise _MystMetadataParsingError("Notebook metadata: {}".format(error))
+            raise MystMetadataParsingError("Notebook metadata: {}".format(error))
 
     # create an empty notebook
     nbf_version = nbf.v4
@@ -254,7 +255,7 @@ def read_myst_markdown_notebook(
     return notebook
 
 
-class _MystMetadataParsingError(Exception):
+class MystMetadataParsingError(Exception):
     """Error when parsing metadata from myst formatted text"""
 
 
@@ -287,7 +288,7 @@ def _read_fenced_cell(token, cell_index, cell_type):
             validate_options=False,
         )
     except DirectiveParsingError as err:
-        raise _MystMetadataParsingError(
+        raise MystMetadataParsingError(
             "{0} cell {1} at line {2} could not be read: {3}".format(
                 cell_type, cell_index, token.map[0] + 1, err
             )
@@ -301,13 +302,13 @@ def _read_cell_metadata(token, cell_index):
         try:
             metadata = json.loads(token.content.strip())
         except Exception as err:
-            raise _MystMetadataParsingError(
+            raise MystMetadataParsingError(
                 "Markdown cell {0} at line {1} could not be read: {2}".format(
                     cell_index, token.map[0] + 1, err
                 )
             )
         if not isinstance(metadata, dict):
-            raise _MystMetadataParsingError(
+            raise MystMetadataParsingError(
                 "Markdown cell {0} at line {1} is not a dict".format(
                     cell_index, token.map[0] + 1
                 )

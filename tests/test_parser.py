@@ -1,4 +1,7 @@
 """Test parsing of already executed notebooks."""
+import os
+from pathlib import Path
+
 import pytest
 
 
@@ -56,9 +59,12 @@ def test_complex_outputs(sphinx_run, file_regression):
         "language": "python",
         "name": "python3",
     }
-    file_regression.check(
-        sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf8"
-    )
+    doctree_string = sphinx_run.get_doctree().pformat()
+    if os.name == "nt":  # on Windows image file paths are absolute
+        doctree_string = doctree_string.replace(
+            Path(sphinx_run.app.srcdir).as_posix() + "/", ""
+        )
+    file_regression.check(doctree_string, extension=".xml", encoding="utf8")
 
     filenames = {
         p.replace(".jpeg", ".jpg")

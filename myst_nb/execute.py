@@ -137,7 +137,7 @@ def execute_notebook(
 
         # use the cached notebook if it exists
         if cache_record is not None:
-            logger.info(f"Using cached notebook: PK={cache_record.pk}")
+            logger.info(f"Using cached notebook: ID={cache_record.pk}")
             _, notebook = cache.merge_match_into_notebook(notebook)
             exec_metadata = {
                 "mtime": cache_record.created.timestamp(),
@@ -195,7 +195,7 @@ def execute_notebook(
                 check_validity=False,
                 overwrite=True,
             )
-            logger.info(f"Cached executed notebook: PK={cache_record.pk}")
+            logger.info(f"Cached executed notebook: ID={cache_record.pk}")
 
         exec_metadata = {
             "mtime": datetime.now().timestamp(),
