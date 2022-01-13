@@ -31,9 +31,9 @@ which turns on the experimental inline execution mode.
 
 Inline execution starts the Jupyter kernel, then executes code cells as they are visited during the conversion to docutils AST.
 
-When an `eval` role or directive is encountered, the name is run by the kernel and the result is inserted into the document.
+When an `eval` role or directive is encountered, the name is evaluated by the kernel and the result is inserted into the document.
 
-You can see here that the variable `a` that is inserted by the `eval` role will change based on the order of execution, relative to the code cells.
+You can see here that the variable `a`, which is inserted by the `eval` role, will change based on the order of execution (relative to the code cells).
 
 ```{code-cell} ipython3
 a=1
