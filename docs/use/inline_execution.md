@@ -17,10 +17,9 @@ mystnb:
 
 This is a Proof of Concept notebook for inline variables.
 
-This notebook is executed using top-matter:
+This notebook's execution mode is set by using the top-matter:
 
 ```md
-
 ---
 mystnb:
     execution_mode: inline
