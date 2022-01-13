@@ -16,6 +16,7 @@ mystnb:
 # Inline execution mode and Markdown variables
 
 This is a Proof of Concept notebook for inline variables.
+These work for any Jupyter kernel, independent of programming language, and requires no cell metadata!
 
 This notebook's execution mode is set by using the top-matter:
 
@@ -29,7 +30,6 @@ mystnb:
 which turns on the experimental inline execution mode.
 
 Inline execution starts the Jupyter kernel, then executes code cells as they are visited during the conversion to docutils AST.
-
 When an `eval` role or directive is encountered, the name is evaluated by the kernel and the result is inserted into the document.
 
 You can see here that the variable `a`, which is inserted by the `eval` role, will change based on the order of execution (relative to the code cells).
@@ -79,8 +79,6 @@ This can have **nested syntax**.
 
 ```{eval} markdown
 ```
-
-This will work for any Jupyter kernel, independent of language!
 
 Incorrect variables, like `` {eval}`b` ``, will currently log warnings:
 
