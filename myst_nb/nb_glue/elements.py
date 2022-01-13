@@ -26,7 +26,7 @@ def warning(message: str, document: nodes.document, line: int) -> nodes.system_m
         logger = SphinxDocLogger(document)
     else:
         logger = DocutilsDocLogger(document)
-    logger.warning(message, subtype="glue")
+    logger.warning(message, line=line, subtype="glue")
     return nodes.system_message(
         message,
         type="WARNING",
