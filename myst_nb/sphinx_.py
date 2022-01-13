@@ -27,11 +27,17 @@ from sphinx.util.fileutil import copy_asset_file
 
 from myst_nb import __version__, static
 from myst_nb.configuration import NbParserConfig
-from myst_nb.execute import ExecutionResult, execute_notebook
+from myst_nb.execute import (
+    ExecutionResult,
+    NbClientRunner,
+    PreExecutedNbRunner,
+    execute_notebook,
+)
 from myst_nb.loggers import DEFAULT_LOG_TYPE, SphinxDocLogger
+from myst_nb.md_parse import nb_node_to_dict, notebook_to_tokens
 from myst_nb.nb_glue import glue_dict_to_nb
 from myst_nb.nb_glue.domain import NbGlueDomain
-from myst_nb.parse import nb_node_to_dict, notebook_to_tokens
+from myst_nb.nb_glue.elements import EvalDirective, EvalRole
 from myst_nb.preprocess import preprocess_notebook
 from myst_nb.read import UnexpectedCellDirective, create_nb_reader
 from myst_nb.render import (
@@ -89,6 +95,10 @@ def sphinx_setup(app: Sphinx):
     # add directive to ensure all notebook cells are converted
     app.add_directive("code-cell", UnexpectedCellDirective, override=True)
     app.add_directive("raw-cell", UnexpectedCellDirective, override=True)
+
+    # add eval role/directive
+    app.add_role("eval", EvalRole())
+    app.add_directive("eval", EvalDirective)
 
     # add directive for downloading an executed notebook
     app.add_role("nb-download", NbDownloadRole())
@@ -284,7 +294,6 @@ class Parser(MystParser):
         # Setup the parser
         mdit_parser = create_md_parser(nb_reader.md_config, SphinxNbRenderer)
         mdit_parser.options["document"] = document
-        mdit_parser.options["notebook"] = notebook
         mdit_parser.options["nb_config"] = nb_config
         mdit_env: Dict[str, Any] = {}
 
@@ -307,9 +316,17 @@ class Parser(MystParser):
         mdit_parser.renderer.md_options["nb_resources"] = resources
 
         # parse to tokens
-        mdit_tokens = notebook_to_tokens(notebook, mdit_parser, mdit_env, logger)
+        mdit_tokens = notebook_to_tokens(notebook, mdit_parser, mdit_env)
         # convert to docutils AST, which is added to the document
-        mdit_parser.renderer.render(mdit_tokens, mdit_parser.options, mdit_env)
+        runner_cls = (
+            NbClientRunner
+            if nb_config.execution_mode == "inline"
+            else PreExecutedNbRunner
+        )
+        with runner_cls(notebook, cwd=os.path.dirname(document_path)) as runner:
+            mdit_parser.options["_nb_runner"] = runner
+            mdit_parser.renderer.render(mdit_tokens, mdit_parser.options, mdit_env)
+            notebook = runner.get_final_notebook()
 
         # write final (updated) notebook to output folder (utf8 is standard encoding)
         path = self.env.docname.split("/")
@@ -348,6 +365,40 @@ class SphinxNbRenderer(SphinxRenderer):
     def nb_config(self) -> NbParserConfig:
         """Get the notebook element renderer."""
         return self.md_options["nb_config"]
+
+    def get_nb_source_code_lexer(self) -> Optional[str]:
+        """Get the lexer name for code cell source."""
+        runner = self.md_options["_nb_runner"]
+        lexer = runner.get_source_code_lexer()
+        if lexer is None:
+            # TODO allow user to set default lexer?
+            self.create_warning(
+                "No source code lexer found for notebook",
+                wtype=DEFAULT_LOG_TYPE,
+                subtype="lexer",
+                append_to=self.current_node,
+            )
+        return lexer
+
+    def _create_code_outputs(
+        self, cell_index
+    ) -> Tuple[Optional[int], List[NotebookNode]]:
+        """Create the outputs for a code cell.
+
+        IMPORTANT: this should only be called once per code cell,
+        since it may execute the code.
+
+        :param source: The source code of the cell
+        :param cell_index: The index of the cell
+        :param metadata: The metadata of the cell
+        :returns: (execution count, list of outputs)
+        """
+        runner = self.md_options["_nb_runner"]
+        return runner.execute_next_cell(cell_index)
+
+    def get_nb_variable(self, name):
+        runner = self.md_options["_nb_runner"]
+        return runner.get_variable(name)
 
     @property
     def nb_renderer(self) -> NbElementRenderer:
@@ -427,16 +478,20 @@ class SphinxNbRenderer(SphinxRenderer):
     def render_nb_cell_code(self, token: SyntaxTreeNode) -> None:
         """Render a notebook code cell."""
         cell_index = token.meta["index"]
-        tags = token.meta["metadata"].get("tags", [])
+        metadata = token.meta["metadata"]
+        tags = metadata.get("tags", [])
+
+        # this must be called per code cell
+        exec_count, outputs = self._create_code_outputs(cell_index)
 
         # TODO do we need this -/_ duplication of tag names, or can we deprecate one?
         remove_input = (
-            self.get_cell_render_config(token.meta["metadata"], "remove_code_source")
+            self.get_cell_render_config(metadata, "remove_code_source")
             or ("remove_input" in tags)
             or ("remove-input" in tags)
         )
         remove_output = (
-            self.get_cell_render_config(token.meta["metadata"], "remove_code_outputs")
+            self.get_cell_render_config(metadata, "remove_code_outputs")
             or ("remove_output" in tags)
             or ("remove-output" in tags)
         )
@@ -453,8 +508,8 @@ class SphinxNbRenderer(SphinxRenderer):
             nb_element="cell_code",
             cell_index=cell_index,
             # TODO some way to use this to allow repr of count in outputs like HTML?
-            exec_count=token.meta["execution_count"],
-            cell_metadata=token.meta["metadata"],
+            exec_count=exec_count,
+            cell_metadata=metadata,
             classes=classes,
         )
         self.add_line_and_source_path(cell_container, token)
@@ -467,27 +522,22 @@ class SphinxNbRenderer(SphinxRenderer):
                 )
                 self.add_line_and_source_path(cell_input, token)
                 with self.current_node_context(cell_input, append=True):
-                    self.render_nb_cell_code_source(token)
+                    self._render_nb_cell_code_source(token)
 
             # render the execution output, if any
-            has_outputs = self.md_options["notebook"]["cells"][cell_index].get(
-                "outputs", []
-            )
-            if (not remove_output) and has_outputs:
+            if (not remove_output) and outputs:
                 cell_output = nodes.container(
                     nb_element="cell_code_output", classes=["cell_output"]
                 )
                 self.add_line_and_source_path(cell_output, token)
                 with self.current_node_context(cell_output, append=True):
-                    self.render_nb_cell_code_outputs(token)
+                    self._render_nb_cell_code_outputs(token, outputs)
 
-    def render_nb_cell_code_source(self, token: SyntaxTreeNode) -> None:
+    def _render_nb_cell_code_source(self, token: SyntaxTreeNode) -> None:
         """Render a notebook code cell's source."""
-        # cell_index = token.meta["index"]
-        lexer = token.meta.get("lexer", None)
         node = self.create_highlighted_code_block(
             token.content,
-            lexer,
+            self.get_nb_source_code_lexer(),
             number_lines=self.get_cell_render_config(
                 token.meta["metadata"], "number_source_lines"
             ),
@@ -497,14 +547,13 @@ class SphinxNbRenderer(SphinxRenderer):
         self.add_line_and_source_path(node, token)
         self.current_node.append(node)
 
-    def render_nb_cell_code_outputs(self, token: SyntaxTreeNode) -> None:
+    def _render_nb_cell_code_outputs(
+        self, token: SyntaxTreeNode, outputs: List[NotebookNode]
+    ) -> None:
         """Render a notebook code cell's outputs."""
         line = token_line(token, 0)
         cell_index = token.meta["index"]
         metadata = token.meta["metadata"]
-        outputs: List[NotebookNode] = self.md_options["notebook"]["cells"][
-            cell_index
-        ].get("outputs", [])
         # render the outputs
         for output_index, output in enumerate(outputs):
             if output.output_type == "stream":

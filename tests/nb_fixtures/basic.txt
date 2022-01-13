@@ -1,4 +1,4 @@
-Markdown Cell:
+[Markdown_Cells]
 .
 cells:
   - cell_type: markdown
@@ -6,12 +6,12 @@ cells:
     source: |
         # A Title
 .
-<document ids="a-title" names="a\ title" source="<string>" title="A Title">
+<document ids="a-title" names="a\ title" nb_language_info="{'pygments_lexer': 'ipython'}" source="<string>" title="A Title">
     <title>
         A Title
 .
 
-Code Cell (no output):
+[Code_Cell_no_output]
 .
 cells:
   - cell_type: code
@@ -22,15 +22,28 @@ cells:
         print(a)
     outputs: []
 .
-<document source="<string>">
+<document nb_language_info="{'pygments_lexer': 'ipython'}" source="<string>">
     <container cell_index="0" cell_metadata="{}" classes="cell" exec_count="True" nb_element="cell_code">
         <container classes="cell_input" nb_element="cell_code_source">
-            <literal_block classes="code" xml:space="preserve">
-                a=1
-                print(a)
+            <literal_block classes="code ipython" xml:space="preserve">
+                <inline classes="n">
+                    a
+                <inline classes="o">
+                    =
+                <inline classes="mi">
+                    1
+                
+                <inline classes="nb">
+                    print
+                <inline classes="p">
+                    (
+                <inline classes="n">
+                    a
+                <inline classes="p">
+                    )
 .
 
-Code Cell (with lexer):
+[Code_Cell_with_lexer]
 .
 metadata:
     language_info:
@@ -55,7 +68,7 @@ cells:
                     1
 .
 
-Code Cell (simple output):
+[Code_Cell_simple_output]
 .
 cells:
   - cell_type: code
@@ -69,18 +82,31 @@ cells:
         output_type: stream
         text: "1"
 .
-<document source="<string>">
+<document nb_language_info="{'pygments_lexer': 'ipython'}" source="<string>">
     <container cell_index="0" cell_metadata="{}" classes="cell" exec_count="1" nb_element="cell_code">
         <container classes="cell_input" nb_element="cell_code_source">
-            <literal_block classes="code" xml:space="preserve">
-                a=1
-                print(a)
+            <literal_block classes="code ipython" xml:space="preserve">
+                <inline classes="n">
+                    a
+                <inline classes="o">
+                    =
+                <inline classes="mi">
+                    1
+                
+                <inline classes="nb">
+                    print
+                <inline classes="p">
+                    (
+                <inline classes="n">
+                    a
+                <inline classes="p">
+                    )
         <container classes="cell_output" nb_element="cell_code_output">
             <literal_block classes="code myst-ansi output stream" xml:space="preserve">
                 1
 .
 
-Raw Cell
+[raw_cell]
 .
 cells:
   - cell_type: raw
@@ -90,14 +116,14 @@ cells:
             <h1>A Title</h1>
         </div>
 .
-<document source="<string>">
+<document nb_language_info="{'pygments_lexer': 'ipython'}" source="<string>">
     <raw classes="output text_html" format="html" xml:space="preserve">
         <div>
             <h1>A Title</h1>
         </div>
 .
 
-Mixed Cells:
+[mixed_cells]
 .
 cells:
   - cell_type: markdown
@@ -116,19 +142,32 @@ cells:
     source: |
         b
 .
-<document ids="a-title" names="a\ title" source="<string>" title="A Title">
+<document ids="a-title" names="a\ title" nb_language_info="{'pygments_lexer': 'ipython'}" source="<string>" title="A Title">
     <title>
         A Title
     <container cell_index="1" cell_metadata="{}" classes="cell" exec_count="True" nb_element="cell_code">
         <container classes="cell_input" nb_element="cell_code_source">
-            <literal_block classes="code" xml:space="preserve">
-                a=1
-                print(a)
+            <literal_block classes="code ipython" xml:space="preserve">
+                <inline classes="n">
+                    a
+                <inline classes="o">
+                    =
+                <inline classes="mi">
+                    1
+                
+                <inline classes="nb">
+                    print
+                <inline classes="p">
+                    (
+                <inline classes="n">
+                    a
+                <inline classes="p">
+                    )
     <paragraph>
         b
 .
 
-Reference definitions defined in different cells:
+[ref_defs] Reference definitions defined in different cells
 .
 cells:
   - cell_type: markdown
@@ -144,7 +183,7 @@ cells:
     source: |
         [b]: after
 .
-<document source="<string>">
+<document nb_language_info="{'pygments_lexer': 'ipython'}" source="<string>">
     <paragraph>
         <reference refuri="before">
             a
@@ -153,7 +192,7 @@ cells:
             b
 .
 
-Footnote definitions defined in different cells:
+[foot_defs] Footnote definitions defined in different cells
 .
 cells:
   - cell_type: markdown
@@ -169,7 +208,7 @@ cells:
     source: |
         [^b]: after
 .
-<document source="<string>">
+<document nb_language_info="{'pygments_lexer': 'ipython'}" source="<string>">
     <paragraph>
         <footnote_reference auto="1" ids="id1" refid="a">
             1

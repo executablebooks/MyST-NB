@@ -78,6 +78,7 @@ nitpick_ignore = [
         "force",
         "auto",
         "cache",
+        "inline",
         "commonmark",
         "gfm",
         "myst",

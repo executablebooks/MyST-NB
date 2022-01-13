@@ -1,5 +1,4 @@
 """Module for parsing notebooks to Markdown-it tokens."""
-import logging
 from typing import Any, Dict, List
 
 from markdown_it.main import MarkdownIt
@@ -24,8 +23,12 @@ def notebook_to_tokens(
     notebook: NotebookNode,
     mdit_parser: MarkdownIt,
     mdit_env: Dict[str, Any],
-    logger: logging.Logger,
 ) -> List[Token]:
+    """Convert a notebook to a list of markdown-it tokens.
+
+    This may be done before the notebook is executed, so we do not record outputs,
+    or language info.
+    """
     # disable front-matter, since this is taken from the notebook
     mdit_parser.disable("front_matter", ignoreInvalid=True)
     # this stores global state, such as reference definitions
@@ -33,16 +36,6 @@ def notebook_to_tokens(
     # Parse block tokens only first, leaving inline parsing to a second phase
     # (required to collect all reference definitions, before assessing references).
     metadata = nb_node_to_dict(notebook.metadata)
-
-    # attempt to get language lexer name
-    langinfo = metadata.get("language_info") or {}
-    lexer = langinfo.get("pygments_lexer") or langinfo.get("name", None)
-    if lexer is None:
-        lexer = (metadata.get("kernelspec") or {}).get("language", None)
-    if lexer is None:
-        logger.warning(
-            "No source code lexer found in notebook metadata", subtype="lexer"
-        )
 
     block_tokens = [
         Token("nb_metadata", "", 0, meta=metadata, map=[0, 0]),
@@ -54,9 +47,10 @@ def notebook_to_tokens(
             continue
 
         # skip cells tagged for removal
-        tags = nb_cell.metadata.get("tags", [])
-        if ("remove_cell" in tags) or ("remove-cell" in tags):
-            continue
+        # TODO this breaks inline execution
+        # tags = nb_cell.metadata.get("tags", [])
+        # if ("remove_cell" in tags) or ("remove-cell" in tags):
+        #     continue
 
         # generate tokens
         tokens: List[Token]
@@ -118,8 +112,6 @@ def notebook_to_tokens(
                     content=nb_cell["source"],
                     meta={
                         "index": cell_index,
-                        "execution_count": nb_cell.get("execution_count", None),
-                        "lexer": lexer,
                         "metadata": nb_node_to_dict(nb_cell["metadata"]),
                     },
                     map=[0, 0],

@@ -200,7 +200,7 @@ class NbParserConfig:
 
     # notebook execution options
 
-    execution_mode: Literal["off", "force", "auto", "cache"] = attr.ib(
+    execution_mode: Literal["off", "force", "auto", "cache", "inline"] = attr.ib(
         default="auto",
         validator=in_(
             [
@@ -208,6 +208,7 @@ class NbParserConfig:
                 "auto",
                 "force",
                 "cache",
+                "inline",
             ]
         ),
         metadata={

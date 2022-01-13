@@ -17,7 +17,7 @@ def test_basic(file_params):
     """Test basic parsing."""
     dct = yaml.safe_load(file_params.content)
     dct.update({"nbformat": 4, "nbformat_minor": 4})
-    dct.setdefault("metadata", {})
+    dct.setdefault("metadata", {"language_info": {"pygments_lexer": "ipython"}})
     report_stream = StringIO()
     doctree = publish_doctree(
         json.dumps(dct),
@@ -38,7 +38,8 @@ def test_basic(file_params):
 def test_reporting(file_params):
     """Test that warnings and errors are reported as expected."""
     dct = yaml.safe_load(file_params.content)
-    dct.update({"metadata": {}, "nbformat": 4, "nbformat_minor": 4})
+    dct.update({"nbformat": 4, "nbformat_minor": 4})
+    dct.setdefault("metadata", {"language_info": {"pygments_lexer": "ipython"}})
     report_stream = StringIO()
     publish_doctree(
         json.dumps(dct),

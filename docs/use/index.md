@@ -9,6 +9,7 @@ They cover how to use Jupyter Notebooks with MyST markdown, as well as
 start
 myst
 execute
+inline_execution
 hiding
 formatting_outputs
 glue

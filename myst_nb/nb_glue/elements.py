@@ -58,6 +58,7 @@ class RetrievedData:
 def retrieve_glue_data(document: nodes.document, key: str) -> RetrievedData:
     """Retrieve the glue data from a specific document."""
     if "nb_renderer" not in document:
+        # TODO say this is is because it is not a myst-document
         return RetrievedData(False, warning="No 'nb_renderer' found on the document.")
     nb_renderer: NbElementRenderer = document["nb_renderer"]
     resources = nb_renderer.get_resources()
@@ -202,6 +203,46 @@ class _PasteRoleBase:
         raise NotImplementedError
 
 
+class EvalRole(_PasteRoleBase):
+    """Inline evaluation from the jupyter kernel."""
+
+    def run(self) -> Tuple[List[nodes.Node], List[nodes.system_message]]:
+        document = self.inliner.document
+        if "nb_renderer" not in document:
+            # TODO say this is because not a myst-document
+            return [], [
+                warning(
+                    "No 'nb_renderer' found on the document.", document, self.lineno
+                )
+            ]
+        nb_renderer: NbElementRenderer = document["nb_renderer"]
+        try:
+            output = nb_renderer.renderer.get_nb_variable(self.text)
+            # TODO handle if output is stdout/stderr
+            data = output["data"]
+            metadata = output.get("metadata", {})
+        except Exception as err:
+            return [], [
+                warning(f"variable retrieval failed: {err}", document, self.lineno)
+            ]
+        if is_sphinx(document):
+            _nodes = render_output_sphinx(
+                nb_renderer,
+                data,
+                metadata,
+                document["source"],
+                self.lineno,
+                inline=True,
+            )
+        else:
+            _nodes = render_output_docutils(
+                nb_renderer, data, metadata, document, self.lineno, inline=True
+            )
+        if _nodes and isinstance(_nodes[0], nodes.system_message):
+            return [], _nodes
+        return _nodes, []
+
+
 class PasteRoleAny(_PasteRoleBase):
     """A role for pasting inline code outputs from notebooks,
     using render priority to decide the output mime type.
@@ -333,6 +374,42 @@ class PasteAnyDirective(_PasteDirectiveBase):
             self.arguments[0], self.document, line, source
         )
         return paste_nodes
+
+
+class EvalDirective(_PasteDirectiveBase):
+    """Block evaluation from the jupyter kernel."""
+
+    def run(self) -> List[nodes.Node]:
+        document = self.state.document
+        if "nb_renderer" not in document:
+            # TODO say this is because not a myst-document
+            return [
+                warning(
+                    "No 'nb_renderer' found on the document.", document, self.lineno
+                )
+            ]
+        nb_renderer: NbElementRenderer = document["nb_renderer"]
+        try:
+            output = nb_renderer.renderer.get_nb_variable(self.arguments[0])
+            # TODO handle if output is stdout/stderr
+            data = output["data"]
+            metadata = output.get("metadata", {})
+        except Exception as err:
+            return [warning(f"variable retrieval failed: {err}", document, self.lineno)]
+        if is_sphinx(document):
+            _nodes = render_output_sphinx(
+                nb_renderer,
+                data,
+                metadata,
+                document["source"],
+                self.lineno,
+                inline=False,
+            )
+        else:
+            _nodes = render_output_docutils(
+                nb_renderer, data, metadata, document, self.lineno, inline=False
+            )
+        return _nodes
 
 
 class PasteMarkdownDirective(_PasteDirectiveBase):
