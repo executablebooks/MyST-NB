@@ -143,7 +143,7 @@ div.highlight .-Color[class*=-Green] {
   color: #00A250
 }
 div.highlight .-Color[class*=-Yellow] {
-  color: yellow
+  color: #DDB62B
 }
 div.highlight .-Color[class*=-Blue] {
   color: #208FFB
@@ -158,28 +158,28 @@ div.highlight .-Color[class*=-White] {
   color: #C5C1B4
 }
 div.highlight .-Color[class*=-BGBlack] {
-  background-color: #3E424D
+  background-color: #282C36
 }
 div.highlight .-Color[class*=-BGRed] {
-  background-color: #E75C58
+  background-color: #B22B31
 }
 div.highlight .-Color[class*=-BGGreen] {
-  background-color: #00A250
+  background-color: #007427
 }
 div.highlight .-Color[class*=-BGYellow] {
-  background-color: yellow
+  background-color: #B27D12
 }
 div.highlight .-Color[class*=-BGBlue] {
-  background-color: #208FFB
+  background-color: #0065CA
 }
 div.highlight .-Color[class*=-BGMagenta] {
-  background-color: #D160C4
+  background-color: #A03196
 }
 div.highlight .-Color[class*=-BGCyan] {
-  background-color: #60C6C8
+  background-color: #258F8F
 }
 div.highlight .-Color[class*=-BGWhite] {
-  background-color: #C5C1B4
+  background-color: #A1A6B2
 }
 
 /* Font colors for 8-bit ANSI */
