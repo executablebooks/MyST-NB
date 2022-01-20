@@ -128,7 +128,8 @@ tbody span.pasted-inline img {
 }
 
 /* Font colors for translated ANSI escape sequences
-Color values are adapted from share/jupyter/nbconvert/templates/classic/static/style.css
+Color values are copied from Jupyter Notebook
+https://github.com/jupyter/notebook/blob/52581f8eda9b319eb0390ac77fe5903c38f81e3e/notebook/static/notebook/less/ansicolors.less#L14-L21
 */
 div.highlight .-Color-Bold {
   font-weight: bold;
