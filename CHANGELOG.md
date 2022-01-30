@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.13.2 - 2021-10-25
+## 0.13.2 - 2022-01-31
 
 🐛 FIX: Image URI issue for latex build when source has subdirectories
 
