@@ -2,7 +2,12 @@
 
 ## 0.13.2 - 2022-01-31
 
-🐛 FIX: Image URI issue for latex build when source has subdirectories
+This release has a few improvements and fixes:
+
+- 🧪 TESTS: Pin ipython<8
+- 👌 IMPROVE: Add CSS support for 8-bit ANSI colours
+- 👌 IMPROVE: Use configured nb_render_plugin for glue nodes
+- 🐛 FIX: Image URI issue for latex build when source has subdirectories
 
 ## 0.13.1 - 2021-10-04
 
