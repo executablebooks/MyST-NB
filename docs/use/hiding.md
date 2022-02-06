@@ -77,7 +77,7 @@ points =ax.scatter(*data, c=data[0], s=data[0])
 
 ## Hiding markdown cells
 
-You cannot hide an entire markdown cell, but you can sections of markdown **content** by using roles and directives.
+You cannot hide an entire markdown cell, but you can hide sections of markdown **content** by using roles and directives.
 
 For information on how to hide / toggle markdown content in Sphinx, see either [the `sphinx-togglebutton` documentation](https://sphinx-togglebutton.readthedocs.io/en/latest/) or the [`sphinx-design` dropdowns documentation](https://sphinx-design.readthedocs.io/en/latest/dropdowns.html).
 
