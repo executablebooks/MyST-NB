@@ -470,10 +470,10 @@ class CellOutputRenderer(CellOutputRendererBase):
             # directory, so make a relative path, which Sphinx treats
             # as being relative to the current working directory.
             filename = os.path.basename(output.metadata["filenames"][mime_type])
-
             # checks if file dir path is inside a subdir of dir
             filedir = os.path.dirname(output.metadata["filenames"][mime_type])
-            subpaths = filedir.split(self.sphinx_dir)
+            outbasedir = os.path.abspath(self.sphinx_dir)
+            subpaths = filedir.split(outbasedir)
             final_dir = self.sphinx_dir
             if subpaths and len(subpaths) > 1:
                 subpath = subpaths[1]
