@@ -12,4 +12,5 @@ execute
 hiding
 formatting_outputs
 glue
+config-reference
 ```

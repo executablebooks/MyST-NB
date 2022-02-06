@@ -13,7 +13,7 @@ kernelspec:
 
 (glue)=
 
-# Inserting variables into pages with `glue`
+# Insert variables into pages with `glue`
 
 You often wish to run analyses in one notebook and insert them into your
 documents text elsewhere. For example, if you'd like to include a figure,
