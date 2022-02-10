@@ -82,6 +82,7 @@ Finally, here is documentation on contributing to the development of MySt-NB
 ```{toctree}
 :titlesonly:
 :maxdepth: 1
+changelog
 develop/contributing
 api/index
 GitHub Repo <https://github.com/executablebooks/myst-nb>
