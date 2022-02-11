@@ -2,6 +2,8 @@ import os
 
 import pytest
 
+from myst_nb.execution import NotebookExecutionError
+
 
 def regress_nb_doc(file_regression, sphinx_run, check_nbs):
     file_regression.check(
@@ -94,37 +96,27 @@ def test_exclude_path(sphinx_run, file_regression):
     "basic_failing.ipynb", conf={"jupyter_execute_notebooks": "cache"}
 )
 def test_basic_failing_cache(sphinx_run, file_regression, check_nbs):
-    sphinx_run.build()
-    assert "Execution Failed" in sphinx_run.warnings()
+    with pytest.raises(NotebookExecutionError) as e:
+        sphinx_run.build()
+    exception = e.value
     expected_path = "" if os.name == "nt" else "source/basic_failing.ipynb"
-    assert (
-        f"Couldn't find cache key for notebook file {expected_path}"
-        in sphinx_run.warnings()
+    assert f"Couldn't find cache key for notebook file {expected_path}" in str(
+        exception
     )
-    regress_nb_doc(file_regression, sphinx_run, check_nbs)
     sphinx_run.get_report_file()
-
-    assert "basic_failing" in sphinx_run.env.nb_execution_data
-    assert sphinx_run.env.nb_execution_data["basic_failing"]["method"] == "cache"
-    assert sphinx_run.env.nb_execution_data["basic_failing"]["succeeded"] is False
-    assert "error_log" in sphinx_run.env.nb_execution_data["basic_failing"]
 
 
 @pytest.mark.sphinx_params(
-    "basic_failing.ipynb", conf={"jupyter_execute_notebooks": "auto"}
+    "basic_failing.ipynb",
+    conf={"jupyter_execute_notebooks": "auto"},
 )
 def test_basic_failing_auto(sphinx_run, file_regression, check_nbs):
-    sphinx_run.build()
-    # print(sphinx_run.status())
-    assert "Execution Failed" in sphinx_run.warnings()
-    assert "Execution Failed with traceback saved in" in sphinx_run.warnings()
-    regress_nb_doc(file_regression, sphinx_run, check_nbs)
-    sphinx_run.get_report_file()
 
-    assert "basic_failing" in sphinx_run.env.nb_execution_data
-    assert sphinx_run.env.nb_execution_data["basic_failing"]["method"] == "auto"
-    assert sphinx_run.env.nb_execution_data["basic_failing"]["succeeded"] is False
-    assert "error_log" in sphinx_run.env.nb_execution_data["basic_failing"]
+    with pytest.raises(NotebookExecutionError) as e:
+        sphinx_run.build()
+    # print(sphinx_run.status())
+    exception = e.value
+    assert "Execution Failed with traceback saved in" in str(exception)
 
 
 @pytest.mark.sphinx_params(
@@ -215,16 +207,16 @@ def test_jupyter_cache_path(sphinx_run, file_regression, check_nbs):
     "basic_relative.ipynb", conf={"jupyter_execute_notebooks": "cache"}
 )
 def test_relative_path_cache(sphinx_run, file_regression, check_nbs):
-    sphinx_run.build()
-    assert "Execution Failed" not in sphinx_run.status(), sphinx_run.status()
+    with pytest.raises(NotebookExecutionError):
+        sphinx_run.build()
 
 
 @pytest.mark.sphinx_params(
     "basic_relative.ipynb", conf={"jupyter_execute_notebooks": "force"}
 )
 def test_relative_path_force(sphinx_run, file_regression, check_nbs):
-    sphinx_run.build()
-    assert "Execution Failed" not in sphinx_run.status(), sphinx_run.status()
+    with pytest.raises(NotebookExecutionError):
+        sphinx_run.build()
 
 
 # Execution timeout configuration
@@ -234,9 +226,8 @@ def test_relative_path_force(sphinx_run, file_regression, check_nbs):
 )
 def test_execution_timeout(sphinx_run, file_regression, check_nbs):
     """execution should fail given the low timeout value"""
-    sphinx_run.build()
-    # print(sphinx_run.status())
-    assert "execution failed" in sphinx_run.warnings()
+    with pytest.raises(NotebookExecutionError):
+        sphinx_run.build()
 
 
 @pytest.mark.sphinx_params(
@@ -245,8 +236,8 @@ def test_execution_timeout(sphinx_run, file_regression, check_nbs):
 )
 def test_execution_metadata_timeout(sphinx_run, file_regression, check_nbs):
     """notebook timeout metadata has higher preference then execution_timeout config"""
-    sphinx_run.build()
-    assert "execution failed" in sphinx_run.warnings()
+    with pytest.raises(NotebookExecutionError):
+        sphinx_run.build()
 
 
 @pytest.mark.sphinx_params(

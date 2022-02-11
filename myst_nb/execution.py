@@ -30,8 +30,25 @@ from .converter import get_nb_converter
 LOGGER = logging.getLogger(__name__)
 
 
+class NotebookExecutionError(RuntimeError):
+    pass
+
+
+def execution_error(message: str, allow_errors: bool):
+    """Raise an exception or just log based on `allow_errors` value"""
+
+    if allow_errors:
+        LOGGER.error(message)
+    else:
+        raise NotebookExecutionError(message)
+
+
 def update_execution_cache(
-    app: Sphinx, builder: Builder, added: Set[str], changed: Set[str], removed: Set[str]
+    app: Sphinx,
+    builder: Builder,
+    added: Set[str],
+    changed: Set[str],
+    removed: Set[str],
 ):
     """If caching is required, stage and execute the added or modified notebooks,
     and cache them for later retrieval.
@@ -46,7 +63,9 @@ def update_execution_cache(
     altered_docnames = added.union(changed)
 
     exec_docnames = [
-        docname for docname in altered_docnames if is_valid_exec_file(app.env, docname)
+        docname
+        for docname in altered_docnames
+        if is_valid_exec_file(app.env, docname)
     ]
     LOGGER.verbose("MyST-NB: Potential docnames to execute: %s", exec_docnames)
 
@@ -108,7 +127,9 @@ def generate_notebook_outputs(
 
     execution_method = env.config["jupyter_execute_notebooks"]  # type: str
 
-    path_to_cache = env.nb_path_to_cache if "cache" in execution_method else None
+    path_to_cache = (
+        env.nb_path_to_cache if "cache" in execution_method else None
+    )
 
     if not path_to_cache and "off" in execution_method:
         return ntbk
@@ -124,7 +145,9 @@ def generate_notebook_outputs(
         else:
             if env.config["execution_in_temp"]:
                 with tempfile.TemporaryDirectory() as tmpdirname:
-                    LOGGER.info("Executing: %s in temporary directory", env.docname)
+                    LOGGER.info(
+                        "Executing: %s in temporary directory", env.docname
+                    )
                     result = single_nb_execution(
                         ntbk,
                         cwd=tmpdirname,
@@ -150,7 +173,7 @@ def generate_notebook_outputs(
                     show_traceback,
                     "Execution Failed with traceback saved in {}",
                 )
-                LOGGER.error(message)
+                execution_error(message, env.config["execution_allow_errors"])
 
             ntbk = result.nb
 
@@ -196,7 +219,7 @@ def generate_notebook_outputs(
             )
             message += suffix
 
-        LOGGER.error(message)
+        execution_error(message, env.config["execution_allow_errors"])
 
     else:
         LOGGER.verbose("Merged cached outputs into %s", str(r_file_path))
@@ -268,7 +291,9 @@ def _stage_and_execute(
         source_path = env.doc2path(nb)
         with open(source_path, encoding="utf8") as handle:
             # here we pass an iterator, so that only the required lines are read
-            converter = get_nb_converter(source_path, env, (line for line in handle))
+            converter = get_nb_converter(
+                source_path, env, (line for line in handle)
+            )
         if converter is not None:
             stage_record = cache_base.stage_notebook_file(source_path)
             pk_list.append(stage_record.pk)
@@ -291,11 +316,14 @@ def _stage_and_execute(
         # Normally we want to keep the stage records available, so that we can retrieve
         # execution tracebacks at the `generate_notebook_outputs` stage,
         # but we need to flush if it becomes 'corrupted'
-        LOGGER.error(
-            "Execution failed in an unexpected way, clearing staged notebooks: %s", err
-        )
         for record in cache_base.list_staged_records():
             cache_base.discard_staged_notebook(record.pk)
+
+        execution_error(
+            "Execution failed in an unexpected way, clearing staged notebooks: %s",
+            err,
+            env.config["execution_allow_errors"],
+        )
 
 
 def execute_staged_nb(
