@@ -63,9 +63,7 @@ def update_execution_cache(
     altered_docnames = added.union(changed)
 
     exec_docnames = [
-        docname
-        for docname in altered_docnames
-        if is_valid_exec_file(app.env, docname)
+        docname for docname in altered_docnames if is_valid_exec_file(app.env, docname)
     ]
     LOGGER.verbose("MyST-NB: Potential docnames to execute: %s", exec_docnames)
 
@@ -127,9 +125,7 @@ def generate_notebook_outputs(
 
     execution_method = env.config["jupyter_execute_notebooks"]  # type: str
 
-    path_to_cache = (
-        env.nb_path_to_cache if "cache" in execution_method else None
-    )
+    path_to_cache = env.nb_path_to_cache if "cache" in execution_method else None
 
     if not path_to_cache and "off" in execution_method:
         return ntbk
@@ -145,9 +141,7 @@ def generate_notebook_outputs(
         else:
             if env.config["execution_in_temp"]:
                 with tempfile.TemporaryDirectory() as tmpdirname:
-                    LOGGER.info(
-                        "Executing: %s in temporary directory", env.docname
-                    )
+                    LOGGER.info("Executing: %s in temporary directory", env.docname)
                     result = single_nb_execution(
                         ntbk,
                         cwd=tmpdirname,
@@ -291,9 +285,7 @@ def _stage_and_execute(
         source_path = env.doc2path(nb)
         with open(source_path, encoding="utf8") as handle:
             # here we pass an iterator, so that only the required lines are read
-            converter = get_nb_converter(
-                source_path, env, (line for line in handle)
-            )
+            converter = get_nb_converter(source_path, env, (line for line in handle))
         if converter is not None:
             stage_record = cache_base.stage_notebook_file(source_path)
             pk_list.append(stage_record.pk)
