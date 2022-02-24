@@ -232,12 +232,13 @@ For example, the following: ``My rounded mean: {glue:text}`boot_mean:.2f` `` wil
 ### The `glue:figure` directive
 
 With `glue:figure` you can apply more formatting to figure like objects,
-such as giving them a caption and referencable label:
+such as giving them a caption, referencable label, and alt text:
 
 ````md
 ```{glue:figure} boot_fig
 :figwidth: 300px
 :name: "fig-boot"
+:alt: "A histogram of the bootstrapped samples."
 
 This is a **caption**, with an embedded `{glue:text}` element: {glue:text}`boot_mean:.2f`!
 ```
@@ -246,6 +247,7 @@ This is a **caption**, with an embedded `{glue:text}` element: {glue:text}`boot_
 ```{glue:figure} boot_fig
 :figwidth: 300px
 :name: "fig-boot"
+:alt: "A histogram of the bootstrapped samples."
 
 This is a **caption**, with an embedded `{glue:text}` element: {glue:text}`boot_mean:.2f`!
 ```
