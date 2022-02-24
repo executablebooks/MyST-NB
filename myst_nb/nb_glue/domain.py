@@ -170,12 +170,14 @@ class PasteFigure(Paste):
     option_spec["figclass"] = directives.class_option
     option_spec["align"] = align
     option_spec["name"] = directives.unchanged
+    option_spec["alt"] = directives.unchanged
     has_content = True
 
     def run(self):
         figwidth = self.options.pop("figwidth", None)
         figclasses = self.options.pop("figclass", None)
         align = self.options.pop("align", None)
+        alt = self.options.pop("alt", None)
         # On the Paste node we should add an attribute to specify that only image
         # type mimedata is allowed, then this would be used by
         # PasteNodesToDocutils -> CellOutputsToNodes to alter the render priority
@@ -192,6 +194,8 @@ class PasteFigure(Paste):
             figure_node["classes"] += figclasses
         if align:
             figure_node["align"] = align
+        if alt:
+            figure_node["alt"] = alt
         self.add_name(figure_node)
         # note: this is copied directly from sphinx.Figure
         if self.content:
