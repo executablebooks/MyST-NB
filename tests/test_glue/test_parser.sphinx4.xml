@@ -139,7 +139,7 @@
                 <inline classes="pasted-text">
                     undisplayed
                  inline…
-            <figure ids="abc" names="abc">
+            <figure alt="alt-text for glued figure" ids="abc" names="abc">
                 <CellOutputNode classes="cell_output">
                     <image candidates="{'*': '_build/jupyter_execute/with_glue_5_0.png'}" uri="_build/jupyter_execute/with_glue_5_0.png">
                 <caption>
