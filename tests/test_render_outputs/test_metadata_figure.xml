@@ -1,5 +1,5 @@
 <document source="metadata_figure">
-    <section classes="tex2jax_ignore mathjax_ignore" ids="formatting-code-outputs" names="formatting\ code\ outputs">
+    <section ids="formatting-code-outputs" names="formatting\ code\ outputs">
         <title>
             Formatting code outputs
         <container cell_index="1" cell_metadata="{'myst': {'figure': {'caption': 'Hey everyone its **party** time!\n', 'name': 'fun-fish'}}}" classes="cell" exec_count="1" nb_element="cell_code">

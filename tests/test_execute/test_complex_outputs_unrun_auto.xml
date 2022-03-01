@@ -9,7 +9,7 @@
                 sym.init_printing(use_latex=True)
                 import numpy as np
                 from IPython.display import Image, Latex
-    <section classes="tex2jax_ignore mathjax_ignore" ids="markdown" names="markdown">
+    <section ids="markdown" names="markdown">
         <title>
             Markdown
         <section ids="general" names="general">
@@ -84,7 +84,7 @@
                 \todo[inline]{an inline todo}
             <paragraph>
                 Some text.\todo{a todo in the margins}
-    <section classes="tex2jax_ignore mathjax_ignore" ids="text-output" names="text\ output">
+    <section ids="text-output" names="text\ output">
         <title>
             Text Output
         <container cell_index="11" cell_metadata="{'ipub': {'text': {'format': {'backgroundcolor': '\\color{blue!10}'}}}}" classes="cell" exec_count="2" nb_element="cell_code">
@@ -100,7 +100,7 @@
                     This is some printed text,
                     with a nicely formatted output.
                     
-    <section classes="tex2jax_ignore mathjax_ignore" ids="images-and-figures" names="images\ and\ figures">
+    <section ids="images-and-figures" names="images\ and\ figures">
         <title>
             Images and Figures
         <section ids="displaying-a-plot-with-its-code" names="displaying\ a\ plot\ with\ its\ code">
@@ -110,7 +110,7 @@
                 A matplotlib figure, with the caption set in the markdowncell above the figure.
             <paragraph>
                 The plotting code for a matplotlib figure (\cref{fig:example_mpl}).
-    <section classes="tex2jax_ignore mathjax_ignore" ids="tables-with-pandas" names="tables\ (with\ pandas)">
+    <section ids="tables-with-pandas" names="tables\ (with\ pandas)">
         <title>
             Tables (with pandas)
         <paragraph>
@@ -194,7 +194,7 @@
                             2 &         y &  n &  0.792 &  0.529 \\
                             \bottomrule
                             \end{tabular}
-    <section classes="tex2jax_ignore mathjax_ignore" ids="equations-with-ipython-or-sympy" names="equations\ (with\ ipython\ or\ sympy)">
+    <section ids="equations-with-ipython-or-sympy" names="equations\ (with\ ipython\ or\ sympy)">
         <title>
             Equations (with ipython or sympy)
         <container cell_index="20" cell_metadata="{'ipub': {'equation': {'label': 'eqn:example_ipy'}}}" classes="cell" exec_count="4" nb_element="cell_code">
@@ -230,7 +230,7 @@
                     <container mime_type="text/latex">
                         <math_block classes="output text_latex" nowrap="False" number="True" xml:space="preserve">
                             \displaystyle \left(\sqrt{5} i\right)^{\alpha} \left(\frac{1}{2} - \frac{2 \sqrt{5} i}{5}\right) + \left(- \sqrt{5} i\right)^{\alpha} \left(\frac{1}{2} + \frac{2 \sqrt{5} i}{5}\right)
-    <section classes="tex2jax_ignore mathjax_ignore" ids="interactive-outputs" names="interactive\ outputs">
+    <section ids="interactive-outputs" names="interactive\ outputs">
         <title>
             Interactive outputs
         <section ids="ipywidgets" names="ipywidgets">

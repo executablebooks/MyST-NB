@@ -1,5 +1,5 @@
 <document source="custom-formats">
-    <section classes="tex2jax_ignore mathjax_ignore" ids="custom-formats" names="custom\ formats">
+    <section ids="custom-formats" names="custom\ formats">
         <title>
             Custom Formats
         <container cell_index="2" cell_metadata="{'echo': True}" classes="cell" exec_count="1" nb_element="cell_code">

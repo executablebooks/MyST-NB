@@ -1,5 +1,5 @@
 <document source="mystnb_codecell_file">
-    <section classes="tex2jax_ignore mathjax_ignore" ids="a-title" names="a\ title">
+    <section ids="a-title" names="a\ title">
         <title>
             a title
         <container cell_index="1" cell_metadata="{'load': 'mystnb_codecell_file.py'}" classes="cell" exec_count="1" nb_element="cell_code">

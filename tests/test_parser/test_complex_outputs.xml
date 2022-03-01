@@ -9,7 +9,7 @@
                 sym.init_printing(use_latex=True)
                 import numpy as np
                 from IPython.display import Image, Latex
-    <section classes="tex2jax_ignore mathjax_ignore" ids="markdown" names="markdown">
+    <section ids="markdown" names="markdown">
         <title>
             Markdown
         <section ids="general" names="general">
@@ -84,7 +84,7 @@
                 \todo[inline]{an inline todo}
             <paragraph>
                 Some text.\todo{a todo in the margins}
-    <section classes="tex2jax_ignore mathjax_ignore" ids="text-output" names="text\ output">
+    <section ids="text-output" names="text\ output">
         <title>
             Text Output
         <container cell_index="11" cell_metadata="{'ipub': {'text': {'format': {'backgroundcolor': '\\color{blue!10}'}}}}" classes="cell" exec_count="2" nb_element="cell_code">
@@ -100,7 +100,7 @@
                     This is some printed text,
                     with a nicely formatted output.
                     
-    <section classes="tex2jax_ignore mathjax_ignore" ids="images-and-figures" names="images\ and\ figures">
+    <section ids="images-and-figures" names="images\ and\ figures">
         <title>
             Images and Figures
         <container cell_index="13" cell_metadata="{'ipub': {'figure': {'caption': 'A nice picture.', 'label': 'fig:example', 'placement': '!bh'}}}" classes="cell" exec_count="3" nb_element="cell_code">
@@ -135,7 +135,7 @@
                         <container mime_type="text/plain">
                             <literal_block classes="output text_plain" language="myst-ansi" xml:space="preserve">
                                 <Figure size 432x288 with 1 Axes>
-    <section classes="tex2jax_ignore mathjax_ignore" ids="tables-with-pandas" names="tables\ (with\ pandas)">
+    <section ids="tables-with-pandas" names="tables\ (with\ pandas)">
         <title>
             Tables (with pandas)
         <paragraph>
@@ -218,7 +218,7 @@
                             0  $\delta$  l  0.391  0.607
                             1         x  m  0.132  0.205
                             2         y  n  0.969  0.726
-    <section classes="tex2jax_ignore mathjax_ignore" ids="equations-with-ipython-or-sympy" names="equations\ (with\ ipython\ or\ sympy)">
+    <section ids="equations-with-ipython-or-sympy" names="equations\ (with\ ipython\ or\ sympy)">
         <title>
             Equations (with ipython or sympy)
         <container cell_index="22" cell_metadata="{'ipub': {'equation': {'label': 'eqn:example_ipy'}}}" classes="cell" exec_count="6" nb_element="cell_code">

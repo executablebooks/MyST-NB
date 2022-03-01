@@ -1,5 +1,5 @@
 <document source="metadata_image">
-    <section classes="tex2jax_ignore mathjax_ignore" ids="formatting-code-outputs" names="formatting\ code\ outputs">
+    <section ids="formatting-code-outputs" names="formatting\ code\ outputs">
         <title>
             Formatting code outputs
         <container cell_index="1" cell_metadata="{'myst': {'image': {'alt': 'fun-fish', 'classes': 'shadow bg-primary', 'width': '300px'}}}" classes="cell" exec_count="1" nb_element="cell_code">
