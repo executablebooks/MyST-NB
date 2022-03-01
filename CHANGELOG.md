@@ -1,5 +1,15 @@
 # Change Log
 
+## v0.13.2 - 2022-02-10
+
+This release improves for cell outputs and brings UI improvements for toggling cell inputs and outputs.
+It also includes several bugfixes.
+
+-  Add CSS support for 8-bit ANSI colours [#379](https://github.com/executablebooks/MyST-NB/pull/379) ([@thiippal](https://github.com/thiippal))
+- Use configured `nb_render_plugin` for glue nodes [#337](https://github.com/executablebooks/MyST-NB/pull/337) ([@bryanwweber](https://github.com/bryanwweber))
+- UPGRADE: sphinx-togglebutton v0.3.0 [#390](https://github.com/executablebooks/MyST-NB/pull/390) ([@choldgraf](https://github.com/choldgraf))
+
+
 ## 0.13.1 - 2021-10-04
 
 ✨ NEW: `nb_merge_streams` configuration  [[PR #364](https://github.com/executablebooks/MyST-NB/pull/364)]
