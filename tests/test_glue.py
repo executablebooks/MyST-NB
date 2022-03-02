@@ -79,7 +79,7 @@ def test_glue_func_obj_no_display(mock_ipython):
 
 def test_extract_glue_data(get_test_path):
     path = get_test_path("with_glue.ipynb")
-    with open(path, "r") as handle:
+    with open(path) as handle:
         notebook = nbformat.read(handle, as_version=4)
     resources = {}
     extract_glue_data(notebook, resources, [], None)

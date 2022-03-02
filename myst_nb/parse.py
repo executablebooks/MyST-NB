@@ -1,14 +1,17 @@
 """Module for parsing notebooks to Markdown-it tokens."""
-import logging
-from typing import Any, Dict, List
+from __future__ import annotations
+
+from typing import Any
 
 from markdown_it.main import MarkdownIt
 from markdown_it.rules_core import StateCore
 from markdown_it.token import Token
 from nbformat import NotebookNode
 
+from myst_nb.loggers import LoggerType
 
-def nb_node_to_dict(node: NotebookNode) -> Dict[str, Any]:
+
+def nb_node_to_dict(node: NotebookNode) -> dict[str, Any]:
     """Recursively convert a notebook node to a dict."""
     return _nb_node_to_dict(node)
 
@@ -23,9 +26,9 @@ def _nb_node_to_dict(item: Any) -> Any:
 def notebook_to_tokens(
     notebook: NotebookNode,
     mdit_parser: MarkdownIt,
-    mdit_env: Dict[str, Any],
-    logger: logging.Logger,
-) -> List[Token]:
+    mdit_env: dict[str, Any],
+    logger: LoggerType,
+) -> list[Token]:
     # disable front-matter, since this is taken from the notebook
     mdit_parser.disable("front_matter", ignoreInvalid=True)
     # this stores global state, such as reference definitions
@@ -59,7 +62,7 @@ def notebook_to_tokens(
             continue
 
         # generate tokens
-        tokens: List[Token]
+        tokens: list[Token]
         if nb_cell["cell_type"] == "markdown":
             # https://nbformat.readthedocs.io/en/5.1.3/format_description.html#markdown-cells
             # TODO if cell has tag output-caption, then use as caption for next/preceding cell?

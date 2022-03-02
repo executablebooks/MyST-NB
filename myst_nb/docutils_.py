@@ -1,9 +1,11 @@
 """A parser for docutils."""
+from __future__ import annotations
+
 from contextlib import suppress
 from functools import partial
 from importlib import resources as import_resources
 import os
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from docutils import nodes
 from docutils.core import default_description, publish_cmdline
@@ -48,15 +50,15 @@ from myst_nb.render import (
     load_renderer,
 )
 
-DOCUTILS_EXCLUDED_ARGS = {
-    f.name for f in NbParserConfig.get_fields() if f.metadata.get("docutils_exclude")
-}
+DOCUTILS_EXCLUDED_ARGS = list(
+    {f.name for f in NbParserConfig.get_fields() if f.metadata.get("docutils_exclude")}
+)
 
 
 class Parser(MystParser):
     """Docutils parser for Jupyter Notebooks, containing MyST Markdown."""
 
-    supported: Tuple[str, ...] = ("mystnb", "ipynb")
+    supported: tuple[str, ...] = ("mystnb", "ipynb")
     """Aliases this parser supports."""
 
     settings_spec = (
@@ -169,30 +171,31 @@ class Parser(MystParser):
         mdit_parser.options["document"] = document
         mdit_parser.options["notebook"] = notebook
         mdit_parser.options["nb_config"] = nb_config
-        mdit_env: Dict[str, Any] = {}
+        mdit_renderer: DocutilsNbRenderer = mdit_parser.renderer  # type: ignore
+        mdit_env: dict[str, Any] = {}
 
         # load notebook element renderer class from entry-point name
         # this is separate from DocutilsNbRenderer, so that users can override it
         renderer_name = nb_config.render_plugin
         nb_renderer: NbElementRenderer = load_renderer(renderer_name)(
-            mdit_parser.renderer, logger
+            mdit_renderer, logger
         )
         # we temporarily store nb_renderer on the document,
         # so that roles/directives can access it
         document.attributes["nb_renderer"] = nb_renderer
         # we currently do this early, so that the nb_renderer has access to things
-        mdit_parser.renderer.setup_render(mdit_parser.options, mdit_env)
+        mdit_renderer.setup_render(mdit_parser.options, mdit_env)
 
         # pre-process notebook and store resources for render
         resources = preprocess_notebook(
-            notebook, logger, mdit_parser.renderer.get_cell_render_config
+            notebook, logger, mdit_renderer.get_cell_render_config
         )
-        mdit_parser.renderer.md_options["nb_resources"] = resources
+        mdit_renderer.md_options["nb_resources"] = resources
 
         # parse to tokens
         mdit_tokens = notebook_to_tokens(notebook, mdit_parser, mdit_env, logger)
         # convert to docutils AST, which is added to the document
-        mdit_parser.renderer.render(mdit_tokens, mdit_parser.options, mdit_env)
+        mdit_renderer.render(mdit_tokens, mdit_parser.options, mdit_env)
 
         if nb_config.output_folder:
             # write final (updated) notebook to output folder (utf8 is standard encoding)
@@ -246,9 +249,9 @@ class DocutilsNbRenderer(DocutilsRenderer):
 
     def get_cell_render_config(
         self,
-        cell_metadata: Dict[str, Any],
+        cell_metadata: dict[str, Any],
         key: str,
-        nb_key: Optional[str] = None,
+        nb_key: str | None = None,
         has_nb_key: bool = True,
     ) -> Any:
         """Get a cell level render configuration value.
@@ -292,7 +295,7 @@ class DocutilsNbRenderer(DocutilsRenderer):
             # forward the remaining metadata to the front_matter renderer
             top_matter = {k: v for k, v in metadata.items() if k not in special_keys}
             self.render_front_matter(
-                Token(
+                Token(  # type: ignore
                     "front_matter",
                     "",
                     0,
@@ -395,7 +398,7 @@ class DocutilsNbRenderer(DocutilsRenderer):
         cell_index = token.meta["index"]
         metadata = token.meta["metadata"]
         line = token_line(token)
-        outputs: List[NotebookNode] = self.md_options["notebook"]["cells"][
+        outputs: list[NotebookNode] = self.md_options["notebook"]["cells"][
             cell_index
         ].get("outputs", [])
         # render the outputs
@@ -481,7 +484,7 @@ class DocutilsNbRenderer(DocutilsRenderer):
                 )
 
 
-def _run_cli(writer_name: str, writer_description: str, argv: Optional[List[str]]):
+def _run_cli(writer_name: str, writer_description: str, argv: list[str] | None):
     """Run the command line interface for a particular writer."""
     publish_cmdline(
         parser=Parser(),
@@ -497,26 +500,26 @@ def _run_cli(writer_name: str, writer_description: str, argv: Optional[List[str]
     )
 
 
-def cli_html(argv: Optional[List[str]] = None) -> None:
+def cli_html(argv: list[str] | None = None) -> None:
     """Cmdline entrypoint for converting MyST to HTML."""
     _run_cli("html", "(X)HTML documents", argv)
 
 
-def cli_html5(argv: Optional[List[str]] = None):
+def cli_html5(argv: list[str] | None = None):
     """Cmdline entrypoint for converting MyST to HTML5."""
     _run_cli("html5", "HTML5 documents", argv)
 
 
-def cli_latex(argv: Optional[List[str]] = None):
+def cli_latex(argv: list[str] | None = None):
     """Cmdline entrypoint for converting MyST to LaTeX."""
     _run_cli("latex", "LaTeX documents", argv)
 
 
-def cli_xml(argv: Optional[List[str]] = None):
+def cli_xml(argv: list[str] | None = None):
     """Cmdline entrypoint for converting MyST to XML."""
     _run_cli("xml", "Docutils-native XML", argv)
 
 
-def cli_pseudoxml(argv: Optional[List[str]] = None):
+def cli_pseudoxml(argv: list[str] | None = None):
     """Cmdline entrypoint for converting MyST to pseudo-XML."""
     _run_cli("pseudoxml", "pseudo-XML", argv)

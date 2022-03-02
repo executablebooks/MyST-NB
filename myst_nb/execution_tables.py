@@ -4,9 +4,11 @@ The `nb-exec-table` directive adds a placeholder node to the document,
 which is then replaced by a table of statistics in a post-transformation
 (once all the documents have been executed and these statistics are available).
 """
+from __future__ import annotations
+
 from datetime import datetime
 import posixpath
-from typing import Any, Callable, DefaultDict, Dict
+from typing import Any, Callable, DefaultDict
 
 from docutils import nodes
 from sphinx.addnodes import pending_xref
@@ -15,7 +17,7 @@ from sphinx.transforms.post_transforms import SphinxPostTransform
 from sphinx.util import logging
 from sphinx.util.docutils import SphinxDirective
 
-from myst_nb.sphinx_ import NbMetadataCollector
+from myst_nb.sphinx_ import NbMetadataCollector, SphinxEnvType
 
 SPHINX_LOGGER = logging.getLogger(__name__)
 
@@ -42,11 +44,12 @@ class ExecutionStatsTable(SphinxDirective):
 
     def run(self):
         """Add a placeholder node to the document, and mark it as having a table."""
+        self.env: SphinxEnvType
         NbMetadataCollector.set_doc_data(self.env, self.env.docname, METADATA_KEY, True)
         return [ExecutionStatsNode()]
 
 
-def update_exec_tables(app: Sphinx, env):
+def update_exec_tables(app: Sphinx, env: SphinxEnvType):
     """If a document has been re-executed, return all documents containing tables.
 
     These documents will be updated with the new statistics.
@@ -72,6 +75,7 @@ class ExecutionStatsPostTransform(SphinxPostTransform):
 
     def run(self, **kwargs) -> None:
         """Replace the placeholder node with the final table nodes."""
+        self.env: SphinxEnvType
         for node in self.document.traverse(ExecutionStatsNode):
             node.replace_self(
                 make_stat_table(
@@ -80,14 +84,14 @@ class ExecutionStatsPostTransform(SphinxPostTransform):
             )
 
 
-_key2header: Dict[str, str] = {
+_key2header: dict[str, str] = {
     "mtime": "Modified",
     "method": "Method",
     "runtime": "Run Time (s)",
     "succeeded": "Status",
 }
 
-_key2transform: Dict[str, Callable[[Any], str]] = {
+_key2transform: dict[str, Callable[[Any], str]] = {
     "mtime": lambda x: datetime.fromtimestamp(x).strftime("%Y-%m-%d %H:%M")
     if x
     else "",

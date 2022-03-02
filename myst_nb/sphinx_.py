@@ -1,10 +1,12 @@
 """An extension for sphinx"""
+from __future__ import annotations
+
 from collections import defaultdict
 from contextlib import suppress
 from importlib import resources as import_resources
 import os
 from pathlib import Path
-from typing import Any, DefaultDict, Dict, List, Optional, Sequence, Set, Tuple, cast
+from typing import Any, DefaultDict, Sequence, cast
 
 from docutils import nodes
 from markdown_it.token import Token
@@ -47,6 +49,15 @@ OUTPUT_FOLDER = "jupyter_execute"
 # used for deprecated config values,
 # so we can tell if they have been set by a user, and warn them
 UNSET = "--unset--"
+
+
+class SphinxEnvType(BuildEnvironment):
+    """Sphinx build environment, including attributes set by myst_nb."""
+
+    myst_config: MdParserConfig
+    mystnb_config: NbParserConfig
+    nb_metadata: DefaultDict[str, dict]
+    nb_new_exec_data: bool
 
 
 def sphinx_setup(app: Sphinx):
@@ -166,7 +177,7 @@ def create_mystnb_config(app):
     # and the execution_cache_path (for caching notebook outputs)
     # to a set path within the sphinx build folder
     output_folder = Path(app.outdir).parent.joinpath(OUTPUT_FOLDER).resolve()
-    exec_cache_path = app.env.mystnb_config.execution_cache_path
+    exec_cache_path: None | str | Path = app.env.mystnb_config.execution_cache_path
     if not exec_cache_path:
         exec_cache_path = Path(app.outdir).parent.joinpath(".jupyter_cache").resolve()
     app.env.mystnb_config = app.env.mystnb_config.copy(
@@ -184,7 +195,7 @@ def add_exclude_patterns(app: Sphinx, config):
 def add_global_html_resources(app: Sphinx, exception):
     """Add HTML resources that apply to all pages."""
     # see https://github.com/sphinx-doc/sphinx/issues/1379
-    if app.builder.format == "html" and not exception:
+    if app.builder is not None and app.builder.format == "html" and not exception:
         with import_resources.path(static, "mystnb.css") as source_path:
             destination = os.path.join(app.builder.outdir, "_static", "mystnb.css")
             copy_asset_file(str(source_path), destination)
@@ -194,11 +205,11 @@ def add_per_page_html_resources(
     app: Sphinx, pagename: str, *args: Any, **kwargs: Any
 ) -> None:
     """Add JS files for this page, identified from the parsing of the notebook."""
-    if app.builder.format != "html":
+    if app.env is None or app.builder is None or app.builder.format != "html":
         return
-    js_files = NbMetadataCollector.get_js_files(app.env, pagename)
+    js_files = NbMetadataCollector.get_js_files(app.env, pagename)  # type: ignore
     for path, kwargs in js_files.values():
-        app.add_js_file(path, **kwargs)
+        app.add_js_file(path, **kwargs)  # type: ignore
 
 
 def update_togglebutton_classes(app: Sphinx, config):
@@ -230,6 +241,8 @@ class Parser(MystParser):
         :param inputstring: The source string to parse
         :param document: The root docutils node to add AST elements to
         """
+        assert self.env is not None, "env not set"
+        self.env: SphinxEnvType
         document_path = self.env.doc2path(self.env.docname)
 
         # get a logger for this document
@@ -286,30 +299,31 @@ class Parser(MystParser):
         mdit_parser.options["document"] = document
         mdit_parser.options["notebook"] = notebook
         mdit_parser.options["nb_config"] = nb_config
-        mdit_env: Dict[str, Any] = {}
+        mdit_renderer: SphinxNbRenderer = mdit_parser.renderer  # type: ignore
+        mdit_env: dict[str, Any] = {}
 
         # load notebook element renderer class from entry-point name
         # this is separate from SphinxNbRenderer, so that users can override it
         renderer_name = nb_config.render_plugin
         nb_renderer: NbElementRenderer = load_renderer(renderer_name)(
-            mdit_parser.renderer, logger
+            mdit_renderer, logger  # type: ignore
         )
         # we temporarily store nb_renderer on the document,
         # so that roles/directives can access it
         document.attributes["nb_renderer"] = nb_renderer
         # we currently do this early, so that the nb_renderer has access to things
-        mdit_parser.renderer.setup_render(mdit_parser.options, mdit_env)
+        mdit_renderer.setup_render(mdit_parser.options, mdit_env)
 
         # pre-process notebook and store resources for render
         resources = preprocess_notebook(
-            notebook, logger, mdit_parser.renderer.get_cell_render_config
+            notebook, logger, mdit_renderer.get_cell_render_config
         )
-        mdit_parser.renderer.md_options["nb_resources"] = resources
+        mdit_renderer.md_options["nb_resources"] = resources
 
         # parse to tokens
         mdit_tokens = notebook_to_tokens(notebook, mdit_parser, mdit_env, logger)
         # convert to docutils AST, which is added to the document
-        mdit_parser.renderer.render(mdit_tokens, mdit_parser.options, mdit_env)
+        mdit_renderer.render(mdit_tokens, mdit_parser.options, mdit_env)
 
         # write final (updated) notebook to output folder (utf8 is standard encoding)
         path = self.env.docname.split("/")
@@ -356,9 +370,9 @@ class SphinxNbRenderer(SphinxRenderer):
 
     def get_cell_render_config(
         self,
-        cell_metadata: Dict[str, Any],
+        cell_metadata: dict[str, Any],
         key: str,
-        nb_key: Optional[str] = None,
+        nb_key: str | None = None,
         has_nb_key: bool = True,
     ) -> Any:
         """Get a cell level render configuration value.
@@ -398,7 +412,7 @@ class SphinxNbRenderer(SphinxRenderer):
         # forward the remaining metadata to the front_matter renderer
         top_matter = {k: v for k, v in metadata.items() if k not in special_keys}
         self.render_front_matter(
-            Token(
+            Token(  # type: ignore
                 "front_matter",
                 "",
                 0,
@@ -502,7 +516,7 @@ class SphinxNbRenderer(SphinxRenderer):
         line = token_line(token, 0)
         cell_index = token.meta["index"]
         metadata = token.meta["metadata"]
-        outputs: List[NotebookNode] = self.md_options["notebook"]["cells"][
+        outputs: list[NotebookNode] = self.md_options["notebook"]["cells"][
             cell_index
         ].get("outputs", [])
         # render the outputs
@@ -555,7 +569,7 @@ class SphinxNbRenderer(SphinxRenderer):
                         metadata, "figure", has_nb_key=False
                     )
 
-                with create_figure_context(self, figure_options, line):
+                with create_figure_context(self, figure_options, line):  # type: ignore
                     mime_bundle = nodes.container(nb_element="mime_bundle")
                     with self.current_node_context(mime_bundle):
                         for mime_type, data in output["data"].items():
@@ -599,8 +613,8 @@ class SelectMimeType(SphinxPostTransform):
         """Run the transform."""
         # get priority list for this builder
         # TODO allow for per-notebook/cell priority dicts?
-        priority_lookup: Dict[str, Sequence[str]] = self.config["nb_render_priority"]
-        name = self.app.builder.name
+        priority_lookup: dict[str, Sequence[str]] = self.config["nb_render_priority"]
+        name = self.app.builder.name  # type: ignore
         if name not in priority_lookup:
             SPHINX_LOGGER.warning(
                 f"Builder name {name!r} not available in 'nb_render_priority', "
@@ -655,6 +669,7 @@ class NbDownloadRole(ReferenceRole):
     def run(self):
         """Run the role."""
         # get a path relative to the current document
+        self.env: SphinxEnvType
         path = Path(self.env.mystnb_config.output_folder).joinpath(
             *(self.env.docname.split("/")[:-1] + self.target.split("/"))
         )
@@ -676,14 +691,14 @@ class NbMetadataCollector(EnvironmentCollector):
     """Collect myst-nb specific metdata, and handle merging of parallel builds."""
 
     @staticmethod
-    def set_doc_data(env: BuildEnvironment, docname: str, key: str, value: Any) -> None:
+    def set_doc_data(env: SphinxEnvType, docname: str, key: str, value: Any) -> None:
         """Add nb metadata for a docname to the environment."""
         if not hasattr(env, "nb_metadata"):
             env.nb_metadata = defaultdict(dict)
         env.nb_metadata.setdefault(docname, {})[key] = value
 
     @staticmethod
-    def get_doc_data(env: BuildEnvironment) -> DefaultDict[str, dict]:
+    def get_doc_data(env: SphinxEnvType) -> DefaultDict[str, dict]:
         """Get myst-nb docname -> metadata dict."""
         if not hasattr(env, "nb_metadata"):
             env.nb_metadata = defaultdict(dict)
@@ -691,7 +706,7 @@ class NbMetadataCollector(EnvironmentCollector):
 
     @classmethod
     def set_exec_data(
-        cls, env: BuildEnvironment, docname: str, value: ExecutionResult
+        cls, env: SphinxEnvType, docname: str, value: ExecutionResult
     ) -> None:
         """Add nb metadata for a docname to the environment."""
         cls.set_doc_data(env, docname, "exec_data", value)
@@ -699,42 +714,40 @@ class NbMetadataCollector(EnvironmentCollector):
         cls.note_exec_update(env)
 
     @classmethod
-    def get_exec_data(
-        cls, env: BuildEnvironment, docname: str
-    ) -> Optional[ExecutionResult]:
+    def get_exec_data(cls, env: SphinxEnvType, docname: str) -> ExecutionResult | None:
         """Get myst-nb docname -> execution data."""
         return cls.get_doc_data(env)[docname].get("exec_data")
 
-    def get_outdated_docs(
+    def get_outdated_docs(  # type: ignore[override]
         self,
-        app: "Sphinx",
-        env: BuildEnvironment,
-        added: Set[str],
-        changed: Set[str],
-        removed: Set[str],
-    ) -> List[str]:
+        app: Sphinx,
+        env: SphinxEnvType,
+        added: set[str],
+        changed: set[str],
+        removed: set[str],
+    ) -> list[str]:
         # called before any docs are read
         env.nb_new_exec_data = False
         return []
 
     @staticmethod
-    def note_exec_update(env: BuildEnvironment) -> None:
+    def note_exec_update(env: SphinxEnvType) -> None:
         """Note that a notebook has been executed."""
         env.nb_new_exec_data = True
 
     @staticmethod
-    def new_exec_data(env: BuildEnvironment) -> bool:
+    def new_exec_data(env: SphinxEnvType) -> bool:
         """Return whether any notebooks have updated execution data."""
         return getattr(env, "nb_new_exec_data", False)
 
     @classmethod
     def add_js_file(
         cls,
-        env: BuildEnvironment,
+        env: SphinxEnvType,
         docname: str,
         key: str,
-        uri: Optional[str],
-        kwargs: Dict[str, str],
+        uri: str | None,
+        kwargs: dict[str, str],
     ):
         """Register a JavaScript file to include in the HTML output."""
         if not hasattr(env, "nb_metadata"):
@@ -745,12 +758,17 @@ class NbMetadataCollector(EnvironmentCollector):
 
     @classmethod
     def get_js_files(
-        cls, env: BuildEnvironment, docname: str
-    ) -> Dict[str, Tuple[Optional[str], Dict[str, str]]]:
+        cls, env: SphinxEnvType, docname: str
+    ) -> dict[str, tuple[str | None, dict[str, str]]]:
         """Get myst-nb docname -> execution data."""
         return cls.get_doc_data(env)[docname].get("js_files", {})
 
-    def clear_doc(self, app: Sphinx, env: BuildEnvironment, docname: str) -> None:
+    def clear_doc(  # type: ignore[override]
+        self,
+        app: Sphinx,
+        env: SphinxEnvType,
+        docname: str,
+    ) -> None:
         if not hasattr(env, "nb_metadata"):
             env.nb_metadata = defaultdict(dict)
         env.nb_metadata.pop(docname, None)
@@ -758,12 +776,12 @@ class NbMetadataCollector(EnvironmentCollector):
     def process_doc(self, app: Sphinx, doctree: nodes.document) -> None:
         pass
 
-    def merge_other(
+    def merge_other(  # type: ignore[override]
         self,
         app: Sphinx,
-        env: BuildEnvironment,
-        docnames: Set[str],
-        other: BuildEnvironment,
+        env: SphinxEnvType,
+        docnames: set[str],
+        other: SphinxEnvType,
     ) -> None:
         if not hasattr(env, "nb_metadata"):
             env.nb_metadata = defaultdict(dict)

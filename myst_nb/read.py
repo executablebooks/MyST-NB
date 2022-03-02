@@ -1,8 +1,10 @@
 """Module for reading notebook formats from a string input."""
+from __future__ import annotations
+
 from functools import partial
 import json
 from pathlib import Path
-from typing import Callable, Iterator, Optional, Union
+from typing import Callable, Iterator
 
 import attr
 from docutils.parsers.rst import Directive
@@ -37,8 +39,8 @@ def create_nb_reader(
     path: str,
     md_config: MdParserConfig,
     nb_config: NbParserConfig,
-    content: Union[None, str, Iterator[str]],
-) -> Optional[NbReader]:
+    content: None | str | Iterator[str],
+) -> NbReader | None:
     """Create a notebook reader, given a string, source path and configuration.
 
     Note, we do not directly parse to a notebook, since jupyter-cache functionality
@@ -58,7 +60,7 @@ def create_nb_reader(
     # get all possible readers
     readers = nb_config.custom_formats.copy()
     # add the default reader
-    readers.setdefault(".ipynb", (standard_nb_read, {}, False))
+    readers.setdefault(".ipynb", (standard_nb_read, {}, False))  # type: ignore
 
     # we check suffixes ordered by longest first, to ensure we get the "closest" match
     iterator = sorted(readers.items(), key=lambda x: len(x[0]), reverse=True)
@@ -70,7 +72,7 @@ def create_nb_reader(
             if commonmark_only:
                 # Markdown cells should be read as Markdown only
                 md_config = attr.evolve(md_config, commonmark_only=True)
-            return NbReader(partial(reader, **(reader_kwargs or {})), md_config)
+            return NbReader(partial(reader, **(reader_kwargs or {})), md_config)  # type: ignore
 
     # a Markdown file is a special case, since we only treat it as a notebook,
     # if it starts with certain "top-matter"
@@ -89,7 +91,7 @@ def create_nb_reader(
     return None
 
 
-def is_myst_markdown_notebook(text: Union[str, Iterator[str]]) -> bool:
+def is_myst_markdown_notebook(text: str | Iterator[str]) -> bool:
     """Check if the input is a MyST Markdown notebook.
 
     This is identified by the presence of a top-matter section, containing::
@@ -147,11 +149,11 @@ def is_myst_markdown_notebook(text: Union[str, Iterator[str]]) -> bool:
 
 def read_myst_markdown_notebook(
     text,
-    config: MdParserConfig = None,
+    config: MdParserConfig | None = None,
     code_directive="{code-cell}",
     raw_directive="{raw-cell}",
     add_source_map=False,
-    path: Optional[str] = None,
+    path: str | None = None,
 ) -> nbf.NotebookNode:
     """Convert text written in the myst format to a notebook.
 
@@ -170,7 +172,7 @@ def read_myst_markdown_notebook(
     config = config or MdParserConfig()
     # parse markdown file up to the block level (i.e. don't worry about inline text)
     inline_config = attr.evolve(
-        config, disable_syntax=(config.disable_syntax + ["inline"])
+        config, disable_syntax=(list(config.disable_syntax) + ["inline"])
     )
     parser = create_md_parser(inline_config, RendererHTML)
     tokens = parser.parse(text + "\n")
@@ -181,11 +183,11 @@ def read_myst_markdown_notebook(
     metadata_nb = {}
     if tokens[0].type == "front_matter":
         metadata = tokens.pop(0)
-        md_start_line = metadata.map[1]
+        md_start_line = metadata.map[1] if metadata.map else 0
         try:
             metadata_nb = yaml.safe_load(metadata.content)
         except (yaml.parser.ParserError, yaml.scanner.ScannerError) as error:
-            raise MystMetadataParsingError("Notebook metadata: {}".format(error))
+            raise MystMetadataParsingError(f"Notebook metadata: {error}")
 
     # create an empty notebook
     nbf_version = nbf.v4
@@ -206,7 +208,7 @@ def read_myst_markdown_notebook(
 
     # iterate through the tokens to identify notebook cells
     nesting_level = 0
-    md_metadata = {}
+    md_metadata: dict = {}
 
     for token in tokens:
 
@@ -215,6 +217,8 @@ def read_myst_markdown_notebook(
         if nesting_level != 0:
             # we ignore fenced block that are nested, e.g. as part of lists, etc
             continue
+
+        token_map = token.map or [0, 0]
 
         if token.type == "fence" and token.info.startswith(code_directive):
             _flush_markdown(md_start_line, token, md_metadata)
@@ -225,28 +229,28 @@ def read_myst_markdown_notebook(
                     path, options["load"], token, body_lines
                 )
             meta = nbf.from_dict(options)
-            source_map.append(token.map[0] + 1)
+            source_map.append(token_map[0] + 1)
             notebook.cells.append(
                 nbf_version.new_code_cell(source="\n".join(body_lines), metadata=meta)
             )
             md_metadata = {}
-            md_start_line = token.map[1]
+            md_start_line = token_map[1]
 
         elif token.type == "fence" and token.info.startswith(raw_directive):
             _flush_markdown(md_start_line, token, md_metadata)
             options, body_lines = _read_fenced_cell(token, len(notebook.cells), "Raw")
             meta = nbf.from_dict(options)
-            source_map.append(token.map[0] + 1)
+            source_map.append(token_map[0] + 1)
             notebook.cells.append(
                 nbf_version.new_raw_cell(source="\n".join(body_lines), metadata=meta)
             )
             md_metadata = {}
-            md_start_line = token.map[1]
+            md_start_line = token_map[1]
 
         elif token.type == "myst_block_break":
             _flush_markdown(md_start_line, token, md_metadata)
             md_metadata = _read_cell_metadata(token, len(notebook.cells))
-            md_start_line = token.map[1]
+            md_start_line = token_map[1]
 
     _flush_markdown(md_start_line, None, md_metadata)
 
@@ -289,7 +293,7 @@ def _read_fenced_cell(token, cell_index, cell_type):
         )
     except DirectiveParsingError as err:
         raise MystMetadataParsingError(
-            "{0} cell {1} at line {2} could not be read: {3}".format(
+            "{} cell {} at line {} could not be read: {}".format(
                 cell_type, cell_index, token.map[0] + 1, err
             )
         )
@@ -303,13 +307,13 @@ def _read_cell_metadata(token, cell_index):
             metadata = json.loads(token.content.strip())
         except Exception as err:
             raise MystMetadataParsingError(
-                "Markdown cell {0} at line {1} could not be read: {2}".format(
+                "Markdown cell {} at line {} could not be read: {}".format(
                     cell_index, token.map[0] + 1, err
                 )
             )
         if not isinstance(metadata, dict):
             raise MystMetadataParsingError(
-                "Markdown cell {0} at line {1} is not a dict".format(
+                "Markdown cell {} at line {} is not a dict".format(
                     cell_index, token.map[0] + 1
                 )
             )
@@ -333,7 +337,7 @@ def _load_code_from_file(nb_path, file_name, token, body_lines):
     try:
         body_lines = file_path.read_text().split("\n")
     except Exception:
-        raise _LoadFileParsingError("Can't read file from :load: {}".format(file_path))
+        raise _LoadFileParsingError(f"Can't read file from :load: {file_path}")
     return body_lines
 
 
@@ -366,6 +370,6 @@ class UnexpectedCellDirective(Directive):
         if hasattr(document.settings, "env"):
             logger = SphinxDocLogger(document)
         else:
-            logger = DocutilsDocLogger(document)
+            logger = DocutilsDocLogger(document)  # type: ignore
         logger.warning(message, line=self.lineno, subtype="nbcell")
         return []

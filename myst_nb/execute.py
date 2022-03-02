@@ -1,11 +1,11 @@
 """Module for executing notebooks."""
+from __future__ import annotations
+
 from contextlib import nullcontext, suppress
 from datetime import datetime
-from logging import Logger
 import os
 from pathlib import Path, PurePosixPath
 from tempfile import TemporaryDirectory
-from typing import Optional, Tuple
 
 from jupyter_cache import get_cache
 from jupyter_cache.base import NbBundleIn
@@ -15,6 +15,7 @@ from nbformat import NotebookNode
 from typing_extensions import TypedDict
 
 from myst_nb.configuration import NbParserConfig
+from myst_nb.loggers import LoggerType
 
 
 class ExecutionResult(TypedDict):
@@ -22,15 +23,15 @@ class ExecutionResult(TypedDict):
 
     mtime: float
     """POSIX timestamp of the execution time"""
-    runtime: Optional[float]
+    runtime: float | None
     """runtime in seconds"""
     method: str
     """method used to execute the notebook"""
     succeeded: bool
     """True if the notebook executed successfully"""
-    error: Optional[str]
+    error: str | None
     """error type if the notebook failed to execute"""
-    traceback: Optional[str]
+    traceback: str | None
     """traceback if the notebook failed"""
 
 
@@ -38,8 +39,8 @@ def execute_notebook(
     notebook: NotebookNode,
     source: str,
     nb_config: NbParserConfig,
-    logger: Logger,
-) -> Tuple[NotebookNode, Optional[ExecutionResult]]:
+    logger: LoggerType,
+) -> tuple[NotebookNode, ExecutionResult | None]:
     """Update a notebook's outputs using the given configuration.
 
     This function may execute the notebook if necessary, to update its outputs,
@@ -61,7 +62,7 @@ def execute_notebook(
     except OSError:
         path = None  # occurs on Windows for `source="<string>"`
 
-    exec_metadata: Optional[ExecutionResult] = None
+    exec_metadata: ExecutionResult | None = None
 
     # check if the notebook is excluded from execution by pattern
     if path is not None and nb_config.execution_excludepatterns:
@@ -89,7 +90,7 @@ def execute_notebook(
                 raise ValueError(
                     f"source must exist as file, if execution_in_temp=False: {source}"
                 )
-            cwd_context = nullcontext(str(path.parent))
+            cwd_context = nullcontext(str(path.parent))  # type: ignore
 
         # execute in the context of the current working directory
         with cwd_context as cwd:
@@ -159,7 +160,7 @@ def execute_notebook(
         # TODO do in try/except, in case of db write errors
         NbStageRecord.remove_tracebacks([stage_record.pk], cache.db)
         cwd_context = (
-            TemporaryDirectory()
+            TemporaryDirectory()  # type: ignore
             if nb_config.execution_in_temp
             else nullcontext(str(path.parent))
         )

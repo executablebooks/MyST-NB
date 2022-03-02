@@ -1,22 +1,24 @@
 """notebook "pre-processing" (after execution, but before parsing)"""
-from logging import Logger
+from __future__ import annotations
+
 import re
-from typing import Any, Dict, List
+from typing import Any
 
 from nbformat import NotebookNode
 
+from myst_nb.loggers import LoggerType
 from myst_nb.nb_glue import extract_glue_data
 
 
 def preprocess_notebook(
-    notebook: NotebookNode, logger: Logger, get_cell_render_config
-) -> Dict[str, Any]:
+    notebook: NotebookNode, logger: LoggerType, get_cell_render_config
+) -> dict[str, Any]:
     """Modify notebook and resources in-place."""
     # TODO parsing get_cell_render_config is a stop-gap here
     # TODO make this pluggable
     # (similar to nbconvert preprocessors, but parse config, source map and logger)
 
-    resources: Dict[str, Any] = {}
+    resources: dict[str, Any] = {}
 
     # create source map
     source_map = notebook.metadata.get("source_map", None)
@@ -42,7 +44,7 @@ _RGX_CARRIAGERETURN = re.compile(r".*\r(?=[^\n])")
 _RGX_BACKSPACE = re.compile(r"[^\n]\b")
 
 
-def coalesce_streams(outputs: List[NotebookNode]) -> List[NotebookNode]:
+def coalesce_streams(outputs: list[NotebookNode]) -> list[NotebookNode]:
     """Merge all stream outputs with shared names into single streams.
 
     This ensure deterministic outputs.
@@ -54,7 +56,7 @@ def coalesce_streams(outputs: List[NotebookNode]) -> List[NotebookNode]:
         return []
 
     new_outputs = []
-    streams = {}
+    streams: dict[str, NotebookNode] = {}
     for output in outputs:
         if output["output_type"] == "stream":
             if output["name"] in streams:

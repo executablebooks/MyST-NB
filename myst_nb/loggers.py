@@ -10,10 +10,14 @@ and can also both handle ``line`` and ``subtype`` keyword arguments:
 
 """
 import logging
+from typing import Any
 
 from docutils import nodes
 
 DEFAULT_LOG_TYPE = "mystnb"
+
+# TODO this would be logging.Logger, but then mypy fails for .warning() with subtype
+LoggerType = Any
 
 
 class SphinxDocLogger(logging.LoggerAdapter):
@@ -39,6 +43,7 @@ class SphinxDocLogger(logging.LoggerAdapter):
         self.extra = {"docname": docname, "type": type_name}
 
     def process(self, msg, kwargs):
+        self.extra: dict
         kwargs["extra"] = self.extra
         if "type" in kwargs:  # override type
             self.extra["type"] = kwargs.pop("type")
@@ -122,7 +127,7 @@ class DocutilsLogHandler(logging.Handler):
         node = self._document.reporter.system_message(
             level,
             record.msg,
-            **({"line": record.line} if record.line is not None else {}),
+            **({"line": record.line} if record.line is not None else {}),  # type: ignore
         )
-        if record.parent is not None:
-            record.parent.append(node)
+        if record.parent is not None:  # type: ignore
+            record.parent.append(node)  # type: ignore

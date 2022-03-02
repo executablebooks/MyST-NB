@@ -1,16 +1,16 @@
 """Configuration for myst-nb."""
-from typing import Any, Dict, Iterable, Sequence, Tuple
+from typing import Any, Dict, Iterable, List, Sequence, Tuple
 
 import attr
 from attr.validators import deep_iterable, deep_mapping, in_, instance_of, optional
 from typing_extensions import Literal
 
 
-def custom_formats_converter(value: dict) -> dict:
+def custom_formats_converter(value: dict) -> Dict[str, Tuple[str, dict, bool]]:
     """Convert the custom format dict."""
     if not isinstance(value, dict):
         raise TypeError(f"`nb_custom_formats` must be a dict: {value}")
-    output = {}
+    output: Dict[str, Tuple[str, dict, bool]] = {}
     for suffix, reader in value.items():
         if not isinstance(suffix, str):
             raise TypeError(f"`nb_custom_formats` keys must be a string: {suffix}")
@@ -51,7 +51,7 @@ def render_priority_factory() -> Dict[str, Sequence[str]]:
     # generated with:
     # [(b.name, b.format, b.supported_image_types)
     # for b in app.registry.builders.values()]
-    html_builders = [
+    html_builders: List[Tuple[str, str, List[str]]] = [
         ("epub", "html", ["image/svg+xml", "image/png", "image/gif", "image/jpeg"]),
         ("html", "html", ["image/svg+xml", "image/png", "image/gif", "image/jpeg"]),
         ("dirhtml", "html", ["image/svg+xml", "image/png", "image/gif", "image/jpeg"]),
@@ -100,7 +100,7 @@ def render_priority_factory() -> Dict[str, Sequence[str]]:
             ["image/svg+xml", "image/png", "image/gif", "image/jpeg"],
         ),
     ]
-    other_builders = [
+    other_builders: List[Tuple[str, str, List[str]]] = [
         ("changes", "", []),
         ("dummy", "", []),
         ("gettext", "", []),
@@ -130,7 +130,7 @@ def render_priority_factory() -> Dict[str, Sequence[str]]:
             "text/markdown",
             "text/plain",
         )
-    return output
+    return output  # type: ignore
 
 
 def ipywidgets_js_factory() -> Dict[str, Dict[str, str]]:
@@ -360,7 +360,8 @@ class NbParserConfig:
     render_text_lexer: str = attr.ib(
         default="myst-ansi",
         # TODO allow None -> "none"?
-        validator=optional(instance_of(str)),  # TODO check it can be loaded?
+        # TODO check it can be loaded?
+        validator=optional(instance_of(str)),  # type: ignore
         metadata={
             "help": "Pygments lexer applied to stdout/stderr and text/plain outputs",
             "cell_metadata": "text_lexer",
@@ -369,7 +370,8 @@ class NbParserConfig:
     render_error_lexer: str = attr.ib(
         default="ipythontb",
         # TODO allow None -> "none"?
-        validator=optional(instance_of(str)),  # TODO check it can be loaded?
+        # TODO check it can be loaded?
+        validator=optional(instance_of(str)),  # type: ignore
         metadata={
             "help": "Pygments lexer applied to error/traceback outputs",
             "cell_metadata": "error_lexer",
