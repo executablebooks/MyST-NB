@@ -139,6 +139,7 @@ class Parser(MystParser):
                     add_source_map=True,
                 ),
                 md_config,
+                {"type": "plugin", "name": "myst_nb_md"},
             )
         else:
             nb_reader = NbReader(standard_nb_read, md_config)
