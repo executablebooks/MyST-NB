@@ -8,8 +8,8 @@ from pathlib import Path, PurePosixPath
 from tempfile import TemporaryDirectory
 
 from jupyter_cache import get_cache
-from jupyter_cache.base import NbBundleIn
-from jupyter_cache.cache.db import NbStageRecord
+from jupyter_cache.base import CacheBundleIn
+from jupyter_cache.cache.db import NbProjectRecord
 from jupyter_cache.executors.utils import single_nb_execution
 from nbformat import NotebookNode
 from typing_extensions import TypedDict
@@ -40,6 +40,7 @@ def execute_notebook(
     source: str,
     nb_config: NbParserConfig,
     logger: LoggerType,
+    read_fmt: None | dict = None,
 ) -> tuple[NotebookNode, ExecutionResult | None]:
     """Update a notebook's outputs using the given configuration.
 
@@ -50,6 +51,7 @@ def execute_notebook(
     :param source: Path to or description of the input source being processed.
     :param nb_config: The configuration for the notebook parser.
     :param logger: The logger to use.
+    :param read_fmt: The format of the input source (to parse to jupyter cache)
 
     :returns: The updated notebook, and the (optional) execution metadata.
     """
@@ -156,9 +158,12 @@ def execute_notebook(
             )
 
         # attempt to execute the notebook
-        stage_record = cache.stage_notebook_file(str(path))  # TODO record nb reader
+        if read_fmt is not None:
+            stage_record = cache.add_nb_to_project(str(path), read_data=read_fmt)
+        else:
+            stage_record = cache.add_nb_to_project(str(path))
         # TODO do in try/except, in case of db write errors
-        NbStageRecord.remove_tracebacks([stage_record.pk], cache.db)
+        NbProjectRecord.remove_tracebacks([stage_record.pk], cache.db)
         cwd_context = (
             TemporaryDirectory()  # type: ignore
             if nb_config.execution_in_temp
@@ -186,11 +191,11 @@ def execute_notebook(
             if nb_config.execution_show_tb:
                 msg += f"\n{result.exc_string}"
             logger.warning(msg, subtype="exec")
-            NbStageRecord.set_traceback(stage_record.uri, result.exc_string, cache.db)
+            NbProjectRecord.set_traceback(stage_record.uri, result.exc_string, cache.db)
         else:
             logger.info(f"Executed notebook in {result.time:.2f} seconds")
             cache_record = cache.cache_notebook_bundle(
-                NbBundleIn(
+                CacheBundleIn(
                     notebook, stage_record.uri, data={"execution_seconds": result.time}
                 ),
                 check_validity=False,

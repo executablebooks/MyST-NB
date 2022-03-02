@@ -28,6 +28,8 @@ class NbReader:
     """The function to read a notebook from a (utf8) string."""
     md_config: MdParserConfig = attr.ib()
     """The configuration for parsing markdown cells."""
+    read_fmt: dict | None = attr.ib(default=None)
+    """The type of the reader, if known."""
 
 
 def standard_nb_read(text: str) -> nbf.NotebookNode:
@@ -85,6 +87,7 @@ def create_nb_reader(
                 path=path,
             ),
             md_config,
+            {"type": "plugin", "name": "myst_nb_md"},
         )
 
     # if we get here, we did not find a reader
@@ -145,6 +148,16 @@ def is_myst_markdown_notebook(text: str | Iterator[str]) -> bool:
     #         "A myst notebook text-representation requires "
     #         "kernelspec/display_name metadata"
     #     )
+
+
+def myst_nb_reader_plugin(uri: str) -> nbf.NotebookNode:
+    """Read a myst notebook from a string.
+
+    Used as plugin for jupyter-cache.
+    """
+    return read_myst_markdown_notebook(
+        Path(uri).read_text("utf8"), add_source_map=True, path=uri
+    )
 
 
 def read_myst_markdown_notebook(

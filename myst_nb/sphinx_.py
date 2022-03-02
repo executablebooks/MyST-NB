@@ -278,7 +278,7 @@ class Parser(MystParser):
 
         # potentially execute notebook and/or populate outputs from cache
         notebook, exec_data = execute_notebook(
-            notebook, document_path, nb_config, logger
+            notebook, document_path, nb_config, logger, nb_reader.read_fmt
         )
         if exec_data:
             NbMetadataCollector.set_exec_data(self.env, self.env.docname, exec_data)
