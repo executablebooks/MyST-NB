@@ -217,8 +217,11 @@ and even internal images can be rendered!
 display(Markdown('![figure](../_static/logo-wide.svg)'))
 ```
 
-But setting the `render_markdown_format` to `myst` will allow for more advanced formatting,
-such as including internal references, tables, and even other directives:
+But setting the Markdown format to `myst` will allow for more advanced formatting,
+such as including internal references, tables, and even other directives, either using:
+
+- `myst_render_markdown_format = "myst"` in the `conf.py` to set globally, or
+- `markdown_format` in the cell metadata to set per-cell.
 
 `````md
 ````{code-cell} ipython3
