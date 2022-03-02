@@ -2,6 +2,7 @@
 import os
 from pathlib import Path
 
+from IPython import version_info as ipy_version
 import pytest
 
 from myst_nb.sphinx_ import NbMetadataCollector
@@ -94,6 +95,7 @@ def test_exclude_path(sphinx_run, file_regression):
     )
 
 
+@pytest.mark.skipif(ipy_version[0] < 8, reason="Error message changes for ipython v8")
 @pytest.mark.sphinx_params("basic_failing.ipynb", conf={"nb_execution_mode": "cache"})
 def test_basic_failing_cache(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
@@ -108,6 +110,7 @@ def test_basic_failing_cache(sphinx_run, file_regression, check_nbs):
     sphinx_run.get_report_file()
 
 
+@pytest.mark.skipif(ipy_version[0] < 8, reason="Error message changes for ipython v8")
 @pytest.mark.sphinx_params("basic_failing.ipynb", conf={"nb_execution_mode": "auto"})
 def test_basic_failing_auto(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
@@ -122,6 +125,7 @@ def test_basic_failing_auto(sphinx_run, file_regression, check_nbs):
     sphinx_run.get_report_file()
 
 
+@pytest.mark.skipif(ipy_version[0] < 8, reason="Error message changes for ipython v8")
 @pytest.mark.sphinx_params(
     "basic_failing.ipynb",
     conf={"nb_execution_mode": "cache", "nb_execution_allow_errors": True},
@@ -133,6 +137,7 @@ def test_allow_errors_cache(sphinx_run, file_regression, check_nbs):
     regress_nb_doc(file_regression, sphinx_run, check_nbs)
 
 
+@pytest.mark.skipif(ipy_version[0] < 8, reason="Error message changes for ipython v8")
 @pytest.mark.sphinx_params(
     "basic_failing.ipynb",
     conf={"nb_execution_mode": "auto", "nb_execution_allow_errors": True},

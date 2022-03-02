@@ -12,7 +12,7 @@
                 <literal_block classes="output traceback" language="ipythontb" xml:space="preserve">
                     ---------------------------------------------------------------------------
                     Exception                                 Traceback (most recent call last)
-                    <ipython-input-1-714b2b556897> in <module>
+                    Input In [1], in <module>
                     ----> 1 raise Exception('oopsie!')
                     
                     Exception: oopsie!
