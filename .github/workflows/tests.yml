@@ -26,16 +26,16 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: [3.7, 3.8, 3.9]
+        python-version: [3.7, 3.8, 3.9, 3.10]
         # sphinx 3 currently fails, because of: https://github.com/sphinx-doc/sphinx/issues/10291
         # sphinx: [">=3,<4", ">=4,<5"]
         sphinx: [">=4,<5"]
         include:
           - os: windows-latest
-            python-version: 3.7
-            sphinx: ">=3,<4"
+            python-version: 3.8
+            sphinx: ">=4,<5"
           - os: macos-latest
-            python-version: 3.9
+            python-version: 3.8
             sphinx: ">=4,<5"
 
     runs-on: ${{ matrix.os }}
