@@ -1,12 +1,12 @@
 """Module for reading notebook formats from a string input."""
 from __future__ import annotations
 
+import dataclasses as dc
 from functools import partial
 import json
 from pathlib import Path
 from typing import Callable, Iterator
 
-import attr
 from docutils.parsers.rst import Directive
 from markdown_it.renderer import RendererHTML
 from myst_parser.main import MdParserConfig, create_md_parser
@@ -20,15 +20,15 @@ NOTEBOOK_VERSION = 4
 """The notebook version that readers should return."""
 
 
-@attr.s
+@dc.dataclass()
 class NbReader:
     """A data class for reading a notebook format."""
 
-    read: Callable[[str], nbf.NotebookNode] = attr.ib()
+    read: Callable[[str], nbf.NotebookNode]
     """The function to read a notebook from a (utf8) string."""
-    md_config: MdParserConfig = attr.ib()
+    md_config: MdParserConfig
     """The configuration for parsing markdown cells."""
-    read_fmt: dict | None = attr.ib(default=None)
+    read_fmt: dict | None = dc.field(default=None)
     """The type of the reader, if known."""
 
 
@@ -73,7 +73,7 @@ def create_nb_reader(
                 reader = import_object(reader)
             if commonmark_only:
                 # Markdown cells should be read as Markdown only
-                md_config = attr.evolve(md_config, commonmark_only=True)
+                md_config = dc.replace(md_config, commonmark_only=True)
             return NbReader(partial(reader, **(reader_kwargs or {})), md_config)  # type: ignore
 
     # a Markdown file is a special case, since we only treat it as a notebook,
@@ -184,7 +184,7 @@ def read_myst_markdown_notebook(
     """
     config = config or MdParserConfig()
     # parse markdown file up to the block level (i.e. don't worry about inline text)
-    inline_config = attr.evolve(
+    inline_config = dc.replace(
         config, disable_syntax=(list(config.disable_syntax) + ["inline"])
     )
     parser = create_md_parser(inline_config, RendererHTML)

@@ -1,8 +1,15 @@
 """Configuration for myst-nb."""
+import dataclasses as dc
 from typing import Any, Dict, Iterable, List, Sequence, Tuple
 
-import attr
-from attr.validators import deep_iterable, deep_mapping, in_, instance_of, optional
+from myst_parser.dc_validators import (
+    deep_iterable,
+    deep_mapping,
+    in_,
+    instance_of,
+    optional,
+    validate_fields,
+)
 from typing_extensions import Literal
 
 
@@ -150,7 +157,7 @@ def ipywidgets_js_factory() -> Dict[str, Dict[str, str]]:
     }
 
 
-@attr.s()
+@dc.dataclass()
 class NbParserConfig:
     """Global configuration options for the MyST-NB parser.
 
@@ -158,21 +165,24 @@ class NbParserConfig:
     these option names are prepended with ``nb_``
     """
 
+    def __post_init__(self):
+        self.custom_formats = custom_formats_converter(self.custom_formats)
+        validate_fields(self)
+
     # file read options
 
-    custom_formats: Dict[str, Tuple[str, dict, bool]] = attr.ib(
-        factory=dict,
-        converter=custom_formats_converter,
+    custom_formats: Dict[str, Tuple[str, dict, bool]] = dc.field(
+        default_factory=dict,
         metadata={
             "help": "Custom formats for reading notebook; suffix -> reader",
             "docutils_exclude": True,
         },
     )
     # docutils does not support the custom formats mechanism
-    read_as_md: bool = attr.ib(
+    read_as_md: bool = dc.field(
         default=False,
-        validator=instance_of(bool),
         metadata={
+            "validator": instance_of(bool),
             "help": "Read as the MyST Markdown format",
             "sphinx_exclude": True,
         },
@@ -192,74 +202,76 @@ class NbParserConfig:
     # )
     # see also:
     # https://nbformat.readthedocs.io/en/latest/format_description.html#cell-metadata
-    metadata_key: str = attr.ib(
+    metadata_key: str = dc.field(
         default="mystnb",  # TODO agree this as the default
-        validator=instance_of(str),
-        metadata={"help": "Notebook level metadata key for config overrides"},
+        metadata={
+            "validator": instance_of(str),
+            "help": "Notebook level metadata key for config overrides",
+        },
     )
 
     # notebook execution options
 
-    execution_mode: Literal["off", "force", "auto", "cache"] = attr.ib(
+    execution_mode: Literal["off", "force", "auto", "cache"] = dc.field(
         default="auto",
-        validator=in_(
-            [
-                "off",
-                "auto",
-                "force",
-                "cache",
-            ]
-        ),
         metadata={
+            "validator": in_(
+                [
+                    "off",
+                    "auto",
+                    "force",
+                    "cache",
+                ]
+            ),
             "help": "Execution mode for notebooks",
             "legacy_name": "jupyter_execute_notebooks",
         },
     )
-    execution_cache_path: str = attr.ib(
+    execution_cache_path: str = dc.field(
         default="",  # No default, so that sphinx can set it inside outdir, if empty
-        validator=instance_of(str),
         metadata={
+            "validator": instance_of(str),
             "help": "Path to folder for caching notebooks",
             "legacy_name": "jupyter_cache",
         },
     )
-    execution_excludepatterns: Sequence[str] = attr.ib(
+    execution_excludepatterns: Sequence[str] = dc.field(
         default=(),
-        validator=deep_iterable(instance_of(str)),
         metadata={
+            "validator": deep_iterable(instance_of(str)),
             "help": "Exclude (POSIX) glob patterns for notebooks",
             "legacy_name": "execution_excludepatterns",
             "docutils_exclude": True,
         },
     )
-    execution_timeout: int = attr.ib(
+    execution_timeout: int = dc.field(
         default=30,
-        validator=instance_of(int),
         metadata={
+            "validator": instance_of(int),
             "help": "Execution timeout (seconds)",
             "legacy_name": "execution_timeout",
         },
     )
-    execution_in_temp: bool = attr.ib(
+    execution_in_temp: bool = dc.field(
         default=False,
-        validator=instance_of(bool),
         metadata={
+            "validator": instance_of(bool),
             "help": "Use temporary folder for the execution current working directory",
             "legacy_name": "execution_in_temp",
         },
     )
-    execution_allow_errors: bool = attr.ib(
+    execution_allow_errors: bool = dc.field(
         default=False,
-        validator=instance_of(bool),
         metadata={
+            "validator": instance_of(bool),
             "help": "Allow errors during execution",
             "legacy_name": "execution_allow_errors",
         },
     )
-    execution_show_tb: bool = attr.ib(  # TODO implement
+    execution_show_tb: bool = dc.field(  # TODO implement
         default=False,
-        validator=instance_of(bool),
         metadata={
+            "validator": instance_of(bool),
             "help": "Print traceback to stderr on execution error",
             "legacy_name": "execution_show_tb",
         },
@@ -267,10 +279,10 @@ class NbParserConfig:
 
     # pre-processing options
 
-    merge_streams: bool = attr.ib(
+    merge_streams: bool = dc.field(
         default=False,
-        validator=instance_of(bool),
         metadata={
+            "validator": instance_of(bool),
             "help": "Merge stdout/stderr execution output streams",
             "cell_metadata": True,
         },
@@ -278,41 +290,50 @@ class NbParserConfig:
 
     # render options
 
-    render_plugin: str = attr.ib(
+    render_plugin: str = dc.field(
         default="default",
-        validator=instance_of(str),  # TODO check it can be loaded?
         metadata={
+            "validator": instance_of(str),
             "help": "The entry point for the execution output render class "
-            "(in group `myst_nb.output_renderer`)"
+            "(in group `myst_nb.output_renderer`)",
         },
     )
-    cell_render_key: str = attr.ib(
+    cell_render_key: str = dc.field(
         default="render",
-        validator=instance_of(str),
         metadata={
+            "validator": instance_of(str),
             "help": "Cell level metadata key to use for render config",
             "legacy_name": "nb_render_key",
         },
     )
-    remove_code_source: bool = attr.ib(
+    remove_code_source: bool = dc.field(
         default=False,
-        validator=instance_of(bool),
-        metadata={"help": "Remove code cell source", "cell_metadata": True},
+        metadata={
+            "validator": instance_of(bool),
+            "help": "Remove code cell source",
+            "cell_metadata": True,
+        },
     )
-    remove_code_outputs: bool = attr.ib(
+    remove_code_outputs: bool = dc.field(
         default=False,
-        validator=instance_of(bool),
-        metadata={"help": "Remove code cell outputs", "cell_metadata": True},
+        metadata={
+            "validator": instance_of(bool),
+            "help": "Remove code cell outputs",
+            "cell_metadata": True,
+        },
     )
-    number_source_lines: bool = attr.ib(
+    number_source_lines: bool = dc.field(
         default=False,
-        validator=instance_of(bool),
-        metadata={"help": "Number code cell source lines", "cell_metadata": True},
+        metadata={
+            "validator": instance_of(bool),
+            "help": "Number code cell source lines",
+            "cell_metadata": True,
+        },
     )
     # docutils does not allow for the dictionaries in its configuration,
     # and also there is no API for the parser to know the output format, so
     # we use two different options for docutils(mime_priority)/sphinx(render_priority)
-    mime_priority: Sequence[str] = attr.ib(
+    mime_priority: Sequence[str] = dc.field(
         default=(
             "application/vnd.jupyter.widget-view+json",
             "application/javascript",
@@ -324,18 +345,20 @@ class NbParserConfig:
             "text/latex",
             "text/plain",
         ),
-        validator=deep_iterable(instance_of(str)),
         metadata={
+            "validator": deep_iterable(instance_of(str)),
             "help": "Render priority for mime types",
             "sphinx_exclude": True,
             "cell_metadata": True,
         },
         repr=False,
     )
-    render_priority: Dict[str, Sequence[str]] = attr.ib(
-        factory=render_priority_factory,
-        validator=deep_mapping(instance_of(str), deep_iterable(instance_of(str))),
+    render_priority: Dict[str, Sequence[str]] = dc.field(
+        default_factory=render_priority_factory,
         metadata={
+            "validator": deep_mapping(
+                instance_of(str), deep_iterable(instance_of(str))
+            ),
             "help": "Render priority for mime types, by builder name",
             "docutils_exclude": True,
         },
@@ -343,55 +366,58 @@ class NbParserConfig:
     )
     output_stderr: Literal[
         "show", "remove", "remove-warn", "warn", "error", "severe"
-    ] = attr.ib(
+    ] = dc.field(
         default="show",
-        validator=in_(
-            [
-                "show",
-                "remove",
-                "remove-warn",
-                "warn",
-                "error",
-                "severe",
-            ]
-        ),
-        metadata={"help": "Behaviour for stderr output", "cell_metadata": True},
+        metadata={
+            "validator": in_(
+                [
+                    "show",
+                    "remove",
+                    "remove-warn",
+                    "warn",
+                    "error",
+                    "severe",
+                ]
+            ),
+            "help": "Behaviour for stderr output",
+            "cell_metadata": True,
+        },
     )
-    render_text_lexer: str = attr.ib(
+    render_text_lexer: str = dc.field(
         default="myst-ansi",
         # TODO allow None -> "none"?
         # TODO check it can be loaded?
-        validator=optional(instance_of(str)),  # type: ignore
         metadata={
+            "validator": optional(instance_of(str)),
             "help": "Pygments lexer applied to stdout/stderr and text/plain outputs",
             "cell_metadata": "text_lexer",
         },
     )
-    render_error_lexer: str = attr.ib(
+    render_error_lexer: str = dc.field(
         default="ipythontb",
         # TODO allow None -> "none"?
         # TODO check it can be loaded?
-        validator=optional(instance_of(str)),  # type: ignore
         metadata={
+            "validator": optional(instance_of(str)),
             "help": "Pygments lexer applied to error/traceback outputs",
             "cell_metadata": "error_lexer",
         },
     )
-    render_image_options: Dict[str, str] = attr.ib(
-        factory=dict,
-        validator=deep_mapping(instance_of(str), instance_of((str, int))),
+    render_image_options: Dict[str, str] = dc.field(
+        default_factory=dict,
         # see https://docutils.sourceforge.io/docs/ref/rst/directives.html#image
         metadata={
+            "validator": deep_mapping(instance_of(str), instance_of((str, int))),
             "help": "Options for image outputs (class|alt|height|width|scale|align)",
             "docutils_exclude": True,
             # TODO backward-compatible change to "image_options"?
             "cell_metadata": "image",
         },
     )
-    render_markdown_format: Literal["commonmark", "gfm", "myst"] = attr.ib(
+    render_markdown_format: Literal["commonmark", "gfm", "myst"] = dc.field(
         default="commonmark",
-        validator=in_(["commonmark", "gfm", "myst"]),
         metadata={
+            "validator": in_(["commonmark", "gfm", "myst"]),
             "help": "The format to use for text/markdown rendering",
             "cell_metadata": "markdown_format",
         },
@@ -399,12 +425,12 @@ class NbParserConfig:
     # TODO jupyter_sphinx_require_url and jupyter_sphinx_embed_url (undocumented),
     # are no longer used by this package, replaced by ipywidgets_js
     # do we add any deprecation warnings?
-    ipywidgets_js: Dict[str, Dict[str, str]] = attr.ib(
-        factory=ipywidgets_js_factory,
-        validator=deep_mapping(
-            instance_of(str), deep_mapping(instance_of(str), instance_of(str))
-        ),
+    ipywidgets_js: Dict[str, Dict[str, str]] = dc.field(
+        default_factory=ipywidgets_js_factory,
         metadata={
+            "validator": deep_mapping(
+                instance_of(str), deep_mapping(instance_of(str), instance_of(str))
+            ),
             "help": "Javascript to be loaded on pages containing ipywidgets",
             "docutils_exclude": True,
         },
@@ -412,47 +438,47 @@ class NbParserConfig:
     )
 
     # write options for docutils
-    output_folder: str = attr.ib(
+    output_folder: str = dc.field(
         default="build",
-        validator=instance_of(str),
         metadata={
+            "validator": instance_of(str),
             "help": "Folder for external outputs (like images), skipped if empty",
             "sphinx_exclude": True,  # in sphinx we always output to the build folder
         },
     )
-    append_css: bool = attr.ib(
+    append_css: bool = dc.field(
         default=True,
-        validator=instance_of(bool),
         metadata={
+            "validator": instance_of(bool),
             "help": "Add default MyST-NB CSS to HTML outputs",
             "sphinx_exclude": True,
         },
     )
-    metadata_to_fm: bool = attr.ib(
+    metadata_to_fm: bool = dc.field(
         default=False,
-        validator=instance_of(bool),
         metadata={
+            "validator": instance_of(bool),
             "help": "Convert unhandled metadata to frontmatter",
             "sphinx_exclude": True,
         },
     )
 
     @classmethod
-    def get_fields(cls) -> Tuple[attr.Attribute, ...]:
-        return attr.fields(cls)
+    def get_fields(cls) -> Tuple[dc.Field, ...]:
+        return dc.fields(cls)
 
     def as_dict(self, dict_factory=dict) -> dict:
-        return attr.asdict(self, dict_factory=dict_factory)
+        return dc.asdict(self, dict_factory=dict_factory)
 
-    def as_triple(self) -> Iterable[Tuple[str, Any, attr.Attribute]]:
+    def as_triple(self) -> Iterable[Tuple[str, Any, dc.Field]]:
         """Yield triples of (name, value, field)."""
-        fields = attr.fields_dict(self.__class__)
-        for name, value in attr.asdict(self).items():
+        fields = {f.name: f for f in dc.fields(self.__class__)}
+        for name, value in dc.asdict(self).items():
             yield name, value, fields[name]
 
     def copy(self, **changes) -> "NbParserConfig":
         """Return a copy of the configuration with optional changes applied."""
-        return attr.evolve(self, **changes)
+        return dc.replace(self, **changes)
 
     def __getitem__(self, field: str) -> Any:
         """Get a field value by name."""

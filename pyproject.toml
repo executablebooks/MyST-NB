@@ -1,6 +1,137 @@
 [build-system]
-requires = ["setuptools>=46.4.0", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["flit_core >=3.4,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "myst-nb"
+dynamic = ["version"]
+description = "A Jupyter Notebook Sphinx reader built on top of the MyST markdown parser."
+authors = [{name = "ExecutableBookProject", email = "chrisj_sewell@hotmail.com"}]
+readme = "README.md"
+license = {file = "LICENSE"}
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: Sphinx :: Extension",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing :: Markup",
+]
+keywords = [
+    "markdown",
+    "lexer",
+    "parser",
+    "jupyter",
+    "docutils",
+    "sphinx",
+]
+requires-python = ">=3.7"
+dependencies = [
+    "docutils>=0.15,<0.18",
+    "importlib_metadata",
+    "ipython",
+    "jupyter-cache~=0.5.0",
+    "myst-parser~=0.17.2",
+    "nbformat~=5.0",
+    "pyyaml",
+    "sphinx>=3.5,<5",
+    "sphinx-togglebutton~=0.3.0",
+    "typing-extensions",
+]
+
+[project.urls]
+Homepage = "https://github.com/executablebooks/myst-nb"
+Documentation = "https://myst-nb.readthedocs.io"
+
+[project.entry-points."myst_nb.renderers"]
+default = "myst_nb.render:NbElementRenderer"
+
+[project.entry-points."pygments.lexers"]
+myst-ansi = "myst_nb.lexers:AnsiColorLexer"
+ipythontb = "myst_nb.lexers:IPythonTracebackLexer"
+
+[project.entry-points."jcache.readers"]
+myst_nb_md = "myst_nb.read:myst_nb_reader_plugin"
+
+[project.optional-dependencies]
+code_style = ["pre-commit~=2.12"]
+rtd = [
+    "alabaster",
+    "altair",
+    "bokeh",
+    "coconut~=1.4.3",
+    "ipykernel~=5.5",
+    "ipywidgets",
+    "jupytext~=1.11.2",
+    "matplotlib",
+    "numpy",
+    "pandas",
+    "plotly",
+    "sphinx-book-theme~=0.1.0",
+    "sphinx-copybutton",
+    "sphinx-panels~=0.4.1",
+    "sphinxcontrib-bibtex",
+    "sympy",
+]
+testing = [
+    "coverage<5.0",
+    "beautifulsoup4",
+    "ipykernel~=5.5",
+    "ipython<8.1.0", # see https://github.com/ipython/ipython/issues/13554
+    "ipywidgets",
+    "jupytext~=1.11.2",
+    # TODO: 3.4.0 has some warnings that need to be fixed in the tests.
+    "matplotlib~=3.3.0",
+    "nbdime",
+    "numpy",
+    # TODO: 1.4.0 has some warnings that need to be fixed in the tests.
+    "pandas<1.4",
+    "pytest~=5.4",
+    "pytest-cov~=2.8",
+    "pytest-regressions",
+    "pytest-param-files~=0.3.3",
+    "sympy",
+]
+
+[project.scripts]
+mystnb-docutils-html = "myst_nb.docutils_:cli_html"
+mystnb-docutils-html5 = "myst_nb.docutils_:cli_html5"
+mystnb-docutils-latex = "myst_nb.docutils_:cli_latex"
+mystnb-docutils-xml = "myst_nb.docutils_:cli_xml"
+mystnb-docutils-pseudoxml = "myst_nb.docutils_:cli_pseudoxml"
+
+[tool.flit.module]
+name = "myst_nb"
+
+[tool.flit.sdist]
+exclude = [
+    "docs/",
+    "tests/",
+]
+
+[tool.mypy]
+show_error_codes = true
+check_untyped_defs = true
+strict_equality = true
+no_implicit_optional = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = ["myst_nb.*"]
+# can only follow these imports when more of the code is typed
+follow_imports = "skip"
+
+[[tool.mypy.overrides]]
+module = ["docutils.*", "nbformat.*", "jupyter_cache.*", "IPython.*", "pygments.*"]
+ignore_missing_imports = true
 
 [tool.isort]
 profile = "black"

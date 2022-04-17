@@ -3,9 +3,9 @@
 We intentionally do no import sphinx in this module,
 in order to allow docutils-only use without sphinx installed.
 """
+import dataclasses as dc
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-import attr
 from docutils import nodes
 from docutils.parsers.rst import Directive, directives
 from docutils.parsers.rst.states import Inliner
@@ -44,15 +44,15 @@ def set_source_info(node: nodes.Node, source: str, line: int) -> None:
         _node.line = line
 
 
-@attr.s
+@dc.dataclass()
 class RetrievedData:
     """A class to store retrieved mime data."""
 
-    found: bool = attr.ib()
-    data: Union[None, str, bytes] = attr.ib(default=None)
-    metadata: Dict[str, Any] = attr.ib(factory=dict)
-    nb_renderer: Optional[NbElementRenderer] = attr.ib(default=None)
-    warning: Optional[str] = attr.ib(default=None)
+    found: bool
+    data: Union[None, str, bytes] = None
+    metadata: Dict[str, Any] = dc.field(default_factory=dict)
+    nb_renderer: Optional[NbElementRenderer] = None
+    warning: Optional[str] = None
 
 
 def retrieve_glue_data(document: nodes.document, key: str) -> RetrievedData:

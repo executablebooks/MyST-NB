@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from binascii import a2b_base64
 from contextlib import contextmanager
+import dataclasses as dc
 from functools import lru_cache
 import hashlib
 import json
@@ -16,7 +17,6 @@ from pathlib import Path
 import re
 from typing import TYPE_CHECKING, Any, Iterator
 
-import attr
 from docutils import nodes
 from docutils.parsers.rst import directives as options_spec
 from importlib_metadata import entry_points
@@ -35,7 +35,7 @@ RENDER_ENTRY_GROUP = "myst_nb.renderers"
 _ANSI_RE = re.compile("\x1b\\[(.*?)([@-~])")
 
 
-@attr.s()
+@dc.dataclass()
 class MimeData:
     """Mime data from an execution output (display_data / execute_result)
 
@@ -44,21 +44,21 @@ class MimeData:
     see: https://nbformat.readthedocs.io/en/5.1.3/format_description.html#display-data
     """
 
-    mime_type: str = attr.ib()
+    mime_type: str
     """Mime type key of the output.data"""
-    content: str | bytes = attr.ib()
+    content: str | bytes
     """Data value of the output.data"""
-    cell_metadata: dict[str, Any] = attr.ib(factory=dict)
+    cell_metadata: dict[str, Any] = dc.field(default_factory=dict)
     """Cell level metadata of the output"""
-    output_metadata: dict[str, Any] = attr.ib(factory=dict)
+    output_metadata: dict[str, Any] = dc.field(default_factory=dict)
     """Output level metadata of the output"""
-    cell_index: int | None = attr.ib(default=None)
+    cell_index: int | None = None
     """Index of the cell in the notebook"""
-    output_index: int | None = attr.ib(default=None)
+    output_index: int | None = None
     """Index of the output in the cell"""
-    line: int | None = attr.ib(default=None)
+    line: int | None = None
     """Source line of the cell"""
-    md_headings: bool = attr.ib(default=False)
+    md_headings: bool = False
     """Whether to render headings in text/markdown blocks."""
     # we can only do this if know the content will be rendered into the main body
     # of the document, e.g. not inside a container node
