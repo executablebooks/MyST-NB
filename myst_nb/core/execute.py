@@ -14,8 +14,8 @@ from jupyter_cache.executors.utils import single_nb_execution
 from nbformat import NotebookNode
 from typing_extensions import TypedDict
 
-from myst_nb.configuration import NbParserConfig
-from myst_nb.loggers import LoggerType
+from myst_nb.core.config import NbParserConfig
+from myst_nb.core.loggers import LoggerType
 
 
 class ExecutionResult(TypedDict):

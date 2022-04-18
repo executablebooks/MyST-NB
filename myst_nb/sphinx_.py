@@ -28,20 +28,20 @@ from sphinx.util.docutils import ReferenceRole
 from sphinx.util.fileutil import copy_asset_file
 
 from myst_nb import __version__, static
-from myst_nb.configuration import NbParserConfig
-from myst_nb.execute import ExecutionResult, execute_notebook
-from myst_nb.loggers import DEFAULT_LOG_TYPE, SphinxDocLogger
-from myst_nb.nb_glue import glue_dict_to_nb
-from myst_nb.nb_glue.domain import NbGlueDomain
-from myst_nb.parse import nb_node_to_dict, notebook_to_tokens
-from myst_nb.preprocess import preprocess_notebook
-from myst_nb.read import UnexpectedCellDirective, create_nb_reader
-from myst_nb.render import (
+from myst_nb.core.config import NbParserConfig
+from myst_nb.core.execute import ExecutionResult, execute_notebook
+from myst_nb.core.loggers import DEFAULT_LOG_TYPE, SphinxDocLogger
+from myst_nb.core.parse import nb_node_to_dict, notebook_to_tokens
+from myst_nb.core.preprocess import preprocess_notebook
+from myst_nb.core.read import UnexpectedCellDirective, create_nb_reader
+from myst_nb.core.render import (
     MimeData,
     NbElementRenderer,
     create_figure_context,
     load_renderer,
 )
+from myst_nb.glue import glue_dict_to_nb
+from myst_nb.glue.domain import NbGlueDomain
 
 SPHINX_LOGGER = sphinx_logging.getLogger(__name__)
 OUTPUT_FOLDER = "jupyter_execute"
@@ -122,7 +122,9 @@ def sphinx_setup(app: Sphinx):
     # and so do not need to be added here.
 
     # setup extension for execution statistics tables
-    from myst_nb.execution_tables import setup_exec_table_extension  # circular import
+    from myst_nb.ext.execution_tables import (
+        setup_exec_table_extension,  # circular import
+    )
 
     setup_exec_table_extension(app)
 
@@ -306,7 +308,7 @@ class Parser(MystParser):
         # this is separate from SphinxNbRenderer, so that users can override it
         renderer_name = nb_config.render_plugin
         nb_renderer: NbElementRenderer = load_renderer(renderer_name)(
-            mdit_renderer, logger  # type: ignore
+            mdit_renderer, logger
         )
         # we temporarily store nb_renderer on the document,
         # so that roles/directives can access it
@@ -569,7 +571,7 @@ class SphinxNbRenderer(SphinxRenderer):
                         metadata, "figure", has_nb_key=False
                     )
 
-                with create_figure_context(self, figure_options, line):  # type: ignore
+                with create_figure_context(self, figure_options, line):
                     mime_bundle = nodes.container(nb_element="mime_bundle")
                     with self.current_node_context(mime_bundle):
                         for mime_type, data in output["data"].items():

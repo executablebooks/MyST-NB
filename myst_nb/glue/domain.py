@@ -6,15 +6,13 @@ from typing import List
 
 from sphinx.domains import Domain
 
-from myst_nb.nb_glue.elements import (
+from .directives import (
     PasteAnyDirective,
     PasteFigureDirective,
     PasteMarkdownDirective,
-    PasteMarkdownRole,
     PasteMathDirective,
-    PasteRoleAny,
-    PasteTextRole,
 )
+from .roles import PasteMarkdownRole, PasteRoleAny, PasteTextRole
 
 
 class NbGlueDomain(Domain):

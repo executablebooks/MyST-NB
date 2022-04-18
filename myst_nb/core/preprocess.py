@@ -6,8 +6,8 @@ from typing import Any
 
 from nbformat import NotebookNode
 
-from myst_nb.loggers import LoggerType
-from myst_nb.nb_glue import extract_glue_data
+from myst_nb.core.loggers import LoggerType
+from myst_nb.glue import extract_glue_data
 
 
 def preprocess_notebook(

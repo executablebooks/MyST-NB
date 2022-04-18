@@ -13,8 +13,8 @@ from myst_parser.main import MdParserConfig, create_md_parser
 import nbformat as nbf
 import yaml
 
-from myst_nb.configuration import NbParserConfig
-from myst_nb.loggers import DocutilsDocLogger, SphinxDocLogger
+from myst_nb.core.config import NbParserConfig
+from myst_nb.core.loggers import DocutilsDocLogger, SphinxDocLogger
 
 NOTEBOOK_VERSION = 4
 """The notebook version that readers should return."""

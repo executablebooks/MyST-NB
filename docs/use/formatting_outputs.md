@@ -275,7 +275,7 @@ print("AB\x1b[43mCD\x1b[35mEF\x1b[1mGH\x1b[4mIJ\x1b[7m"
       "KL\x1b[49mMN\x1b[39mOP\x1b[22mQR\x1b[24mST\x1b[27mUV")
 ```
 
-This uses the built-in {py:class}`~myst_nb.lexers.AnsiColorLexer` [pygments lexer](https://pygments.org/).
+This uses the built-in {py:class}`~myst_nb.core.lexers.AnsiColorLexer` [pygments lexer](https://pygments.org/).
 You can change the lexer used in the `conf.py`, for example to turn off lexing:
 
 ```python
@@ -317,7 +317,7 @@ This is currently not supported, but we hope to introduce it at a later date
 (use/format/cutomise)=
 ## Customise the render process
 
-The render process is governed by subclasses of {py:class}`myst_nb.render.NbElementRenderer`, which dictate how to create the `docutils` AST nodes for a particular MIME type.
+The render process is governed by subclasses of {py:class}`myst_nb.core.render.NbElementRenderer`, which dictate how to create the `docutils` AST nodes for a particular MIME type.
 Implementations are loaded *via* Python [entry points](https://packaging.python.org/guides/distributing-packages-using-setuptools/#entry-points), in the `myst_nb.renderers` group.
 So it is possible to inject your own subclass to handle rendering.
 

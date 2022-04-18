@@ -23,32 +23,30 @@ from nbformat import NotebookNode
 from pygments.formatters import get_formatter_by_name
 
 from myst_nb import static
-from myst_nb.configuration import NbParserConfig
-from myst_nb.execute import execute_notebook
-from myst_nb.loggers import DEFAULT_LOG_TYPE, DocutilsDocLogger
-from myst_nb.nb_glue.elements import (
-    PasteAnyDirective,
-    PasteFigureDirective,
-    PasteMarkdownDirective,
-    PasteMarkdownRole,
-    PasteMathDirective,
-    PasteRoleAny,
-    PasteTextRole,
-)
-from myst_nb.parse import nb_node_to_dict, notebook_to_tokens
-from myst_nb.preprocess import preprocess_notebook
-from myst_nb.read import (
+from myst_nb.core.config import NbParserConfig
+from myst_nb.core.execute import execute_notebook
+from myst_nb.core.loggers import DEFAULT_LOG_TYPE, DocutilsDocLogger
+from myst_nb.core.parse import nb_node_to_dict, notebook_to_tokens
+from myst_nb.core.preprocess import preprocess_notebook
+from myst_nb.core.read import (
     NbReader,
     UnexpectedCellDirective,
     read_myst_markdown_notebook,
     standard_nb_read,
 )
-from myst_nb.render import (
+from myst_nb.core.render import (
     MimeData,
     NbElementRenderer,
     create_figure_context,
     load_renderer,
 )
+from myst_nb.glue.directives import (
+    PasteAnyDirective,
+    PasteFigureDirective,
+    PasteMarkdownDirective,
+    PasteMathDirective,
+)
+from myst_nb.glue.roles import PasteMarkdownRole, PasteRoleAny, PasteTextRole
 
 DOCUTILS_EXCLUDED_ARGS = list(
     {f.name for f in NbParserConfig.get_fields() if f.metadata.get("docutils_exclude")}

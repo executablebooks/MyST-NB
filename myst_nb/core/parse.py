@@ -8,7 +8,7 @@ from markdown_it.rules_core import StateCore
 from markdown_it.token import Token
 from nbformat import NotebookNode
 
-from myst_nb.loggers import LoggerType
+from myst_nb.core.loggers import LoggerType
 
 
 def nb_node_to_dict(node: NotebookNode) -> dict[str, Any]:

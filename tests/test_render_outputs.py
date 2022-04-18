@@ -1,7 +1,7 @@
 """Tests for rendering code cell outputs."""
 import pytest
 
-from myst_nb.render import EntryPointError, load_renderer
+from myst_nb.core.render import EntryPointError, load_renderer
 
 
 def test_load_renderer_not_found():

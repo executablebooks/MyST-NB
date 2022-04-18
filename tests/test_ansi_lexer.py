@@ -1,7 +1,7 @@
 from pygments.token import Text, Token
 import pytest
 
-from myst_nb import lexers
+from myst_nb.core import lexers
 
 
 @pytest.mark.parametrize(

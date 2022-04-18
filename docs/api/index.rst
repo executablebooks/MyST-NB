@@ -17,7 +17,7 @@ The parsing of a notebook consists of a number of stages, with each stage separa
 Configuration
 -------------
 
-.. autoclass:: myst_nb.configuration.NbParserConfig
+.. autoclass:: myst_nb.core.config.NbParserConfig
     :members:
 
 Parsers
@@ -32,41 +32,41 @@ Parsers
 Read
 ----
 
-.. autoclass:: myst_nb.read.NbReader
+.. autoclass:: myst_nb.core.read.NbReader
     :members:
 
-.. autofunction:: myst_nb.read.create_nb_reader
+.. autofunction:: myst_nb.core.read.create_nb_reader
 
-.. autofunction:: myst_nb.read.is_myst_markdown_notebook
+.. autofunction:: myst_nb.core.read.is_myst_markdown_notebook
 
-.. autofunction:: myst_nb.read.read_myst_markdown_notebook
+.. autofunction:: myst_nb.core.read.read_myst_markdown_notebook
 
 Execute
 -------
 
-.. autoclass:: myst_nb.execute.ExecutionResult
+.. autoclass:: myst_nb.core.execute.ExecutionResult
     :members:
 
-.. autofunction:: myst_nb.execute.execute_notebook
+.. autofunction:: myst_nb.core.execute.execute_notebook
 
 Pre-process
 -----------
 
-.. autofunction:: myst_nb.preprocess.preprocess_notebook
+.. autofunction:: myst_nb.core.preprocess.preprocess_notebook
 
 Render plugin
 -------------
 
-.. autoclass:: myst_nb.render.MimeData
+.. autoclass:: myst_nb.core.render.MimeData
     :members:
 
-.. autoclass:: myst_nb.render.NbElementRenderer
+.. autoclass:: myst_nb.core.render.NbElementRenderer
     :members:
 
 Lexers
 ------
 
-.. autoclass:: myst_nb.lexers.AnsiColorLexer
+.. autoclass:: myst_nb.core.lexers.AnsiColorLexer
     :members:
     :undoc-members:
     :show-inheritance:

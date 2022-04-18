@@ -23,7 +23,7 @@ from importlib_metadata import entry_points
 from myst_parser.main import MdParserConfig, create_md_parser
 from nbformat import NotebookNode
 
-from myst_nb.loggers import DEFAULT_LOG_TYPE, LoggerType
+from myst_nb.core.loggers import DEFAULT_LOG_TYPE, LoggerType
 
 if TYPE_CHECKING:
     from myst_nb.docutils_ import DocutilsNbRenderer

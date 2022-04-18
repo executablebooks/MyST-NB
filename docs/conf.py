@@ -148,7 +148,7 @@ def setup(app):
 
         def run(self):
             """Run the directive."""
-            from myst_nb.configuration import NbParserConfig
+            from myst_nb.core.config import NbParserConfig
 
             config = NbParserConfig()
             text = [
