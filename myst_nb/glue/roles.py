@@ -3,7 +3,7 @@
 We intentionally do no import sphinx in this module,
 in order to allow docutils-only use without sphinx installed.
 """
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from docutils import nodes
 from docutils.parsers.rst.states import Inliner
@@ -28,13 +28,13 @@ class _PasteRoleBase:
         """Get the document."""
         return self.inliner.document
 
-    def get_source_info(self, lineno: int = None) -> Tuple[str, int]:
+    def get_source_info(self, lineno: Optional[int] = None) -> Tuple[str, int]:
         """Get source and line number."""
         if lineno is None:
             lineno = self.lineno
-        return self.inliner.reporter.get_source_and_line(lineno)  # type: ignore
+        return self.inliner.reporter.get_source_and_line(lineno)
 
-    def set_source_info(self, node: nodes.Node, lineno: int = None) -> None:
+    def set_source_info(self, node: nodes.Node, lineno: Optional[int] = None) -> None:
         """Set the source info for a node and its descendants."""
         source, line = self.get_source_info(lineno)
         set_source_info(node, source, line)
@@ -49,7 +49,7 @@ class _PasteRoleBase:
         options=None,
         content=(),
     ) -> Tuple[List[nodes.Node], List[nodes.system_message]]:
-        self.text = unescape(text)
+        self.text: str = unescape(text)
         self.lineno = lineno
         self.inliner = inliner
         self.rawtext = rawtext
@@ -66,7 +66,7 @@ class PasteRoleAny(_PasteRoleBase):
     """
 
     def run(self) -> Tuple[List[nodes.Node], List[nodes.system_message]]:
-        line, source = self.get_source_info()
+        source, line = self.get_source_info()
         try:
             data = retrieve_glue_data(self.document, self.text)
         except RetrievalError as exc:

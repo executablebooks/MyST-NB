@@ -4,7 +4,7 @@ We intentionally do no import sphinx in this module,
 in order to allow docutils-only use without sphinx installed.
 """
 import dataclasses as dc
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Union
 
 from docutils import nodes
 
@@ -19,6 +19,7 @@ def is_sphinx(document) -> bool:
 
 def warning(message: str, document: nodes.document, line: int) -> nodes.system_message:
     """Create a warning."""
+    logger: Union[DocutilsDocLogger, SphinxDocLogger]
     if is_sphinx(document):
         logger = SphinxDocLogger(document)
     else:
@@ -45,9 +46,9 @@ def set_source_info(node: nodes.Node, source: str, line: int) -> None:
 class RetrievedData:
     """A class to store retrieved mime data."""
 
-    data: Union[None, str, bytes] = None
-    metadata: Dict[str, Any] = dc.field(default_factory=dict)
-    nb_renderer: Optional[NbElementRenderer] = None
+    data: Dict[str, Any]
+    metadata: Dict[str, Any]
+    nb_renderer: NbElementRenderer
 
 
 class RetrievalError(Exception):
@@ -125,15 +126,15 @@ def _render_output_docutils(
             )
         ]
     else:
-        data = MimeData(
+        mime_data = MimeData(
             mime_type,
             data[mime_type],
             output_metadata=metadata,
             line=line,
         )
         if inline:
-            return nb_renderer.render_mime_type_inline(data)
-        return nb_renderer.render_mime_type(data)
+            return nb_renderer.render_mime_type_inline(mime_data)
+        return nb_renderer.render_mime_type(mime_data)
 
 
 def _render_output_sphinx(
@@ -147,15 +148,15 @@ def _render_output_sphinx(
     """Render the output in sphinx (defer mime priority selection)."""
     mime_bundle = nodes.container(nb_element="mime_bundle")
     set_source_info(mime_bundle, source, line)
-    for mime_type, data in data.items():
+    for mime_type, content in data.items():
         mime_container = nodes.container(mime_type=mime_type)
         set_source_info(mime_container, source, line)
-        data = MimeData(mime_type, data, output_metadata=metadata, line=line)
+        mime_data = MimeData(mime_type, content, output_metadata=metadata, line=line)
         if inline:
-            nds = nb_renderer.render_mime_type_inline(data)
+            _nodes = nb_renderer.render_mime_type_inline(mime_data)
         else:
-            nds = nb_renderer.render_mime_type(data)
-        if nds:
-            mime_container.extend(nds)
+            _nodes = nb_renderer.render_mime_type(mime_data)
+        if _nodes:
+            mime_container.extend(_nodes)
             mime_bundle.append(mime_container)
     return [mime_bundle]

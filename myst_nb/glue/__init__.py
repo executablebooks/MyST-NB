@@ -1,12 +1,13 @@
 """Functionality for storing special data in notebook code cells,
 which can then be inserted into the document body.
 """
-from logging import Logger
 from typing import Any, Dict, List
 
 import IPython
 from IPython.display import display as ipy_display
 from nbformat import NotebookNode, v4
+
+from myst_nb.core.loggers import LoggerType
 
 GLUE_PREFIX = "application/papermill.record/"
 
@@ -39,7 +40,7 @@ def extract_glue_data(
     notebook: NotebookNode,
     resources: Dict[str, Any],
     source_map: List[int],
-    logger: Logger,
+    logger: LoggerType,
 ) -> None:
     """Extract all the glue data from the notebook, into the resources dictionary."""
     # note this assumes v4 notebook format

@@ -68,6 +68,7 @@ nitpick_ignore = [
         "docutils.nodes.container",
         "docutils.nodes.system_message",
         "DocutilsNbRenderer",
+        "SphinxNbRenderer",
         "myst_parser.main.MdParserConfig",
         "nbformat.notebooknode.NotebookNode",
         "nbf.NotebookNode",

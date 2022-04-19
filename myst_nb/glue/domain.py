@@ -22,7 +22,7 @@ class NbGlueDomain(Domain):
     label = "NotebookGlue"
 
     # data version, bump this when the format of self.data changes
-    data_version = 0.2
+    data_version = 1
 
     directives = {
         "": PasteAnyDirective,

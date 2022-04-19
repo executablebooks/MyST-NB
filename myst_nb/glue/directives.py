@@ -3,7 +3,7 @@
 We intentionally do no import sphinx in this module,
 in order to allow docutils-only use without sphinx installed.
 """
-from typing import List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from docutils import nodes
 from docutils.parsers.rst import Directive, directives
@@ -39,14 +39,20 @@ class _PasteDirectiveBase(Directive):
     def document(self) -> nodes.document:
         return self.state.document
 
-    def get_source_info(self) -> Tuple[str, int]:
-        """Get source and line number."""
-        return self.state_machine.get_source_and_line(self.lineno)
+    def __init__(self, *args, **kwargs) -> None:
+        self.arguments: List[str]
+        self.options: Dict[str, Any]
+        self.content: str
+        super().__init__(*args, **kwargs)
+        source, line = self.state_machine.get_source_and_line(self.lineno)
+        self.source: str = source
+        self.line: int = line
 
     def set_source_info(self, node: nodes.Node) -> None:
         """Set source and line number to the node and its descendants."""
-        source, line = self.get_source_info()
-        set_source_info(node, source, line)
+        nodes = node if isinstance(node, (list, tuple)) else [node]
+        for _node in nodes:
+            set_source_info(_node, self.source, self.line)
 
 
 class PasteAnyDirective(_PasteDirectiveBase):
@@ -56,23 +62,23 @@ class PasteAnyDirective(_PasteDirectiveBase):
 
     def run(self) -> List[nodes.Node]:
         """Run the directive."""
-        line, source = self.get_source_info()
         try:
             data = retrieve_glue_data(self.document, self.arguments[0])
         except RetrievalError as exc:
-            return [warning(str(exc), self.document, self.lineno)]
-        return render_glue_output(data, self.document, line, source)
+            return [warning(str(exc), self.document, self.line)]
+        return render_glue_output(data, self.document, self.line, self.source)
+
+
+def md_fmt(argument):
+    return directives.choice(argument, ("commonmark", "gfm", "myst"))
 
 
 class PasteMarkdownDirective(_PasteDirectiveBase):
     """A directive for pasting markdown outputs from notebooks as MyST Markdown."""
 
-    def fmt(argument):
-        return directives.choice(argument, ("commonmark", "gfm", "myst"))
-
     option_spec = _shared_option_spec(
         {
-            "format": fmt,
+            "format": md_fmt,
         }
     )
 
@@ -82,13 +88,13 @@ class PasteMarkdownDirective(_PasteDirectiveBase):
         try:
             result = retrieve_glue_data(self.document, key)
         except RetrievalError as exc:
-            return [warning(str(exc), self.document, self.lineno)]
+            return [warning(str(exc), self.document, self.line)]
         if "text/markdown" not in result.data:
             return [
                 warning(
                     f"No text/markdown found in {key!r} data",
                     self.document,
-                    self.lineno,
+                    self.line,
                 )
             ]
 
@@ -101,12 +107,11 @@ class PasteMarkdownDirective(_PasteDirectiveBase):
                 cell_key: {"markdown_format": self.options.get("format", "commonmark")},
             },
             output_metadata=result.metadata,
-            line=self.lineno,
+            line=self.line,
             md_headings=True,
         )
         _nodes = result.nb_renderer.render_markdown(mime)
-        for node in _nodes:
-            self.set_source_info(node)
+        self.set_source_info(_nodes)
         return _nodes
 
 
@@ -130,12 +135,11 @@ class PasteFigureDirective(_PasteDirectiveBase):
     has_content = True
 
     def run(self):
-        line, source = self.get_source_info()
         try:
             data = retrieve_glue_data(self.document, self.arguments[0])
         except RetrievalError as exc:
-            return [warning(str(exc), self.document, self.lineno)]
-        paste_nodes = render_glue_output(data, self.document, line, source)
+            return [warning(str(exc), self.document, self.line)]
+        paste_nodes = render_glue_output(data, self.document, self.line, self.source)
 
         # note: most of this is copied directly from sphinx.Figure
 
@@ -198,7 +202,7 @@ class PasteMathDirective(_PasteDirectiveBase):
         try:
             result = retrieve_glue_data(self.document, key)
         except RetrievalError as exc:
-            return [warning(str(exc), self.document, self.lineno)]
+            return [warning(str(exc), self.document, self.line)]
         if "text/latex" not in result.data:
             return [
                 warning(
@@ -227,8 +231,10 @@ class PasteMathDirective(_PasteDirectiveBase):
     def add_target(self, node: nodes.math_block) -> List[nodes.Node]:
         """Add target to the node."""
         # adapted from sphinx.directives.patches.MathDirective
+        from sphinx.domains.math import MathDomain
+        from sphinx.environment import BuildEnvironment
 
-        env = self.state.document.settings.env
+        env: BuildEnvironment = self.state.document.settings.env
 
         node["docname"] = env.docname
 
@@ -242,7 +248,7 @@ class PasteMathDirective(_PasteDirectiveBase):
             return [node]
 
         # register label to domain
-        domain = env.get_domain("math")
+        domain: MathDomain = env.get_domain("math")  # type: ignore
         domain.note_equation(env.docname, node["label"], location=node)
         node["number"] = domain.get_equation_number_for(node["label"])
 

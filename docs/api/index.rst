@@ -70,3 +70,17 @@ Lexers
     :members:
     :undoc-members:
     :show-inheritance:
+
+Loggers
+-------
+
+.. autoclass:: myst_nb.core.loggers.DocutilsDocLogger
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+.. autoclass:: myst_nb.core.loggers.SphinxDocLogger
+    :members:
+    :undoc-members:
+    :show-inheritance:

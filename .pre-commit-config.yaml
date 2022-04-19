@@ -53,5 +53,5 @@ repos:
       - types-PyYAML
       files: >
         (?x)^(
-            myst_nb/[^/]+.py|
+            myst_nb/.+\.py|
         )$

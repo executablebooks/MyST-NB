@@ -10,14 +10,11 @@ and can also both handle ``line`` and ``subtype`` keyword arguments:
 
 """
 import logging
-from typing import Any
+from typing import Union
 
 from docutils import nodes
 
 DEFAULT_LOG_TYPE = "mystnb"
-
-# TODO this would be logging.Logger, but then mypy fails for .warning() with subtype
-LoggerType = Any
 
 
 class SphinxDocLogger(logging.LoggerAdapter):
@@ -131,3 +128,6 @@ class DocutilsLogHandler(logging.Handler):
         )
         if record.parent is not None:  # type: ignore
             record.parent.append(node)  # type: ignore
+
+
+LoggerType = Union[DocutilsDocLogger, SphinxDocLogger]

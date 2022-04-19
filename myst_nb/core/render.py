@@ -27,6 +27,7 @@ from myst_nb.core.loggers import DEFAULT_LOG_TYPE, LoggerType
 
 if TYPE_CHECKING:
     from myst_nb.docutils_ import DocutilsNbRenderer
+    from myst_nb.sphinx_ import SphinxNbRenderer
 
 
 WIDGET_STATE_MIMETYPE = "application/vnd.jupyter.widget-state+json"
@@ -78,7 +79,9 @@ class NbElementRenderer:
 
     # TODO the type of renderer could be DocutilsNbRenderer or SphinxNbRenderer
 
-    def __init__(self, renderer: DocutilsNbRenderer, logger: LoggerType) -> None:
+    def __init__(
+        self, renderer: DocutilsNbRenderer | SphinxNbRenderer, logger: LoggerType
+    ) -> None:
         """Initialize the renderer.
 
         :params output_folder: the folder path for external outputs (like images)
@@ -87,7 +90,7 @@ class NbElementRenderer:
         self._logger = logger
 
     @property
-    def renderer(self) -> DocutilsNbRenderer:
+    def renderer(self) -> DocutilsNbRenderer | SphinxNbRenderer:
         """The renderer this output renderer is associated with."""
         return self._renderer
 
@@ -642,7 +645,9 @@ def strip_latex_delimiters(source):
 
 @contextmanager
 def create_figure_context(
-    self: DocutilsNbRenderer, figure_options: dict[str, Any] | None, line: int
+    self: DocutilsNbRenderer | SphinxNbRenderer,
+    figure_options: dict[str, Any] | None,
+    line: int,
 ) -> Iterator:
     """Create a context manager, which optionally wraps new nodes in a figure node.
 
