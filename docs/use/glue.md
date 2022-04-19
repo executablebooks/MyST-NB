@@ -29,6 +29,11 @@ into your book's content in a variety of ways.[^download]
 [^download]: This notebook can be downloaded as
             **{nb-download}`glue.ipynb`** and {download}`glue.md`
 
+:::{versionchanged} 0.14.0
+The `glue` roles and directives now only identify keys in the same notebook, by default.
+To glue keys from other notebooks, see {ref}`glue/crossdoc`.
+:::
+
 +++
 
 (glue/gluing)=
@@ -209,24 +214,26 @@ generic command that doesn't make many assumptions about what you are gluing.
 The `glue:text` role, is specific to `text/plain` outputs.
 For example, the following text:
 
-```
+```md
 The mean of the bootstrapped distribution was {glue:text}`boot_mean` (95% confidence interval {glue:text}`boot_clo`/{glue:text}`boot_chi`).
 ```
 
 Is rendered as:
+
 The mean of the bootstrapped distribution was {glue:text}`boot_mean` (95% confidence interval {glue:text}`boot_clo`/{glue:text}`boot_chi`)
 
 ```{note}
 `glue:text` only works with glued variables that contain a `text/plain` output.
 ```
 
-With `glue:text` we can **add formatting to the output**.
-This is particularly useful if you are displaying numbers and
-want to round the results. To add formatting, use this pattern:
+With `glue:text` we can add formatting to the output, by specifying a format spec string after a `:`: `` {glue:text}`mykey:<format_spec>` ``
 
-- `` {glue:text}`mykey:formatstring` ``
+The `<format_spec>` should be a valid [Python format specifier](https://docs.python.org/3/library/string.html#format-specification-mini-language).
 
-For example, the following: ``My rounded mean: {glue:text}`boot_mean:.2f` `` will be rendered like this: My rounded mean: {glue:text}`boot_mean:.2f` (95% CI: {glue:text}`boot_clo:.2f`/{glue:text}`boot_chi:.2f`).
+This is particularly useful if you are displaying numbers and want to round the results.
+For example, the following: ``My rounded mean: {glue:text}`boot_mean:.2f` `` will be rendered like this:
+
+My rounded mean: {glue:text}`boot_mean:.2f` (95% CI: {glue:text}`boot_clo:.2f`/{glue:text}`boot_chi:.2f`).
 
 +++
 
@@ -364,6 +371,40 @@ Here is some {glue:md}`inline_md:myst`!
 
 +++
 
+(glue/crossdoc)=
+## Pasting from other notebooks
+
+Certain `glue` roles and directives can be used to paste content from other notebooks.
+
+:::{tip}
+Sometimes you'd like to use variables from notebooks that are not meant to be shown to users.
+In this case, you should bundle the notebook with the rest of your content pages, but include `orphan: true` in the metadata of the notebook.
+:::
+
+For example, the following example pastes glue variables from {ref}`orphaned-nb`:
+
+````markdown
+- A cross-pasted any role: {glue:}`orphaned_nb.ipynb::var_text`
+- A cross-pasted text role: {glue:text}`orphaned_nb.ipynb::var_float:.2E`
+
+A cross-pasted any directive:
+
+```{glue:} var_text
+:doc: orphaned_nb.ipynb
+```
+````
+
+- A cross-pasted any role: {glue:}`orphaned_nb.ipynb::var_text`
+- A cross-pasted text role: {glue:text}`orphaned_nb.ipynb::var_float:.2E`
+
+A cross-pasted any directive:
+
+```{glue:} var_text
+:doc: orphaned_nb.ipynb
+```
+
++++
+
 ## Advanced glue usecases
 
 Here are a few more specific and advanced uses of the `glue` submodule.
@@ -375,10 +416,10 @@ into tables. This allows you to compose complex collections of structured data u
 that were generated in other notebooks. For example the following table:
 
 ````md
-| name                            |       plot                  | mean                      | ci                                                |
-|:-------------------------------:|:---------------------------:|---------------------------|---------------------------------------------------|
-| histogram and raw text          | {glue:}`boot_fig`             | {glue:}`boot_mean`          | {glue:}`boot_clo`-{glue:}`boot_chi`                   |
-| sorted means and formatted text | {glue:}`sorted_means_fig`     | {glue:text}`boot_mean:.3f` | {glue:text}`boot_clo:.3f`-{glue:text}`boot_chi:.3f` |
+| name                            |       plot                  | mean                      | ci                                                 |
+|:-------------------------------:|:---------------------------:|---------------------------|----------------------------------------------------|
+| histogram and raw text          | {glue:}`boot_fig`           | {glue:}`boot_mean`        | {glue:}`boot_clo`-{glue:}`boot_chi`                |
+| sorted means and formatted text | {glue:}`sorted_means_fig`   | {glue:text}`boot_mean:.3f`| {glue:text}`boot_clo:.3f`-{glue:text}`boot_chi:.3f`|
 ````
 
 Results in:
@@ -387,21 +428,3 @@ Results in:
 |:-------------------------------:|:---------------------------:|---------------------------|---------------------------------------------------|
 | histogram and raw text          | {glue:}`boot_fig`             | {glue:}`boot_mean`          | {glue:}`boot_clo`-{glue:}`boot_chi`                   |
 | sorted means and formatted text | {glue:}`sorted_means_fig`     | {glue:text}`boot_mean:.3f` | {glue:text}`boot_clo:.3f`-{glue:text}`boot_chi:.3f` |
-
-
-### Pasting from pages you don't include in the documentation
-
-:::{warning}
-This is now deprecated: keys can only be pasted if they originate in the same notebook.
-:::
-
-Sometimes you'd like to use variables from notebooks that are not meant to be
-shown to users. In this case, you should bundle the notebook with the rest of your
-content pages, but include `orphan:` in the metadata of the notebook.
-
-For example, the following text: `` {glue:}`orphaned_var` was created in {ref}`orphaned-nb` ``.
-<!-- Results in: {glue:}`orphaned_var` was created in {ref}`orphaned-nb` -->
-
-```{glue:} orphaned_var
-:doc: orphaned_nb.ipynb
-```

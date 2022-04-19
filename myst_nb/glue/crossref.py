@@ -15,7 +15,7 @@ from sphinx.util import logging as sphinx_logging
 from myst_nb._compat import findall
 from myst_nb.core.loggers import DEFAULT_LOG_TYPE
 
-from .utils import PendingGlueReference
+from .utils import PendingGlueReference, format_plain_text
 
 SPHINX_LOGGER = sphinx_logging.getLogger(__name__)
 
@@ -29,27 +29,6 @@ def read_glue_cache(folder: str, docname: str) -> Dict[str, Any]:
         return {}
     with path.open("r") as f:
         return json.load(f)
-
-
-def generate_nodes(
-    cell: Dict[str, Any], priority_list: Sequence[str], inline: bool
-) -> List[nodes.Element]:
-    data = cell["data"]
-    for mime_type in priority_list:
-        if mime_type not in data:
-            continue
-        if mime_type == "text/plain":
-            if inline:
-                return [nodes.literal(data[mime_type], data[mime_type])]
-            else:
-                return [nodes.literal_block(data[mime_type], data[mime_type])]
-        if mime_type == "text/html":
-            return [
-                nodes.raw(
-                    text=data[mime_type], format="html", classes=["output", "text_html"]
-                )
-            ]
-    return []
 
 
 class ReplacePendingGlueReferences(SphinxPostTransform):
@@ -89,15 +68,62 @@ class ReplacePendingGlueReferences(SphinxPostTransform):
                 )
                 node.parent.remove(node)
                 continue
-            _nodes = generate_nodes(data[node.key], priority_list, node.inline)
-            if not _nodes:
-                SPHINX_LOGGER.warning(
-                    f"No allowed mime type found in {node.key!r}: {list(data[node.key]['data'])}"
-                    f"[{DEFAULT_LOG_TYPE}.glue_ref]",
-                    type=DEFAULT_LOG_TYPE,
-                    subtype="glue_ref",
-                    location=node,
-                )
+            output = data[node.key]
+            if node.gtype == "text":
+                _nodes = generate_text_nodes(node, output)
+            else:
+                _nodes = generate_any_nodes(node, output, priority_list)
+
+            if _nodes:
+                node.replace_self(_nodes)
+            else:
                 node.parent.remove(node)
-                continue
-            node.replace_self(_nodes)
+
+
+def ref_warning(msg: str, node) -> None:
+    """Log a warning for a reference."""
+    SPHINX_LOGGER.warning(
+        f"{msg} [{DEFAULT_LOG_TYPE}.glue_ref]",
+        type=DEFAULT_LOG_TYPE,
+        subtype="glue_ref",
+        location=node,
+    )
+
+
+def generate_any_nodes(
+    node: PendingGlueReference, output: Dict[str, Any], priority_list: Sequence[str]
+) -> List[nodes.Element]:
+    """Generate nodes for a cell, according to the highest priority mime type."""
+    data = output["data"]
+    for mime_type in priority_list:
+        if mime_type not in data:
+            continue
+        if mime_type == "text/plain":
+            if node.inline:
+                return [nodes.literal(data[mime_type], data[mime_type])]
+            else:
+                return [nodes.literal_block(data[mime_type], data[mime_type])]
+        if mime_type == "text/html":
+            return [
+                nodes.raw(
+                    text=data[mime_type], format="html", classes=["output", "text_html"]
+                )
+            ]
+    ref_warning(
+        f"No allowed mime type found in {node.key!r}: {list(output['data'])}", node
+    )
+    return []
+
+
+def generate_text_nodes(node: PendingGlueReference, output: Dict[str, Any]):
+    """Generate nodes for a cell, for formatted text/plain."""
+    data = output["data"]
+    if "text/plain" not in data:
+        ref_warning(f"No text/plain found in {node.key!r}", node)
+        return []
+    try:
+        text = format_plain_text(data["text/plain"], node["fmt_spec"])
+    except Exception as exc:
+        ref_warning(f"Failed to format text/plain: {exc}", node)
+        return []
+    return [nodes.inline(text, text, classes=["pasted-text"])]

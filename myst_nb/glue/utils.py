@@ -3,8 +3,9 @@
 We intentionally do no import sphinx in this module,
 in order to allow docutils-only use without sphinx installed.
 """
+from ast import literal_eval
 import dataclasses as dc
-from typing import TYPE_CHECKING, Any, Dict, List, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from docutils import nodes
 
@@ -183,13 +184,24 @@ class PendingGlueReference(nodes.Element):
     def inline(self) -> bool:
         return self.attributes.get("inline", False)
 
+    @property
+    def gtype(self) -> Optional[str]:
+        return self.attributes.get("gtype", None)
+
 
 class PendingGlueReferenceError(Exception):
     """An error occurred while resolving a pending glue reference."""
 
 
 def create_pending_glue_ref(
-    document: nodes.document, source: str, line: int, rel_doc: str, key: str
+    document: nodes.document,
+    source: str,
+    line: int,
+    rel_doc: str,
+    key: str,
+    inline: bool = False,
+    gtype: Optional[str] = None,
+    **kwargs: Any,
 ) -> PendingGlueReference:
     """Create a pending glue reference."""
     if not is_sphinx(document):
@@ -203,7 +215,28 @@ def create_pending_glue_ref(
         raise PendingGlueReferenceError(
             f"Pending glue reference document not found: {filepath!r}."
         )
-    ref = PendingGlueReference(refdoc=refdoc, key=key)
+    ref = PendingGlueReference(
+        refdoc=refdoc, key=key, inline=inline, gtype=gtype, **kwargs
+    )
     ref.source = source
     ref.line = line
     return ref
+
+
+def format_plain_text(text: str, fmt_spec: str) -> str:
+    """Format plain text for display in a docutils node."""
+    # literal eval, to remove surrounding quotes
+    try:
+        value = literal_eval(text)
+    except (SyntaxError, ValueError):
+        value = text
+    if fmt_spec == "":
+        return str(value)
+    type_char = fmt_spec[-1]
+    if type_char == "s":
+        value = str(value)
+    elif type_char in ("b", "c", "d", "o", "x", "X"):
+        value = int(value)
+    elif type_char in ("e", "E", "f", "F", "g", "G", "n", "%"):
+        value = float(value)
+    return format(value, fmt_spec)
