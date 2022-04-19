@@ -13,10 +13,10 @@ from myst_nb.core.render import MimeData
 
 from .utils import (
     RetrievalError,
+    glue_warning,
     render_glue_output,
     retrieve_glue_data,
     set_source_info,
-    warning,
 )
 
 
@@ -70,7 +70,7 @@ class PasteRoleAny(_PasteRoleBase):
         try:
             data = retrieve_glue_data(self.document, self.text)
         except RetrievalError as exc:
-            return [], [warning(str(exc), self.document, line)]
+            return [], [glue_warning(str(exc), self.document, line)]
         paste_nodes = render_glue_output(
             data,
             self.document,
@@ -98,10 +98,10 @@ class PasteTextRole(_PasteRoleBase):
         try:
             result = retrieve_glue_data(self.document, key)
         except RetrievalError as exc:
-            return [], [warning(str(exc), self.document, self.lineno)]
+            return [], [glue_warning(str(exc), self.document, self.lineno)]
         if "text/plain" not in result.data:
             return [], [
-                warning(
+                glue_warning(
                     f"No text/plain found in {key!r} data", self.document, self.lineno
                 )
             ]
@@ -138,10 +138,10 @@ class PasteMarkdownRole(_PasteRoleBase):
         try:
             result = retrieve_glue_data(self.document, key)
         except RetrievalError as exc:
-            return [], [warning(str(exc), self.document, self.lineno)]
+            return [], [glue_warning(str(exc), self.document, self.lineno)]
         if "text/markdown" not in result.data:
             return [], [
-                warning(
+                glue_warning(
                     f"No text/markdown found in {key!r} data",
                     self.document,
                     self.lineno,

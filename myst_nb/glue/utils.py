@@ -4,12 +4,16 @@ We intentionally do no import sphinx in this module,
 in order to allow docutils-only use without sphinx installed.
 """
 import dataclasses as dc
-from typing import Any, Dict, List, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Union
 
 from docutils import nodes
 
+from myst_nb._compat import findall
 from myst_nb.core.loggers import DocutilsDocLogger, SphinxDocLogger
 from myst_nb.core.render import MimeData, NbElementRenderer
+
+if TYPE_CHECKING:
+    from sphinx.environment import BuildEnvironment
 
 
 def is_sphinx(document) -> bool:
@@ -17,8 +21,10 @@ def is_sphinx(document) -> bool:
     return hasattr(document.settings, "env")
 
 
-def warning(message: str, document: nodes.document, line: int) -> nodes.system_message:
-    """Create a warning."""
+def glue_warning(
+    message: str, document: nodes.document, line: int
+) -> nodes.system_message:
+    """Create a warning related to glue functionality."""
     logger: Union[DocutilsDocLogger, SphinxDocLogger]
     if is_sphinx(document):
         logger = SphinxDocLogger(document)
@@ -36,8 +42,7 @@ def warning(message: str, document: nodes.document, line: int) -> nodes.system_m
 
 def set_source_info(node: nodes.Node, source: str, line: int) -> None:
     """Set the source info for a node and its descendants."""
-    iterator = getattr(node, "findall", node.traverse)  # findall for docutils 0.18
-    for _node in iterator(include_self=True):
+    for _node in findall(node)(include_self=True):
         _node.source = source
         _node.line = line
 
@@ -57,15 +62,16 @@ class RetrievalError(Exception):
 
 def retrieve_glue_data(document: nodes.document, key: str) -> RetrievedData:
     """Retrieve the glue data from a specific document."""
+    msg = f"No key {key!r} found in glue data for this document."
     if "nb_renderer" not in document:
-        raise RetrievalError("No 'nb_renderer' found on the document.")
+        raise RetrievalError(msg)
     nb_renderer: NbElementRenderer = document["nb_renderer"]
     resources = nb_renderer.get_resources()
     if "glue" not in resources:
-        raise RetrievalError(f"No key {key!r} found in glue data.")
+        raise RetrievalError(msg)
 
     if key not in resources["glue"]:
-        raise RetrievalError(f"No key {key!r} found in glue data.")
+        raise RetrievalError(msg)
 
     return RetrievedData(
         data=resources["glue"][key]["data"],
@@ -119,7 +125,7 @@ def _render_output_docutils(
         mime_type = next(x for x in mime_priority if x in data)
     except StopIteration:
         return [
-            warning(
+            glue_warning(
                 "No output mime type found from render_priority",
                 document,
                 line,
@@ -160,3 +166,44 @@ def _render_output_sphinx(
             mime_container.extend(_nodes)
             mime_bundle.append(mime_container)
     return [mime_bundle]
+
+
+class PendingGlueReference(nodes.Element):
+    """A glue reference to another document."""
+
+    @property
+    def refdoc(self) -> str:
+        return self.attributes["refdoc"]
+
+    @property
+    def key(self) -> str:
+        return self.attributes["key"]
+
+    @property
+    def inline(self) -> bool:
+        return self.attributes.get("inline", False)
+
+
+class PendingGlueReferenceError(Exception):
+    """An error occurred while resolving a pending glue reference."""
+
+
+def create_pending_glue_ref(
+    document: nodes.document, source: str, line: int, rel_doc: str, key: str
+) -> PendingGlueReference:
+    """Create a pending glue reference."""
+    if not is_sphinx(document):
+        raise PendingGlueReferenceError(
+            "Pending glue references are only supported in sphinx."
+        )
+    env: "BuildEnvironment" = document.settings.env
+    _, filepath = env.relfn2path(rel_doc, env.docname)
+    refdoc = env.path2doc(filepath)
+    if refdoc is None:
+        raise PendingGlueReferenceError(
+            f"Pending glue reference document not found: {filepath!r}."
+        )
+    ref = PendingGlueReference(refdoc=refdoc, key=key)
+    ref.source = source
+    ref.line = line
+    return ref

@@ -401,3 +401,7 @@ content pages, but include `orphan:` in the metadata of the notebook.
 
 For example, the following text: `` {glue:}`orphaned_var` was created in {ref}`orphaned-nb` ``.
 <!-- Results in: {glue:}`orphaned_var` was created in {ref}`orphaned-nb` -->
+
+```{glue:} orphaned_var
+:doc: orphaned_nb.ipynb
+```

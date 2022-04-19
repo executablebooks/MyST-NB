@@ -40,13 +40,7 @@ from myst_nb.core.render import (
     create_figure_context,
     load_renderer,
 )
-from myst_nb.glue.directives import (
-    PasteAnyDirective,
-    PasteFigureDirective,
-    PasteMarkdownDirective,
-    PasteMathDirective,
-)
-from myst_nb.glue.roles import PasteMarkdownRole, PasteRoleAny, PasteTextRole
+from myst_nb.glue import get_glue_directives, get_glue_roles
 
 DOCUTILS_EXCLUDED_ARGS = list(
     {f.name for f in NbParserConfig.get_fields() if f.metadata.get("docutils_exclude")}
@@ -71,31 +65,20 @@ class Parser(MystParser):
 
     def parse(self, inputstring: str, document: nodes.document) -> None:
         # register/unregister special directives and roles
-        new_directives = (
-            ("code-cell", UnexpectedCellDirective),
-            ("raw-cell", UnexpectedCellDirective),
-            ("glue:", PasteAnyDirective),
-            ("glue:any", PasteAnyDirective),
-            ("glue:figure", PasteFigureDirective),
-            ("glue:math", PasteMathDirective),
-            ("glue:md", PasteMarkdownDirective),
-        )
-        new_roles = (
-            ("glue:", PasteRoleAny()),
-            ("glue:any", PasteRoleAny()),
-            ("glue:text", PasteTextRole()),
-            ("glue:md", PasteMarkdownRole()),
-        )
-        for name, directive in new_directives:
+        new_directives = get_glue_directives()
+        new_directives["code-cell"] = UnexpectedCellDirective
+        new_directives["raw-cell"] = UnexpectedCellDirective
+        new_roles = get_glue_roles()
+        for name, directive in new_directives.items():
             _directives[name] = directive
-        for name, role in new_roles:
+        for name, role in new_roles.items():
             _roles[name] = role
         try:
             return self._parse(inputstring, document)
         finally:
-            for name, _ in new_directives:
+            for name in new_directives:
                 _directives.pop(name, None)
-            for name, _ in new_roles:
+            for name in new_roles:
                 _roles.pop(name, None)
 
     def _parse(self, inputstring: str, document: nodes.document) -> None:

@@ -4,6 +4,7 @@ from __future__ import annotations
 from collections import defaultdict
 from contextlib import suppress
 from importlib import resources as import_resources
+import json
 import os
 from pathlib import Path
 from typing import Any, DefaultDict, Sequence, cast
@@ -17,17 +18,15 @@ from myst_parser.main import MdParserConfig, create_md_parser
 from myst_parser.sphinx_parser import MystParser
 from myst_parser.sphinx_renderer import SphinxRenderer
 import nbformat
-from nbformat import NotebookNode
-from sphinx.addnodes import download_reference
 from sphinx.application import Sphinx
 from sphinx.environment import BuildEnvironment
 from sphinx.environment.collectors import EnvironmentCollector
 from sphinx.transforms.post_transforms import SphinxPostTransform
 from sphinx.util import logging as sphinx_logging
-from sphinx.util.docutils import ReferenceRole
 from sphinx.util.fileutil import copy_asset_file
 
 from myst_nb import __version__, static
+from myst_nb._compat import findall
 from myst_nb.core.config import NbParserConfig
 from myst_nb.core.execute import ExecutionResult, execute_notebook
 from myst_nb.core.loggers import DEFAULT_LOG_TYPE, SphinxDocLogger
@@ -40,7 +39,8 @@ from myst_nb.core.render import (
     create_figure_context,
     load_renderer,
 )
-from myst_nb.glue import glue_dict_to_nb
+from myst_nb.ext.download import NbDownloadRole
+from myst_nb.glue.crossref import ReplacePendingGlueReferences
 from myst_nb.glue.domain import NbGlueDomain
 
 SPHINX_LOGGER = sphinx_logging.getLogger(__name__)
@@ -106,6 +106,7 @@ def sphinx_setup(app: Sphinx):
 
     # add post-transform for selecting mime type from a bundle
     app.add_post_transform(SelectMimeType)
+    app.add_post_transform(ReplacePendingGlueReferences)
 
     # add HTML resources
     app.add_css_file("mystnb.css")
@@ -122,13 +123,14 @@ def sphinx_setup(app: Sphinx):
     # and so do not need to be added here.
 
     # setup extension for execution statistics tables
-    from myst_nb.ext.execution_tables import (
-        setup_exec_table_extension,  # circular import
-    )
+    # import here, to avoid circular import
+    from myst_nb.ext.execution_tables import setup_exec_table_extension
 
     setup_exec_table_extension(app)
 
-    # add glue domain
+    # add glue roles and directives
+    # note, we have to add this as a domain, to allow for ':' in the names,
+    # without a sphinx warning
     app.add_domain(NbGlueDomain)
 
     return {
@@ -337,10 +339,12 @@ class Parser(MystParser):
         # and store the keys to environment doc metadata,
         # so that they may be used in any post-transform steps
         if resources.get("glue", None):
-            glue_notebook = glue_dict_to_nb(resources["glue"])
-            content = nbformat.writes(glue_notebook).encode("utf-8")
-            glue_path = path[:-1] + [path[-1] + ".__glue__.ipynb"]
-            nb_renderer.write_file(glue_path, content, overwrite=True)
+            glue_path = path[:-1] + [path[-1] + ".glue.json"]
+            nb_renderer.write_file(
+                glue_path,
+                json.dumps(resources["glue"], cls=BytesEncoder).encode("utf8"),
+                overwrite=True,
+            )
             NbMetadataCollector.set_doc_data(
                 self.env, self.env.docname, "glue", list(resources["glue"].keys())
             )
@@ -518,7 +522,7 @@ class SphinxNbRenderer(SphinxRenderer):
         line = token_line(token, 0)
         cell_index = token.meta["index"]
         metadata = token.meta["metadata"]
-        outputs: list[NotebookNode] = self.md_options["notebook"]["cells"][
+        outputs: list[nbformat.NotebookNode] = self.md_options["notebook"]["cells"][
             cell_index
         ].get("outputs", [])
         # render the outputs
@@ -628,14 +632,12 @@ class SelectMimeType(SphinxPostTransform):
         else:
             priority_list = priority_lookup[name]
 
-        # findall replaces traverse in docutils v0.18
-        iterator = getattr(self.document, "findall", self.document.traverse)
         condition = (
             lambda node: isinstance(node, nodes.container)
             and node.attributes.get("nb_element", "") == "mime_bundle"
         )
         # remove/replace_self will not work with an iterator
-        for node in list(iterator(condition)):
+        for node in list(findall(self.document)(condition)):
             # get available mime types
             mime_types = [node["mime_type"] for node in node.children]
             if not mime_types:
@@ -663,30 +665,6 @@ class SelectMimeType(SphinxPostTransform):
                 node.parent.remove(node)
             else:
                 node.replace_self(node.children[index].children)
-
-
-class NbDownloadRole(ReferenceRole):
-    """Role to download an executed notebook."""
-
-    def run(self):
-        """Run the role."""
-        # get a path relative to the current document
-        self.env: SphinxEnvType
-        path = Path(self.env.mystnb_config.output_folder).joinpath(
-            *(self.env.docname.split("/")[:-1] + self.target.split("/"))
-        )
-        reftarget = (
-            path.as_posix()
-            if os.name == "nt"
-            else ("/" + os.path.relpath(path, self.env.app.srcdir))
-        )
-        node = download_reference(self.rawtext, reftarget=reftarget)
-        self.set_source_info(node)
-        title = self.title if self.has_explicit_title else self.target
-        node += nodes.literal(
-            self.rawtext, title, classes=["xref", "download", "myst-nb"]
-        )
-        return [node], []
 
 
 class NbMetadataCollector(EnvironmentCollector):
@@ -792,3 +770,12 @@ class NbMetadataCollector(EnvironmentCollector):
             env.nb_metadata[docname] = other_metadata[docname]
         if other.nb_new_exec_data:
             env.nb_new_exec_data = True
+
+
+class BytesEncoder(json.JSONEncoder):
+    """A JSON encoder that accepts b64 (and other *ascii*) bytestrings."""
+
+    def default(self, obj):
+        if isinstance(obj, bytes):
+            return obj.decode("ascii")
+        return json.JSONEncoder.default(self, obj)

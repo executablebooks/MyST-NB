@@ -6,13 +6,7 @@ from typing import List
 
 from sphinx.domains import Domain
 
-from .directives import (
-    PasteAnyDirective,
-    PasteFigureDirective,
-    PasteMarkdownDirective,
-    PasteMathDirective,
-)
-from .roles import PasteMarkdownRole, PasteRoleAny, PasteTextRole
+from . import get_glue_directives, get_glue_roles
 
 
 class NbGlueDomain(Domain):
@@ -24,19 +18,8 @@ class NbGlueDomain(Domain):
     # data version, bump this when the format of self.data changes
     data_version = 1
 
-    directives = {
-        "": PasteAnyDirective,
-        "any": PasteAnyDirective,
-        "figure": PasteFigureDirective,
-        "math": PasteMathDirective,
-        "md": PasteMarkdownDirective,
-    }
-    roles = {
-        "": PasteRoleAny(),
-        "any": PasteRoleAny(),
-        "text": PasteTextRole(),
-        "md": PasteMarkdownRole(),
-    }
+    directives = get_glue_directives(prefix="")
+    roles = get_glue_roles(prefix="")
 
     def merge_domaindata(self, docnames: List[str], otherdata: dict) -> None:
         pass

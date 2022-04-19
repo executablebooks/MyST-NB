@@ -3,7 +3,7 @@
 We intentionally do no import sphinx in this module,
 in order to allow docutils-only use without sphinx installed.
 """
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List
 
 from docutils import nodes
 from docutils.parsers.rst import Directive, directives
@@ -11,20 +11,19 @@ from docutils.parsers.rst import Directive, directives
 from myst_nb.core.render import MimeData, strip_latex_delimiters
 
 from .utils import (
+    PendingGlueReferenceError,
     RetrievalError,
+    create_pending_glue_ref,
+    glue_warning,
     is_sphinx,
     render_glue_output,
     retrieve_glue_data,
     set_source_info,
-    warning,
 )
 
-
-def _shared_option_spec(spec: Optional[dict] = None) -> dict:
-    """Return an option spec with shared options for all directives."""
-    spec = spec or {}
-    # spec.update({"doc": directives.unchanged})
-    return spec
+if TYPE_CHECKING:
+    from sphinx.domains.math import MathDomain
+    from sphinx.environment import BuildEnvironment
 
 
 class _PasteDirectiveBase(Directive):
@@ -32,8 +31,6 @@ class _PasteDirectiveBase(Directive):
     required_arguments = 1  # the key
     final_argument_whitespace = True
     has_content = False
-
-    option_spec = _shared_option_spec()
 
     @property
     def document(self) -> nodes.document:
@@ -60,12 +57,35 @@ class PasteAnyDirective(_PasteDirectiveBase):
     using render priority to decide the output mime type.
     """
 
+    option_spec = {"doc": directives.unchanged}
+
     def run(self) -> List[nodes.Node]:
         """Run the directive."""
+        key = self.arguments[0]
+        if "doc" in self.options:
+            try:
+                ref = create_pending_glue_ref(
+                    self.document, self.source, self.line, self.options["doc"], key
+                )
+            except PendingGlueReferenceError as exc:
+                return [
+                    glue_warning(
+                        str(exc),
+                        self.document,
+                        self.line,
+                    )
+                ]
+            return [ref]
         try:
-            data = retrieve_glue_data(self.document, self.arguments[0])
+            data = retrieve_glue_data(self.document, key)
         except RetrievalError as exc:
-            return [warning(str(exc), self.document, self.line)]
+            return [
+                glue_warning(
+                    f"{exc} (use 'doc' option, to glue from another document)",
+                    self.document,
+                    self.line,
+                )
+            ]
         return render_glue_output(data, self.document, self.line, self.source)
 
 
@@ -76,11 +96,9 @@ def md_fmt(argument):
 class PasteMarkdownDirective(_PasteDirectiveBase):
     """A directive for pasting markdown outputs from notebooks as MyST Markdown."""
 
-    option_spec = _shared_option_spec(
-        {
-            "format": md_fmt,
-        }
-    )
+    option_spec = {
+        "format": md_fmt,
+    }
 
     def run(self) -> List[nodes.Node]:
         """Run the directive."""
@@ -88,10 +106,10 @@ class PasteMarkdownDirective(_PasteDirectiveBase):
         try:
             result = retrieve_glue_data(self.document, key)
         except RetrievalError as exc:
-            return [warning(str(exc), self.document, self.line)]
+            return [glue_warning(str(exc), self.document, self.line)]
         if "text/markdown" not in result.data:
             return [
-                warning(
+                glue_warning(
                     f"No text/markdown found in {key!r} data",
                     self.document,
                     self.line,
@@ -124,21 +142,19 @@ class PasteFigureDirective(_PasteDirectiveBase):
     def figwidth_value(argument):
         return directives.length_or_percentage_or_unitless(argument, "px")
 
-    option_spec = _shared_option_spec(
-        {
-            "figwidth": figwidth_value,
-            "figclass": directives.class_option,
-            "align": align,
-            "name": directives.unchanged,
-        }
-    )
+    option_spec = {
+        "figwidth": figwidth_value,
+        "figclass": directives.class_option,
+        "align": align,
+        "name": directives.unchanged,
+    }
     has_content = True
 
     def run(self):
         try:
             data = retrieve_glue_data(self.document, self.arguments[0])
         except RetrievalError as exc:
-            return [warning(str(exc), self.document, self.line)]
+            return [glue_warning(str(exc), self.document, self.line)]
         paste_nodes = render_glue_output(data, self.document, self.line, self.source)
 
         # note: most of this is copied directly from sphinx.Figure
@@ -172,7 +188,7 @@ class PasteFigureDirective(_PasteDirectiveBase):
                 caption.line = first_node.line
                 figure_node += caption
             elif not (isinstance(first_node, nodes.comment) and len(first_node) == 0):
-                error = warning(
+                error = glue_warning(
                     "Figure caption must be a paragraph or empty comment.",
                     self.document,
                     self.lineno,
@@ -187,14 +203,12 @@ class PasteFigureDirective(_PasteDirectiveBase):
 class PasteMathDirective(_PasteDirectiveBase):
     """A directive for pasting latex outputs from notebooks as math."""
 
-    option_spec = _shared_option_spec(
-        {
-            "label": directives.unchanged,
-            "name": directives.unchanged,
-            "class": directives.class_option,
-            "nowrap": directives.flag,
-        }
-    )
+    option_spec = {
+        "label": directives.unchanged,
+        "name": directives.unchanged,
+        "class": directives.class_option,
+        "nowrap": directives.flag,
+    }
 
     def run(self) -> List[nodes.Node]:
         """Run the directive."""
@@ -202,10 +216,10 @@ class PasteMathDirective(_PasteDirectiveBase):
         try:
             result = retrieve_glue_data(self.document, key)
         except RetrievalError as exc:
-            return [warning(str(exc), self.document, self.line)]
+            return [glue_warning(str(exc), self.document, self.line)]
         if "text/latex" not in result.data:
             return [
-                warning(
+                glue_warning(
                     f"No text/latex found in {key!r} data",
                     self.document,
                     self.lineno,
@@ -231,10 +245,7 @@ class PasteMathDirective(_PasteDirectiveBase):
     def add_target(self, node: nodes.math_block) -> List[nodes.Node]:
         """Add target to the node."""
         # adapted from sphinx.directives.patches.MathDirective
-        from sphinx.domains.math import MathDomain
-        from sphinx.environment import BuildEnvironment
-
-        env: BuildEnvironment = self.state.document.settings.env
+        env: "BuildEnvironment" = self.document.settings.env
 
         node["docname"] = env.docname
 
@@ -248,7 +259,7 @@ class PasteMathDirective(_PasteDirectiveBase):
             return [node]
 
         # register label to domain
-        domain: MathDomain = env.get_domain("math")  # type: ignore
+        domain: "MathDomain" = env.get_domain("math")  # type: ignore
         domain.note_equation(env.docname, node["label"], location=node)
         node["number"] = domain.get_equation_number_for(node["label"])
 

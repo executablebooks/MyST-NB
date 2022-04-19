@@ -5,11 +5,41 @@ from typing import Any, Dict, List
 
 import IPython
 from IPython.display import display as ipy_display
-from nbformat import NotebookNode, v4
+from nbformat import NotebookNode
 
 from myst_nb.core.loggers import LoggerType
 
 GLUE_PREFIX = "application/papermill.record/"
+
+
+def get_glue_roles(prefix: str = "glue:") -> Dict[str, Any]:
+    """Return mapping of role names to role functions."""
+    from .roles import PasteMarkdownRole, PasteRoleAny, PasteTextRole
+
+    return {
+        f"{prefix}": PasteRoleAny(),
+        f"{prefix}any": PasteRoleAny(),
+        f"{prefix}text": PasteTextRole(),
+        f"{prefix}md": PasteMarkdownRole(),
+    }
+
+
+def get_glue_directives(prefix: str = "glue:") -> Dict[str, Any]:
+    """Return mapping of directive names to directive functions."""
+    from .directives import (
+        PasteAnyDirective,
+        PasteFigureDirective,
+        PasteMarkdownDirective,
+        PasteMathDirective,
+    )
+
+    return {
+        f"{prefix}": PasteAnyDirective,
+        f"{prefix}any": PasteAnyDirective,
+        f"{prefix}figure": PasteFigureDirective,
+        f"{prefix}math": PasteMathDirective,
+        f"{prefix}md": PasteMarkdownDirective,
+    }
 
 
 def glue(name: str, variable, display: bool = True) -> None:
@@ -68,18 +98,3 @@ def extract_glue_data(
                 # assume that the output is a displayable object
                 outputs.append(output)
         cell.outputs = outputs
-
-
-def glue_dict_to_nb(data: Dict[str, NotebookNode]) -> NotebookNode:
-    """Convert glue data to a notebook that can be written to disk by nbformat.
-
-    The notebook contains a single code cell that contains the glue outputs,
-    and the key for each output in a list at ``cell["metadata"]["glue"]``.
-
-    This can be read in any post-processing step, where the glue outputs are
-    required.
-    """
-    # note this assumes v4 notebook format
-    code_cell = v4.new_code_cell(outputs=list(data.values()))
-    code_cell.metadata["glue"] = list(data.keys())
-    return v4.new_notebook(cells=[code_cell])
