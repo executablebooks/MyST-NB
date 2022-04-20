@@ -10,7 +10,7 @@ cells:
     source: |
         {unknown}`a`
 .
-source/path:20002: (ERROR/3) Unknown interpreted text role "unknown".
+<string>:20002: (ERROR/3) Unknown interpreted text role "unknown".
 .
 
 
@@ -24,7 +24,7 @@ cells:
         ```{xyz}
         ```
 .
-source/path:10003: (ERROR/3) Unknown directive type "xyz".
+<string>:10003: (ERROR/3) Unknown directive type "xyz".
 .
 
 Directive parsing error:
@@ -36,7 +36,7 @@ cells:
         ```{class}
         ```
 .
-source/path:10002: (ERROR/3) Directive 'class': 1 argument(s) required, 0 supplied
+<string>:10002: (ERROR/3) Directive 'class': 1 argument(s) required, 0 supplied
 .
 
 Directive run error:
@@ -49,7 +49,7 @@ cells:
         x
         ```
 .
-source/path:10002: (ERROR/3) Invalid context: the "date" directive can only be used within a substitution definition.
+<string>:10002: (ERROR/3) Invalid context: the "date" directive can only be used within a substitution definition.
 .
 
 Duplicate reference definition:
@@ -66,5 +66,5 @@ cells:
 
         [a]: c
 .
-source/path:20004: (WARNING/2) Duplicate reference definition: A [myst.ref]
+<string>:20004: (WARNING/2) Duplicate reference definition: A [myst.ref]
 .

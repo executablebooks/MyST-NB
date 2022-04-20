@@ -20,27 +20,27 @@ This configuration is used to control how Jupyter Notebooks are executed at buil
 * - Option
   - Default
   - Description
-* - `jupyter_cache`
+* - `nb_execution_cache_path`
   - ""
   - Path to jupyter_cache, [see here](execute/cache) for details.
-* - `execution_excludepatterns`
+* - `nb_execution_excludepatterns`
   - ()
   - Exclude certain file patterns from execution, [see here](execute/config) for details.
-* - `jupyter_execute_notebooks`
+* - `nb_execution_mode`
   - "auto"
   - The logic for executing notebooks, [see here](execute/config) for details.
-* - `execution_in_temp`
+* - `nb_execution_in_temp`
   - `False`
   - If `True`, then a temporary directory will be created and used as the command working directory (cwd), if `False` then the notebook's parent directory will be the cwd.
-* - `execution_allow_errors`
+* - `nb_execution_allow_errors`
   - `False`
   - If `False`, when a code cell raises an error the execution is stopped, if `True` then all cells are always run.
     This can also be overridden by metadata in a notebook, [see here](execute/allow_errors) for details.
-* - `execution_timeout`
+* - `nb_execution_timeout`
   - 30
   - The maximum time (in seconds) each notebook cell is allowed to run.
     This can also be overridden by metadata in a notebook, [see here](execute/timeout) for details.
-* - `execution_show_tb`
+* - `nb_execution_show_tb`
   - `False`
   - Show failed notebook tracebacks in stdout (in addition to writing to file).
 `````
@@ -58,8 +58,8 @@ These configuration options affect the look and feel of notebook parsing and out
 * - `nb_custom_formats`
   - `{}`
   - Define custom functions for conversion of files to notebooks, [see here](examples/custom_formats) for details.
-* - `nb_render_priority`
-  - `{}`
+* - `nb_mime_priority_overrides`
+  - `()`
   - Dict override for MIME type render priority, [see here](use/format/priority) for details.
 * - `nb_render_plugin`
   - `default`
@@ -77,3 +77,10 @@ These configuration options affect the look and feel of notebook parsing and out
   - `False`
   - If `True`, ensure all stdout / stderr output streams are merged into single outputs. This ensures deterministic outputs.
 `````
+
+
+## Auto-generated config
+
+```{mystnb-config}
+:sphinx:
+```

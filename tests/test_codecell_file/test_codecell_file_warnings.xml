@@ -1,0 +1,10 @@
+<document source="mystnb_codecell_file_warnings">
+    <section ids="a-title" names="a\ title">
+        <title>
+            a title
+        <container cell_index="1" cell_metadata="{'load': 'mystnb_codecell_file.py'}" classes="cell" exec_count="1" nb_element="cell_code">
+            <container classes="cell_input" nb_element="cell_code_source">
+                <literal_block language="ipython3" xml:space="preserve">
+                    # flake8: noqa
+                    
+                    import numpy as np

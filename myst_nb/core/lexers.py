@@ -1,10 +1,10 @@
-# -*- coding: utf-8 -*-
-"""Pygments lexer for text containing ANSI color codes.
+"""Pygments lexers"""
+from __future__ import annotations
 
-Adapted from https://github.com/chriskuehl/pygments-ansi-color
-"""
 import re
 
+# this is not added as an entry point in ipython, so we add it in this package
+from IPython.lib.lexers import IPythonTracebackLexer  # noqa: F401
 import pygments.lexer
 import pygments.token
 
@@ -20,13 +20,15 @@ _ansi_code_to_color = {
 }
 
 
-def _token_from_lexer_state(bold, faint, fg_color, bg_color):
+def _token_from_lexer_state(
+    bold: bool, faint: bool, fg_color: str | None, bg_color: str | None
+):
     """Construct a token given the current lexer state.
 
     We can only emit one token even though we have a multiple-tuple state.
     To do work around this, we construct tokens like "Bold.Red".
     """
-    components = ()
+    components: tuple[str, ...] = ()
 
     if bold:
         components += ("Bold",)
@@ -50,6 +52,11 @@ def _token_from_lexer_state(bold, faint, fg_color, bg_color):
 
 
 class AnsiColorLexer(pygments.lexer.RegexLexer):
+    """Pygments lexer for text containing ANSI color codes.
+
+    Adapted from https://github.com/chriskuehl/pygments-ansi-color
+    """
+
     name = "ANSI Color"
     aliases = ("myst-ansi",)
     flags = re.DOTALL | re.MULTILINE
@@ -145,11 +152,10 @@ class AnsiColorLexer(pygments.lexer.RegexLexer):
                                     continue
                                 if not 0 <= color <= 255:
                                     continue
-                                color = "C{}".format(color)
                                 if value == 38:
-                                    self.fg_color = color
+                                    self.fg_color = f"C{color}"
                                 else:
-                                    self.bg_color = color
+                                    self.bg_color = f"C{color}"
 
         yield match.start(), self.current_token, text
 

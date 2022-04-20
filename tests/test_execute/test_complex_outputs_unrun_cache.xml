@@ -1,6 +1,6 @@
 <document source="complex_outputs_unrun">
-    <CellNode cell_type="code" classes="cell">
-        <CellInputNode classes="cell_input">
+    <container cell_index="0" cell_metadata="{'init_cell': True, 'slideshow': {'slide_type': 'skip'}}" classes="cell" exec_count="1" nb_element="cell_code">
+        <container classes="cell_input" nb_element="cell_code_source">
             <literal_block language="ipython3" xml:space="preserve">
                 import matplotlib.pyplot as plt
                 import pandas as pd
@@ -9,7 +9,7 @@
                 sym.init_printing(use_latex=True)
                 import numpy as np
                 from IPython.display import Image, Latex
-    <section classes="tex2jax_ignore mathjax_ignore" ids="markdown" names="markdown">
+    <section ids="markdown" names="markdown">
         <title>
             Markdown
         <section ids="general" names="general">
@@ -19,7 +19,7 @@
                 Some markdown text.
             <paragraph>
                 A list:
-            <bullet_list>
+            <bullet_list bullet="-">
                 <list_item>
                     <paragraph>
                         something
@@ -28,7 +28,7 @@
                         something else
             <paragraph>
                 A numbered list
-            <enumerated_list>
+            <enumerated_list enumtype="arabic" prefix="" suffix=".">
                 <list_item>
                     <paragraph>
                         something
@@ -59,7 +59,7 @@
                 some more text
             <paragraph>
                 This is an abbreviated section of the document text, which we only want in a presentation
-            <bullet_list>
+            <bullet_list bullet="-">
                 <list_item>
                     <paragraph>
                         summary of document text
@@ -84,19 +84,23 @@
                 \todo[inline]{an inline todo}
             <paragraph>
                 Some text.\todo{a todo in the margins}
-    <section classes="tex2jax_ignore mathjax_ignore" ids="text-output" names="text\ output">
+    <section ids="text-output" names="text\ output">
         <title>
             Text Output
-        <CellNode cell_type="code" classes="cell">
-            <CellInputNode classes="cell_input">
+        <container cell_index="11" cell_metadata="{'ipub': {'text': {'format': {'backgroundcolor': '\\color{blue!10}'}}}}" classes="cell" exec_count="2" nb_element="cell_code">
+            <container classes="cell_input" nb_element="cell_code_source">
                 <literal_block language="ipython3" xml:space="preserve">
                     print("""
                     This is some printed text,
                     with a nicely formatted output.
                     """)
-            <CellOutputNode classes="cell_output">
-                <CellOutputBundleNode output_count="1">
-    <section classes="tex2jax_ignore mathjax_ignore" ids="images-and-figures" names="images\ and\ figures">
+            <container classes="cell_output" nb_element="cell_code_output">
+                <literal_block classes="output stream" language="myst-ansi" xml:space="preserve">
+                    
+                    This is some printed text,
+                    with a nicely formatted output.
+                    
+    <section ids="images-and-figures" names="images\ and\ figures">
         <title>
             Images and Figures
         <section ids="displaying-a-plot-with-its-code" names="displaying\ a\ plot\ with\ its\ code">
@@ -106,13 +110,13 @@
                 A matplotlib figure, with the caption set in the markdowncell above the figure.
             <paragraph>
                 The plotting code for a matplotlib figure (\cref{fig:example_mpl}).
-    <section classes="tex2jax_ignore mathjax_ignore" ids="tables-with-pandas" names="tables\ (with\ pandas)">
+    <section ids="tables-with-pandas" names="tables\ (with\ pandas)">
         <title>
             Tables (with pandas)
         <paragraph>
             The plotting code for a pandas Dataframe table (\cref{tbl:example}).
-        <CellNode cell_type="code" classes="cell">
-            <CellInputNode classes="cell_input">
+        <container cell_index="18" cell_metadata="{'ipub': {'code': {'asfloat': True, 'caption': '', 'label': 'code:example_pd', 'placement': 'H', 'widefigure': False}, 'table': {'alternate': 'gray!20', 'caption': 'An example of a table created with pandas dataframe.', 'label': 'tbl:example', 'placement': 'H'}}}" classes="cell" exec_count="3" nb_element="cell_code">
+            <container classes="cell_input" nb_element="cell_code_source">
                 <literal_block language="ipython3" xml:space="preserve">
                     np.random.seed(0) 
                     df = pd.DataFrame(np.random.rand(3,4),columns=['a','b','c','d'])
@@ -120,46 +124,144 @@
                     df.b = ['l','m','n']
                     df.set_index(['a','b'])
                     df.round(3)
-            <CellOutputNode classes="cell_output">
-                <CellOutputBundleNode output_count="1">
-    <section classes="tex2jax_ignore mathjax_ignore" ids="equations-with-ipython-or-sympy" names="equations\ (with\ ipython\ or\ sympy)">
+            <container classes="cell_output" nb_element="cell_code_output">
+                <container nb_element="mime_bundle">
+                    <container mime_type="text/plain">
+                        <literal_block classes="output text_plain" language="myst-ansi" xml:space="preserve">
+                                      a  b      c      d
+                            0  $\delta$  l  0.603  0.545
+                            1         x  m  0.438  0.892
+                            2         y  n  0.792  0.529
+                    <container mime_type="text/html">
+                        <raw classes="output text_html" format="html" xml:space="preserve">
+                            <div>
+                            <style scoped>
+                                .dataframe tbody tr th:only-of-type {
+                                    vertical-align: middle;
+                                }
+                            
+                                .dataframe tbody tr th {
+                                    vertical-align: top;
+                                }
+                            
+                                .dataframe thead th {
+                                    text-align: right;
+                                }
+                            </style>
+                            <table border="1" class="dataframe">
+                              <thead>
+                                <tr style="text-align: right;">
+                                  <th></th>
+                                  <th>a</th>
+                                  <th>b</th>
+                                  <th>c</th>
+                                  <th>d</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr>
+                                  <th>0</th>
+                                  <td>$\delta$</td>
+                                  <td>l</td>
+                                  <td>0.603</td>
+                                  <td>0.545</td>
+                                </tr>
+                                <tr>
+                                  <th>1</th>
+                                  <td>x</td>
+                                  <td>m</td>
+                                  <td>0.438</td>
+                                  <td>0.892</td>
+                                </tr>
+                                <tr>
+                                  <th>2</th>
+                                  <td>y</td>
+                                  <td>n</td>
+                                  <td>0.792</td>
+                                  <td>0.529</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                            </div>
+                    <container mime_type="text/latex">
+                        <math_block classes="output text_latex" nowrap="False" number="True" xml:space="preserve">
+                            \begin{tabular}{lllrr}
+                            \toprule
+                            {} &         a &  b &      c &      d \\
+                            \midrule
+                            0 &  \$\textbackslash delta\$ &  l &  0.603 &  0.545 \\
+                            1 &         x &  m &  0.438 &  0.892 \\
+                            2 &         y &  n &  0.792 &  0.529 \\
+                            \bottomrule
+                            \end{tabular}
+    <section ids="equations-with-ipython-or-sympy" names="equations\ (with\ ipython\ or\ sympy)">
         <title>
             Equations (with ipython or sympy)
-        <CellNode cell_type="code" classes="cell">
-            <CellInputNode classes="cell_input">
+        <container cell_index="20" cell_metadata="{'ipub': {'equation': {'label': 'eqn:example_ipy'}}}" classes="cell" exec_count="4" nb_element="cell_code">
+            <container classes="cell_input" nb_element="cell_code_source">
                 <literal_block language="ipython3" xml:space="preserve">
                     Latex('$$ a = b+c $$')
-            <CellOutputNode classes="cell_output">
-                <CellOutputBundleNode output_count="1">
+            <container classes="cell_output" nb_element="cell_code_output">
+                <container nb_element="mime_bundle">
+                    <container mime_type="text/plain">
+                        <literal_block classes="output text_plain" language="myst-ansi" xml:space="preserve">
+                            <IPython.core.display.Latex object>
+                    <container mime_type="text/latex">
+                        <math_block classes="output text_latex" nowrap="False" number="True" xml:space="preserve">
+                             a = b+c 
         <paragraph>
             The plotting code for a sympy equation (=@eqn:example_sympy).
-        <CellNode cell_type="code" classes="cell">
-            <CellInputNode classes="cell_input">
+        <container cell_index="22" cell_metadata="{'ipub': {'code': {'asfloat': True, 'caption': '', 'label': 'code:example_sym', 'placement': 'H', 'widefigure': False}, 'equation': {'environment': 'equation', 'label': 'eqn:example_sympy'}}}" classes="cell" exec_count="5" nb_element="cell_code">
+            <container classes="cell_input" nb_element="cell_code_source">
                 <literal_block language="ipython3" xml:space="preserve">
                     y = sym.Function('y')
                     n = sym.symbols(r'\alpha')
                     f = y(n)-2*y(n-1/sym.pi)-5*y(n-2)
                     sym.rsolve(f,y(n),[1,4])
-            <CellOutputNode classes="cell_output">
-                <CellOutputBundleNode output_count="1">
-    <section classes="tex2jax_ignore mathjax_ignore" ids="interactive-outputs" names="interactive\ outputs">
+            <container classes="cell_output" nb_element="cell_code_output">
+                <container nb_element="mime_bundle">
+                    <container mime_type="text/plain">
+                        <literal_block classes="output text_plain" language="myst-ansi" xml:space="preserve">
+                                  \alpha ⎛1   2⋅√5⋅ⅈ⎞          \alpha ⎛1   2⋅√5⋅ⅈ⎞
+                            (√5⋅ⅈ)      ⋅⎜─ - ──────⎟ + (-√5⋅ⅈ)      ⋅⎜─ + ──────⎟
+                                         ⎝2     5   ⎠                 ⎝2     5   ⎠
+                    <container mime_type="image/png">
+                        <image candidates="{'*': '_build/jupyter_execute/e2dfbe330154316cfb6f3186e8f57fc4df8aee03b0303ed1345fc22cd51f66de.png'}" uri="_build/jupyter_execute/e2dfbe330154316cfb6f3186e8f57fc4df8aee03b0303ed1345fc22cd51f66de.png">
+                    <container mime_type="text/latex">
+                        <math_block classes="output text_latex" nowrap="False" number="True" xml:space="preserve">
+                            \displaystyle \left(\sqrt{5} i\right)^{\alpha} \left(\frac{1}{2} - \frac{2 \sqrt{5} i}{5}\right) + \left(- \sqrt{5} i\right)^{\alpha} \left(\frac{1}{2} + \frac{2 \sqrt{5} i}{5}\right)
+    <section ids="interactive-outputs" names="interactive\ outputs">
         <title>
             Interactive outputs
         <section ids="ipywidgets" names="ipywidgets">
             <title>
                 ipywidgets
-            <CellNode cell_type="code" classes="cell">
-                <CellInputNode classes="cell_input">
+            <container cell_index="24" cell_metadata="{}" classes="cell" exec_count="6" nb_element="cell_code">
+                <container classes="cell_input" nb_element="cell_code_source">
                     <literal_block language="ipython3" xml:space="preserve">
                         import ipywidgets as widgets
                         widgets.Layout(model_id="1337h4x0R")
-                <CellOutputNode classes="cell_output">
-                    <CellOutputBundleNode output_count="1">
-            <CellNode cell_type="code" classes="cell">
-                <CellInputNode classes="cell_input">
+                <container classes="cell_output" nb_element="cell_code_output">
+                    <container nb_element="mime_bundle">
+                        <container mime_type="text/plain">
+                            <literal_block classes="output text_plain" language="myst-ansi" xml:space="preserve">
+                                Layout()
+                        <container mime_type="application/vnd.jupyter.widget-view+json">
+                            <raw format="html" xml:space="preserve">
+                                <script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "1337h4x0R"}</script>
+            <container cell_index="25" cell_metadata="{}" classes="cell" exec_count="7" nb_element="cell_code">
+                <container classes="cell_input" nb_element="cell_code_source">
                     <literal_block language="ipython3" xml:space="preserve">
                         from IPython.display import display, Markdown
                         display(Markdown('**_some_ markdown**'))
-                <CellOutputNode classes="cell_output">
-                    <CellOutputBundleNode output_count="1">
-    <JupyterWidgetStateNode state="{'state': {'1337h4x0R': {'model_module': '@jupyter-widgets/base', 'model_module_version': '1.2.0', 'model_name': 'LayoutModel', 'state': {'_model_module': '@jupyter-widgets/base', '_model_module_version': '1.2.0', '_model_name': 'LayoutModel', '_view_count': None, '_view_module': '@jupyter-widgets/base', '_view_module_version': '1.2.0', '_view_name': 'LayoutView', 'align_content': None, 'align_items': None, 'align_self': None, 'border': None, 'bottom': None, 'display': None, 'flex': None, 'flex_flow': None, 'grid_area': None, 'grid_auto_columns': None, 'grid_auto_flow': None, 'grid_auto_rows': None, 'grid_column': None, 'grid_gap': None, 'grid_row': None, 'grid_template_areas': None, 'grid_template_columns': None, 'grid_template_rows': None, 'height': None, 'justify_content': None, 'justify_items': None, 'left': None, 'margin': None, 'max_height': None, 'max_width': None, 'min_height': None, 'min_width': None, 'object_fit': None, 'object_position': None, 'order': None, 'overflow': None, 'overflow_x': None, 'overflow_y': None, 'padding': None, 'right': None, 'top': None, 'visibility': None, 'width': None}}}, 'version_major': 2, 'version_minor': 0}">
+                <container classes="cell_output" nb_element="cell_code_output">
+                    <container nb_element="mime_bundle">
+                        <container mime_type="text/plain">
+                            <literal_block classes="output text_plain" language="myst-ansi" xml:space="preserve">
+                                <IPython.core.display.Markdown object>
+                        <container mime_type="text/markdown">
+                            <paragraph>
+                                <strong>
+                                    <emphasis>
+                                        some
+                                     markdown
