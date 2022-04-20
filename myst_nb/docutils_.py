@@ -38,6 +38,7 @@ from myst_nb.core.render import (
     MimeData,
     NbElementRenderer,
     create_figure_context,
+    get_mime_priority,
     load_renderer,
 )
 from myst_nb.glue import get_glue_directives, get_glue_roles
@@ -384,7 +385,9 @@ class DocutilsNbRenderer(DocutilsRenderer):
             cell_index
         ].get("outputs", [])
         # render the outputs
-        mime_priority = self.get_cell_render_config(metadata, "mime_priority")
+        mime_priority = get_mime_priority(
+            self.nb_config.builder_name, self.nb_config.mime_priority_overrides
+        )
         for output_index, output in enumerate(outputs):
             if output.output_type == "stream":
                 if output.name == "stdout":
@@ -466,7 +469,9 @@ class DocutilsNbRenderer(DocutilsRenderer):
                 )
 
 
-def _run_cli(writer_name: str, writer_description: str, argv: list[str] | None):
+def _run_cli(
+    writer_name: str, builder_name: str, writer_description: str, argv: list[str] | None
+):
     """Run the command line interface for a particular writer."""
     publish_cmdline(
         parser=Parser(),
@@ -477,31 +482,31 @@ def _run_cli(writer_name: str, writer_description: str, argv: list[str] | None):
             "External outputs are written to `--nb-output-folder`.\n"
         ),
         # to see notebook execution info by default
-        settings_overrides={"report_level": 1},
+        settings_overrides={"report_level": 1, "nb_builder_name": builder_name},
         argv=argv,
     )
 
 
 def cli_html(argv: list[str] | None = None) -> None:
     """Cmdline entrypoint for converting MyST to HTML."""
-    _run_cli("html", "(X)HTML documents", argv)
+    _run_cli("html", "html", "(X)HTML documents", argv)
 
 
 def cli_html5(argv: list[str] | None = None):
     """Cmdline entrypoint for converting MyST to HTML5."""
-    _run_cli("html5", "HTML5 documents", argv)
+    _run_cli("html5", "html", "HTML5 documents", argv)
 
 
 def cli_latex(argv: list[str] | None = None):
     """Cmdline entrypoint for converting MyST to LaTeX."""
-    _run_cli("latex", "LaTeX documents", argv)
+    _run_cli("latex", "latex", "LaTeX documents", argv)
 
 
 def cli_xml(argv: list[str] | None = None):
     """Cmdline entrypoint for converting MyST to XML."""
-    _run_cli("xml", "Docutils-native XML", argv)
+    _run_cli("xml", "xml", "Docutils-native XML", argv)
 
 
 def cli_pseudoxml(argv: list[str] | None = None):
     """Cmdline entrypoint for converting MyST to pseudo-XML."""
-    _run_cli("pseudoxml", "pseudo-XML", argv)
+    _run_cli("pseudoxml", "html", "pseudo-XML", argv)

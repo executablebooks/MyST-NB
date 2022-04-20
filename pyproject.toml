@@ -53,6 +53,9 @@ Documentation = "https://myst-nb.readthedocs.io"
 [project.entry-points."myst_nb.renderers"]
 default = "myst_nb.core.render:NbElementRenderer"
 
+[project.entry-points."myst_nb.mime_renderers"]
+example = "myst_nb.core.render:ExampleMimeRenderPlugin"
+
 [project.entry-points."pygments.lexers"]
 myst-ansi = "myst_nb.core.lexers:AnsiColorLexer"
 ipythontb = "myst_nb.core.lexers:IPythonTracebackLexer"

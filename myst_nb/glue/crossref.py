@@ -14,6 +14,7 @@ from sphinx.util import logging as sphinx_logging
 
 from myst_nb._compat import findall
 from myst_nb.core.loggers import DEFAULT_LOG_TYPE
+from myst_nb.core.render import get_mime_priority
 
 from .utils import PendingGlueReference, format_plain_text
 
@@ -43,18 +44,10 @@ class ReplacePendingGlueReferences(SphinxPostTransform):
     def apply(self, **kwargs):
         """Apply the transform."""
         cache_folder = self.env.mystnb_config.output_folder  # type: ignore
-        priority_lookup: Dict[str, Sequence[str]] = self.config["nb_render_priority"]
-        name = self.app.builder.name  # type: ignore
-        if name not in priority_lookup:
-            SPHINX_LOGGER.warning(
-                f"Builder name {name!r} not available in 'nb_render_priority', "
-                f"defaulting to 'html' [{DEFAULT_LOG_TYPE}.mime_priority]",
-                type=DEFAULT_LOG_TYPE,
-                subtype="mime_priority",
-            )
-            priority_list = priority_lookup["html"]
-        else:
-            priority_list = priority_lookup[name]
+        bname = self.app.builder.name  # type: ignore
+        priority_list = get_mime_priority(
+            bname, self.config["nb_mime_priority_overrides"]
+        )
         node: PendingGlueReference
         for node in list(findall(self.document)(PendingGlueReference)):
             data = read_glue_cache(cache_folder, node.refdoc)

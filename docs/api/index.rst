@@ -63,6 +63,14 @@ Render plugin
 .. autoclass:: myst_nb.core.render.NbElementRenderer
     :members:
 
+.. autoclass:: myst_nb.core.render.MimeRenderPlugin
+    :members:
+    :undoc-members:
+
+.. autoclass:: myst_nb.core.render.ExampleMimeRenderPlugin
+    :members:
+    :undoc-members:
+
 Lexers
 ------
 

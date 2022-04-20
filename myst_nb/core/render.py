@@ -15,13 +15,14 @@ from mimetypes import guess_extension
 import os
 from pathlib import Path
 import re
-from typing import TYPE_CHECKING, Any, Iterator
+from typing import TYPE_CHECKING, Any, ClassVar, Iterator, Sequence
 
 from docutils import nodes
 from docutils.parsers.rst import directives as options_spec
 from importlib_metadata import entry_points
 from myst_parser.main import MdParserConfig, create_md_parser
 from nbformat import NotebookNode
+from typing_extensions import Protocol
 
 from myst_nb.core.loggers import DEFAULT_LOG_TYPE, LoggerType
 
@@ -33,6 +34,7 @@ if TYPE_CHECKING:
 WIDGET_STATE_MIMETYPE = "application/vnd.jupyter.widget-state+json"
 WIDGET_VIEW_MIMETYPE = "application/vnd.jupyter.widget-view+json"
 RENDER_ENTRY_GROUP = "myst_nb.renderers"
+MIME_RENDER_ENTRY_GROUP = "myst_nb.mime_renderers"
 _ANSI_RE = re.compile("\x1b\\[(.*?)([@-~])")
 
 
@@ -76,8 +78,6 @@ class MimeData:
 
 class NbElementRenderer:
     """A class for rendering notebook elements."""
-
-    # TODO the type of renderer could be DocutilsNbRenderer or SphinxNbRenderer
 
     def __init__(
         self, renderer: DocutilsNbRenderer | SphinxNbRenderer, logger: LoggerType
@@ -153,7 +153,11 @@ class NbElementRenderer:
             return str(filepath)
 
     def add_js_file(self, key: str, uri: str | None, kwargs: dict[str, str]) -> None:
-        """Register a JavaScript file to include in the HTML output of this document."""
+        """Register a JavaScript file to include in the HTML output of this document.
+
+        :param key: the key to use for referencing the file
+        :param uri: the URI to the file, or None and supply the file contents in kwargs['body']
+        """
         if "nb_js_files" not in self.renderer.document:
             self.renderer.document["nb_js_files"] = {}
         # TODO handle duplicate keys (whether to override/ignore)
@@ -307,6 +311,13 @@ class NbElementRenderer:
 
     def render_mime_type(self, data: MimeData) -> list[nodes.Element]:
         """Render a notebook mime output, as a block level element."""
+        # try plugin renderers
+        for renderer in load_mime_renders():
+            nodes = renderer.handle_mime(self, data, False)
+            if nodes is not None:
+                return nodes
+
+        # try default renderers
         if data.mime_type == "text/plain":
             return self.render_text_plain(data)
         if data.mime_type in {
@@ -454,6 +465,14 @@ class NbElementRenderer:
 
     def render_mime_type_inline(self, data: MimeData) -> list[nodes.Element]:
         """Render a notebook mime output, as an inline level element."""
+
+        # try plugin renderers
+        for renderer in load_mime_renders():
+            nodes = renderer.handle_mime(self, data, True)
+            if nodes is not None:
+                return nodes
+
+        # try built-in renderers
         if data.mime_type == "text/plain":
             return self.render_text_plain_inline(data)
         if data.mime_type in {
@@ -615,6 +634,47 @@ def load_renderer(name: str) -> type[NbElementRenderer]:
     raise EntryPointError(f"No Entry Point found for {RENDER_ENTRY_GROUP}:{name}")
 
 
+class MimeRenderPlugin(Protocol):
+    """Protocol for a mime renderer plugin."""
+
+    mime_priority_overrides: ClassVar[Sequence[tuple[str, str, int | None]]] = ()
+    """A list of (builder name, mime type, priority)."""
+
+    @staticmethod
+    def handle_mime(
+        renderer: NbElementRenderer, data: MimeData, inline: bool
+    ) -> None | list[nodes.Element]:
+        """A function that renders a mime type to docutils nodes, or returns None to reject."""
+
+
+class ExampleMimeRenderPlugin(MimeRenderPlugin):
+    """Example mime renderer for `custommimetype`."""
+
+    mime_priority_overrides = [("*", "custommimetype", 1)]
+
+    @staticmethod
+    def handle_mime(
+        renderer: NbElementRenderer, data: MimeData, inline: int
+    ) -> None | list[nodes.Element]:
+        if not inline and data.mime_type == "custommimetype":
+            return [
+                nodes.paragraph(
+                    text=f"This is a custom mime type, with content: {data.content!r}",
+                    classes=["output", "text_plain"],
+                )
+            ]
+        return None
+
+
+@lru_cache()
+def load_mime_renders() -> list[MimeRenderPlugin]:
+    all_eps = entry_points()
+    if hasattr(all_eps, "select"):
+        # importlib_metadata >= 3.6 or importlib.metadata in python >=3.10
+        return [ep.load() for ep in all_eps.select(group=MIME_RENDER_ENTRY_GROUP)]
+    return [ep.load() for ep in all_eps.get(MIME_RENDER_ENTRY_GROUP, [])]  # type: ignore
+
+
 def strip_ansi(text: str) -> str:
     """Strip ANSI escape sequences from a string"""
     return _ANSI_RE.sub("", text)
@@ -713,3 +773,227 @@ def create_figure_context(
             figure_node += nodes.legend("", *legend_nodes)
 
     self.current_node = old_current_node
+
+
+def base_render_priority() -> dict[str, dict[str, int | None]]:
+    """Create a base render priority dict: name -> mime type -> priority (ascending)."""
+    # See formats at https://www.sphinx-doc.org/en/master/usage/builders/index.html
+    # generated with:
+    # [(b.name, b.format, b.supported_image_types) for b in app.registry.builders.values()]
+    return {
+        "epub": {
+            "application/vnd.jupyter.widget-view+json": 10,
+            "application/javascript": 20,
+            "text/html": 30,
+            "image/svg+xml": 40,
+            "image/png": 50,
+            "image/gif": 60,
+            "image/jpeg": 70,
+            "text/markdown": 80,
+            "text/latex": 90,
+            "text/plain": 100,
+        },
+        "html": {
+            "application/vnd.jupyter.widget-view+json": 10,
+            "application/javascript": 20,
+            "text/html": 30,
+            "image/svg+xml": 40,
+            "image/png": 50,
+            "image/gif": 60,
+            "image/jpeg": 70,
+            "text/markdown": 80,
+            "text/latex": 90,
+            "text/plain": 100,
+        },
+        "dirhtml": {
+            "application/vnd.jupyter.widget-view+json": 10,
+            "application/javascript": 20,
+            "text/html": 30,
+            "image/svg+xml": 40,
+            "image/png": 50,
+            "image/gif": 60,
+            "image/jpeg": 70,
+            "text/markdown": 80,
+            "text/latex": 90,
+            "text/plain": 100,
+        },
+        "singlehtml": {
+            "application/vnd.jupyter.widget-view+json": 10,
+            "application/javascript": 20,
+            "text/html": 30,
+            "image/svg+xml": 40,
+            "image/png": 50,
+            "image/gif": 60,
+            "image/jpeg": 70,
+            "text/markdown": 80,
+            "text/latex": 90,
+            "text/plain": 100,
+        },
+        "applehelp": {
+            "application/vnd.jupyter.widget-view+json": 10,
+            "application/javascript": 20,
+            "text/html": 30,
+            "image/png": 40,
+            "image/gif": 50,
+            "image/jpeg": 60,
+            "image/tiff": 70,
+            "image/jp2": 80,
+            "image/svg+xml": 90,
+            "text/markdown": 100,
+            "text/latex": 110,
+            "text/plain": 120,
+        },
+        "devhelp": {
+            "application/vnd.jupyter.widget-view+json": 10,
+            "application/javascript": 20,
+            "text/html": 30,
+            "image/png": 40,
+            "image/gif": 50,
+            "image/jpeg": 60,
+            "text/markdown": 70,
+            "text/latex": 80,
+            "text/plain": 90,
+        },
+        "htmlhelp": {
+            "application/vnd.jupyter.widget-view+json": 10,
+            "application/javascript": 20,
+            "text/html": 30,
+            "image/png": 40,
+            "image/gif": 50,
+            "image/jpeg": 60,
+            "text/markdown": 70,
+            "text/latex": 80,
+            "text/plain": 90,
+        },
+        "json": {
+            "application/vnd.jupyter.widget-view+json": 10,
+            "application/javascript": 20,
+            "text/html": 30,
+            "image/svg+xml": 40,
+            "image/png": 50,
+            "image/gif": 60,
+            "image/jpeg": 70,
+            "text/markdown": 80,
+            "text/latex": 90,
+            "text/plain": 100,
+        },
+        "pickle": {
+            "application/vnd.jupyter.widget-view+json": 10,
+            "application/javascript": 20,
+            "text/html": 30,
+            "image/svg+xml": 40,
+            "image/png": 50,
+            "image/gif": 60,
+            "image/jpeg": 70,
+            "text/markdown": 80,
+            "text/latex": 90,
+            "text/plain": 100,
+        },
+        "qthelp": {
+            "application/vnd.jupyter.widget-view+json": 10,
+            "application/javascript": 20,
+            "text/html": 30,
+            "image/svg+xml": 40,
+            "image/png": 50,
+            "image/gif": 60,
+            "image/jpeg": 70,
+            "text/markdown": 80,
+            "text/latex": 90,
+            "text/plain": 100,
+        },
+        # deprecated RTD builders
+        # https://github.com/readthedocs/readthedocs-sphinx-ext/blob/master/readthedocs_ext/readthedocs.py
+        "readthedocs": {
+            "application/vnd.jupyter.widget-view+json": 10,
+            "application/javascript": 20,
+            "text/html": 30,
+            "image/svg+xml": 40,
+            "image/png": 50,
+            "image/gif": 60,
+            "image/jpeg": 70,
+            "text/markdown": 80,
+            "text/latex": 90,
+            "text/plain": 100,
+        },
+        "readthedocsdirhtml": {
+            "application/vnd.jupyter.widget-view+json": 10,
+            "application/javascript": 20,
+            "text/html": 30,
+            "image/svg+xml": 40,
+            "image/png": 50,
+            "image/gif": 60,
+            "image/jpeg": 70,
+            "text/markdown": 80,
+            "text/latex": 90,
+            "text/plain": 100,
+        },
+        "readthedocssinglehtml": {
+            "application/vnd.jupyter.widget-view+json": 10,
+            "application/javascript": 20,
+            "text/html": 30,
+            "image/svg+xml": 40,
+            "image/png": 50,
+            "image/gif": 60,
+            "image/jpeg": 70,
+            "text/markdown": 80,
+            "text/latex": 90,
+            "text/plain": 100,
+        },
+        "readthedocssinglehtmllocalmedia": {
+            "application/vnd.jupyter.widget-view+json": 10,
+            "application/javascript": 20,
+            "text/html": 30,
+            "image/svg+xml": 40,
+            "image/png": 50,
+            "image/gif": 60,
+            "image/jpeg": 70,
+            "text/markdown": 80,
+            "text/latex": 90,
+            "text/plain": 100,
+        },
+        "changes": {"text/latex": 10, "text/markdown": 20, "text/plain": 30},
+        "dummy": {"text/latex": 10, "text/markdown": 20, "text/plain": 30},
+        "gettext": {"text/latex": 10, "text/markdown": 20, "text/plain": 30},
+        "latex": {
+            "application/pdf": 10,
+            "image/png": 20,
+            "image/jpeg": 30,
+            "text/latex": 40,
+            "text/markdown": 50,
+            "text/plain": 60,
+        },
+        "linkcheck": {"text/latex": 10, "text/markdown": 20, "text/plain": 30},
+        "man": {"text/latex": 10, "text/markdown": 20, "text/plain": 30},
+        "texinfo": {
+            "image/png": 10,
+            "image/jpeg": 20,
+            "image/gif": 30,
+            "text/latex": 40,
+            "text/markdown": 50,
+            "text/plain": 60,
+        },
+        "text": {"text/latex": 10, "text/markdown": 20, "text/plain": 30},
+        "xml": {"text/latex": 10, "text/markdown": 20, "text/plain": 30},
+        "pseudoxml": {"text/latex": 10, "text/markdown": 20, "text/plain": 30},
+    }
+
+
+def get_mime_priority(
+    builder: str, overrides: Sequence[tuple[str, str, int | None]]
+) -> list[str]:
+    """Return the priority list for the builder.
+
+    Takes the base priority list, overrides from the config,
+    then sorts by priority in ascending order.
+    """
+    base = base_render_priority().get(builder, {})
+    overrides = list(overrides)
+    for plugin in load_mime_renders():
+        overrides = list(getattr(plugin, "mime_priority_overrides", [])) + overrides
+    for override in overrides:
+        if override[0] == "*" or override[0] == builder:
+            base[override[1]] = override[2]
+    sort = sorted(
+        ((k, p) for k, p in base.items() if p is not None), key=lambda x: x[1]
+    )
+    return [k for k, _ in sort]

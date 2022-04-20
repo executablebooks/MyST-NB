@@ -11,7 +11,7 @@ from docutils import nodes
 
 from myst_nb._compat import findall
 from myst_nb.core.loggers import DocutilsDocLogger, SphinxDocLogger
-from myst_nb.core.render import MimeData, NbElementRenderer
+from myst_nb.core.render import MimeData, NbElementRenderer, get_mime_priority
 
 if TYPE_CHECKING:
     from sphinx.environment import BuildEnvironment
@@ -121,7 +121,10 @@ def _render_output_docutils(
     inline=False,
 ) -> List[nodes.Node]:
     """Render the output in docutils (select mime priority directly)."""
-    mime_priority = nb_renderer.renderer.nb_config.mime_priority
+    mime_priority = get_mime_priority(
+        nb_renderer.renderer.nb_config.builder_name,
+        nb_renderer.renderer.nb_config.mime_priority_overrides,
+    )
     try:
         mime_type = next(x for x in mime_priority if x in data)
     except StopIteration:

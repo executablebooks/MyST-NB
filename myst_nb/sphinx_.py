@@ -7,7 +7,7 @@ from importlib import resources as import_resources
 import json
 import os
 from pathlib import Path
-from typing import Any, DefaultDict, Sequence, cast
+from typing import Any, DefaultDict, cast
 
 from docutils import nodes
 from markdown_it.token import Token
@@ -37,6 +37,7 @@ from myst_nb.core.render import (
     MimeData,
     NbElementRenderer,
     create_figure_context,
+    get_mime_priority,
     load_renderer,
 )
 from myst_nb.ext.download import NbDownloadRole
@@ -77,6 +78,8 @@ def sphinx_setup(app: Sphinx):
                 app.add_config_value(
                     f"{field.metadata['legacy_name']}", UNSET, "env", Any
                 )
+    # Handle non-standard deprecation
+    app.add_config_value("nb_render_priority", UNSET, "env", Any)
 
     # generate notebook configuration from Sphinx configuration
     # this also validates the configuration values
@@ -167,6 +170,13 @@ def create_mystnb_config(app):
                         subtype="config",
                     )
                     values[name] = legacy_value
+    if app.config["nb_render_priority"] != UNSET:
+        SPHINX_LOGGER.warning(
+            "'nb_render_priority' is deprecated for 'nb_mime_priority_overrides'"
+            f"{DEFAULT_LOG_TYPE}.config",
+            type=DEFAULT_LOG_TYPE,
+            subtype="config",
+        )
 
     try:
         app.env.mystnb_config = NbParserConfig(**values)
@@ -619,19 +629,10 @@ class SelectMimeType(SphinxPostTransform):
         """Run the transform."""
         # get priority list for this builder
         # TODO allow for per-notebook/cell priority dicts?
-        priority_lookup: dict[str, Sequence[str]] = self.config["nb_render_priority"]
-        name = self.app.builder.name  # type: ignore
-        if name not in priority_lookup:
-            SPHINX_LOGGER.warning(
-                f"Builder name {name!r} not available in 'nb_render_priority', "
-                f"defaulting to 'html' [{DEFAULT_LOG_TYPE}.mime_priority]",
-                type=DEFAULT_LOG_TYPE,
-                subtype="mime_priority",
-            )
-            priority_list = priority_lookup["html"]
-        else:
-            priority_list = priority_lookup[name]
-
+        bname = self.app.builder.name  # type: ignore
+        priority_list = get_mime_priority(
+            bname, self.config["nb_mime_priority_overrides"]
+        )
         condition = (
             lambda node: isinstance(node, nodes.container)
             and node.attributes.get("nb_element", "") == "mime_bundle"
@@ -653,9 +654,10 @@ class SelectMimeType(SphinxPostTransform):
                 else:
                     break
             if index is None:
+                mime_string = ",".join(repr(m) for m in mime_types)
                 SPHINX_LOGGER.warning(
-                    f"No mime type available in priority list builder {name!r} "
-                    f"[{DEFAULT_LOG_TYPE}.mime_priority]",
+                    f"No mime type available in priority list for builder {bname!r} "
+                    f"({mime_string}) [{DEFAULT_LOG_TYPE}.mime_priority]",
                     type=DEFAULT_LOG_TYPE,
                     subtype="mime_priority",
                     location=node,

@@ -19,23 +19,34 @@ kernelspec:
 
 When Jupyter executes a code cell it can produce multiple outputs, and each of these outputs can contain multiple [MIME media types](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types), for use by different output formats (like HTML or LaTeX).
 
-MyST-NB stores a default priority dictionary for most of the common [Sphinx builder names](https://www.sphinx-doc.org/en/master/usage/builders/index.html), which you can be also update in your `conf.py`.
-For example, this is the default priority list for HTML:
+MyST-NB stores a base priority dictionary for most of the common [Sphinx builder names](https://www.sphinx-doc.org/en/master/usage/builders/index.html),
+mapping MIME types to a priority number (lower is higher priority):
+
+```{code-cell} ipython3
+:tags: [hide-output]
+
+import yaml
+from myst_nb.core.render import base_render_priority
+print(yaml.dump(base_render_priority()))
+```
+
+Items in this dictionary can be overridden by the `nb_mime_priority_overrides` configuration option, in your `conf.py`.
+For example, the following configuration applies in order:
+
+- Sets `text/plain` as the highest priority for `html` output.
+- Disables `image/jpeg` for `latex` output
+- Adds a custom MIME type `customtype` for all builders (`*` applies to all builders)
 
 ```python
-nb_render_priority = {
-  "html": (
-            "application/vnd.jupyter.widget-view+json",
-            "application/javascript",
-            "text/html",
-            "image/svg+xml",
-            "image/png",
-            "image/jpeg",
-            "text/markdown",
-            "text/latex",
-            "text/plain",
-        )
-}
+nb_mime_priority_overrides = [
+  ('html', 'text/plain', 0),
+  ('latex', 'image/jpeg', None),
+  ('*', 'customtype', 20)
+]
+```
+
+```{versionchanged} 0.14.0
+`nb_mime_priority_overrides` replaces `nb_render_priority`
 ```
 
 :::{seealso}
@@ -317,18 +328,16 @@ This is currently not supported, but we hope to introduce it at a later date
 (use/format/cutomise)=
 ## Customise the render process
 
-The render process is governed by subclasses of {py:class}`myst_nb.core.render.NbElementRenderer`, which dictate how to create the `docutils` AST nodes for a particular MIME type.
+The render process is governed by subclasses of {py:class}`~myst_nb.core.render.NbElementRenderer`, which dictate how to create the `docutils` AST nodes for elements of the notebook.
+
 Implementations are loaded *via* Python [entry points](https://packaging.python.org/guides/distributing-packages-using-setuptools/#entry-points), in the `myst_nb.renderers` group.
-So it is possible to inject your own subclass to handle rendering.
+So it is possible to inject your own subclass to fully override rendering.
 
 For example, the renderer loaded in this package is:
 
-```python
-entry_points={
-    "myst_nb.renderers": [
-        "default = myst_nb.render:NbElementRenderer",
-    ],
-}
+```toml
+[project.entry-points."myst_nb.renderers"]
+default = "myst_nb.core.render:NbElementRenderer"
 ```
 
 You can then select the renderer plugin in your `conf.py`:
@@ -337,4 +346,19 @@ You can then select the renderer plugin in your `conf.py`:
 nb_render_plugin = "default"
 ```
 
-% TODO and example of overriding the renderer ...
+Plugins can also override rendering of particular output MIME types,
+using the `myst_nb.mime_renderers` entry point group to supply functions with signature: {py:class}`~myst_nb.core.render.MimeRenderPlugin`.
+
+For example {py:class}`myst_nb.core.render.ExampleMimeRenderPlugin`, is loaded in this package:
+
+```toml
+[project.entry-points."myst_nb.mime_renderers"]
+example = "myst_nb.core.render:ExampleMimeRenderPlugin"
+```
+
+Meaning we can now render `custommimetype` in all output formats:
+
+```{code-cell} ipython3
+from IPython.display import display
+display({"custommimetype": "Some text"}, raw=True)
+```

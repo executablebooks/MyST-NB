@@ -1,6 +1,6 @@
 """Configuration for myst-nb."""
 import dataclasses as dc
-from typing import Any, Dict, Iterable, List, Sequence, Tuple
+from typing import Any, Dict, Iterable, Optional, Sequence, Tuple
 
 from myst_parser.dc_validators import (
     deep_iterable,
@@ -50,94 +50,6 @@ def custom_formats_converter(value: dict) -> Dict[str, Tuple[str, dict, bool]]:
                 f"`nb_custom_formats` values[2] must be a bool: {output[suffix][2]}"
             )
     return output
-
-
-def render_priority_factory() -> Dict[str, Sequence[str]]:
-    """Create a default render priority dict: name -> priority list."""
-    # See formats at https://www.sphinx-doc.org/en/master/usage/builders/index.html
-    # generated with:
-    # [(b.name, b.format, b.supported_image_types)
-    # for b in app.registry.builders.values()]
-    html_builders: List[Tuple[str, str, List[str]]] = [
-        ("epub", "html", ["image/svg+xml", "image/png", "image/gif", "image/jpeg"]),
-        ("html", "html", ["image/svg+xml", "image/png", "image/gif", "image/jpeg"]),
-        ("dirhtml", "html", ["image/svg+xml", "image/png", "image/gif", "image/jpeg"]),
-        (
-            "singlehtml",
-            "html",
-            ["image/svg+xml", "image/png", "image/gif", "image/jpeg"],
-        ),
-        (
-            "applehelp",
-            "html",
-            [
-                "image/png",
-                "image/gif",
-                "image/jpeg",
-                "image/tiff",
-                "image/jp2",
-                "image/svg+xml",
-            ],
-        ),
-        ("devhelp", "html", ["image/png", "image/gif", "image/jpeg"]),
-        ("htmlhelp", "html", ["image/png", "image/gif", "image/jpeg"]),
-        ("json", "html", ["image/svg+xml", "image/png", "image/gif", "image/jpeg"]),
-        ("pickle", "html", ["image/svg+xml", "image/png", "image/gif", "image/jpeg"]),
-        ("qthelp", "html", ["image/svg+xml", "image/png", "image/gif", "image/jpeg"]),
-        # deprecated RTD builders
-        # https://github.com/readthedocs/readthedocs-sphinx-ext/blob/master/readthedocs_ext/readthedocs.py
-        (
-            "readthedocs",
-            "html",
-            ["image/svg+xml", "image/png", "image/gif", "image/jpeg"],
-        ),
-        (
-            "readthedocsdirhtml",
-            "html",
-            ["image/svg+xml", "image/png", "image/gif", "image/jpeg"],
-        ),
-        (
-            "readthedocssinglehtml",
-            "html",
-            ["image/svg+xml", "image/png", "image/gif", "image/jpeg"],
-        ),
-        (
-            "readthedocssinglehtmllocalmedia",
-            "html",
-            ["image/svg+xml", "image/png", "image/gif", "image/jpeg"],
-        ),
-    ]
-    other_builders: List[Tuple[str, str, List[str]]] = [
-        ("changes", "", []),
-        ("dummy", "", []),
-        ("gettext", "", []),
-        ("latex", "latex", ["application/pdf", "image/png", "image/jpeg"]),
-        ("linkcheck", "", []),
-        ("man", "man", []),
-        ("texinfo", "texinfo", ["image/png", "image/jpeg", "image/gif"]),
-        ("text", "text", []),
-        ("xml", "xml", []),
-        ("pseudoxml", "pseudoxml", []),
-    ]
-    output = {}
-    for name, _, supported_images in html_builders:
-        output[name] = (
-            "application/vnd.jupyter.widget-view+json",
-            "application/javascript",
-            "text/html",
-            *supported_images,
-            "text/markdown",
-            "text/latex",
-            "text/plain",
-        )
-    for name, _, supported_images in other_builders:
-        output[name] = (
-            *supported_images,
-            "text/latex",
-            "text/markdown",
-            "text/plain",
-        )
-    return output  # type: ignore
 
 
 def ipywidgets_js_factory() -> Dict[str, Dict[str, str]]:
@@ -330,36 +242,24 @@ class NbParserConfig:
             "cell_metadata": True,
         },
     )
-    # docutils does not allow for the dictionaries in its configuration,
-    # and also there is no API for the parser to know the output format, so
-    # we use two different options for docutils(mime_priority)/sphinx(render_priority)
-    mime_priority: Sequence[str] = dc.field(
-        default=(
-            "application/vnd.jupyter.widget-view+json",
-            "application/javascript",
-            "text/html",
-            "image/svg+xml",
-            "image/png",
-            "image/jpeg",
-            "text/markdown",
-            "text/latex",
-            "text/plain",
-        ),
+    # we cannot directly obtain a sphinx builder name from docutils,
+    # so must set it manually
+    builder_name: str = dc.field(
+        default="html",
         metadata={
-            "validator": deep_iterable(instance_of(str)),
-            "help": "Render priority for mime types",
+            "validator": instance_of(str),
+            "help": "Builder name, to select render priority for mime types",
             "sphinx_exclude": True,
-            "cell_metadata": True,
         },
         repr=False,
     )
-    render_priority: Dict[str, Sequence[str]] = dc.field(
-        default_factory=render_priority_factory,
+    mime_priority_overrides: Sequence[Tuple[str, str, Optional[int]]] = dc.field(
+        default=(),
         metadata={
-            "validator": deep_mapping(
-                instance_of(str), deep_iterable(instance_of(str))
-            ),
-            "help": "Render priority for mime types, by builder name",
+            "validator": deep_iterable(instance_of(tuple)),  # TODO better validation
+            "help": "Overrides for the base render priority of mime types: "
+            "list of (builder name, mime type, priority)",
+            # TODO how to allow this in docutils?
             "docutils_exclude": True,
         },
         repr=False,

@@ -374,7 +374,8 @@ Here is some {glue:md}`inline_md:myst`!
 (glue/crossdoc)=
 ## Pasting from other notebooks
 
-Certain `glue` roles and directives can be used to paste content from other notebooks.
+Certain `glue` roles and directives can be used to paste content from other notebooks,
+by specifying the (relative) path to them.
 
 :::{tip}
 Sometimes you'd like to use variables from notebooks that are not meant to be shown to users.
@@ -384,20 +385,20 @@ In this case, you should bundle the notebook with the rest of your content pages
 For example, the following example pastes glue variables from {ref}`orphaned-nb`:
 
 ````markdown
-- A cross-pasted any role: {glue:}`orphaned_nb.ipynb::var_text`
-- A cross-pasted text role: {glue:text}`orphaned_nb.ipynb::var_float:.2E`
+- A cross-pasted `any` role: {glue:}`orphaned_nb.ipynb::var_text`
+- A cross-pasted `text` role: {glue:text}`orphaned_nb.ipynb::var_float:.2E`
 
-A cross-pasted any directive:
+A cross-pasted `any` directive:
 
 ```{glue:} var_text
 :doc: orphaned_nb.ipynb
 ```
 ````
 
-- A cross-pasted any role: {glue:}`orphaned_nb.ipynb::var_text`
-- A cross-pasted text role: {glue:text}`orphaned_nb.ipynb::var_float:.2E`
+- A cross-pasted `any` role: {glue:}`orphaned_nb.ipynb::var_text`
+- A cross-pasted `text` role: {glue:text}`orphaned_nb.ipynb::var_float:.2E`
 
-A cross-pasted any directive:
+A cross-pasted `any` directive:
 
 ```{glue:} var_text
 :doc: orphaned_nb.ipynb
