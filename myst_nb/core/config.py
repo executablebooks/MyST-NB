@@ -3,6 +3,7 @@ import dataclasses as dc
 from typing import Any, Dict, Iterable, Optional, Sequence, Tuple
 
 from myst_parser.dc_validators import (
+    ValidatorType,
     deep_iterable,
     deep_mapping,
     in_,
@@ -67,6 +68,27 @@ def ipywidgets_js_factory() -> Dict[str, Dict[str, str]]:
             "crossorigin": "anonymous",
         },
     }
+
+
+def has_items(*validators) -> ValidatorType:
+    """
+    A validator that performs validation per item of a sequence.
+
+    :param validators: Validator to apply per item
+    """
+
+    def _validator(inst, attr, value):
+        if not isinstance(value, Sequence):
+            raise TypeError(f"{attr.name} must be a sequence: {value}")
+        if len(value) != len(validators):
+            raise TypeError(
+                f"{attr.name!r} must be a sequence of length {len(validators)}: {value}"
+            )
+
+        for validator, member in zip(validators, value):
+            validator(inst, attr, member)
+
+    return _validator
 
 
 @dc.dataclass()
@@ -256,7 +278,11 @@ class NbParserConfig:
     mime_priority_overrides: Sequence[Tuple[str, str, Optional[int]]] = dc.field(
         default=(),
         metadata={
-            "validator": deep_iterable(instance_of(tuple)),  # TODO better validation
+            "validator": deep_iterable(
+                has_items(
+                    instance_of(str), instance_of(str), optional(instance_of(int))
+                ),
+            ),
             "help": "Overrides for the base render priority of mime types: "
             "list of (builder name, mime type, priority)",
             # TODO how to allow this in docutils?

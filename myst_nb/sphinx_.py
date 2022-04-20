@@ -184,8 +184,8 @@ def create_mystnb_config(app):
             bold("myst-nb v%s:") + " %s", __version__, app.env.mystnb_config
         )
     except (TypeError, ValueError) as error:
-        SPHINX_LOGGER.error("myst-nb configuration invalid: %s", error.args[0])
-        app.env.mystnb_config = NbParserConfig()
+        SPHINX_LOGGER.critical("myst-nb configuration invalid: %s", error.args[0])
+        raise
 
     # update the output_folder (for writing external files like images),
     # and the execution_cache_path (for caching notebook outputs)
