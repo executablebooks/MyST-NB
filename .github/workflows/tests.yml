@@ -61,10 +61,10 @@ jobs:
       # this is why we run `coverage xml` afterwards (required by codecov)
 
     - name: Upload to Codecov
-      if: matrix.os == 'ubuntu-latest' && matrix.python-version == 3.7 && matrix.sphinx == '>=3,<4' && github.repository == 'executablebooks/MyST-NB'
+      if: github.repository == 'executablebooks/MyST-NB'
       uses: codecov/codecov-action@v1
       with:
-        name: myst-nb-pytests-py3.7
+        name: myst-nb-pytests
         flags: pytests
         file: ./coverage.xml
         fail_ci_if_error: true

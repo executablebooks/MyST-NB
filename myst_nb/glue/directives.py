@@ -117,7 +117,7 @@ class PasteMarkdownDirective(_PasteDirectiveBase):
             ]
 
         # TODO this "override" feels a bit hacky
-        cell_key = result.nb_renderer.renderer.nb_config.cell_render_key
+        cell_key = result.nb_renderer.config.cell_render_key
         mime = MimeData(
             "text/markdown",
             result.data["text/markdown"],
@@ -134,7 +134,11 @@ class PasteMarkdownDirective(_PasteDirectiveBase):
 
 
 class PasteFigureDirective(_PasteDirectiveBase):
-    """A directive for pasting code outputs from notebooks, wrapped in a figure."""
+    """A directive for pasting code outputs from notebooks, wrapped in a figure.
+
+    Mirrors:
+    https://github.com/docutils-mirror/docutils/blob/9649abee47b4ce4db51be1d90fcb1fb500fa78b3/docutils/parsers/rst/directives/images.py#95
+    """
 
     def align(argument):
         return directives.choice(argument, ("left", "center", "right"))
@@ -143,6 +147,13 @@ class PasteFigureDirective(_PasteDirectiveBase):
         return directives.length_or_percentage_or_unitless(argument, "px")
 
     option_spec = {
+        # note we don't add converters for image options,
+        # since this is handled in `NbElementRenderer.render_image`
+        "alt": directives.unchanged,
+        "height": directives.unchanged,
+        "width": directives.unchanged,
+        "scale": directives.unchanged,
+        "class": directives.unchanged,
         "figwidth": figwidth_value,
         "figclass": directives.class_option,
         "align": align,
@@ -155,7 +166,15 @@ class PasteFigureDirective(_PasteDirectiveBase):
             data = retrieve_glue_data(self.document, self.arguments[0])
         except RetrievalError as exc:
             return [glue_warning(str(exc), self.document, self.line)]
-        paste_nodes = render_glue_output(data, self.document, self.line, self.source)
+        render: Dict[str, Any] = {}
+        for key in ("alt", "height", "width", "scale", "class"):
+            if key in self.options:
+                render.setdefault("image", {})[
+                    key.replace("classes", "class")
+                ] = self.options[key]
+        paste_nodes = render_glue_output(
+            data, self.document, self.line, self.source, render=render
+        )
 
         # note: most of this is copied directly from sphinx.Figure
 
@@ -204,10 +223,11 @@ class PasteMathDirective(_PasteDirectiveBase):
     """A directive for pasting latex outputs from notebooks as math."""
 
     option_spec = {
-        "label": directives.unchanged,
-        "name": directives.unchanged,
         "class": directives.class_option,
         "nowrap": directives.flag,
+        # these are equivalent
+        "label": directives.unchanged,
+        "name": directives.unchanged,
     }
 
     def run(self) -> List[nodes.Node]:

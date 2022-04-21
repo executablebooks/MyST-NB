@@ -86,7 +86,9 @@ def render_glue_output(
     document: nodes.document,
     line: int,
     source: str,
-    inline=False,
+    *,
+    inline: bool = False,
+    render: Optional[Dict[str, Any]] = None,
 ) -> List[nodes.Node]:
     """Retrive the notebook output data for this glue key,
     then return the docutils/sphinx nodes relevant to this data.
@@ -96,16 +98,32 @@ def render_glue_output(
     :param line: The current source line number of the directive or role.
     :param source: The current source path or description.
     :param inline: Whether to render the output as inline (or block).
+    :param render: Cell-level render metadata
 
     :returns: A tuple of (was the key found, the docutils/sphinx nodes).
     """
+    cell_metadata = {}
+    if render:
+        cell_metadata[data.nb_renderer.config.cell_render_key] = render
     if is_sphinx(document):
         _nodes = _render_output_sphinx(
-            data.nb_renderer, data.data, data.metadata, source, line, inline
+            data.nb_renderer,
+            data.data,
+            cell_metadata,
+            data.metadata,
+            source,
+            line,
+            inline,
         )
     else:
         _nodes = _render_output_docutils(
-            data.nb_renderer, data.data, data.metadata, document, line, inline
+            data.nb_renderer,
+            data.data,
+            cell_metadata,
+            data.metadata,
+            document,
+            line,
+            inline,
         )
     # TODO rendering should perhaps return if it succeeded explicitly,
     # and whether system_messages or not (required for roles)
@@ -115,15 +133,16 @@ def render_glue_output(
 def _render_output_docutils(
     nb_renderer: NbElementRenderer,
     data: Dict[str, Any],
-    metadata: Dict[str, Any],
+    cell_metadata: Dict[str, Any],
+    output_metadata: Dict[str, Any],
     document: nodes.document,
     line: int,
     inline=False,
 ) -> List[nodes.Node]:
     """Render the output in docutils (select mime priority directly)."""
     mime_priority = get_mime_priority(
-        nb_renderer.renderer.nb_config.builder_name,
-        nb_renderer.renderer.nb_config.mime_priority_overrides,
+        nb_renderer.config.builder_name,
+        nb_renderer.config.mime_priority_overrides,
     )
     try:
         mime_type = next(x for x in mime_priority if x in data)
@@ -139,7 +158,8 @@ def _render_output_docutils(
         mime_data = MimeData(
             mime_type,
             data[mime_type],
-            output_metadata=metadata,
+            cell_metadata=cell_metadata,
+            output_metadata=output_metadata,
             line=line,
         )
         if inline:
@@ -150,7 +170,8 @@ def _render_output_docutils(
 def _render_output_sphinx(
     nb_renderer: NbElementRenderer,
     data: Dict[str, Any],
-    metadata: Dict[str, Any],
+    cell_metadata: Dict[str, Any],
+    output_metadata: Dict[str, Any],
     source: str,
     line: int,
     inline=False,
@@ -161,7 +182,13 @@ def _render_output_sphinx(
     for mime_type, content in data.items():
         mime_container = nodes.container(mime_type=mime_type)
         set_source_info(mime_container, source, line)
-        mime_data = MimeData(mime_type, content, output_metadata=metadata, line=line)
+        mime_data = MimeData(
+            mime_type,
+            content,
+            cell_metadata=cell_metadata,
+            output_metadata=output_metadata,
+            line=line,
+        )
         if inline:
             _nodes = nb_renderer.render_mime_type_inline(mime_data)
         else:
