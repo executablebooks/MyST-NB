@@ -79,7 +79,7 @@ rtd = [
     "plotly",
     "sphinx-book-theme~=0.3.0",
     "sphinx-copybutton",
-    "sphinx-panels~=0.4.1",
+    "sphinx-design~=0.1.0",
     "sphinxcontrib-bibtex",
     "sympy",
 ]

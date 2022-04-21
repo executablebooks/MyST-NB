@@ -23,6 +23,7 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.autodoc",
     "sphinx.ext.viewcode",
+    "sphinx_design",
 ]
 
 # List of patterns, relative to source directory, that match files and
@@ -122,8 +123,6 @@ html_theme_options = {
 html_static_path = ["_static"]
 
 copybutton_selector = "div:not(.output) > div.highlight pre"
-
-panels_add_bootstrap_css = False
 
 
 def setup(app):
