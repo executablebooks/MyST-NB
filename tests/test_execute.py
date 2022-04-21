@@ -5,6 +5,7 @@ from pathlib import Path
 from IPython import version_info as ipy_version
 import pytest
 
+from myst_nb.core.execute import ExecutionError
 from myst_nb.sphinx_ import NbMetadataCollector
 
 
@@ -153,6 +154,24 @@ def test_allow_errors_auto(sphinx_run, file_regression, check_nbs):
     regress_nb_doc(file_regression, sphinx_run, check_nbs)
 
 
+@pytest.mark.sphinx_params(
+    "basic_failing.ipynb",
+    conf={"nb_execution_raise_on_error": True, "nb_execution_mode": "force"},
+)
+def test_raise_on_error_force(sphinx_run):
+    with pytest.raises(ExecutionError, match="basic_failing.ipynb"):
+        sphinx_run.build()
+
+
+@pytest.mark.sphinx_params(
+    "basic_failing.ipynb",
+    conf={"nb_execution_raise_on_error": True, "nb_execution_mode": "cache"},
+)
+def test_raise_on_error_cache(sphinx_run):
+    with pytest.raises(ExecutionError, match="basic_failing.ipynb"):
+        sphinx_run.build()
+
+
 @pytest.mark.sphinx_params("basic_unrun.ipynb", conf={"nb_execution_mode": "force"})
 def test_outputs_present(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
@@ -222,13 +241,13 @@ def test_jupyter_cache_path(sphinx_run, file_regression, check_nbs):
 
 # Testing relative paths within the notebook
 @pytest.mark.sphinx_params("basic_relative.ipynb", conf={"nb_execution_mode": "cache"})
-def test_relative_path_cache(sphinx_run, file_regression, check_nbs):
+def test_relative_path_cache(sphinx_run):
     sphinx_run.build()
     assert "Execution Failed" not in sphinx_run.status(), sphinx_run.status()
 
 
 @pytest.mark.sphinx_params("basic_relative.ipynb", conf={"nb_execution_mode": "force"})
-def test_relative_path_force(sphinx_run, file_regression, check_nbs):
+def test_relative_path_force(sphinx_run):
     sphinx_run.build()
     assert "Execution Failed" not in sphinx_run.status(), sphinx_run.status()
 
@@ -238,7 +257,7 @@ def test_relative_path_force(sphinx_run, file_regression, check_nbs):
     "sleep_10.ipynb",
     conf={"nb_execution_mode": "cache", "nb_execution_timeout": 1},
 )
-def test_execution_timeout(sphinx_run, file_regression, check_nbs):
+def test_execution_timeout(sphinx_run):
     """execution should fail given the low timeout value"""
     sphinx_run.build()
     # print(sphinx_run.warnings())
@@ -249,7 +268,7 @@ def test_execution_timeout(sphinx_run, file_regression, check_nbs):
     "sleep_10_metadata_timeout.ipynb",
     conf={"nb_execution_mode": "cache", "nb_execution_timeout": 60},
 )
-def test_execution_metadata_timeout(sphinx_run, file_regression, check_nbs):
+def test_execution_metadata_timeout(sphinx_run):
     """notebook timeout metadata has higher preference then execution_timeout config"""
     sphinx_run.build()
     # print(sphinx_run.warnings())
@@ -260,7 +279,7 @@ def test_execution_metadata_timeout(sphinx_run, file_regression, check_nbs):
     "nb_exec_table.md",
     conf={"nb_execution_mode": "auto"},
 )
-def test_nb_exec_table(sphinx_run, file_regression, check_nbs):
+def test_nb_exec_table(sphinx_run, file_regression):
     """Test that the table gets output into the HTML,
     including a row for the executed notebook.
     """

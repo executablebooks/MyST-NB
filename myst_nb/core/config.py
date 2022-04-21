@@ -202,6 +202,14 @@ class NbParserConfig:
             "legacy_name": "execution_allow_errors",
         },
     )
+    execution_raise_on_error: bool = dc.field(
+        default=False,
+        metadata={
+            "validator": instance_of(bool),
+            "help": "Raise an exception on failed execution, "
+            "rather than emitting a warning",
+        },
+    )
     execution_show_tb: bool = dc.field(  # TODO implement
         default=False,
         metadata={
