@@ -35,6 +35,10 @@ class ExecutionResult(TypedDict):
     """traceback if the notebook failed"""
 
 
+class ExecutionError(Exception):
+    """An exception for failed execution and `execution_raise_on_error` is true."""
+
+
 def execute_notebook(
     notebook: NotebookNode,
     source: str,
@@ -111,6 +115,8 @@ def execute_notebook(
             )
 
         if result.err is not None:
+            if nb_config.execution_raise_on_error:
+                raise ExecutionError(str(source)) from result.err
             msg = f"Executing notebook failed: {result.err.__class__.__name__}"
             if nb_config.execution_show_tb:
                 msg += f"\n{result.exc_string}"
@@ -187,6 +193,8 @@ def execute_notebook(
         # handle success / failure cases
         # TODO do in try/except to be careful (in case of database write errors?
         if result.err is not None:
+            if nb_config.execution_raise_on_error:
+                raise ExecutionError(str(source)) from result.err
             msg = f"Executing notebook failed: {result.err.__class__.__name__}"
             if nb_config.execution_show_tb:
                 msg += f"\n{result.exc_string}"

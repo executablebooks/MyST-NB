@@ -87,7 +87,7 @@ testing = [
     "coverage<5.0",
     "beautifulsoup4",
     "ipykernel~=5.5",
-    "ipython<8.1.0", # see https://github.com/ipython/ipython/issues/13554
+    "ipython!=8.1.0", # see https://github.com/ipython/ipython/issues/13554
     "ipywidgets",
     "jupytext~=1.11.2",
     # TODO: 3.4.0 has some warnings that need to be fixed in the tests.
