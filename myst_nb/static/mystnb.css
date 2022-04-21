@@ -36,17 +36,6 @@ div.cell_input > div, div.cell_output div.output > div.highlight {
   margin-top: 1em;
 }
 
-/* Outputs from jupyter_sphinx overrides to remove extra CSS */
-div.section div.jupyter_container {
-  padding: .4em;
-  margin: 0 0 .4em 0;
-  background-color: none;
-  border: none;
-  -moz-box-shadow: none;
-  -webkit-box-shadow: none;
-  box-shadow: none;
-}
-
 /* Text outputs from cells */
 .cell_output .output.text_plain,
 .cell_output .output.traceback,

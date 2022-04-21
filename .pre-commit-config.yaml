@@ -11,28 +11,27 @@ exclude: >
 
 repos:
 
-  - repo: git://github.com/pre-commit/pre-commit-hooks
-    rev: v4.0.1
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.2.0
     hooks:
     - id: check-json
     - id: check-yaml
     - id: end-of-file-fixer
     - id: trailing-whitespace
 
-  - repo: https://github.com/mgedmin/check-manifest
-    rev: "0.47"
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v2.32.0
     hooks:
-    - id: check-manifest
-      args: [--no-build-isolation]
-      additional_dependencies: [setuptools>=46.4.0]
+    - id: pyupgrade
+      args: [--py37-plus]
 
   - repo: https://github.com/PyCQA/isort
-    rev: 5.9.3
+    rev: 5.10.1
     hooks:
     - id: isort
 
   - repo: https://github.com/psf/black
-    rev: 21.9b0
+    rev: 22.3.0
     hooks:
     - id: black
 
@@ -43,20 +42,16 @@ repos:
       additional_dependencies: [flake8-bugbear==21.3.1]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v0.910-1
+    rev: v0.942
     hooks:
     - id: mypy
-      args: [--config-file=setup.cfg]
+      args: [--config-file=pyproject.toml]
       additional_dependencies:
-      - myst-parser~=0.14.0
+      - importlib_metadata
+      - myst-parser~=0.17.2
+      - "sphinx~=4.3.2"
+      - types-PyYAML
       files: >
         (?x)^(
-            myst_nb/parser.py|
+            myst_nb/.+\.py|
         )$
-
-  # this is not used for now,
-  # since it converts myst-nb to myst_nb and removes comments
-  # - repo: https://github.com/asottile/setup-cfg-fmt
-  #   rev: v1.17.0
-  #   hooks:
-  #   - id: setup-cfg-fmt

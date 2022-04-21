@@ -1,12 +1,6 @@
 # MyST-NB
 
-[![Github-CI][github-badge]][github-link]
-[![Github-CI][github-ci]][github-link]
-[![Coverage Status][codecov-badge]][codecov-link]
-[![Documentation Status][rtd-badge]][rtd-link]
-[![PyPI][pypi-badge]][pypi-link]
-
-**Read, write, and execute Jupyter Notebooks in Sphinx**
+**Read, write, and execute Jupyter Notebooks in Docutils and Sphinx**
 
 `MyST-NB` is a reference implementation of MyST Markdown Notebooks, and
 an open source tool for working with Jupyter Notebooks in the
@@ -27,11 +21,6 @@ Sphinx ecosystem. It provides the following primary features:
 In addition, there are several options for controlling the look and feel of how your
 notebooks are used in your documentation. See the documentation pages to the left for
 more information.
-
-:::{note}
-This project is in a beta state. Comments, requests, or bugreports are welcome and
-recommended! Please [open an issue here](https://github.com/executablebooks/myst-nb/issues)
-:::
 
 (installation)=
 ## Installation and basic usage
@@ -69,9 +58,6 @@ use/index
 use/markdown
 ```
 
-In addition, here is a reference page that uses the `jupyter-sphinx` package to create
-outputs, to compare how these outputs look relative to the MyST-NB style.
-
 ```{toctree}
 :maxdepth: 2
 examples/index
@@ -82,17 +68,8 @@ Finally, here is documentation on contributing to the development of MySt-NB
 ```{toctree}
 :titlesonly:
 :maxdepth: 1
+changelog
 develop/contributing
 api/index
 GitHub Repo <https://github.com/executablebooks/myst-nb>
 ```
-
-[github-ci]: https://github.com/executablebooks/MyST-NB/workflows/continuous-integration/badge.svg?branch=master
-[github-link]: https://github.com/executablebooks/MyST-NB
-[rtd-badge]: https://readthedocs.org/projects/myst-nb/badge/?version=latest
-[rtd-link]: https://myst-nb.readthedocs.io/en/latest/?badge=latest
-[codecov-badge]: https://codecov.io/gh/executablebooks/MyST-NB/branch/master/graph/badge.svg
-[codecov-link]: https://codecov.io/gh/executablebooks/MyST-NB
-[pypi-badge]: https://img.shields.io/pypi/v/myst-nb.svg
-[pypi-link]: https://pypi.org/project/myst-nb
-[github-badge]: https://img.shields.io/github/stars/executablebooks/myst-nb?label=github

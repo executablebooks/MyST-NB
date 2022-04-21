@@ -1,12 +1,21 @@
 <document source="custom-formats">
-    <section classes="tex2jax_ignore mathjax_ignore" ids="custom-formats" names="custom\ formats">
+    <section ids="custom-formats" names="custom\ formats">
         <title>
             Custom Formats
-        <CellNode cell_type="code" classes="cell">
-            <CellInputNode classes="cell_input">
+        <container cell_index="2" cell_metadata="{'echo': True}" classes="cell" exec_count="1" nb_element="cell_code">
+            <container classes="cell_input" nb_element="cell_code_source">
                 <literal_block language="ipython3" xml:space="preserve">
                     import pandas as pd
                     x = pd.Series({'A':1, 'B':3, 'C':2})
-        <CellNode cell_type="code" classes="cell tag_remove_input">
-            <CellOutputNode classes="cell_output">
-                <CellOutputBundleNode output_count="2">
+        <container cell_index="3" cell_metadata="{'name': 'bar_plot', 'tags': ['remove_input'], 'fig.height': 5, 'fig.width': 8}" classes="cell tag_remove_input" exec_count="2" nb_element="cell_code">
+            <container classes="cell_output" nb_element="cell_code_output">
+                <container nb_element="mime_bundle">
+                    <container mime_type="text/plain">
+                        <literal_block classes="output text_plain" language="myst-ansi" xml:space="preserve">
+                            <AxesSubplot:title={'center':'Sample plot'}>
+                <container nb_element="mime_bundle">
+                    <container mime_type="text/plain">
+                        <literal_block classes="output text_plain" language="myst-ansi" xml:space="preserve">
+                            <Figure size 432x288 with 1 Axes>
+                    <container mime_type="image/png">
+                        <image candidates="{'*': '_build/jupyter_execute/cc1d31550c7aaad5128f57d4f4cae576a29174f6cd515e37c0b911f6010659f3.png'}" uri="_build/jupyter_execute/cc1d31550c7aaad5128f57d4f4cae576a29174f6cd515e37c0b911f6010659f3.png">

@@ -77,58 +77,9 @@ points =ax.scatter(*data, c=data[0], s=data[0])
 
 ## Hide markdown cells
 
-There are two ways to hide markdown cells. First, **you can add the `hide-input`**
-cell metadata. This triggers the same hiding behavior described above for
-code cells.
+You cannot hide an entire markdown cell, but you can hide sections of markdown **content** by using roles and directives.
 
-+++ {"tags": ["hide-input"]}
-
-```{note}
-This cell was hidden by adding a `hide-input` tag to it!
-```
-
-+++
-
-You may also **use a Sphinx directive** to hide specific markdown content. This
-is possible by adding the **`.toggle`** class to any block-level directive
-that will allow for classes. For example, to the `container`, `note`, or `admonition`
-directives.
-
-For example, the hidden block below
-
-```{admonition} This cell was hidden with the toggle class
-:class: toggle
-Wow, a hidden block! ✨✨
-```
-
-Is generated with the following code:
-
-````
-```{admonition} This cell was hidden with the toggle class
-:class: toggle
-Wow, a hidden block! ✨✨
-```
-````
-
-
-`````{admonition} Don't add headings to toggle-able sections
-
-Note that containers for markdown (like notes, or this `container`
-directive) cannot have their own headings (ie, lines that start
-with `#`. If you'd like to use headings, do one of the following:
-
-* Use **bolded text** if you want to highlight sections of a
-  toggle-able section.
-* Use an **admonition** directive to control the title of the
-  message box (that's what this message box uses). Like so:
-  ````
-  ```{admonition} my admonition title
-  My admonition content
-  ```
-  ````
-`````
-
-+++
+For information on how to hide / toggle markdown content in Sphinx, see either [the `sphinx-togglebutton` documentation](https://sphinx-togglebutton.readthedocs.io/en/latest/) or the [`sphinx-design` dropdowns documentation](https://sphinx-design.readthedocs.io/en/latest/dropdowns.html).
 
 (use/removing)=
 

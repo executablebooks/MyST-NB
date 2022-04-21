@@ -19,23 +19,34 @@ kernelspec:
 
 When Jupyter executes a code cell it can produce multiple outputs, and each of these outputs can contain multiple [MIME media types](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types), for use by different output formats (like HTML or LaTeX).
 
-MyST-NB stores a default priority dictionary for most of the common [Sphinx builders](https://www.sphinx-doc.org/en/master/usage/builders/index.html), which you can be also update in your `conf.py`.
-For example, this is the default priority list for HTML:
+MyST-NB stores a base priority dictionary for most of the common [Sphinx builder names](https://www.sphinx-doc.org/en/master/usage/builders/index.html),
+mapping MIME types to a priority number (lower is higher priority):
+
+```{code-cell} ipython3
+:tags: [hide-output]
+
+import yaml
+from myst_nb.core.render import base_render_priority
+print(yaml.dump(base_render_priority()))
+```
+
+Items in this dictionary can be overridden by the `nb_mime_priority_overrides` configuration option, in your `conf.py`.
+For example, the following configuration applies in order:
+
+- Sets `text/plain` as the highest priority for `html` output.
+- Disables `image/jpeg` for `latex` output
+- Adds a custom MIME type `customtype` for all builders (`*` applies to all builders)
 
 ```python
-nb_render_priority = {
-  "html": (
-            "application/vnd.jupyter.widget-view+json",
-            "application/javascript",
-            "text/html",
-            "image/svg+xml",
-            "image/png",
-            "image/jpeg",
-            "text/markdown",
-            "text/latex",
-            "text/plain",
-        )
-}
+nb_mime_priority_overrides = [
+  ('html', 'text/plain', 0),
+  ('latex', 'image/jpeg', None),
+  ('*', 'customtype', 20)
+]
+```
+
+```{versionchanged} 0.14.0
+`nb_mime_priority_overrides` replaces `nb_render_priority`
 ```
 
 :::{seealso}
@@ -101,10 +112,10 @@ This also makes cell outputs more deterministic.
 Normally, slight differences in timing may result in different orders of `stderr` and `stdout` in the cell output, while this setting will sort them properly.
 
 (use/format/images)=
-## Images
+## Images and Figures
 
 With the default renderer, for any image types output by the code, we can apply formatting *via* cell metadata.
-The top-level metadata key can be set using `nb_render_key` in your `conf.py`, and is set to `render` by default.
+The top-level metadata key can be set using `nb_cell_render_key` in your `conf.py`, and is set to `render` by default.
 Then for the image we can apply all the variables of the standard [image directive](https://docutils.sourceforge.io/docs/ref/rst/directives.html#image):
 
 - **width**: length or percentage (%) of the current line width
@@ -116,12 +127,19 @@ Then for the image we can apply all the variables of the standard [image directi
 
 Units of length are: 'em', 'ex', 'px', 'in', 'cm', 'mm', 'pt', 'pc'
 
-We can also set a caption (which is rendered as [CommonMark](https://commonmark.org/)) and name, by which to reference the figure:
+You can also wrap the output in a [`figure`](https://docutils.sourceforge.io/docs/ref/rst/directives.html#figure), that can include:
+
+- **align**: "left", "center", or "right"
+- **caption**: a string, which must contain a single paragraph and is rendered as MyST Markdown (subsequent paragraphs are added as a legend)
+- **caption_before**: a boolean, if true, the caption is rendered before the figure (default is false)
+- **name**: by which to reference the figure
+- **classes**: space separated strings
 
 ````md
 ```{code-cell} ipython3
 ---
 render:
+  number_source_lines: true
   image:
     width: 200px
     alt: fun-fish
@@ -129,7 +147,9 @@ render:
   figure:
     caption: |
       Hey everyone its **party** time!
-    name: fun-fish
+
+      (and I'm a legend)
+    name: fun-fish-ref
 ---
 from IPython.display import Image
 Image("images/fun-fish.png")
@@ -139,6 +159,7 @@ Image("images/fun-fish.png")
 ```{code-cell} ipython3
 ---
 render:
+  number_source_lines: true
   image:
     width: 300px
     alt: fun-fish
@@ -146,24 +167,59 @@ render:
   figure:
     caption: |
       Hey everyone its **party** time!
-    name: fun-fish
+
+      (and I'm a legend)
+    name: fun-fish-ref
 ---
 from IPython.display import Image
 Image("images/fun-fish.png")
 ```
 
-Now we can link to the image from anywhere in our documentation: [swim to the fish](fun-fish)
+Now we can link to the image from anywhere in our documentation: [swim to the fish](fun-fish-ref)
+
+You can create figures for any mime outputs:
+
+````md
+```{code-cell} ipython3
+---
+render:
+  figure:
+    align: left
+    caption_before: true
+    caption: This is my table caption, aligned left
+---
+import pandas
+pandas.DataFrame({"column 1": [1, 2, 3]})
+```
+````
+
+```{code-cell} ipython3
+---
+render:
+  figure:
+    align: left
+    caption_before: true
+    caption: This is my table caption, aligned left
+---
+import pandas
+pandas.DataFrame({"column 1": [1, 2, 3]})
+```
 
 (use/format/markdown)=
 ## Markdown
 
-Markdown output is parsed by MyST-Parser, currently with the configuration set to `myst_commonmark_only=True` (see [MyST configuration options](myst:sphinx/config-options)).
+The format of output `text/markdown` can be specified by `render_markdown_format` configuration:
 
-The parsed Markdown is integrated into the wider documentation, and so it is possible, for example, to include internal references:
+- `commonmark` (default): Restricted to the [CommonMark specification](https://commonmark.org/).
+- `gfm`: Restricted to the [GitHub-flavored markdown](https://github.github.com/gfm/).
+  - Note, this requires the installation of the [linkify-it-py package](https://pypi.org/project/linkify-it-py)
+- `myst`: Uses [the MyST parser](https://myst-parser.readthedocs.io/en/latest/) with the same configuration as the current document.
+
+CommonMark formatting will output basic Markdown syntax:
 
 ```{code-cell} ipython3
 from IPython.display import display, Markdown
-display(Markdown('**_some_ markdown** and an [internal reference](use/format/markdown)!'))
+display(Markdown('**_some_ markdown** and an [a reference](https://example.com)!'))
 ```
 
 and even internal images can be rendered!
@@ -171,6 +227,52 @@ and even internal images can be rendered!
 ```{code-cell} ipython3
 display(Markdown('![figure](../_static/logo-wide.svg)'))
 ```
+
+But setting the Markdown format to `myst` will allow for more advanced formatting,
+such as including internal references, tables, and even other directives, either using:
+
+- `myst_render_markdown_format = "myst"` in the `conf.py` to set globally, or
+- `markdown_format` in the cell metadata to set per-cell.
+
+`````md
+````{code-cell} ipython3
+---
+render:
+  markdown_format: myst
+---
+display(Markdown('**_some_ markdown** and an [internal reference](use/format/markdown)!'))
+display(Markdown("""
+| a | b | c |
+|---|---|---|
+| 1 | 2 | 3 |
+"""))
+display(Markdown("""
+```{note}
+A note admonition!
+```
+"""))
+````
+`````
+
+The parsed Markdown is integrated into the wider documentation, and so it is possible, for example, to include internal references:
+
+````{code-cell} ipython3
+---
+render:
+  markdown_format: myst
+---
+display(Markdown('**_some_ markdown** and an [internal reference](use/format/markdown)!'))
+display(Markdown("""
+| a | b | c |
+|---|---|---|
+| 1 | 2 | 3 |
+"""))
+display(Markdown("""
+```{note}
+A note admonition!
+```
+"""))
+````
 
 (use/format/ansi)=
 ## ANSI Outputs
@@ -184,7 +286,7 @@ print("AB\x1b[43mCD\x1b[35mEF\x1b[1mGH\x1b[4mIJ\x1b[7m"
       "KL\x1b[49mMN\x1b[39mOP\x1b[22mQR\x1b[24mST\x1b[27mUV")
 ```
 
-This uses the built-in {py:class}`~myst_nb.ansi_lexer.AnsiColorLexer` [pygments lexer](https://pygments.org/).
+This uses the built-in {py:class}`~myst_nb.core.lexers.AnsiColorLexer` [pygments lexer](https://pygments.org/).
 You can change the lexer used in the `conf.py`, for example to turn off lexing:
 
 ```python
@@ -226,24 +328,37 @@ This is currently not supported, but we hope to introduce it at a later date
 (use/format/cutomise)=
 ## Customise the render process
 
-The render process is goverened by subclasses of {py:class}`myst_nb.render_outputs.CellOutputRendererBase`, which dictate how to create the `docutils` AST nodes for a particular MIME type. the default implementation is {py:class}`~myst_nb.render_outputs.CellOutputRenderer`.
+The render process is governed by subclasses of {py:class}`~myst_nb.core.render.NbElementRenderer`, which dictate how to create the `docutils` AST nodes for elements of the notebook.
 
-Implementations are loaded *via* Python [entry points](https://packaging.python.org/guides/distributing-packages-using-setuptools/#entry-points), in the `myst_nb.mime_render` group.
-So it is possible to inject your own subclass to handle rendering.
+Implementations are loaded *via* Python [entry points](https://packaging.python.org/guides/distributing-packages-using-setuptools/#entry-points), in the `myst_nb.renderers` group.
+So it is possible to inject your own subclass to fully override rendering.
 
-For example, the renderers loaded in this package are:
+For example, the renderer loaded in this package is:
 
-```python
-entry_points={
-    "myst_nb.mime_render": [
-        "default = myst_nb.render_outputs:CellOutputRenderer",
-        "inline = myst_nb.render_outputs:CellOutputRendererInline",
-    ],
-}
+```toml
+[project.entry-points."myst_nb.renderers"]
+default = "myst_nb.core.render:NbElementRenderer"
 ```
 
 You can then select the renderer plugin in your `conf.py`:
 
 ```python
 nb_render_plugin = "default"
+```
+
+Plugins can also override rendering of particular output MIME types,
+using the `myst_nb.mime_renderers` entry point group to supply functions with signature: {py:class}`~myst_nb.core.render.MimeRenderPlugin`.
+
+For example {py:class}`myst_nb.core.render.ExampleMimeRenderPlugin`, is loaded in this package:
+
+```toml
+[project.entry-points."myst_nb.mime_renderers"]
+example = "myst_nb.core.render:ExampleMimeRenderPlugin"
+```
+
+Meaning we can now render `custommimetype` in all output formats:
+
+```{code-cell} ipython3
+from IPython.display import display
+display({"custommimetype": "Some text"}, raw=True)
 ```

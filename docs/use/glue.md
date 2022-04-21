@@ -11,22 +11,28 @@ kernelspec:
   name: python3
 ---
 
-(glue)=
+(glue/main)=
 
 # Insert variables into pages with `glue`
 
-You often wish to run analyses in one notebook and insert them into your
-documents text elsewhere. For example, if you'd like to include a figure,
+You often wish to run analyses in a notebook and insert them into your
+documents text elsewhere.
+For example, if you'd like to include a figure,
 or if you want to cite a statistic that you have run.
 
-The **`glue` submodule** allows you to add a key to variables in a notebook,
-then display those variables in your book by referencing the key.
+The **`glue` submodule** allows you to add a key to variables in a notebook code cell,
+then display those variables in a Markdown cell by referencing the key.
 
 This page describes how to add keys to variables in notebooks, and how to insert them
 into your book's content in a variety of ways.[^download]
 
 [^download]: This notebook can be downloaded as
             **{nb-download}`glue.ipynb`** and {download}`glue.md`
+
+:::{versionchanged} 0.14.0
+The `glue` roles and directives now only identify keys in the same notebook, by default.
+To glue keys from other notebooks, see {ref}`glue/crossdoc`.
+:::
 
 +++
 
@@ -190,7 +196,7 @@ control over how the outputs look in your pages.
 
 +++
 
-## Controling the pasted outputs
+## Controlling the pasted outputs
 
 You can control the pasted outputs by using a sub-command of `{glue:}`. These are called like so:
 `` {glue:subcommand}`key` ``. These subcommands allow you to control more of the look, feel, and
@@ -205,37 +211,53 @@ generic command that doesn't make many assumptions about what you are gluing.
 
 ### The `glue:text` role
 
-The `glue:text` role, is specific to text outputs.
+The `glue:text` role, is specific to `text/plain` outputs.
 For example, the following text:
 
-```
+```md
 The mean of the bootstrapped distribution was {glue:text}`boot_mean` (95% confidence interval {glue:text}`boot_clo`/{glue:text}`boot_chi`).
 ```
 
 Is rendered as:
+
 The mean of the bootstrapped distribution was {glue:text}`boot_mean` (95% confidence interval {glue:text}`boot_clo`/{glue:text}`boot_chi`)
 
 ```{note}
 `glue:text` only works with glued variables that contain a `text/plain` output.
 ```
 
-With `glue:text` we can **add formatting to the output**.
-This is particularly useful if you are displaying numbers and
-want to round the results. To add formatting, use this pattern:
+With `glue:text` we can add formatting to the output, by specifying a format spec string after a `:`: `` {glue:text}`mykey:<format_spec>` ``
 
-* `` {glue:text}`mykey:formatstring` ``
+The `<format_spec>` should be a valid [Python format specifier](https://docs.python.org/3/library/string.html#format-specification-mini-language).
 
-For example, the following: ``My rounded mean: {glue:text}`boot_mean:.2f` `` will be rendered like this: My rounded mean: {glue:text}`boot_mean:.2f` (95% CI: {glue:text}`boot_clo:.2f`/{glue:text}`boot_chi:.2f`).
+This is particularly useful if you are displaying numbers and want to round the results.
+For example, the following: ``My rounded mean: {glue:text}`boot_mean:.2f` `` will be rendered like this:
+
+My rounded mean: {glue:text}`boot_mean:.2f` (95% CI: {glue:text}`boot_clo:.2f`/{glue:text}`boot_chi:.2f`).
 
 +++
 
 ### The `glue:figure` directive
 
 With `glue:figure` you can apply more formatting to figure like objects,
-such as giving them a caption and referencable label:
+such as giving them a caption and referenceable label:
+
+:::{table} `glue:figure` directive options
+| Option | Type | Description |
+| ------ | ---- | ----------- |
+| alt | text | Alternate text of an image |
+| height | length | The desired height of an image |
+| width | length or percentage | The width of an image |
+| scale | percentage | The uniform scaling factor of an image |
+| class | text | A space-separated list of class names for the image |
+| figwidth | length or percentage | The width of the figure |
+| figclass | text | A space-separated list of class names for the figure |
+| name | text | referenceable label for the figure |
+:::
 
 ````md
 ```{glue:figure} boot_fig
+:alt: "Alternative title"
 :figwidth: 300px
 :name: "fig-boot"
 
@@ -244,6 +266,7 @@ This is a **caption**, with an embedded `{glue:text}` element: {glue:text}`boot_
 ````
 
 ```{glue:figure} boot_fig
+:alt: "Alternative title"
 :figwidth: 300px
 :name: "fig-boot"
 
@@ -283,7 +306,14 @@ A caption for a pandas table.
 The `glue:math` directive, is specific to latex math outputs
 (glued variables that contain a `text/latex` mimetype),
 and works similarly to the [sphinx math directive](https://www.sphinx-doc.org/en/1.8/usage/restructuredtext/directives.html#math).
-For example:
+
+:::{table} `glue:math` directive options
+| Option | Type | Description |
+| ------ | ---- | ----------- |
+| nowrap | flag | Prevent any wrapping of the given math in a math environment |
+| class | text | A space-separated list of class names |
+| label or name | text | referenceable label for the figure |
+:::
 
 ```{code-cell} ipython3
 import sympy as sym
@@ -316,20 +346,91 @@ Which we reference as Equation {eq}`eq-sym`.
 `glue:math` only works with glued variables that contain a `text/latex` output.
 ```
 
+### The `glue:md` role/directive
+
+With `glue:md`, you can output `text/markdown`, that will be integrated into your page.
+
+````{code-cell} ipython3
+from IPython.display import Markdown
+glue("inline_md", Markdown(
+  "inline **markdown** with a [link](glue/main), "
+  "and a nested glue value: {glue:}`boot_mean`"
+), display=False)
+glue("block_md", Markdown("""
+#### A heading
+
+Then some text, and anything nested.
+
+```python
+print("Hello world!")
+```
+"""
+), display=False)
+````
+
+The format of the markdown can be specified as:
+
+- `commonmark` (default): Restricted to the [CommonMark specification](https://commonmark.org/).
+- `gfm`: Restricted to the [GitHub-flavored markdown](https://github.github.com/gfm/).
+  - Note, this requires the installation of the [linkify-it-py package](https://pypi.org/project/linkify-it-py)
+- `myst`: The MyST parser configuration for the the current document.
+
+For example, the following role/directive will glue inline/block MyST Markdown, as if it was part of the original document.
+
+````md
+Here is some {glue:md}`inline_md:myst`!
+
+```{glue:md} block_md
+:format: myst
+```
+````
+
+Here is some {glue:md}`inline_md:myst`!
+
+```{glue:md} block_md
+:format: myst
+```
+
++++
+
+(glue/crossdoc)=
+## Pasting from other notebooks
+
+Certain `glue` roles and directives can be used to paste content from other notebooks,
+by specifying the (relative) path to them.
+
+:::{tip}
+Sometimes you'd like to use variables from notebooks that are not meant to be shown to users.
+In this case, you should bundle the notebook with the rest of your content pages, but include `orphan: true` in the metadata of the notebook.
+:::
+
+For example, the following example pastes glue variables from {ref}`orphaned-nb`:
+
+````markdown
+- A cross-pasted `any` role: {glue:}`orphaned_nb.ipynb::var_text`
+- A cross-pasted `text` role: {glue:text}`orphaned_nb.ipynb::var_float:.2E`
+
+A cross-pasted `any` directive:
+
+```{glue:} var_text
+:doc: orphaned_nb.ipynb
+```
+````
+
+- A cross-pasted `any` role: {glue:}`orphaned_nb.ipynb::var_text`
+- A cross-pasted `text` role: {glue:text}`orphaned_nb.ipynb::var_float:.2E`
+
+A cross-pasted `any` directive:
+
+```{glue:} var_text
+:doc: orphaned_nb.ipynb
+```
+
 +++
 
 ## Advanced glue usecases
 
 Here are a few more specific and advanced uses of the `glue` submodule.
-
-### Pasting from pages you don't include in the documentation
-
-Sometimes you'd like to use variables from notebooks that are not meant to be
-shown to users. In this case, you should bundle the notebook with the rest of your
-content pages, but include `orphan:` in the metadata of the notebook.
-
-For example, the following text: `` {glue:}`orphaned_var` was created in {ref}`orphaned-nb` ``.
-Results in: {glue:}`orphaned_var` was created in {ref}`orphaned-nb`
 
 ### Pasting into tables
 
@@ -338,10 +439,10 @@ into tables. This allows you to compose complex collections of structured data u
 that were generated in other notebooks. For example the following table:
 
 ````md
-| name                            |       plot                  | mean                      | ci                                                |
-|:-------------------------------:|:---------------------------:|---------------------------|---------------------------------------------------|
-| histogram and raw text          | {glue:}`boot_fig`             | {glue:}`boot_mean`          | {glue:}`boot_clo`-{glue:}`boot_chi`                   |
-| sorted means and formatted text | {glue:}`sorted_means_fig`     | {glue:text}`boot_mean:.3f` | {glue:text}`boot_clo:.3f`-{glue:text}`boot_chi:.3f` |
+| name                            |       plot                  | mean                      | ci                                                 |
+|:-------------------------------:|:---------------------------:|---------------------------|----------------------------------------------------|
+| histogram and raw text          | {glue:}`boot_fig`           | {glue:}`boot_mean`        | {glue:}`boot_clo`-{glue:}`boot_chi`                |
+| sorted means and formatted text | {glue:}`sorted_means_fig`   | {glue:text}`boot_mean:.3f`| {glue:text}`boot_clo:.3f`-{glue:text}`boot_chi:.3f`|
 ````
 
 Results in:
