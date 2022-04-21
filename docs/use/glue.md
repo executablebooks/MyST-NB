@@ -240,10 +240,24 @@ My rounded mean: {glue:text}`boot_mean:.2f` (95% CI: {glue:text}`boot_clo:.2f`/{
 ### The `glue:figure` directive
 
 With `glue:figure` you can apply more formatting to figure like objects,
-such as giving them a caption and referencable label:
+such as giving them a caption and referenceable label:
+
+:::{table} `glue:figure` directive options
+| Option | Type | Description |
+| ------ | ---- | ----------- |
+| alt | text | Alternate text of an image |
+| height | length | The desired height of an image |
+| width | length or percentage | The width of an image |
+| scale | percentage | The uniform scaling factor of an image |
+| class | text | A space-separated list of class names for the image |
+| figwidth | length or percentage | The width of the figure |
+| figclass | text | A space-separated list of class names for the figure |
+| name | text | referenceable label for the figure |
+:::
 
 ````md
 ```{glue:figure} boot_fig
+:alt: "Alternative title"
 :figwidth: 300px
 :name: "fig-boot"
 
@@ -252,6 +266,7 @@ This is a **caption**, with an embedded `{glue:text}` element: {glue:text}`boot_
 ````
 
 ```{glue:figure} boot_fig
+:alt: "Alternative title"
 :figwidth: 300px
 :name: "fig-boot"
 
@@ -291,7 +306,14 @@ A caption for a pandas table.
 The `glue:math` directive, is specific to latex math outputs
 (glued variables that contain a `text/latex` mimetype),
 and works similarly to the [sphinx math directive](https://www.sphinx-doc.org/en/1.8/usage/restructuredtext/directives.html#math).
-For example:
+
+:::{table} `glue:math` directive options
+| Option | Type | Description |
+| ------ | ---- | ----------- |
+| nowrap | flag | Prevent any wrapping of the given math in a math environment |
+| class | text | A space-separated list of class names |
+| label or name | text | referenceable label for the figure |
+:::
 
 ```{code-cell} ipython3
 import sympy as sym

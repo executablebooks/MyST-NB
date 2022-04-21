@@ -24,6 +24,7 @@ from myst_parser.main import MdParserConfig, create_md_parser
 from nbformat import NotebookNode
 from typing_extensions import Protocol
 
+from myst_nb.core.config import NbParserConfig
 from myst_nb.core.loggers import DEFAULT_LOG_TYPE, LoggerType
 
 if TYPE_CHECKING:
@@ -95,6 +96,11 @@ class NbElementRenderer:
         return self._renderer
 
     @property
+    def config(self) -> NbParserConfig:
+        """The notebook parser config"""
+        return self._renderer.nb_config
+
+    @property
     def logger(self) -> LoggerType:
         """The logger for this renderer.
 
@@ -126,7 +132,7 @@ class NbElementRenderer:
 
         :returns: URI to use for referencing the file
         """
-        output_folder = self.renderer.nb_config.output_folder
+        output_folder = self.config.output_folder
         filepath = Path(output_folder).joinpath(*path)
         if not output_folder:
             pass  # do not output anything if output_folder is not set (docutils only)
@@ -183,9 +189,7 @@ class NbElementRenderer:
                     "body": sanitize_script_content(json.dumps(ipywidgets_mime)),
                 },
             )
-            for i, (path, kwargs) in enumerate(
-                self.renderer.nb_config.ipywidgets_js.items()
-            ):
+            for i, (path, kwargs) in enumerate(self.config.ipywidgets_js.items()):
                 self.add_js_file(f"ipywidgets_{i}", path, kwargs)
 
         return metadata
