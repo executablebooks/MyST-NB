@@ -1,19 +1,12 @@
 ---
-jupytext:
-  cell_metadata_filter: -all
-  formats: md:myst
-  text_representation:
-    extension: .md
-    format_name: myst
-    format_version: '0.8'
-    jupytext_version: 1.4.2
+file_format: mystnb
 kernelspec:
   display_name: Python 3
   language: python
   name: python3
 ---
 
-# Execute and cache your content
+# Execute and cache
 
 MyST-NB can automatically run and cache notebooks contained in your project using [jupyter-cache].
 Notebooks can either be run each time the documentation is built, or cached locally so that re-runs occur only when code cells have changed.

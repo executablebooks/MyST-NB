@@ -104,6 +104,7 @@ testing = [
 ]
 
 [project.scripts]
+mystnb-quickstart = "myst_nb.cli:quickstart"
 mystnb-docutils-html = "myst_nb.docutils_:cli_html"
 mystnb-docutils-html5 = "myst_nb.docutils_:cli_html5"
 mystnb-docutils-latex = "myst_nb.docutils_:cli_latex"

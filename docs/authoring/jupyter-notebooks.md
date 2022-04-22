@@ -1,23 +1,18 @@
 ---
-jupytext:
-  text_representation:
-    extension: .md
-    format_name: myst
-    format_version: '0.8'
-    jupytext_version: '1.4.1'
+file_format: mystnb
 kernelspec:
   display_name: Python 3
   language: python
   name: python3
 ---
 
-# An example Jupyter Notebook
+# Jupyter Notebooks
 
 This notebook is a demonstration of directly-parsing Jupyter Notebooks into
 Sphinx using the MyST parser.[^download]
 
 [^download]: This notebook can be downloaded as
-            **{nb-download}`basic.ipynb`** and {download}`basic.md`
+            **{nb-download}`jupyter-notebooks.ipynb`** and {download}`jupyter-notebooks.md`
 
 ## Markdown
 

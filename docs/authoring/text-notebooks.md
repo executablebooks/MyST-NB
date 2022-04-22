@@ -1,16 +1,10 @@
 ---
-jupytext:
-  text_representation:
-    extension: .md
-    format_name: myst
-    format_version: '0.8'
-    jupytext_version: '1.4.1'
+file_format: mystnb
 kernelspec:
   display_name: Python 3
-  language: python
   name: python3
 ---
-# MyST Markdown Notebooks
+# Text-based Notebooks
 
 MyST Markdown Notebooks allow you to write your Jupyter Notebook
 entirely in markdown using the
@@ -19,7 +13,7 @@ This allows you to store notebook metadata,
 markdown, and cell inputs in a text-based format that is easy
 to read and use with text-based tools.
 
-MyST Notebooks can be [parsed directly into Sphinx](myst-nb/sphinx)
+MyST Notebooks can be [parsed directly into Sphinx](myst-nb/text-based)
 with the `myst_nb` Sphinx extension, and are similarly-supported as
 [Jupyter Book inputs as well](myst-nb/jupyter-book). [^download]
 
@@ -30,7 +24,7 @@ When used with Sphinx, MyST Notebooks are also integrated
 directly into the {ref}`Execution and Caching <execute/cache>` machinery!
 
 [^download]: This notebook can be downloaded as
-            **{nb-download}`markdown.ipynb`** and {download}`markdown.md`
+            **{nb-download}`text-notebooks.ipynb`** and {download}`text-notebooks.md`
 
 ## The MyST Notebook Structure
 
@@ -207,7 +201,7 @@ raise ValueError("oopsie!")
 ```
 
 (converting-ipynb)=
-## Convert between `ipynb` and MyST Notebooks
+## Convert between `.ipynb` and MyST Notebooks
 
 MyST Notebooks can be converted back-and-forth from `ipynb` files using
 [jupytext](https://jupytext.readthedocs.io), a Python library for two-way
@@ -218,18 +212,16 @@ conversion of `ipynb` files with many text-based formats.
 
 For more information, see the [Jupytext Documentation](https://jupytext.readthedocs.io).
 
-(myst-nb/sphinx)=
+(myst-nb/text-based)=
 ## MyST Notebooks in Sphinx
 
 In order to signal MyST-NB that it should treat your markdown file as a notebook,
-add the following Jupytext configuration to your notebook-level metadata (by adding it to
+add the following configuration to your notebook-level metadata (by adding it to
 the YAML front-matter at the beginning of the file).
 
 ```md
 ---
-jupytext:
-  text_representation:
-    format_name: myst
+file_format: mystnb
 kernelspec:
   display_name: Python 3
   name: python3
@@ -245,13 +237,7 @@ Sphinx extension:
 
 ````md
 ---
-jupytext:
-  formats: md:myst
-  text_representation:
-    extension: .md
-    format_name: myst
-    format_version: '0.8'
-    jupytext_version: 1.4.1+dev
+file_format: mystnb
 kernelspec:
   display_name: Python 3
   language: python

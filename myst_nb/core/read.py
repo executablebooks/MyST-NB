@@ -97,7 +97,13 @@ def create_nb_reader(
 def is_myst_markdown_notebook(text: str | Iterator[str]) -> bool:
     """Check if the input is a MyST Markdown notebook.
 
-    This is identified by the presence of a top-matter section, containing::
+    This is identified by the presence of a top-matter section, containing either::
+
+        ---
+        file_format: mystnb
+        ---
+
+    or::
 
         ---
         jupytext:
@@ -127,6 +133,8 @@ def is_myst_markdown_notebook(text: str | Iterator[str]) -> bool:
         assert isinstance(metadata, dict)
     except Exception:
         return False
+    if "file_format" in metadata and metadata["file_format"] == "mystnb":
+        return True
     if (
         metadata.get("jupytext", {})
         .get("text_representation", {})

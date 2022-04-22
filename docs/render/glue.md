@@ -1,10 +1,5 @@
 ---
-jupytext:
-  text_representation:
-    extension: .md
-    format_name: myst
-    format_version: '0.8'
-    jupytext_version: '1.4.1'
+file_format: mystnb
 kernelspec:
   display_name: Python 3
   language: python
@@ -13,7 +8,7 @@ kernelspec:
 
 (glue/main)=
 
-# Insert variables into pages with `glue`
+# Embedding outputs as variables
 
 You often wish to run analyses in a notebook and insert them into your
 documents text elsewhere.

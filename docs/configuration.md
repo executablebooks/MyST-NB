@@ -1,6 +1,8 @@
 
 (config/reference)=
-# Configuration reference
+# Configuration
+
+% TODO highlight how can be global (+prefix), notebook, cell level
 
 This page lists the configuration options that are available to control MyST-NB.
 For more detailed explanation of when to use each option, see the other sections in the documentation.
@@ -57,22 +59,22 @@ These configuration options affect the look and feel of notebook parsing and out
   - Description
 * - `nb_custom_formats`
   - `{}`
-  - Define custom functions for conversion of files to notebooks, [see here](examples/custom_formats) for details.
+  - Define custom functions for conversion of files to notebooks, [see here](write/custom_formats) for details.
 * - `nb_mime_priority_overrides`
   - `()`
-  - Dict override for MIME type render priority, [see here](use/format/priority) for details.
+  - Dict override for MIME type render priority, [see here](render/output/priority) for details.
 * - `nb_render_plugin`
   - `default`
-  - Entry point pointing toward a code cell output renderer, [see here](use/format/cutomise) for details.
+  - Entry point pointing toward a code cell output renderer, [see here](render/output/cutomise) for details.
 * - `nb_render_text_lexer`
   - `myst-ansi`
-  - pygments lexer for rendering text outputs, [see here](use/format/ansi) for details.
+  - pygments lexer for rendering text outputs, [see here](render/output/ansi) for details.
 * - `nb_render_key`
   - `render`
-  - The top-level cell metadata key, to store render control data, [see here](use/format/images) for examples.
+  - The top-level cell metadata key, to store render control data, [see here](render/output/images) for examples.
 * - `nb_output_stderr`
   - `show`
-  - One of 'show', 'remove', 'warn', 'error' or 'severe', [see here](use/format/stderr) for details.
+  - One of 'show', 'remove', 'warn', 'error' or 'severe', [see here](render/output/stderr) for details.
 * - `nb_merge_streams`
   - `False`
   - If `True`, ensure all stdout / stderr output streams are merged into single outputs. This ensures deterministic outputs.
@@ -84,3 +86,27 @@ These configuration options affect the look and feel of notebook parsing and out
 ```{mystnb-config}
 :sphinx:
 ```
+
+(myst/error-reporting)=
+
+## Error reporting in Sphinx
+
+When Sphinx encounters and error or raises a warning, it will print the location and source file of the text that generated that error.
+This works slightly differently depending on whether you use markdown files or Jupyter Notebook files.
+
+For markdown (`.md`) files, Sphinx will correctly report the line number that the error or warning is associated with:
+
+```
+source/path:4: (WARNING/2) Duplicate reference definition: abc
+```
+
+For Jupyter Notebook (`.ipynb`) files, these errors also correspond to a cell index.
+To allow for this, we use a special format of line number corresponding to: `<CELL_INDEX> * 10000 + LINE_NUMBER`.
+
+For example, the following error corresponds to **Cell 1, line 4**:
+
+```
+source/path:10004: (WARNING/2) Duplicate reference definition: abc
+```
+
+% TODO talk about suppress_warnings
