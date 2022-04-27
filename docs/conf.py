@@ -277,5 +277,31 @@ def setup(app):
             self.state.nested_parse(text, 0, node)
             return node.children
 
+    class DocutilsCliHelpDirective(SphinxDirective):
+        """Directive to print the docutils CLI help."""
+
+        has_content = False
+        required_arguments = 0
+        optional_arguments = 0
+        final_argument_whitespace = False
+        option_spec = {}
+
+        def run(self):
+            """Run the directive."""
+            import io
+
+            from docutils import nodes
+            from docutils.frontend import OptionParser
+
+            from myst_nb.docutils_ import Parser as DocutilsParser
+
+            stream = io.StringIO()
+            OptionParser(
+                components=(DocutilsParser,),
+                usage="mystnb-docutils-<writer> [options] [<source> [<destination>]]",
+            ).print_help(stream)
+            return [nodes.literal_block("", stream.getvalue())]
+
     app.add_directive("myst-config", MystConfigDirective)
     app.add_directive("mystnb-config", MystNbConfigDirective)
+    app.add_directive("docutils-cli-help", DocutilsCliHelpDirective)

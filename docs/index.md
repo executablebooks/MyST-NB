@@ -27,7 +27,7 @@ sd_hide_title: true
 ```{rubric} Jupyter Notebook Publishing
 ```
 
-A Docutils and Sphinx extension for compiling Jupyter Notebooks into high quality documentation formats.
+A Sphinx and Docutils extension for compiling Jupyter Notebooks into high quality documentation formats.
 
 ```{button-ref} quickstart
 :ref-type: doc
@@ -58,14 +58,14 @@ Use MyST Markdown syntax to support technical authoring features such as cross-r
 :::
 
 :::{grid-item-card} {material-regular}`published_with_changes;2em` Compute
-:link: computation/index
-:link-type: doc
+:link: execute/intro
+:link-type: ref
 
 Generate dynamic outputs using Jupyter kernels, with configurable execution handling.\
 Cache execution outputs, for fast re-builds.
 
 +++
-[Learn more »](computation/index)
+[Learn more »](execute/intro)
 :::
 
 :::{grid-item-card} {material-regular}`preview;2em` Render
@@ -110,6 +110,7 @@ authoring/index
 computation/index
 render/index
 configuration
+docutils
 ```
 
 ```{toctree}

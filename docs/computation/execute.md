@@ -4,6 +4,7 @@ kernelspec:
   name: python3
 ---
 
+(execute/intro)=
 # Execute and cache
 
 MyST-NB can automatically run and cache notebooks contained in your project using [jupyter-cache].

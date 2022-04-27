@@ -9,5 +9,4 @@ format_outputs
 hiding
 glue
 interactive
-docutils
 ```
