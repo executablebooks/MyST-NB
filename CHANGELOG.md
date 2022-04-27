@@ -1,14 +1,24 @@
 # Change Log
 
+## v0.14.0 - 2022-04-27
+
+This release encompasses a **major** rewrite of the entire library and its documentation, primarily in [#380](https://github.com/executablebooks/MyST-NB/pull/380) and [#405](https://github.com/executablebooks/MyST-NB/pull/405).
+
+
+### Additional Pull Requests
+
+- 👌 IMPROVE: Update ANSI CSS colors by @saulshanabrook in [#384](https://github.com/executablebooks/MyST-NB/pull/384)
+- ✨ NEW: Add `nb_execution_raise_on_error` config by @chrisjsewell in [#404](https://github.com/executablebooks/MyST-NB/pull/404)
+- 👌 IMPROVE: Add image options to `glue:figure` by @chrisjsewell in [#403](https://github.com/executablebooks/MyST-NB/pull/403)
+
 ## v0.13.2 - 2022-02-10
 
 This release improves for cell outputs and brings UI improvements for toggling cell inputs and outputs.
 It also includes several bugfixes.
 
--  Add CSS support for 8-bit ANSI colours [#379](https://github.com/executablebooks/MyST-NB/pull/379) ([@thiippal](https://github.com/thiippal))
+- Add CSS support for 8-bit ANSI colours [#379](https://github.com/executablebooks/MyST-NB/pull/379) ([@thiippal](https://github.com/thiippal))
 - Use configured `nb_render_plugin` for glue nodes [#337](https://github.com/executablebooks/MyST-NB/pull/337) ([@bryanwweber](https://github.com/bryanwweber))
 - UPGRADE: sphinx-togglebutton v0.3.0 [#390](https://github.com/executablebooks/MyST-NB/pull/390) ([@choldgraf](https://github.com/choldgraf))
-
 
 ## 0.13.1 - 2021-10-04
 
