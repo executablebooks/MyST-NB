@@ -119,4 +119,6 @@ See the [](authoring/text-notebooks) section, for more details on text-based not
 
 ## Configuration
 
-...
+MyST-NB parsing, execution and rendering can be configured at three levels of specificity; globally, per file, and per notebook cell, with the most specific configuration taking precedence.
+
+See the [](config/intro) section, for more details on how to configure MyST-NB.
