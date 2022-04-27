@@ -1,6 +1,7 @@
 """Configuration for myst-nb."""
 import dataclasses as dc
-from typing import Any, Dict, Iterable, Optional, Sequence, Tuple
+from enum import Enum
+from typing import Any, Callable, Dict, Iterable, Optional, Sequence, Tuple
 
 from myst_parser.dc_validators import (
     ValidatorType,
@@ -91,6 +92,25 @@ def has_items(*validators) -> ValidatorType:
     return _validator
 
 
+class Section(Enum):
+    """Config section tags."""
+
+    global_lvl = "global"
+    """Global level configuration."""
+    file_lvl = "notebook"
+    """File level configuration."""
+    cell_lvl = "cell"
+    """Cell level configuration."""
+    config = "config"
+    """Meta configuration."""
+    read = "read"
+    """Configuration for reading files."""
+    execute = "execute"
+    """Configuration for executing notebooks."""
+    render = "render"
+    """Configuration for rendering notebook elements."""
+
+
 @dc.dataclass()
 class NbParserConfig:
     """Global configuration options for the MyST-NB parser.
@@ -110,6 +130,7 @@ class NbParserConfig:
         metadata={
             "help": "Custom formats for reading notebook; suffix -> reader",
             "docutils_exclude": True,
+            "sections": (Section.global_lvl, Section.read),
         },
     )
     # docutils does not support the custom formats mechanism
@@ -137,10 +158,20 @@ class NbParserConfig:
     # see also:
     # https://nbformat.readthedocs.io/en/latest/format_description.html#cell-metadata
     metadata_key: str = dc.field(
-        default="mystnb",  # TODO agree this as the default
+        default="mystnb",
         metadata={
             "validator": instance_of(str),
             "help": "Notebook level metadata key for config overrides",
+            "sections": (Section.global_lvl, Section.config),
+        },
+    )
+    cell_metadata_key: str = dc.field(
+        default="mystnb",
+        metadata={
+            "validator": instance_of(str),
+            "help": "Cell level metadata key for config overrides",
+            "legacy_name": "nb_render_key",
+            "sections": (Section.global_lvl, Section.file_lvl, Section.config),
         },
     )
 
@@ -159,14 +190,16 @@ class NbParserConfig:
             ),
             "help": "Execution mode for notebooks",
             "legacy_name": "jupyter_execute_notebooks",
+            "sections": (Section.global_lvl, Section.file_lvl, Section.execute),
         },
     )
     execution_cache_path: str = dc.field(
         default="",  # No default, so that sphinx can set it inside outdir, if empty
         metadata={
             "validator": instance_of(str),
-            "help": "Path to folder for caching notebooks",
+            "help": "Path to folder for caching notebooks (default: <outdir>)",
             "legacy_name": "jupyter_cache",
+            "sections": (Section.global_lvl, Section.file_lvl, Section.execute),
         },
     )
     execution_excludepatterns: Sequence[str] = dc.field(
@@ -176,6 +209,7 @@ class NbParserConfig:
             "help": "Exclude (POSIX) glob patterns for notebooks",
             "legacy_name": "execution_excludepatterns",
             "docutils_exclude": True,
+            "sections": (Section.global_lvl, Section.execute),
         },
     )
     execution_timeout: int = dc.field(
@@ -184,6 +218,7 @@ class NbParserConfig:
             "validator": instance_of(int),
             "help": "Execution timeout (seconds)",
             "legacy_name": "execution_timeout",
+            "sections": (Section.global_lvl, Section.file_lvl, Section.execute),
         },
     )
     execution_in_temp: bool = dc.field(
@@ -192,6 +227,7 @@ class NbParserConfig:
             "validator": instance_of(bool),
             "help": "Use temporary folder for the execution current working directory",
             "legacy_name": "execution_in_temp",
+            "sections": (Section.global_lvl, Section.file_lvl, Section.execute),
         },
     )
     execution_allow_errors: bool = dc.field(
@@ -200,6 +236,7 @@ class NbParserConfig:
             "validator": instance_of(bool),
             "help": "Allow errors during execution",
             "legacy_name": "execution_allow_errors",
+            "sections": (Section.global_lvl, Section.file_lvl, Section.execute),
         },
     )
     execution_raise_on_error: bool = dc.field(
@@ -208,6 +245,7 @@ class NbParserConfig:
             "validator": instance_of(bool),
             "help": "Raise an exception on failed execution, "
             "rather than emitting a warning",
+            "sections": (Section.global_lvl, Section.file_lvl, Section.execute),
         },
     )
     execution_show_tb: bool = dc.field(  # TODO implement
@@ -216,6 +254,7 @@ class NbParserConfig:
             "validator": instance_of(bool),
             "help": "Print traceback to stderr on execution error",
             "legacy_name": "execution_show_tb",
+            "sections": (Section.global_lvl, Section.file_lvl, Section.execute),
         },
     )
 
@@ -226,7 +265,12 @@ class NbParserConfig:
         metadata={
             "validator": instance_of(bool),
             "help": "Merge stdout/stderr execution output streams",
-            "cell_metadata": True,
+            "sections": (
+                Section.global_lvl,
+                Section.file_lvl,
+                Section.cell_lvl,
+                Section.render,
+            ),
         },
     )
 
@@ -238,14 +282,7 @@ class NbParserConfig:
             "validator": instance_of(str),
             "help": "The entry point for the execution output render class "
             "(in group `myst_nb.output_renderer`)",
-        },
-    )
-    cell_render_key: str = dc.field(
-        default="render",
-        metadata={
-            "validator": instance_of(str),
-            "help": "Cell level metadata key to use for render config",
-            "legacy_name": "nb_render_key",
+            "sections": (Section.global_lvl, Section.file_lvl, Section.render),
         },
     )
     remove_code_source: bool = dc.field(
@@ -253,7 +290,12 @@ class NbParserConfig:
         metadata={
             "validator": instance_of(bool),
             "help": "Remove code cell source",
-            "cell_metadata": True,
+            "sections": (
+                Section.global_lvl,
+                Section.file_lvl,
+                Section.cell_lvl,
+                Section.render,
+            ),
         },
     )
     remove_code_outputs: bool = dc.field(
@@ -261,7 +303,12 @@ class NbParserConfig:
         metadata={
             "validator": instance_of(bool),
             "help": "Remove code cell outputs",
-            "cell_metadata": True,
+            "sections": (
+                Section.global_lvl,
+                Section.file_lvl,
+                Section.cell_lvl,
+                Section.render,
+            ),
         },
     )
     number_source_lines: bool = dc.field(
@@ -269,7 +316,12 @@ class NbParserConfig:
         metadata={
             "validator": instance_of(bool),
             "help": "Number code cell source lines",
-            "cell_metadata": True,
+            "sections": (
+                Section.global_lvl,
+                Section.file_lvl,
+                Section.cell_lvl,
+                Section.render,
+            ),
         },
     )
     # we cannot directly obtain a sphinx builder name from docutils,
@@ -295,6 +347,7 @@ class NbParserConfig:
             "list of (builder name, mime type, priority)",
             # TODO how to allow this in docutils?
             "docutils_exclude": True,
+            "sections": (Section.global_lvl, Section.file_lvl, Section.render),
         },
         repr=False,
     )
@@ -314,7 +367,12 @@ class NbParserConfig:
                 ]
             ),
             "help": "Behaviour for stderr output",
-            "cell_metadata": True,
+            "sections": (
+                Section.global_lvl,
+                Section.file_lvl,
+                Section.cell_lvl,
+                Section.render,
+            ),
         },
     )
     render_text_lexer: str = dc.field(
@@ -324,7 +382,13 @@ class NbParserConfig:
         metadata={
             "validator": optional(instance_of(str)),
             "help": "Pygments lexer applied to stdout/stderr and text/plain outputs",
-            "cell_metadata": "text_lexer",
+            "cell_key": "text_lexer",
+            "sections": (
+                Section.global_lvl,
+                Section.file_lvl,
+                Section.cell_lvl,
+                Section.render,
+            ),
         },
     )
     render_error_lexer: str = dc.field(
@@ -334,7 +398,13 @@ class NbParserConfig:
         metadata={
             "validator": optional(instance_of(str)),
             "help": "Pygments lexer applied to error/traceback outputs",
-            "cell_metadata": "error_lexer",
+            "cell_key": "error_lexer",
+            "sections": (
+                Section.global_lvl,
+                Section.file_lvl,
+                Section.cell_lvl,
+                Section.render,
+            ),
         },
     )
     render_image_options: Dict[str, str] = dc.field(
@@ -345,7 +415,29 @@ class NbParserConfig:
             "help": "Options for image outputs (class|alt|height|width|scale|align)",
             "docutils_exclude": True,
             # TODO backward-compatible change to "image_options"?
-            "cell_metadata": "image",
+            "cell_key": "image",
+            "sections": (
+                Section.global_lvl,
+                Section.file_lvl,
+                Section.cell_lvl,
+                Section.render,
+            ),
+        },
+    )
+    render_figure_options: Dict[str, str] = dc.field(
+        default_factory=dict,
+        # see https://docutils.sourceforge.io/docs/ref/rst/directives.html#figure
+        metadata={
+            "validator": deep_mapping(instance_of(str), instance_of((str, int))),
+            "help": "Options for figure outputs (classes|name|caption|caption_before)",
+            "docutils_exclude": True,
+            "cell_key": "figure",
+            "sections": (
+                Section.global_lvl,
+                Section.file_lvl,
+                Section.cell_lvl,
+                Section.render,
+            ),
         },
     )
     render_markdown_format: Literal["commonmark", "gfm", "myst"] = dc.field(
@@ -353,7 +445,13 @@ class NbParserConfig:
         metadata={
             "validator": in_(["commonmark", "gfm", "myst"]),
             "help": "The format to use for text/markdown rendering",
-            "cell_metadata": "markdown_format",
+            "cell_key": "markdown_format",
+            "sections": (
+                Section.global_lvl,
+                Section.file_lvl,
+                Section.cell_lvl,
+                Section.render,
+            ),
         },
     )
     # TODO jupyter_sphinx_require_url and jupyter_sphinx_embed_url (undocumented),
@@ -367,6 +465,7 @@ class NbParserConfig:
             ),
             "help": "Javascript to be loaded on pages containing ipywidgets",
             "docutils_exclude": True,
+            "sections": (Section.global_lvl, Section.render),
         },
         repr=False,
     )
@@ -422,3 +521,56 @@ class NbParserConfig:
             return getattr(self, field)
         except AttributeError:
             raise KeyError(field)
+
+    def get_cell_level_config(
+        self,
+        field_name: str,
+        cell_metadata: Dict[str, Any],
+        warning_callback: Callable[[str, str], Any],
+    ) -> Any:
+        """Get a configuration value at the cell level.
+
+        Takes the highest priority configuration from:
+        `cell > document > global > default`
+
+        :param field: the field name to get the value for
+        :param cell_metadata: the metadata for the cell
+        :param warning_callback: a callback to use to warn about issues (msg, subtype)
+
+        :raises KeyError: if the field is not found
+        """
+        field: dc.Field = self.__dataclass_fields__[field_name]
+
+        cell_key = field.metadata.get("cell_key", field.name)
+
+        if (
+            self.cell_metadata_key not in cell_metadata
+            and "render" in cell_metadata
+            and isinstance(cell_metadata["render"], dict)
+            and cell_key in cell_metadata["render"]
+        ):
+            warning_callback(
+                f"Deprecated `cell_metadata_key` 'render' "
+                f"found, replace with {self.cell_metadata_key!r}",
+                "cell_metadata_key",
+            )
+            cell_meta = cell_metadata["render"]
+        else:
+            cell_meta = cell_metadata.get(self.cell_metadata_key, None)
+
+        if cell_meta:
+            try:
+                if cell_key in cell_meta:
+                    value = cell_meta[cell_key]
+                    if "validator" in field.metadata:
+                        if isinstance(field.metadata["validator"], list):
+                            for validator in field.metadata["validator"]:
+                                validator(self, field, value)
+                        else:
+                            field.metadata["validator"](self, field, value)
+                    return value
+            except Exception as exc:
+                warning_callback(f"Cell metadata invalid: {exc}", "cell_config")
+
+        # default/global/file level should have already been merged
+        return getattr(self, field.name)

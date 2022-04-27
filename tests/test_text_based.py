@@ -10,7 +10,7 @@ def test_basic_run(sphinx_run, file_regression, check_nbs):
     # print(sphinx_run.status())
     assert sphinx_run.warnings() == ""
     assert set(sphinx_run.env.metadata["basic_unrun"].keys()) == {
-        "jupytext",
+        "file_format",
         "author",
         "source_map",
         "wordcount",
@@ -42,7 +42,7 @@ def test_basic_run_exec_off(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
     # print(sphinx_run.status())
     assert set(sphinx_run.env.metadata["basic_unrun"].keys()) == {
-        "jupytext",
+        "file_format",
         "author",
         "source_map",
         "wordcount",

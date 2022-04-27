@@ -104,7 +104,7 @@ def render_glue_output(
     """
     cell_metadata = {}
     if render:
-        cell_metadata[data.nb_renderer.config.cell_render_key] = render
+        cell_metadata[data.nb_renderer.config.cell_metadata_key] = render
     if is_sphinx(document):
         _nodes = _render_output_sphinx(
             data.nb_renderer,

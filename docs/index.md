@@ -1,75 +1,125 @@
-# MyST-NB
+---
+sd_hide_title: true
+---
 
-**Read, write, and execute Jupyter Notebooks in Docutils and Sphinx**
+# Overview
 
-`MyST-NB` is a reference implementation of MyST Markdown Notebooks, and
-an open source tool for working with Jupyter Notebooks in the
-Sphinx ecosystem. It provides the following primary features:
+::::{grid}
+:reverse:
+:gutter: 3 4 4 4
+:margin: 1 2 1 2
 
-* **{ref}`Parse ipynb files in Sphinx<installation>`**. Directly convert Jupyter
-  Notebooks into Sphinx documents.
-* [**Execute and Cache your notebook content**](use/execute.md).
-  Save time building your documentation without needing to commit your notebook outputs
-  directly into `git`.
-* **{doc}`Write MyST Markdown<use/myst>`**. MyST Markdown
-  allows you to write Sphinx roles and directives in markdown.
-* **{doc}`Insert notebook outputs into your content <use/glue>`**. Generate outputs
-  as you build your documentation, and insert them across pages.
-* **{doc}`Write Jupyter Notebooks entirely with Markdown <use/markdown>`**. You can
-  define the structure of a notebook *in pure-text* making it more diff-able.
+:::{grid-item}
+:columns: 12 4 4 4
 
-In addition, there are several options for controlling the look and feel of how your
-notebooks are used in your documentation. See the documentation pages to the left for
-more information.
+```{image} _static/logo-square.svg
+:width: 200px
+:class: sd-m-auto
+```
 
-(installation)=
-## Installation and basic usage
+:::
 
-To install `myst-nb`, do the following:
+:::{grid-item}
+:columns: 12 8 8 8
+:child-align: justify
+:class: sd-fs-5
 
-* Install `myst-nb` with the following command:
+```{rubric} Jupyter Notebook Publishing
+```
 
-  ```bash
-  pip install myst-nb
-  ```
+A Sphinx and Docutils extension for compiling Jupyter Notebooks into high quality documentation formats.
 
-* Enable the `myst_nb` extension in your Sphinx repository's extensions:
+```{button-ref} quickstart
+:ref-type: doc
+:color: primary
+:class: sd-rounded-pill
 
-  ```python
-  extensions = [
-      ...,
-      "myst_nb"
-  ]
-  ```
+Get Started
+```
 
-  By default, MyST-NB will parse both markdown (`.md`) and notebooks (`.ipynb`).
+:::
 
-* Write Jupyter Notebooks with your built documentation, and remember to include them
-  in your `toctree`, and that's it!
+::::
 
-## Customize and configure
+----------------
 
-For information on using and configuring MyST-NB, as well as some examples of notebook
-outputs, see the pages below:
+::::{grid} 1 3 3 3
+:gutter: 1 1 1 2
+
+:::{grid-item-card} {material-regular}`edit_note;2em` Write
+:link: authoring/intro
+:link-type: ref
+
+Mix Jupyter notebooks with text-based notebooks, Markdown and RST documents.\
+Use MyST Markdown syntax to support technical authoring features such as cross-referencing, figures, and admonitions.
+
++++
+[Learn more »](authoring/intro)
+:::
+
+:::{grid-item-card} {material-regular}`published_with_changes;2em` Compute
+:link: execute/intro
+:link-type: ref
+
+Generate dynamic outputs using Jupyter kernels, with configurable execution handling.\
+Cache execution outputs, for fast re-builds.
+
++++
+[Learn more »](execute/intro)
+:::
+
+:::{grid-item-card} {material-regular}`preview;2em` Render
+:link: render/output
+:link-type: ref
+
+Convert Jupyter execution outputs to embedded content.\
+Insert outputs as variables into your documents.\
+Build single or collections of documents into multiple formats, including HTML websites and PDF books.
+
++++
+[Learn more »](render/output)
+:::
+
+::::
+
+----------------
+
+MyST-NB is a module within the [Executable Books Project](https://executablebooks.org),
+an international collaboration to build open source tools that facilitate publishing computational narratives using the Jupyter ecosystem.
+It is also a core component of [Jupyter Book](jb:intro).
+
+Check out the [Gallery of Jupyter Books](https://executablebooks.org/en/latest/gallery.html),
+for inspiration from across the community.
+
+See also, the [MyST-Markdown VS Code extension](https://marketplace.visualstudio.com/items?itemName=ExecutableBookProject.myst-highlight)
+and [jupyterlab-myst](https://github.com/executablebooks/jupyterlab-myst), for editor tools to author your notebooks.
 
 ```{toctree}
+:hidden:
 :maxdepth: 2
-use/index
-use/markdown
+
+quickstart
 ```
 
 ```{toctree}
+:caption: Guides
+:hidden:
 :maxdepth: 2
-examples/index
+
+authoring/index
+computation/index
+render/index
+configuration
+docutils
 ```
 
-Finally, here is documentation on contributing to the development of MySt-NB
-
 ```{toctree}
+:caption: Reference
+:hidden:
 :titlesonly:
 :maxdepth: 1
-changelog
-develop/contributing
-api/index
-GitHub Repo <https://github.com/executablebooks/myst-nb>
+
+reference/api
+reference/changelog
+reference/contributing
 ```

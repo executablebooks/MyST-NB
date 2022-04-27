@@ -1,17 +1,10 @@
 ---
-jupytext:
-  text_representation:
-    extension: .md
-    format_name: myst
-    format_version: '0.12'
-    jupytext_version: 1.5.2
+file_format: mystnb
 kernelspec:
-  display_name: Coconut
-  language: coconut
   name: coconut
 ---
 
-# Other Programming Languages
+# Jupyter kernels
 
 A Jupyter Notebook can utilise any program kernel that implements the [Jupyter messaging protocol](http://jupyter-client.readthedocs.io/en/latest/messaging.html) for executing code.
 There are kernels available for [Python](http://ipython.org/notebook.html), [Julia](https://github.com/JuliaLang/IJulia.jl), [Ruby](https://github.com/minad/iruby), [Haskell](https://github.com/gibiansky/IHaskell) and [many other languages](https://github.com/jupyter/jupyter/wiki/Jupyter-kernels).

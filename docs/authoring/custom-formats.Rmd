@@ -8,8 +8,9 @@ jupyter:
     name: python3
 ---
 
-(examples/custom_formats)=
-# Custom Notebook Formats
+(write/custom_formats)=
+
+# Custom Formats
 
 You can designate additional file types to be converted to Notebooks, and then executed / parsed in the same manner as regular Notebooks, by adding the following configuration to your `conf.py`:
 
@@ -33,7 +34,7 @@ nb_custom_formats = {
 
 :::{important}
 
-By default, Markdown cells in the Notebook will be parsed using the same MyST parser configuration as for other Markdown files ([see available configuration options](config/reference)).
+By default, Markdown cells in the Notebook will be parsed using the same MyST parser configuration as for other Markdown files ([see available configuration options](config/intro)).
 
 But, if this is incompatible with your file format, then you can specify for the Markdown to be parsed as **strictly CommonMark**, using a third argument:
 
