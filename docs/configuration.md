@@ -122,12 +122,40 @@ print('hello world')
 
 As a convenience for users in Jupyter interfaces, some cell level configuration can be achieved by specifying tags in the cell metadata.
 
+Tags are a list of strings under the `tags` key in the cell metadata, e.g.
 
+```json
+{
+  "cell_type": "code",
+  "source": ["print('hello world')"],
+  "metadata": {
+    "tags": ["my-tag1", "my-tag2"],
+  }
+}
+```
+
+Tag             | Description
+--------------- | ---
+`remove-cell`   | Remove the cell from the rendered output.
+`remove-input`  | Remove the code cell input/source from the rendered output.
+`remove-output` | Remove the code cell output from the rendered output.
+`remove-stderr` | Remove the code cell output stderr from the rendered output.
+
+Additionally, for code execution, these tags are provided (via `nbclient`):
+
+Tag                | Description
+------------------ | ---
+`skip-execution`   | Skip this cell, when executing the notebook
+`raises-exception` | Expect the code cell to raise an Exception (and continue execution)
 
 ## Markdown parsing configuration
 
 The MyST-NB parser derives from {ref}`the base MyST-Parser <myst:intro/get-started>`, and so all the same configuration options are available.
-See the {ref}`MyST configuration options <myst:sphinx/config-options>` for the full set of options.
+As referenced in {ref}`MyST configuration options <myst:sphinx/config-options>`, the full set of global options are:
+
+```{myst-config}
+:sphinx:
+```
 
 (myst/error-reporting)=
 ## Warning suppression

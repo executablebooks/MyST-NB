@@ -132,6 +132,7 @@ def setup(app):
 
     from docutils import nodes
     from docutils.parsers.rst import directives
+    from myst_parser.main import MdParserConfig
     from sphinx.application import Sphinx
     from sphinx.util.docutils import SphinxDirective
 
@@ -143,18 +144,38 @@ def setup(app):
     # to execute docs/examples/coconut-lang.md
     subprocess.check_call(["coconut", "--jupyter"])
 
-    # valid_sections = {e.name for e in Section}
-
-    # def check_sections(arg: str):
-    #     """Check that the sections are valid."""
-    #     try:
-    #         sections = {Section[s.strip()] for s in arg.split(",")}
-    #     except KeyError:
-    #         raise ValueError(f"{arg!r} not in {valid_sections}")
-    #     return sections
-
-    class MystNbConfigDirective(SphinxDirective):
+    class _ConfigBase(SphinxDirective):
         """Directive to automate printing of the configuration."""
+
+        @staticmethod
+        def table_header():
+            return [
+                "```````{list-table}",
+                ":header-rows: 1",
+                "",
+                "* - Name",
+                "  - Type",
+                "  - Default",
+                "  - Description",
+            ]
+
+        @staticmethod
+        def field_default(value):
+            default = " ".join(f"{value!r}".splitlines())
+            if len(default) > 20:
+                default = default[:20] + "..."
+            return default
+
+        @staticmethod
+        def field_type(field):
+            ctype = " ".join(str(field.type).splitlines())
+            ctype = ctype.replace("typing.", "")
+            ctype = ctype.replace("typing_extensions.", "")
+            for tname in ("str", "int", "float", "bool"):
+                ctype = ctype.replace(f"<class '{tname}'>", tname)
+            return ctype
+
+    class MystNbConfigDirective(_ConfigBase):
 
         required_arguments = 1
         option_spec = {
@@ -172,15 +193,7 @@ def setup(app):
             level = Section[level_name]
 
             config = NbParserConfig()
-            text = [
-                "```````{list-table}",
-                ":header-rows: 1",
-                "",
-                "* - Name",
-                "  - Type",
-                "  - Default",
-                "  - Description",
-            ]
+            text = self.table_header()
             count = 0
             for name, value, field in config.as_triple():
 
@@ -191,7 +204,7 @@ def setup(app):
                 sections = field.metadata.get("sections") or []
                 if level not in sections:
                     continue
-
+                # filter by section
                 if "section" in self.options:
                     section = Section[self.options["section"]]
                     if section not in sections:
@@ -203,17 +216,8 @@ def setup(app):
                     name = field.metadata.get("cell_key", name)
 
                 description = " ".join(field.metadata.get("help", "").splitlines())
-
-                default = " ".join(f"{value!r}".splitlines())
-                if len(default) > 20:
-                    default = default[:20] + "..."
-
-                ctype = " ".join(str(field.type).splitlines())
-                ctype = ctype.replace("typing.", "")
-                ctype = ctype.replace("typing_extensions.", "")
-                for tname in ("str", "int", "float", "bool"):
-                    ctype = ctype.replace(f"<class '{tname}'>", tname)
-
+                default = self.field_default(value)
+                ctype = self.field_type(field)
                 text.extend(
                     [
                         f"* - `{name}`",
@@ -233,4 +237,45 @@ def setup(app):
             self.state.nested_parse(text, 0, node)
             return node.children
 
+    class MystConfigDirective(_ConfigBase):
+
+        option_spec = {
+            "sphinx": directives.flag,
+        }
+
+        def run(self):
+            """Run the directive."""
+            config = MdParserConfig()
+            text = self.table_header()
+            count = 0
+            for name, value, field in config.as_triple():
+
+                # filter by sphinx options
+                if "sphinx" in self.options and field.metadata.get("sphinx_exclude"):
+                    continue
+
+                name = f"myst_{name}"
+                description = " ".join(field.metadata.get("help", "").splitlines())
+                default = self.field_default(value)
+                ctype = self.field_type(field)
+                text.extend(
+                    [
+                        f"* - `{name}`",
+                        f"  - `{ctype}`",
+                        f"  - `{default}`",
+                        f"  - {description}",
+                    ]
+                )
+
+                count += 1
+
+            if not count:
+                return []
+
+            text.append("```````")
+            node = nodes.Element()
+            self.state.nested_parse(text, 0, node)
+            return node.children
+
+    app.add_directive("myst-config", MystConfigDirective)
     app.add_directive("mystnb-config", MystNbConfigDirective)
