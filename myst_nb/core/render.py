@@ -234,8 +234,8 @@ class NbElementRenderer:
         """
         if "remove-stdout" in cell_metadata.get("tags", []):
             return []
-        lexer = self.renderer.get_cell_render_config(
-            cell_metadata, "text_lexer", "render_text_lexer"
+        lexer = self.renderer.get_cell_level_config(
+            "render_text_lexer", cell_metadata, line=source_line
         )
         node = self.renderer.create_highlighted_code_block(
             output["text"], lexer, source=self.source, line=source_line
@@ -261,8 +261,8 @@ class NbElementRenderer:
         """
         if "remove-stderr" in cell_metadata.get("tags", []):
             return []
-        output_stderr = self.renderer.get_cell_render_config(
-            cell_metadata, "output_stderr"
+        output_stderr = self.renderer.get_cell_level_config(
+            "output_stderr", cell_metadata, line=source_line
         )
         msg = f"stderr was found in the cell outputs of cell {cell_index + 1}"
         outputs = []
@@ -277,8 +277,8 @@ class NbElementRenderer:
             self.logger.error(msg, subtype="stderr", line=source_line)
         elif output_stderr == "severe":
             self.logger.critical(msg, subtype="stderr", line=source_line)
-        lexer = self.renderer.get_cell_render_config(
-            cell_metadata, "text_lexer", "render_text_lexer"
+        lexer = self.renderer.get_cell_level_config(
+            "render_text_lexer", cell_metadata, line=source_line
         )
         node = self.renderer.create_highlighted_code_block(
             output["text"], lexer, source=self.source, line=source_line
@@ -304,8 +304,8 @@ class NbElementRenderer:
         :param source_line: the line number of the cell in the source document
         """
         traceback = strip_ansi("\n".join(output["traceback"]))
-        lexer = self.renderer.get_cell_render_config(
-            cell_metadata, "error_lexer", "render_error_lexer"
+        lexer = self.renderer.get_cell_level_config(
+            "render_error_lexer", cell_metadata, line=source_line
         )
         node = self.renderer.create_highlighted_code_block(
             traceback, lexer, source=self.source, line=source_line
@@ -356,8 +356,8 @@ class NbElementRenderer:
 
     def render_markdown(self, data: MimeData) -> list[nodes.Element]:
         """Render a notebook text/markdown mime data output."""
-        fmt = self.renderer.get_cell_render_config(
-            data.cell_metadata, "markdown_format", "render_markdown_format"
+        fmt = self.renderer.get_cell_level_config(
+            "render_markdown_format", data.cell_metadata, line=data.line
         )
         return self._render_markdown_base(
             data, fmt=fmt, inline=False, allow_headings=data.md_headings
@@ -365,8 +365,8 @@ class NbElementRenderer:
 
     def render_text_plain(self, data: MimeData) -> list[nodes.Element]:
         """Render a notebook text/plain mime data output."""
-        lexer = self.renderer.get_cell_render_config(
-            data.cell_metadata, "text_lexer", "render_text_lexer"
+        lexer = self.renderer.get_cell_level_config(
+            "render_text_lexer", data.cell_metadata, line=data.line
         )
         node = self.renderer.create_highlighted_code_block(
             data.string, lexer, source=self.source, line=data.line
@@ -425,8 +425,8 @@ class NbElementRenderer:
         image_node = nodes.image(uri=uri)
         # apply attributes to the image node
         # TODO backwards-compatible re-naming to image_options?
-        image_options = self.renderer.get_cell_render_config(
-            data.cell_metadata, "image", "render_image_options"
+        image_options = self.renderer.get_cell_level_config(
+            "render_image_options", data.cell_metadata, line=data.line
         )
         for key, spec in [
             ("classes", options_spec.class_option),
@@ -511,8 +511,8 @@ class NbElementRenderer:
 
     def render_markdown_inline(self, data: MimeData) -> list[nodes.Element]:
         """Render a notebook text/markdown mime data output."""
-        fmt = self.renderer.get_cell_render_config(
-            data.cell_metadata, "markdown_format", "render_markdown_format"
+        fmt = self.renderer.get_cell_level_config(
+            "render_markdown_format", data.cell_metadata, line=data.line
         )
         return self._render_markdown_base(
             data, fmt=fmt, inline=True, allow_headings=data.md_headings
@@ -521,8 +521,8 @@ class NbElementRenderer:
     def render_text_plain_inline(self, data: MimeData) -> list[nodes.Element]:
         """Render a notebook text/plain mime data output."""
         # TODO previously this was not syntax highlighted?
-        lexer = self.renderer.get_cell_render_config(
-            data.cell_metadata, "text_lexer", "render_text_lexer"
+        lexer = self.renderer.get_cell_level_config(
+            "render_text_lexer", data.cell_metadata, line=data.line
         )
         node = self.renderer.create_highlighted_code_block(
             data.string,
@@ -729,7 +729,7 @@ def create_figure_context(
     figure_node.source = self.document["source"]
 
     # add attributes to figure node
-    if figure_options.get("classes"):
+    if figure_options.get("classes"):  # TODO change to class?
         figure_node["classes"] += str(figure_options["classes"]).split()
     if figure_options.get("align") in ("center", "left", "right"):
         figure_node["align"] = figure_options["align"]

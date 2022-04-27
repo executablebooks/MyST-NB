@@ -1,8 +1,6 @@
 ---
 file_format: mystnb
 kernelspec:
-  display_name: Python 3
-  language: python
   name: python3
 ---
 
@@ -110,7 +108,7 @@ Normally, slight differences in timing may result in different orders of `stderr
 ## Images and Figures
 
 With the default renderer, for any image types output by the code, we can apply formatting *via* cell metadata.
-The top-level metadata key can be set using `nb_cell_render_key` in your `conf.py`, and is set to `render` by default.
+The top-level metadata key can be set using `nb_cell_metadata_key` in your `conf.py`, and is set to `render` by default.
 Then for the image we can apply all the variables of the standard [image directive](https://docutils.sourceforge.io/docs/ref/rst/directives.html#image):
 
 - **width**: length or percentage (%) of the current line width
@@ -133,7 +131,7 @@ You can also wrap the output in a [`figure`](https://docutils.sourceforge.io/doc
 ````md
 ```{code-cell} ipython3
 ---
-render:
+mystnb:
   number_source_lines: true
   image:
     width: 200px
@@ -153,7 +151,7 @@ Image("images/fun-fish.png")
 
 ```{code-cell} ipython3
 ---
-render:
+mystnb:
   number_source_lines: true
   image:
     width: 300px
@@ -177,7 +175,7 @@ You can create figures for any mime outputs:
 ````md
 ```{code-cell} ipython3
 ---
-render:
+mystnb:
   figure:
     align: left
     caption_before: true
@@ -190,7 +188,7 @@ pandas.DataFrame({"column 1": [1, 2, 3]})
 
 ```{code-cell} ipython3
 ---
-render:
+mystnb:
   figure:
     align: left
     caption_before: true
@@ -232,7 +230,7 @@ such as including internal references, tables, and even other directives, either
 `````md
 ````{code-cell} ipython3
 ---
-render:
+mystnb:
   markdown_format: myst
 ---
 display(Markdown('**_some_ markdown** and an [internal reference](render/output/markdown)!'))
@@ -253,7 +251,7 @@ The parsed Markdown is integrated into the wider documentation, and so it is pos
 
 ````{code-cell} ipython3
 ---
-render:
+mystnb:
   markdown_format: myst
 ---
 display(Markdown('**_some_ markdown** and an [internal reference](render/output/markdown)!'))

@@ -47,14 +47,14 @@ Get Started
 :gutter: 1 1 1 2
 
 :::{grid-item-card} {material-regular}`edit_note;2em` Write
-:link: authoring/index
-:link-type: doc
+:link: authoring/intro
+:link-type: ref
 
 Mix Jupyter notebooks with text-based notebooks, Markdown and RST documents.\
 Use MyST Markdown syntax to support technical authoring features such as cross-referencing, figures, and admonitions.
 
 +++
-[Learn more »](authoring/index)
+[Learn more »](authoring/intro)
 :::
 
 :::{grid-item-card} {material-regular}`published_with_changes;2em` Compute
@@ -69,23 +69,30 @@ Cache execution outputs, for fast re-builds.
 :::
 
 :::{grid-item-card} {material-regular}`preview;2em` Render
-:link: render/index
-:link-type: doc
+:link: render/output
+:link-type: ref
 
 Convert Jupyter execution outputs to embedded content.\
 Insert outputs as variables into your documents.\
 Build single or collections of documents into multiple formats, including HTML websites and PDF books.
 
 +++
-[Learn more »](render/index)
+[Learn more »](render/output)
 :::
 
 ::::
 
 ----------------
 
-<!-- Add external links about EBP, Jupyter Book, VS Code, Jupyter Lab extensions
-also gallery -->
+MyST-NB is a module within the [Executable Books Project](https://executablebooks.org),
+an international collaboration to build open source tools that facilitate publishing computational narratives using the Jupyter ecosystem.
+It is also a core component of [Jupyter Book](jb:intro).
+
+Check out the [Gallery of Jupyter Books](https://executablebooks.org/en/latest/gallery.html),
+for inspiration from across the community.
+
+See also, the [MyST-Markdown VS Code extension](https://marketplace.visualstudio.com/items?itemName=ExecutableBookProject.myst-highlight)
+and [jupyterlab-myst](https://github.com/executablebooks/jupyterlab-myst), for editor tools to author your notebooks.
 
 ```{toctree}
 :hidden:
@@ -112,6 +119,6 @@ configuration
 :maxdepth: 1
 
 reference/api
-reference/contributing
 reference/changelog
+reference/contributing
 ```

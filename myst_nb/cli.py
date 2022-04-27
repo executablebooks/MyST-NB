@@ -128,8 +128,6 @@ def generate_text_notebook() -> str:
 file_format: mystnb
 kernelspec:
   name: python3
-  language: python
-  display_name: Python 3
 ---
 
 # Text-based Notebook

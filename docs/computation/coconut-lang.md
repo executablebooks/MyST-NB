@@ -1,8 +1,6 @@
 ---
 file_format: mystnb
 kernelspec:
-  display_name: Coconut
-  language: coconut
   name: coconut
 ---
 

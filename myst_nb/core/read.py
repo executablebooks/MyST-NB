@@ -210,6 +210,15 @@ def read_myst_markdown_notebook(
         except (yaml.parser.ParserError, yaml.scanner.ScannerError) as error:
             raise MystMetadataParsingError(f"Notebook metadata: {error}")
 
+    # add missing display name to the metadata, as required by the nbformat schema:
+    # https://github.com/jupyter/nbformat/blob/f712d60f13c5b168313222cbf4bee7face98a081/nbformat/v4/nbformat.v4.5.schema.json#L16
+    if (
+        "kernelspec" in metadata_nb
+        and "name" in metadata_nb["kernelspec"]
+        and "display_name" not in metadata_nb["kernelspec"]
+    ):
+        metadata_nb["kernelspec"]["display_name"] = metadata_nb["kernelspec"]["name"]
+
     # create an empty notebook
     nbf_version = nbf.v4
     kwargs = {"metadata": nbf.from_dict(metadata_nb)}

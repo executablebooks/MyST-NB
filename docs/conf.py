@@ -1,6 +1,5 @@
 # Configuration file for the Sphinx documentation builder.
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
-
 import os
 
 # -- Project information -----------------------------------------------------
@@ -136,20 +135,41 @@ def setup(app):
     from sphinx.application import Sphinx
     from sphinx.util.docutils import SphinxDirective
 
+    from myst_nb.core.config import NbParserConfig, Section
+
     app = cast(Sphinx, app)
 
     # this is required to register the coconut kernel with Jupyter,
     # to execute docs/examples/coconut-lang.md
     subprocess.check_call(["coconut", "--jupyter"])
 
+    # valid_sections = {e.name for e in Section}
+
+    # def check_sections(arg: str):
+    #     """Check that the sections are valid."""
+    #     try:
+    #         sections = {Section[s.strip()] for s in arg.split(",")}
+    #     except KeyError:
+    #         raise ValueError(f"{arg!r} not in {valid_sections}")
+    #     return sections
+
     class MystNbConfigDirective(SphinxDirective):
         """Directive to automate printing of the configuration."""
 
-        option_spec = {"sphinx": directives.flag}
+        required_arguments = 1
+        option_spec = {
+            "sphinx": directives.flag,
+            "section": lambda x: directives.choice(
+                x, ["config", "read", "execute", "render"]
+            ),
+        }
 
         def run(self):
             """Run the directive."""
-            from myst_nb.core.config import NbParserConfig
+            level_name = directives.choice(
+                self.arguments[0], ["global_lvl", "file_lvl", "cell_lvl"]
+            )
+            level = Section[level_name]
 
             config = NbParserConfig()
             text = [
@@ -161,18 +181,39 @@ def setup(app):
                 "  - Default",
                 "  - Description",
             ]
+            count = 0
             for name, value, field in config.as_triple():
+
+                # filter by sphinx options
                 if "sphinx" in self.options and field.metadata.get("sphinx_exclude"):
                     continue
+                # filter by level
+                sections = field.metadata.get("sections") or []
+                if level not in sections:
+                    continue
+
+                if "section" in self.options:
+                    section = Section[self.options["section"]]
+                    if section not in sections:
+                        continue
+
+                if level == Section.global_lvl:
+                    name = f"nb_{name}"
+                elif level == Section.cell_lvl:
+                    name = field.metadata.get("cell_key", name)
+
                 description = " ".join(field.metadata.get("help", "").splitlines())
+
                 default = " ".join(f"{value!r}".splitlines())
                 if len(default) > 20:
                     default = default[:20] + "..."
+
                 ctype = " ".join(str(field.type).splitlines())
                 ctype = ctype.replace("typing.", "")
                 ctype = ctype.replace("typing_extensions.", "")
                 for tname in ("str", "int", "float", "bool"):
                     ctype = ctype.replace(f"<class '{tname}'>", tname)
+
                 text.extend(
                     [
                         f"* - `{name}`",
@@ -181,6 +222,12 @@ def setup(app):
                         f"  - {description}",
                     ]
                 )
+
+                count += 1
+
+            if not count:
+                return []
+
             text.append("```````")
             node = nodes.Element()
             self.state.nested_parse(text, 0, node)

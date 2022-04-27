@@ -1,50 +1,19 @@
 
 (authoring/intro)=
-# Basics
+# The basics
 
-Once activated, the MyST-NB Sphinx extension will automatically parse both
-markdown (`.md`) and Jupyter notebooks (`.ipynb`) into your Sphinx site. If your
-markdown files have [Jupytext metadata for MyST Notebooks](myst-nb/text-based),
-they will be converted to notebooks and optionally executed.
+## Default file formats
 
-In any of these files, you may write [MyST Markdown](https://myst-parser.readthedocs.io).
-This is an extension of CommonMark markdown that provides extra syntax for common
-workflows in publishing, and extension points for extra functionality.
+As well as writing in the Sphinx default format, [RestructuredText](https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html) (`.rst`), loading `myst_nb` will also parse:
 
-## Writing MyST Markdown
+- Markdown files (`.md`)
+- Jupyter notebooks (`.ipynb`)
+- MyST-NB text-based notebooks (`.md` + top-matter)
 
-MyST Markdown is a flavor of markdown that gives you full access to all of the
-functionality provided by Sphinx (such as roles and directives). In MyST-NB, this
-is provided by the [MyST Parser](https://myst-parser.readthedocs.io/en/latest/), another
-Sphinx extension that MyST-NB depends on.
+## Custom file extensions
 
-You can write your MyST markdown in either regular markdown files (`.md`) or in
-the markdown cells of Jupyter Notebooks (`.ipynb`).
-
-:::{warning}
-If you are using MyST-NB in your documentation, do not activate `myst-parser`. It will
-be automatically activated by `myst-nb`.
-:::
-
-For more information about what you can write with MyST Markdown, see the
-[MyST Parser syntax guide](https://myst-parser.readthedocs.io/en/latest/using/syntax.html).
-
-## Write notebooks in pure markdown
-
-In addition to supporting MyST Markdown inside of `.md` and `.ipynb` files, you can
-also write Jupyter Notebooks entirelly with markdown by using
-[MyST Markdown Notebooks](text-notebooks.md). MyST Notebooks have a similar structure
-to Jupyter Notebooks (`.ipynb`), but they are written with MyST Markdown syntax to
-be easier to use with text editors.
-
-To use MyST Notebooks with `myst_nb`, you'll need to add Jupytext metadata to your
-MyST Notebooks. See [](myst-nb/text-based) for more details.
-
-## Parse extensions other than `.md` and `.ipynb`
-
-You can change which files are parsed by MyST-NB using
-the [source_suffix](https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-source_suffix)
-option in your `conf.py`, e.g.:
+You can change which file extensions are parsed by MyST-NB using
+the [source_suffix](https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-source_suffix) option in your `conf.py`, e.g.:
 
 ```python
 extensions = ["myst_nb"]
@@ -54,3 +23,100 @@ source_suffix = {
     '.myst': 'myst-nb',
 }
 ```
+
+## Other notebook formats
+
+See the [](write/custom_formats) section, for how to integrate other Notebook formats into your build, and integration with [jupytext](https://github.com/mwouts/jupytext).
+
+## MyST Markdown
+
+For all file formats, Markdown authoring is the backbone of MyST-NB.
+By default, the MyST flavour of Markdown is enabled,
+which extends [CommonMark](https://commonmark.org/) with RST inspired syntaxes to provide the additional functionality required for technical writing.
+
+In particular MyST adds targets, roles and directives syntax, allowing you to utilise all available Docutils/Sphinx features:
+
+::::{grid} 2
+:gutter: 1
+
+:::{grid-item-card} RestructuredText
+
+```
+.. _target:
+Header
+------
+
+:role-name:`content`
+
+.. directive-name:: argument
+   :parameter: value
+
+   content
+```
+:::
+
+:::{grid-item-card} MyST Markdown
+
+````
+(target)=
+# Header
+
+{role-name}`content`
+
+```{directive-name} argument
+:parameter: value
+
+content
+```
+````
+:::
+::::
+
+:::{seealso}
+See the [](authoring/jupyter-notebooks) section, for more details on how to author Jupyter notebooks.
+:::
+
+## Text-based notebooks
+
+MyST-NB text-based notebooks are a special format for storing Jupyter notebooks in a text file.
+They map directly to a Notebook file, without directly storing the code execution outputs.
+
+To designate a Markdown file as a text-based notebook, add the following top-matter to the start of the file:
+
+```yaml
+---
+file_format: mystnb
+kernelspec:
+  name: python3
+---
+```
+
+The `kernelspec.name` should relate to a [Jupyter kernel](https://github.com/jupyter/jupyter/wiki/Jupyter-kernels) installed in your environment.
+
+Code cells are then designated by the `code-cell` directive:
+
+````markdown
+```{code-cell}
+:tags: [my-tag]
+
+print("Hello world!")
+```
+````
+
+and Markdown can be split into cells by the `+++` break syntax:
+
+```markdown
+Markdown cell 1
+
++++ {"tags": ["my-tag"]}
+
+Markdown cell 2, with metadata tags
+```
+
+:::{seealso}
+See the [](authoring/text-notebooks) section, for more details on text-based notebooks, and integration with [jupytext](https://jupytext.readthedocs.io).
+:::
+
+## Configuration
+
+...
