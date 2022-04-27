@@ -1,20 +1,13 @@
 ---
-jupytext:
-  text_representation:
-    extension: .md
-    format_name: myst
-    format_version: '0.8'
-    jupytext_version: '1.4.1'
+file_format: mystnb
 kernelspec:
-  display_name: Python 3
-  language: python
   name: python3
 ---
 
-(use/format)=
+(render/output)=
 # Format code outputs
 
-(use/format/priority)=
+(render/output/priority)=
 ## Render priority
 
 When Jupyter executes a code cell it can produce multiple outputs, and each of these outputs can contain multiple [MIME media types](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types), for use by different output formats (like HTML or LaTeX).
@@ -50,13 +43,13 @@ nb_mime_priority_overrides = [
 ```
 
 :::{seealso}
-[](use/format/cutomise), for a more advanced means of customisation.
+[](render/output/cutomise), for a more advanced means of customisation.
 :::
 
-(use/format/stdout-stderr)=
+(render/output/stdout-stderr)=
 ## stdout and stderr
 
-(use/format/stderr)=
+(render/output/stderr)=
 ### Remove stdout or stderr
 
 In some cases you may not wish to display stdout/stderr outputs in your final documentation,
@@ -94,7 +87,7 @@ This can be set to:
 - `"remove-warn"`: remove all stderr, but log a warning to sphinx if any found
 - `"warn"`, `"error"` or `"severe"`: log to sphinx, at a certain level, if any found.
 
-(use/format/group-stderr-stdout)=
+(render/output/group-stderr-stdout)=
 ### Group stdout and stderr into single streams
 
 Cells may print multiple things to `stdout` and `stderr`.
@@ -111,11 +104,11 @@ This will ensure that all `stderr` and `stdout` outputs are merged into a single
 This also makes cell outputs more deterministic.
 Normally, slight differences in timing may result in different orders of `stderr` and `stdout` in the cell output, while this setting will sort them properly.
 
-(use/format/images)=
+(render/output/images)=
 ## Images and Figures
 
 With the default renderer, for any image types output by the code, we can apply formatting *via* cell metadata.
-The top-level metadata key can be set using `nb_cell_render_key` in your `conf.py`, and is set to `render` by default.
+The top-level metadata key can be set using `nb_cell_metadata_key` in your `conf.py`, and is set to `render` by default.
 Then for the image we can apply all the variables of the standard [image directive](https://docutils.sourceforge.io/docs/ref/rst/directives.html#image):
 
 - **width**: length or percentage (%) of the current line width
@@ -138,7 +131,7 @@ You can also wrap the output in a [`figure`](https://docutils.sourceforge.io/doc
 ````md
 ```{code-cell} ipython3
 ---
-render:
+mystnb:
   number_source_lines: true
   image:
     width: 200px
@@ -158,7 +151,7 @@ Image("images/fun-fish.png")
 
 ```{code-cell} ipython3
 ---
-render:
+mystnb:
   number_source_lines: true
   image:
     width: 300px
@@ -182,7 +175,7 @@ You can create figures for any mime outputs:
 ````md
 ```{code-cell} ipython3
 ---
-render:
+mystnb:
   figure:
     align: left
     caption_before: true
@@ -195,7 +188,7 @@ pandas.DataFrame({"column 1": [1, 2, 3]})
 
 ```{code-cell} ipython3
 ---
-render:
+mystnb:
   figure:
     align: left
     caption_before: true
@@ -205,7 +198,7 @@ import pandas
 pandas.DataFrame({"column 1": [1, 2, 3]})
 ```
 
-(use/format/markdown)=
+(render/output/markdown)=
 ## Markdown
 
 The format of output `text/markdown` can be specified by `render_markdown_format` configuration:
@@ -237,10 +230,10 @@ such as including internal references, tables, and even other directives, either
 `````md
 ````{code-cell} ipython3
 ---
-render:
+mystnb:
   markdown_format: myst
 ---
-display(Markdown('**_some_ markdown** and an [internal reference](use/format/markdown)!'))
+display(Markdown('**_some_ markdown** and an [internal reference](render/output/markdown)!'))
 display(Markdown("""
 | a | b | c |
 |---|---|---|
@@ -258,10 +251,10 @@ The parsed Markdown is integrated into the wider documentation, and so it is pos
 
 ````{code-cell} ipython3
 ---
-render:
+mystnb:
   markdown_format: myst
 ---
-display(Markdown('**_some_ markdown** and an [internal reference](use/format/markdown)!'))
+display(Markdown('**_some_ markdown** and an [internal reference](render/output/markdown)!'))
 display(Markdown("""
 | a | b | c |
 |---|---|---|
@@ -274,7 +267,7 @@ A note admonition!
 """))
 ````
 
-(use/format/ansi)=
+(render/output/ansi)=
 ## ANSI Outputs
 
 By default, the standard output/error streams and text/plain MIME outputs may contain ANSI escape sequences to change the text and background colors.
@@ -325,7 +318,7 @@ This is currently not supported, but we hope to introduce it at a later date
 (raise an issue on the repository if you require it!).
 :::
 
-(use/format/cutomise)=
+(render/output/cutomise)=
 ## Customise the render process
 
 The render process is governed by subclasses of {py:class}`~myst_nb.core.render.NbElementRenderer`, which dictate how to create the `docutils` AST nodes for elements of the notebook.

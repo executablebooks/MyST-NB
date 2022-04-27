@@ -1,26 +1,23 @@
 ---
-jupytext:
-  text_representation:
-    extension: .md
-    format_name: myst
-    format_version: '0.8'
-    jupytext_version: '1.4.1'
+file_format: mystnb
 kernelspec:
-  display_name: Python 3
-  language: python
   name: python3
 ---
 
-# An example Jupyter Notebook
+(authoring/jupyter-notebooks)=
+# Jupyter Notebooks
 
 This notebook is a demonstration of directly-parsing Jupyter Notebooks into
 Sphinx using the MyST parser.[^download]
 
-[^download]: This notebook can be downloaded as
-            **{nb-download}`basic.ipynb`** and {download}`basic.md`
+[^download]: This notebook can be downloaded as **{nb-download}`jupyter-notebooks.ipynb`** and {download}`jupyter-notebooks.md`
 
 ## Markdown
 
+:::{seealso}
+For more information about what you can write with MyST Markdown, see the
+[MyST Parser syntax guide](myst:syntax/syntax).
+:::
 
 ### Configuration
 
@@ -39,6 +36,11 @@ myst_enable_extensions = [
 ]
 myst_url_schemes = ("http", "https", "mailto")
 ```
+
+:::{note}
+Loading the `myst_nb` extension also activates the [`myst_parser`](myst:index) extension, for enabling the MyST flavour of Markdown.
+It is not required to add this explicitly in the list of `extensions`.
+:::
 
 ### Syntax
 

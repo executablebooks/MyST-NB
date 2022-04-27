@@ -6,15 +6,15 @@ from typing import Any
 
 from nbformat import NotebookNode
 
+from myst_nb.core.config import NbParserConfig
 from myst_nb.core.loggers import LoggerType
 from myst_nb.glue import extract_glue_data
 
 
 def preprocess_notebook(
-    notebook: NotebookNode, logger: LoggerType, get_cell_render_config
+    notebook: NotebookNode, logger: LoggerType, nb_config: NbParserConfig
 ) -> dict[str, Any]:
     """Modify notebook and resources in-place."""
-    # TODO parsing get_cell_render_config is a stop-gap here
     # TODO make this pluggable
     # (similar to nbconvert preprocessors, but parse config, source map and logger)
 
@@ -29,9 +29,14 @@ def preprocess_notebook(
     ]
 
     # coalesce_streams
-    for _, cell in enumerate(notebook.cells):
+    for i, cell in enumerate(notebook.cells):
         if cell.cell_type == "code":
-            if get_cell_render_config(cell.metadata, "merge_streams"):
+            _callback = lambda m, t: logger.warning(  # noqa: E731
+                m, subtype=t, line=source_map[i]
+            )
+            if nb_config.get_cell_level_config(
+                "merge_streams", cell.metadata, _callback
+            ):
                 cell["outputs"] = coalesce_streams(cell.get("outputs", []))
 
     # extract all scrapbook (aka glue) outputs from notebook

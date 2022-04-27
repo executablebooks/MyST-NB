@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from contextlib import suppress
 from importlib import resources as import_resources
 import json
 import os
@@ -329,9 +328,7 @@ class Parser(MystParser):
         mdit_renderer.setup_render(mdit_parser.options, mdit_env)
 
         # pre-process notebook and store resources for render
-        resources = preprocess_notebook(
-            notebook, logger, mdit_renderer.get_cell_render_config
-        )
+        resources = preprocess_notebook(notebook, logger, nb_config)
         mdit_renderer.md_options["nb_resources"] = resources
 
         # parse to tokens
@@ -384,33 +381,25 @@ class SphinxNbRenderer(SphinxRenderer):
         """Get the notebook element renderer."""
         return self.document["nb_renderer"]
 
-    def get_cell_render_config(
+    def get_cell_level_config(
         self,
+        field: str,
         cell_metadata: dict[str, Any],
-        key: str,
-        nb_key: str | None = None,
-        has_nb_key: bool = True,
+        line: int | None = None,
     ) -> Any:
-        """Get a cell level render configuration value.
+        """Get a configuration value at the cell level.
 
-        :param has_nb_key: Whether to also look in the notebook level configuration
-        :param nb_key: The notebook level configuration key to use if the cell
-            level key is not found. if None, use the ``key`` argument
+        Takes the highest priority configuration from:
+        `cell > document > global > default`
 
-        :raises: IndexError if the cell index is out of range
-        :raises: KeyError if the key is not found
+        :param field: the field name from ``NbParserConfig`` to get the value for
+        :param cell_metadata: the metadata for the cell
         """
-        # TODO allow output level configuration?
-        cell_metadata_key = self.nb_config.cell_render_key
-        if (
-            cell_metadata_key not in cell_metadata
-            or key not in cell_metadata[cell_metadata_key]
-        ):
-            if not has_nb_key:
-                raise KeyError(key)
-            return self.nb_config[nb_key if nb_key is not None else key]
-        # TODO validate?
-        return cell_metadata[cell_metadata_key][key]
+
+        def _callback(msg: str, subtype: str):
+            self.create_warning(msg, line=line, subtype=subtype)
+
+        return self.nb_config.get_cell_level_config(field, cell_metadata, _callback)
 
     def render_nb_metadata(self, token: SyntaxTreeNode) -> None:
         """Render the notebook metadata."""
@@ -461,12 +450,20 @@ class SphinxNbRenderer(SphinxRenderer):
 
         # TODO do we need this -/_ duplication of tag names, or can we deprecate one?
         remove_input = (
-            self.get_cell_render_config(token.meta["metadata"], "remove_code_source")
+            self.get_cell_level_config(
+                "remove_code_source",
+                token.meta["metadata"],
+                line=token_line(token, 0) or None,
+            )
             or ("remove_input" in tags)
             or ("remove-input" in tags)
         )
         remove_output = (
-            self.get_cell_render_config(token.meta["metadata"], "remove_code_outputs")
+            self.get_cell_level_config(
+                "remove_code_outputs",
+                token.meta["metadata"],
+                line=token_line(token, 0) or None,
+            )
             or ("remove_output" in tags)
             or ("remove-output" in tags)
         )
@@ -518,8 +515,10 @@ class SphinxNbRenderer(SphinxRenderer):
         node = self.create_highlighted_code_block(
             token.content,
             lexer,
-            number_lines=self.get_cell_render_config(
-                token.meta["metadata"], "number_source_lines"
+            number_lines=self.get_cell_level_config(
+                "number_source_lines",
+                token.meta["metadata"],
+                line=token_line(token, 0) or None,
             ),
             source=self.document["source"],
             line=token_line(token),
@@ -579,11 +578,12 @@ class SphinxNbRenderer(SphinxRenderer):
                 # - for headings, we would also need to parsing the markdown
                 #   at the "top-level", i.e. not nested in container(s)
 
-                figure_options = None
-                with suppress(KeyError):
-                    figure_options = self.get_cell_render_config(
-                        metadata, "figure", has_nb_key=False
+                figure_options = (
+                    self.get_cell_level_config(
+                        "render_figure_options", metadata, line=line
                     )
+                    or None
+                )
 
                 with create_figure_context(self, figure_options, line):
                     mime_bundle = nodes.container(nb_element="mime_bundle")

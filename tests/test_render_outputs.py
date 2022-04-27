@@ -88,7 +88,7 @@ def test_merge_streams(sphinx_run, file_regression):
 
 @pytest.mark.sphinx_params(
     "metadata_image.ipynb",
-    conf={"nb_execution_mode": "off", "nb_cell_render_key": "myst"},
+    conf={"nb_execution_mode": "off", "nb_cell_metadata_key": "myst"},
 )
 def test_metadata_image(sphinx_run, clean_doctree, file_regression):
     """Test configuring image attributes to be rendered from cell metadata."""
@@ -102,7 +102,7 @@ def test_metadata_image(sphinx_run, clean_doctree, file_regression):
 
 @pytest.mark.sphinx_params(
     "metadata_figure.ipynb",
-    conf={"nb_execution_mode": "off", "nb_cell_render_key": "myst"},
+    conf={"nb_execution_mode": "off", "nb_cell_metadata_key": "myst"},
 )
 def test_metadata_figure(sphinx_run, clean_doctree, file_regression):
     """Test configuring figure attributes to be rendered from cell metadata."""

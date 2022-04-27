@@ -97,7 +97,13 @@ def create_nb_reader(
 def is_myst_markdown_notebook(text: str | Iterator[str]) -> bool:
     """Check if the input is a MyST Markdown notebook.
 
-    This is identified by the presence of a top-matter section, containing::
+    This is identified by the presence of a top-matter section, containing either::
+
+        ---
+        file_format: mystnb
+        ---
+
+    or::
 
         ---
         jupytext:
@@ -127,6 +133,8 @@ def is_myst_markdown_notebook(text: str | Iterator[str]) -> bool:
         assert isinstance(metadata, dict)
     except Exception:
         return False
+    if "file_format" in metadata and metadata["file_format"] == "mystnb":
+        return True
     if (
         metadata.get("jupytext", {})
         .get("text_representation", {})
@@ -201,6 +209,15 @@ def read_myst_markdown_notebook(
             metadata_nb = yaml.safe_load(metadata.content)
         except (yaml.parser.ParserError, yaml.scanner.ScannerError) as error:
             raise MystMetadataParsingError(f"Notebook metadata: {error}")
+
+    # add missing display name to the metadata, as required by the nbformat schema:
+    # https://github.com/jupyter/nbformat/blob/f712d60f13c5b168313222cbf4bee7face98a081/nbformat/v4/nbformat.v4.5.schema.json#L16
+    if (
+        "kernelspec" in metadata_nb
+        and "name" in metadata_nb["kernelspec"]
+        and "display_name" not in metadata_nb["kernelspec"]
+    ):
+        metadata_nb["kernelspec"]["display_name"] = metadata_nb["kernelspec"]["name"]
 
     # create an empty notebook
     nbf_version = nbf.v4

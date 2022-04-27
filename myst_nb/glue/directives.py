@@ -117,7 +117,7 @@ class PasteMarkdownDirective(_PasteDirectiveBase):
             ]
 
         # TODO this "override" feels a bit hacky
-        cell_key = result.nb_renderer.config.cell_render_key
+        cell_key = result.nb_renderer.config.cell_metadata_key
         mime = MimeData(
             "text/markdown",
             result.data["text/markdown"],

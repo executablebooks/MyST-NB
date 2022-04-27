@@ -203,7 +203,7 @@ class PasteMarkdownRole(_PasteRoleBase):
             ]
 
         # TODO this feels a bit hacky
-        cell_key = result.nb_renderer.renderer.nb_config.cell_render_key
+        cell_key = result.nb_renderer.renderer.nb_config.cell_metadata_key
         mime = MimeData(
             "text/markdown",
             result.data["text/markdown"],
