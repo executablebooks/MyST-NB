@@ -1,4 +1,4 @@
-"""A parser for docutils."""
+"""The docutils parser implementation for myst-nb."""
 from __future__ import annotations
 
 from functools import partial
