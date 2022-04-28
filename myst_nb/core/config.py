@@ -177,6 +177,16 @@ class NbParserConfig:
 
     # notebook execution options
 
+    kernel_rgx_aliases: Dict[str, str] = dc.field(
+        default_factory=dict,
+        metadata={
+            "validator": deep_mapping(instance_of(str), instance_of(str)),
+            "help": "Mapping of kernel name regex to replacement kernel name"
+            "(applied before execution)",
+            "docutils_exclude": True,
+            "sections": (Section.global_lvl, Section.execute),
+        },
+    )
     execution_mode: Literal["off", "force", "auto", "cache"] = dc.field(
         default="auto",
         metadata={

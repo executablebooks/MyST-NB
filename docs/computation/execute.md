@@ -10,8 +10,8 @@ kernelspec:
 MyST-NB can automatically run and cache notebooks contained in your project using [jupyter-cache].
 Notebooks can either be run each time the documentation is built, or cached locally so that re-runs occur only when code cells have changed.
 
-Caching behaviour is controlled with configuration in your `conf.py` file.
-See the sections below for each configuration option and its effect.
+Caching behaviour is controlled with configuration, as outlined in the [configuration section](config/intro).
+See the sections below for a description of each configuration option and its effect.
 
 (execute/config)=
 
@@ -87,6 +87,16 @@ nb_execution_cache_path = "path/to/mycache"
 The path should point to an **empty folder**, or a folder where a **jupyter cache already exists**.
 
 [jupyter-cache]: https://github.com/executablebooks/jupyter-cache "the Jupyter Cache Project"
+
+## Execute with a different kernel name
+
+If you require your notebooks to run with a different kernel, to those specified in the actual files, you can set global aliases with e.g.
+
+```python
+nb_kernel_rgx_aliases = {"oth.*": "python3"}
+```
+
+The mapping keys are [regular expressions](https://www.regular-expressions.info/) so, for example `oth.*` will match any kernel name starting with `oth`.
 
 ## Executing in temporary folders
 

@@ -252,7 +252,15 @@ def test_relative_path_force(sphinx_run):
     assert "Execution Failed" not in sphinx_run.status(), sphinx_run.status()
 
 
-# Execution timeout configuration
+@pytest.mark.sphinx_params(
+    "kernel_alias.md",
+    conf={"nb_execution_mode": "force", "nb_kernel_rgx_aliases": {"oth.+": "python3"}},
+)
+def test_kernel_rgx_aliases(sphinx_run):
+    sphinx_run.build()
+    assert sphinx_run.warnings() == ""
+
+
 @pytest.mark.sphinx_params(
     "sleep_10.ipynb",
     conf={"nb_execution_mode": "cache", "nb_execution_timeout": 1},

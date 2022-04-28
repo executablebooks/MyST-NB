@@ -4,6 +4,7 @@ from __future__ import annotations
 from collections import defaultdict
 import json
 from pathlib import Path
+import re
 from typing import Any, DefaultDict, cast
 
 from docutils import nodes
@@ -80,6 +81,18 @@ class Parser(MystParser):
         if nb_reader is None:
             return super().parse(inputstring, document)
         notebook = nb_reader.read(inputstring)
+
+        # potentially replace kernel name with alias
+        kernel_name = notebook.metadata.get("kernelspec", {}).get("name", None)
+        if kernel_name is not None and nb_config.kernel_rgx_aliases:
+            for rgx, alias in nb_config.kernel_rgx_aliases.items():
+                if re.fullmatch(rgx, kernel_name):
+                    logger.debug(
+                        f"Replaced kernel name: {kernel_name!r} -> {alias!r}",
+                        subtype="kernel",
+                    )
+                    notebook.metadata["kernelspec"]["name"] = alias
+                    break
 
         # Update mystnb configuration with notebook level metadata
         if nb_config.metadata_key in notebook.metadata:
