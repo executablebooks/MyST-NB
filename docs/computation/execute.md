@@ -10,8 +10,8 @@ kernelspec:
 MyST-NB can automatically run and cache notebooks contained in your project using [jupyter-cache].
 Notebooks can either be run each time the documentation is built, or cached locally so that re-runs occur only when code cells have changed.
 
-Caching behaviour is controlled with configuration, as outlined in the [configuration section](config/intro).
-See the sections below for a description of each configuration option and its effect.
+Execution and caching behaviour is controlled with configuration at a global or per-file level, as outlined in the [configuration section](config/intro).
+See the sections below for a description of each configuration option and their effect.
 
 (execute/config)=
 

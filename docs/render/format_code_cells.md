@@ -4,50 +4,44 @@ kernelspec:
   name: python3
 ---
 
-(render/output)=
-# Format code outputs
+(render/code-cells)=
+# Format code cells
 
-(render/output/priority)=
-## Render priority
+Code cell rendering behaviour is controlled with configuration at a global, per-file, or per-cell level, as outlined in the [configuration section](config/intro).
 
-When Jupyter executes a code cell it can produce multiple outputs, and each of these outputs can contain multiple [MIME media types](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types), for use by different output formats (like HTML or LaTeX).
+See the sections below for a description of these configuration option and their effect.
 
-MyST-NB stores a base priority dictionary for most of the common [Sphinx builder names](https://www.sphinx-doc.org/en/master/usage/builders/index.html),
-mapping MIME types to a priority number (lower is higher priority):
+(render/input/number)=
+## Number source lines
+
+You can control whether the number of source lines is displayed for code cells,
+globally with `nb_number_source_lines = True`, per-file with `number_source_lines` in the notebook metadata, or per-cell with `number_source_lines` in the cell metadata.
+For example:
+
+````markdown
+```{code-cell} ipython3
+---
+mystnb:
+  number_source_lines: true
+---
+a = 1
+b = 2
+c = 1
+```
+````
 
 ```{code-cell} ipython3
-:tags: [hide-output]
-
-import yaml
-from myst_nb.core.render import base_render_priority
-print(yaml.dump(base_render_priority()))
+---
+mystnb:
+  number_source_lines: true
+---
+a = 1
+b = 2
+c = 1
 ```
-
-Items in this dictionary can be overridden by the `nb_mime_priority_overrides` configuration option, in your `conf.py`.
-For example, the following configuration applies in order:
-
-- Sets `text/plain` as the highest priority for `html` output.
-- Disables `image/jpeg` for `latex` output
-- Adds a custom MIME type `customtype` for all builders (`*` applies to all builders)
-
-```python
-nb_mime_priority_overrides = [
-  ('html', 'text/plain', 0),
-  ('latex', 'image/jpeg', None),
-  ('*', 'customtype', 20)
-]
-```
-
-```{versionchanged} 0.14.0
-`nb_mime_priority_overrides` replaces `nb_render_priority`
-```
-
-:::{seealso}
-[](render/output/cutomise), for a more advanced means of customisation.
-:::
 
 (render/output/stdout-stderr)=
-## stdout and stderr
+## stdout and stderr outputs
 
 (render/output/stderr)=
 ### Remove stdout or stderr
@@ -88,7 +82,7 @@ This can be set to:
 - `"warn"`, `"error"` or `"severe"`: log to sphinx, at a certain level, if any found.
 
 (render/output/group-stderr-stdout)=
-### Group stdout and stderr into single streams
+### Group into single streams
 
 Cells may print multiple things to `stdout` and `stderr`.
 For example, if a cell prints status updates throughout its execution, each of these is often printed to `stdout`.
@@ -103,6 +97,45 @@ nb_merge_streams = True
 This will ensure that all `stderr` and `stdout` outputs are merged into a single group.
 This also makes cell outputs more deterministic.
 Normally, slight differences in timing may result in different orders of `stderr` and `stdout` in the cell output, while this setting will sort them properly.
+
+(render/output/priority)=
+## Outputs MIME priority
+
+When Jupyter executes a code cell it can produce multiple outputs, and each of these outputs can contain multiple [MIME media types](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types), for use by different output formats (like HTML or LaTeX).
+
+MyST-NB stores a base priority dictionary for most of the common [Sphinx builder names](https://www.sphinx-doc.org/en/master/usage/builders/index.html),
+mapping MIME types to a priority number (lower is higher priority):
+
+```{code-cell} ipython3
+:tags: [hide-output]
+
+import yaml
+from myst_nb.core.render import base_render_priority
+print(yaml.dump(base_render_priority()))
+```
+
+Items in this dictionary can be overridden by the `nb_mime_priority_overrides` configuration option, in your `conf.py`.
+For example, the following configuration applies in order:
+
+- Sets `text/plain` as the highest priority for `html` output.
+- Disables `image/jpeg` for `latex` output
+- Adds a custom MIME type `customtype` for all builders (`*` applies to all builders)
+
+```python
+nb_mime_priority_overrides = [
+  ('html', 'text/plain', 0),
+  ('latex', 'image/jpeg', None),
+  ('*', 'customtype', 20)
+]
+```
+
+```{versionchanged} 0.14.0
+`nb_mime_priority_overrides` replaces `nb_render_priority`
+```
+
+:::{seealso}
+[](render/output/cutomise), for a more advanced means of customisation.
+:::
 
 (render/output/images)=
 ## Images and Figures
@@ -132,7 +165,6 @@ You can also wrap the output in a [`figure`](https://docutils.sourceforge.io/doc
 ```{code-cell} ipython3
 ---
 mystnb:
-  number_source_lines: true
   image:
     width: 200px
     alt: fun-fish
@@ -152,7 +184,6 @@ Image("images/fun-fish.png")
 ```{code-cell} ipython3
 ---
 mystnb:
-  number_source_lines: true
   image:
     width: 300px
     alt: fun-fish
@@ -170,19 +201,21 @@ Image("images/fun-fish.png")
 
 Now we can link to the image from anywhere in our documentation: [swim to the fish](fun-fish-ref)
 
-You can create figures for any mime outputs:
+You can create figures for any mime outputs, including tables:
 
 ````md
 ```{code-cell} ipython3
 ---
 mystnb:
   figure:
-    align: left
+    align: center
     caption_before: true
-    caption: This is my table caption, aligned left
+    caption: This is my table caption, above the table
 ---
 import pandas
-pandas.DataFrame({"column 1": [1, 2, 3]})
+df = pandas.DataFrame({"column 1": [1, 2, 3]})
+df = df.style.set_table_attributes('class="dataframe align-center"')
+df
 ```
 ````
 
@@ -190,12 +223,14 @@ pandas.DataFrame({"column 1": [1, 2, 3]})
 ---
 mystnb:
   figure:
-    align: left
+    align: center
     caption_before: true
-    caption: This is my table caption, aligned left
+    caption: This is my table caption, above the table
 ---
 import pandas
-pandas.DataFrame({"column 1": [1, 2, 3]})
+df = pandas.DataFrame({"column 1": [1, 2, 3]})
+df = df.style.set_table_attributes('class="dataframe align-center"')
+df
 ```
 
 (render/output/markdown)=
