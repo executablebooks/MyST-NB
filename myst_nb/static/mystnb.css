@@ -101,6 +101,10 @@ div.cell_output table {
     background: rgba(66, 165, 245, 0.2);
   }
 
+/** source code line numbers **/
+span.linenos {
+  opacity: 0.5;
+}
 
 /* Inline text from `paste` operation */
 

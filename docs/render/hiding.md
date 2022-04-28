@@ -17,7 +17,7 @@ package to add a little button that toggles the visibility of content.[^download
 
 ## Hide code cells
 
-You can use **cell tags** to control the content hidden with code cells.
+You can use **cell tags** to control the content hidden with code cells at the cell level.
 Add the following tags to a cell's metadata to control
 what to hide in code cells:
 
@@ -78,8 +78,21 @@ For information on how to hide / toggle markdown content in Sphinx, see either [
 
 ## Remove parts of cells
 
-Sometimes, you want to entirely remove parts of a cell so that it doesn't make it
-into the output at all. To do this, you can use the same tag pattern described above,
+Sometimes, you want to entirely remove parts of a cell so that it doesn't make it into the output at all.
+
+To do this at the global level, use the `nb_remove_code_source` or `nb_remove_code_outputs` configuration options, or at a per-file level, e.g.
+
+```yaml
+---
+mystnb:
+  remove_code_source: true
+  remove_code_outputs: true
+---
+```
+
+See the [configuration section](config/intro) for more details.
+
+At a per-cell level you can use the same tag pattern described above,
 but with the word `remove_` instead of `hide_`. Use the following tags:
 
 * **`remove-input`** tag to remove the cell inputs

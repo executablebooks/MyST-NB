@@ -5,7 +5,7 @@ and build output formats.
 
 ```{toctree}
 :maxdepth: 1
-format_outputs
+format_code_cells
 hiding
 glue
 interactive

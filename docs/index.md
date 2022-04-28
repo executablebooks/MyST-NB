@@ -69,7 +69,7 @@ Cache execution outputs, for fast re-builds.
 :::
 
 :::{grid-item-card} {material-regular}`preview;2em` Render
-:link: render/output
+:link: render/code-cells
 :link-type: ref
 
 Convert Jupyter execution outputs to embedded content.\
@@ -77,7 +77,7 @@ Insert outputs as variables into your documents.\
 Build single or collections of documents into multiple formats, including HTML websites and PDF books.
 
 +++
-[Learn more »](render/output)
+[Learn more »](render/code-cells)
 :::
 
 ::::
