@@ -44,6 +44,9 @@ dependencies = [
     "sphinx>=3.5,<5",
     "sphinx-togglebutton~=0.3.0",
     "typing-extensions",
+    # ipykernel is not a requirement of the library,
+    # but is a common requirement for users (registers the python3 kernel)
+    "ipykernel",
 ]
 
 [project.urls]

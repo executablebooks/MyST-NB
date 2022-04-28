@@ -7,14 +7,12 @@ kernelspec:
 # Widgets and interactive outputs
 
 Jupyter Notebooks have support for many kinds of interactive outputs.
-These should all be supported in MyST-NB by passing the output HTML through
-automatically. This page has a few common examples.[^download]
+These should all be supported in MyST-NB by passing the output HTML through automatically.
+This page has a few common examples.[^download]
 
-[^download]: This notebook can be downloaded as
-            **{nb-download}`interactive.ipynb`** and {download}`interactive.md`
+[^download]: This notebook can be downloaded as **{nb-download}`interactive.ipynb`** and {download}`interactive.md`
 
-First off, we'll download a little bit of data
-and show its structure:
+First off, we'll download a little bit of data and show its structure:
 
 ```{code-cell} ipython3
 import plotly.express as px
@@ -28,8 +26,8 @@ data.head()
 
 Interactive outputs will work under the assumption that the outputs they produce have
 self-contained HTML that works without requiring any external dependencies to load.
-See the [`Altair` installation instructions](https://altair-viz.github.io/getting_started/installation.html#installation)
-to get set up with Altair. Below is some example output.
+See the [`Altair` installation instructions](https://altair-viz.github.io/getting_started/installation.html#installation) to get set up with Altair.
+Below is some example output.
 
 ```{code-cell} ipython3
 import altair as alt
@@ -43,9 +41,8 @@ alt.Chart(data=data).mark_point().encode(
 
 ### Plotly
 
-Plotly is another interactive plotting library that provides a high-level API for
-visualization. See the [Plotly JupyterLab documentation](https://plotly.com/python/getting-started/#jupyterlab-support-python-35)
-to get started with Plotly in the notebook.
+Plotly is another interactive plotting library that provides a high-level API for visualization.
+See the [Plotly JupyterLab documentation](https://plotly.com/python/getting-started/#jupyterlab-support-python-35) to get started with Plotly in the notebook.
 
 Below is some example output.
 
@@ -98,10 +95,10 @@ outputs will embed themselves in your side. See [the ipywidgets documentation](h
 for how to get set up in your own environment.
 
 ```{admonition} Widgets often need a kernel
-Note that `ipywidgets` tend to behave differently from other interactive viz libraries. They
-interact both with Javascript, and with Python. Some functionality in `ipywidgets` may not
-work in default Jupyter Book pages (because no Python kernel is running). You may be able to
-get around this with [tools for remote kernels, like thebelab](https://thebelab.readthedocs.org).
+Note that `ipywidgets` tend to behave differently from other interactive viz libraries.
+They interact both with Javascript, and with Python.
+Some functionality in `ipywidgets` may not work in rendered pages (because no Python kernel is running).
+You may be able to get around this with tools for remote kernels, like [thebelab](https://thebelab.readthedocs.org).
 ```
 
 Here are some simple widget elements rendered below.
@@ -132,5 +129,4 @@ for ii in range(len(children)):
 tab
 ```
 
-You can find [a list of possible Jupyter Widgets](https://ipywidgets.readthedocs.io/en/latest/examples/Widget%20List.html)
-in the jupyter-widgets documentation.
+You can find [a list of possible Jupyter Widgets](https://ipywidgets.readthedocs.io/en/latest/examples/Widget%20List.html) in the jupyter-widgets documentation.
