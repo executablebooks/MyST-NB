@@ -4,6 +4,26 @@
 
 This release encompasses a **major** rewrite of the entire library and its documentation, primarily in [#380](https://github.com/executablebooks/MyST-NB/pull/380) and [#405](https://github.com/executablebooks/MyST-NB/pull/405).
 
+### Breaking Changes ‼️
+
+no default dollarmath, no ipywidgets, config name changes, "render" -> "mystnb"
+
+may see:
+
+```
+WARNING: 'jupyter_execute_notebooks' is deprecated for 'nb_execution_mode' [mystnb.config]
+```
+
+### Dependency changes ⬆️
+
+- Removed:
+  - `ipywidgets`
+  - `jupyter_sphinx`
+  - `nbconvert`
+- Updated:
+  - `Python`: `3.6+ -> 3.7+`
+  - `myst_parser`: [`0.15 -> 0.17`](myst:develop/_changelog)
+  - `jupyter-cache`: [`0.4 -> 0.5`](https://github.com/executablebooks/jupyter-cache/blob/master/CHANGELOG.md)
 
 ### Additional Pull Requests
 
