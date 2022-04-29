@@ -61,6 +61,7 @@ intersphinx_cache_limit = 5
 nitpick_ignore = [
     ("py:class", klass)
     for klass in [
+        "Path",
         "docutils.nodes.document",
         "docutils.nodes.Node",
         "docutils.nodes.Element",
