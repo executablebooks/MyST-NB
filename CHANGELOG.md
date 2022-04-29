@@ -10,7 +10,7 @@ This release encompasses a **major** rewrite of the entire library and its docum
 
 #### Configuration
 
-A number of configuration option names have been changes, such that they now share the `nb_` prefix.
+A number of configuration option names have been changed, such that they now share the `nb_` prefix.
 Most of the deprecated names will be auto-converted at the start of the build, emitting a warning such as:
 
 ```
