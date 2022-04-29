@@ -17,13 +17,15 @@ See the sections below for a description of each configuration option and their 
 
 ## Triggering notebook execution
 
-To trigger the execution of notebook pages, use the following configuration in `conf.py`:
+To trigger the execution of notebook pages, use the global `nb_execution_mode` configuration key, or per-file `execution_mode` key:
+
+By default this is set to:
 
 ```python
 nb_execution_mode = "auto"
 ```
 
-By default, this will only execute notebooks that are missing at least one output.
+This will only execute notebooks that are missing at least one output.
 If a notebook has *all* of its outputs populated, then it will not be executed.
 
 **To force the execution of all notebooks, regardless of their outputs**, change the above configuration value to:
@@ -57,26 +59,36 @@ Any file that matches one of the items in `nb_execution_excludepatterns` will no
 (execute/cache)=
 ## Cache execution outputs
 
-As mentioned above, you can **cache the results of executing a notebook page** by setting:
+As mentioned above, you can cache the results of executing a notebook page by setting:
 
 ```python
 nb_execution_mode = "cache"
 ```
 
-in your conf.py file.
-
 In this case, when a page is executed, its outputs will be stored in a local database.
 This allows you to be sure that the outputs in your documentation are up-to-date, while saving time avoiding unnecessary re-execution.
 It also allows you to store your `.ipynb` files (or their `.md` equivalent) in your `git` repository *without their outputs*, but still leverage a cache to save time when building your site.
 
+:::{tip}
+You should only use this option when notebooks have deterministic execution outputs:
+
+- You use the same environment to run them (e.g. the same installed packages)
+- They run no non-deterministic code (e.g. random numbers)
+- They do not depend on external resources (e.g. files or network connections) that change over time
+:::
+
 When you re-build your site, the following will happen:
 
-* Notebooks that have not seen changes to their **code cells** or **metadata** since the last build will not be re-executed.
+- Notebooks that have not seen changes to their **code cells** or **metadata** since the last build will not be re-executed.
   Instead, their outputs will be pulled from the cache and inserted into your site.
-* Notebooks that **have any change to their code cells** will be re-executed, and the cache will be updated with the new outputs.
+- Notebooks that **have any change to their code cells** will be re-executed, and the cache will be updated with the new outputs.
 
 By default, the cache will be placed in the parent of your build folder.
-Generally, this is in `_build/.jupyter_cache`.
+Generally, this is in `_build/.jupyter_cache`, and it will also be specified in the build log, e.g.
+
+```
+Using jupyter-cache at: ./docs/_build/.jupyter_cache
+```
 
 You may also specify a path to the location of a jupyter cache you'd like to use:
 
@@ -85,6 +97,14 @@ nb_execution_cache_path = "path/to/mycache"
 ```
 
 The path should point to an **empty folder**, or a folder where a **jupyter cache already exists**.
+
+Once you have run the documentation build, you can inspect the contents of the cache with the following command:
+
+```console
+$ jcache notebook -p docs/_build/.jupyter_cache list
+```
+
+See [jupyter-cache] for more information.
 
 [jupyter-cache]: https://github.com/executablebooks/jupyter-cache "the Jupyter Cache Project"
 

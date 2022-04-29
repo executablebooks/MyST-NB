@@ -145,13 +145,23 @@ raise ValueError("oopsie!")
 (converting-ipynb)=
 ## Convert between MyST notebooks and `.ipynb`
 
-MyST notebooks can be converted back-and-forth from `ipynb` files using [jupytext](https://jupytext.readthedocs.io),
+MyST notebooks can be converted to Jupyter notebooks using the `mystnb-to-jupyter` CLI command.
+
+```console
+$ mystnb-to-jupyter path/to/text-notebook.md
+Wrote notebook to: path/to/text-notebook.ipynb
+```
+
+MyST notebooks can also be converted back-and-forth from `ipynb` files using [jupytext](https://jupytext.readthedocs.io),
 a Python library for two-way conversion of `ipynb` files with many text-based formats.
 
-To let jupytext know the format of the notebook, add the notebook top-matter metadata:
+To let jupytext know the format of the notebook, add the notebook top-matter similar to:
 
 ```yaml
 ---
+kernelspec:
+  name: python3
+  display_name: python3
 jupytext:
   text_representation:
     extension: .md

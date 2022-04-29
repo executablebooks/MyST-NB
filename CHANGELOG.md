@@ -1,14 +1,166 @@
 # Change Log
 
+## v0.14.0 - 2022-04-27
+
+[Full changelog](https://github.com/executablebooks/MyST-NB/compare/v0.13.2...v0.14.0)
+
+This release encompasses a **major** rewrite of the entire library and its documentation, primarily in [#380](https://github.com/executablebooks/MyST-NB/pull/380) and [#405](https://github.com/executablebooks/MyST-NB/pull/405).
+
+### Breaking Changes ‼️
+
+#### Configuration
+
+A number of configuration option names have been changed, such that they now share the `nb_` prefix.
+Most of the deprecated names will be auto-converted at the start of the build, emitting a warning such as:
+
+```
+WARNING: 'jupyter_execute_notebooks' is deprecated for 'nb_execution_mode' [mystnb.config]
+```
+
+`nb_render_priority` has been removed and replaced by `nb_mime_priority_overrides`, which has a different format and is more flexible. See [Outputs MIME priority](docs/render/format_code_cells.md) for more information.
+
+As per the changes in [`myst_parser`](myst:develop/_changelog), the `dollarmath` syntax extension is no longer included by default.
+To re-add this extension, ensure that it is specified in your `conf.py`: `myst_enable_extensions = ["dollarmath"]`.
+
+For cell-level configuration the top-level key `render` has now been deprecated for `mystnb`.
+For example, replace:
+
+````markdown
+```{code-cell}
+---
+render:
+  image:
+    width: 200px
+---
+...
+```
+````
+
+with:
+
+````markdown
+```{code-cell}
+---
+mystnb:
+  image:
+    width: 200px
+---
+...
+```
+````
+
+`render` will currently still be read, if present, and will issue a `[mystnb.cell_metadata_key]` warning.
+
+The `jupyter_sphinx_require_url` and `jupyter_sphinx_embed_url` configuration options are no longer used by this package, and are replaced by `nb_ipywidgets_js`.
+
+See the [configuration section](docs/configuration.md) for more details.
+
+#### Dependencies
+
+The [ipywidgets](https://ipywidgets.readthedocs.io) package has been removed from the requirements.
+If required, please install it specifically.
+
+#### AST structure and rendering plugins
+
+The structure of the docutils AST and nodes produced by MyST-NB has been fully changed, for compatibility with the new [docutils only functionality](docs/docutils.md).
+See [the API documentation](docs/reference/api.rst) for more details.
+
+The renderer plugin system (used by the `myst_nb.renderers` entry point) has also been completely rewritten,
+so any current existing renderers will no longer work.
+There is also now a new `myst_nb.mime_renderers` entry point, to allow for targeted rendering of specific code-cell output MIME types.
+See [Customise the render process](docs/render/format_code_cells.md) for more information.
+
+#### Glue functionality
+
+By default, `glue` roles and directives now only work for keys within the same document.
+To reference glued content in a different document, the `glue:any` directive allows for a `doc` option and `glue:any`/`glue:text` roles allow the (relative) doc path to be added, for example:
+
+````markdown
+```{glue:any} var_text
+:doc: other.ipynb
+```
+
+{glue:text}`other.ipynb::var_float:.2E`
+````
+
+This cross-document functionality is currently restricted to only `text/plain` and `text/html` output MIME types, not images.
+
+See [Embedding outputs as variables](docs/render/glue.md) for more details.
+
+### Dependency changes ⬆️
+
+- Removed:
+  - `ipywidgets`
+  - `jupyter_sphinx`
+  - `nbconvert`
+- Updated:
+  - `Python`: `3.6+ -> 3.7+`
+  - `myst_parser`: [`0.15 -> 0.17`](myst:develop/_changelog)
+  - `jupyter-cache`: [`0.4 -> 0.5`](https://github.com/executablebooks/jupyter-cache/blob/master/CHANGELOG.md)
+  - `sphinx-togglebutton`: [`0.1 -> 0.3`](https://sphinx-togglebutton.readthedocs.io/en/latest/changelog.html)
+
+### New and improved ✨
+
+The following is a non-exhaustive list of new features and improvements, see the rest of the documentation for all the changes.
+
+- Multi-level configuration (global (`conf.py`) < notebook level metadata < cell level metadata)
+  - Plus new config options including: `nb_number_source_lines`, `nb_remove_code_source`, `nb_remove_code_outputs`, `nb_render_error_lexer`, `nb_execution_raise_on_error`, `nb_kernel_rgx_aliases`
+  - See the [configuration section](docs/configuration.md) for more details.
+
+- Added `mystnb-quickstart` and `mystnb-to-jupyter` CLI commands.
+
+- MyST text-based notebooks can now be specified by just:
+
+  ```yaml
+  ---
+  file_format: mystnb
+  kernelspec:
+    name: python3
+  ---
+  ```
+
+  as opposed to the alternative jupytext top-matter.
+  See [Text-based Notebooks](docs/authoring/text-notebooks.md) for more details.
+
+- docutils API/CLI with command line tools, e.g. `mystnb-docutils-html`
+  - Includes `glue` roles and directives
+  - See [single page builds](docs/docutils.md) for more details.
+
+- Parallel friendly (e.g. `sphinx-build -j 4` can execute four notebooks in parallel)
+
+- Page specific loading of ipywidgets JavaScript, i.e. only when ipywidgets are present in the notebook.
+
+- Added raw cell rendering, with the `raw-cell` directive.
+  See [Raw cells authoring](docs/authoring/jupyter-notebooks.md) for more details.
+
+- Added MIME render plugins. See [Customise the render process](docs/render/format_code_cells.md) for more details.
+
+- Better log info/warnings, with `type.subtype` specifiers for warning suppression.
+  See [Warning suppression](docs/configuration.md) for more details.
+
+- Reworked jupyter-cache integration to be easier to use (including parallel execution)
+
+- Added image options to `glue:figure`
+
+- New `glue:md` role/directive includes nested parsing of MyST Markdown.
+  See [Embedding outputs as variables](docs/render/glue.md) for more details.
+
+- Improved `nb-exec-table` directive (includes links to documents, etc)
+
+### Additional Pull Requests
+
+- 👌 IMPROVE: Update ANSI CSS colors by @saulshanabrook in [#384](https://github.com/executablebooks/MyST-NB/pull/384)
+- ✨ NEW: Add `nb_execution_raise_on_error` config by @chrisjsewell in [#404](https://github.com/executablebooks/MyST-NB/pull/404)
+- 👌 IMPROVE: Add image options to `glue:figure` by @chrisjsewell in [#403](https://github.com/executablebooks/MyST-NB/pull/403)
+
 ## v0.13.2 - 2022-02-10
 
 This release improves for cell outputs and brings UI improvements for toggling cell inputs and outputs.
 It also includes several bugfixes.
 
--  Add CSS support for 8-bit ANSI colours [#379](https://github.com/executablebooks/MyST-NB/pull/379) ([@thiippal](https://github.com/thiippal))
+- Add CSS support for 8-bit ANSI colours [#379](https://github.com/executablebooks/MyST-NB/pull/379) ([@thiippal](https://github.com/thiippal))
 - Use configured `nb_render_plugin` for glue nodes [#337](https://github.com/executablebooks/MyST-NB/pull/337) ([@bryanwweber](https://github.com/bryanwweber))
 - UPGRADE: sphinx-togglebutton v0.3.0 [#390](https://github.com/executablebooks/MyST-NB/pull/390) ([@choldgraf](https://github.com/choldgraf))
-
 
 ## 0.13.1 - 2021-10-04
 

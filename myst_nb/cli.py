@@ -8,6 +8,7 @@ from textwrap import indent
 import nbformat
 
 from .core.config import NbParserConfig
+from .core.read import read_myst_markdown_notebook
 
 
 def quickstart(args: list[str] | None = None):
@@ -139,3 +140,44 @@ print("Hello, World!")
         + "\n"
     )
     return content
+
+
+def md_to_nb(args: list[str] | None = None):
+    namespace = create_md_to_nb_cli().parse_args(args)
+    path = Path(namespace.inpath).resolve()
+    if namespace.outpath:
+        outpath = Path(namespace.outpath).resolve()
+    else:
+        outpath = path.with_suffix(".ipynb")
+    verbose: bool = namespace.verbose
+    overwrite: bool = namespace.overwrite
+    if outpath.exists():
+        if not overwrite:
+            raise FileExistsError(f"{outpath} already exists.")
+        if verbose:
+            print(f"Overwriting existing file: {outpath}")
+    nb = read_myst_markdown_notebook(path.read_text("utf8"), path=path)
+    with outpath.open("w", encoding="utf8") as handle:
+        nbformat.write(nb, handle)
+    print(f"Wrote notebook to: {outpath}")
+
+
+def create_md_to_nb_cli():
+    cli = argparse.ArgumentParser(
+        description="Convert a text-based notebook to a Jupyter notebook."
+    )
+    cli.add_argument(
+        "inpath", metavar="PATH_IN", type=str, help="Path to Markdown file."
+    )
+    cli.add_argument(
+        "outpath",
+        metavar="PATH_OUT",
+        nargs="?",
+        type=str,
+        help="Path to output to.",
+    )
+    cli.add_argument(
+        "-o", "--overwrite", action="store_true", help="Overwrite existing files."
+    )
+    cli.add_argument("-v", "--verbose", action="store_true", help="Increase verbosity.")
+    return cli

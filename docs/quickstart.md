@@ -31,3 +31,17 @@ By default, MyST-NB will now parse both markdown (`.md`) and notebooks (`.ipynb`
 
 Begin authoring your content {material-regular}`navigate_next;2em`
 ```
+
+Once you have finished authoring your content, you can now use the [sphinx-build CLI](https://www.sphinx-doc.org/en/master/man/sphinx-build.html) to build your documentation, e.g.
+
+```bash
+sphinx-build -nW --keep-going -b html docs/ docs/_build/html
+```
+
+:::{tip}
+MyST-NB is parallel-friendly, so you can also distribute the build (and execution of notebooks) over *N* processes with: `sphinx-build -j 4`
+:::
+
+:::{seealso}
+Check out [Read the Docs](https://docs.readthedocs.io) for hosting and *continuous deployment* of documentation
+:::

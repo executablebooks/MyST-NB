@@ -93,6 +93,22 @@ kernelspec:
 
 The `kernelspec.name` should relate to a [Jupyter kernel](https://github.com/jupyter/jupyter/wiki/Jupyter-kernels) installed in your environment.
 
+MyST-NB will also recognise [jupytext](https://jupytext.readthedocs.io) top-matter, such as:
+
+```yaml
+---
+kernelspec:
+  name: python3
+  display_name: python3
+jupytext:
+  text_representation:
+    extension: .md
+    format_name: myst
+    format_version: '0.13'
+    jupytext_version: 1.13.8
+---
+```
+
 Code cells are then designated by the `code-cell` directive:
 
 ````markdown

@@ -174,7 +174,7 @@ def read_myst_markdown_notebook(
     code_directive="{code-cell}",
     raw_directive="{raw-cell}",
     add_source_map=False,
-    path: str | None = None,
+    path: str | Path | None = None,
 ) -> nbf.NotebookNode:
     """Convert text written in the myst format to a notebook.
 
@@ -351,7 +351,9 @@ def _read_cell_metadata(token, cell_index):
     return metadata
 
 
-def _load_code_from_file(nb_path, file_name, token, body_lines):
+def _load_code_from_file(
+    nb_path: None | str | Path, file_name: str, token, body_lines: list[str]
+):
     """load source code from a file."""
     if nb_path is None:
         raise _LoadFileParsingError("path to notebook not supplied for :load:")
