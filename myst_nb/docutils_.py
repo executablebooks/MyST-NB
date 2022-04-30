@@ -34,6 +34,7 @@ from myst_nb.core.read import (
     standard_nb_read,
 )
 from myst_nb.core.render import (
+    MditRenderMixin,
     MimeData,
     NbElementRenderer,
     create_figure_context,
@@ -214,38 +215,8 @@ class Parser(MystParser):
         document.attributes.pop("nb_renderer")
 
 
-class DocutilsNbRenderer(DocutilsRenderer):
+class DocutilsNbRenderer(DocutilsRenderer, MditRenderMixin):
     """A docutils-only renderer for Jupyter Notebooks."""
-
-    @property
-    def nb_config(self) -> NbParserConfig:
-        """Get the notebook element renderer."""
-        return self.md_options["nb_config"]
-
-    @property
-    def nb_renderer(self) -> NbElementRenderer:
-        """Get the notebook element renderer."""
-        return self.document["nb_renderer"]
-
-    def get_cell_level_config(
-        self,
-        field: str,
-        cell_metadata: dict[str, Any],
-        line: int | None = None,
-    ) -> Any:
-        """Get a configuration value at the cell level.
-
-        Takes the highest priority configuration from:
-        `cell > document > global > default`
-
-        :param field: the field name from ``NbParserConfig`` to get the value for
-        :param cell_metadata: the metadata for the cell
-        """
-
-        def _callback(msg: str, subtype: str):
-            self.create_warning(msg, line=line, subtype=subtype)
-
-        return self.nb_config.get_cell_level_config(field, cell_metadata, _callback)
 
     def render_nb_metadata(self, token: SyntaxTreeNode) -> None:
         """Render the notebook metadata."""
@@ -270,105 +241,6 @@ class DocutilsNbRenderer(DocutilsRenderer):
                     content=top_matter,  # type: ignore[arg-type]
                 ),
             )
-
-    def render_nb_cell_markdown(self, token: SyntaxTreeNode) -> None:
-        """Render a notebook markdown cell."""
-        # TODO this is currently just a "pass-through", but we could utilise the metadata
-        # it would be nice to "wrap" this in a container that included the metadata,
-        # but unfortunately this would break the heading structure of docutils/sphinx.
-        # perhaps we add an "invisible" (non-rendered) marker node to the document tree,
-        self.render_children(token)
-
-    def render_nb_cell_raw(self, token: SyntaxTreeNode) -> None:
-        """Render a notebook raw cell."""
-        line = token_line(token, 0)
-        _nodes = self.nb_renderer.render_raw_cell(
-            token.content, token.meta["metadata"], token.meta["index"], line
-        )
-        self.add_line_and_source_path_r(_nodes, token)
-        self.current_node.extend(_nodes)
-
-    def render_nb_cell_code(self, token: SyntaxTreeNode) -> None:
-        """Render a notebook code cell."""
-        cell_index = token.meta["index"]
-        tags = token.meta["metadata"].get("tags", [])
-
-        # TODO do we need this -/_ duplication of tag names, or can we deprecate one?
-        remove_input = (
-            self.get_cell_level_config(
-                "remove_code_source",
-                token.meta["metadata"],
-                line=token_line(token, 0) or None,
-            )
-            or ("remove_input" in tags)
-            or ("remove-input" in tags)
-        )
-        remove_output = (
-            self.get_cell_level_config(
-                "remove_code_outputs",
-                token.meta["metadata"],
-                line=token_line(token, 0) or None,
-            )
-            or ("remove_output" in tags)
-            or ("remove-output" in tags)
-        )
-
-        # if we are remove both the input and output, we can skip the cell
-        if remove_input and remove_output:
-            return
-
-        # create a container for all the input/output
-        classes = ["cell"]
-        for tag in tags:
-            classes.append(f"tag_{tag.replace(' ', '_')}")
-        cell_container = nodes.container(
-            nb_element="cell_code",
-            cell_index=cell_index,
-            # TODO some way to use this to allow repr of count in outputs like HTML?
-            exec_count=token.meta["execution_count"],
-            cell_metadata=token.meta["metadata"],
-            classes=classes,
-        )
-        self.add_line_and_source_path(cell_container, token)
-        with self.current_node_context(cell_container, append=True):
-
-            # render the code source code
-            if not remove_input:
-                cell_input = nodes.container(
-                    nb_element="cell_code_source", classes=["cell_input"]
-                )
-                self.add_line_and_source_path(cell_input, token)
-                with self.current_node_context(cell_input, append=True):
-                    self._render_nb_cell_code_source(token)
-
-            # render the execution output, if any
-            outputs: list[NotebookNode] = self.md_options["notebook"]["cells"][
-                cell_index
-            ].get("outputs", [])
-            if (not remove_output) and outputs:
-                cell_output = nodes.container(
-                    nb_element="cell_code_output", classes=["cell_output"]
-                )
-                self.add_line_and_source_path(cell_output, token)
-                with self.current_node_context(cell_output, append=True):
-                    self._render_nb_cell_code_outputs(token, outputs)
-
-    def _render_nb_cell_code_source(self, token: SyntaxTreeNode) -> None:
-        """Render a notebook code cell's source."""
-        lexer = token.meta.get("lexer", None)
-        node = self.create_highlighted_code_block(
-            token.content,
-            lexer,
-            number_lines=self.get_cell_level_config(
-                "number_source_lines",
-                token.meta["metadata"],
-                line=token_line(token, 0) or None,
-            ),
-            source=self.document["source"],
-            line=token_line(token),
-        )
-        self.add_line_and_source_path(node, token)
-        self.current_node.append(node)
 
     def _render_nb_cell_code_outputs(
         self, token: SyntaxTreeNode, outputs: list[NotebookNode]
@@ -409,17 +281,6 @@ class DocutilsNbRenderer(DocutilsRenderer):
                 # here we directly select a single output, based on the mime_priority,
                 # as opposed to output all mime types, and select in a post-transform
                 # (the mime_priority must then be set for the output format)
-
-                # TODO how to output MyST Markdown?
-                # currently text/markdown is set to be rendered as CommonMark only,
-                # with headings dissallowed,
-                # to avoid "side effects" if the mime is discarded but contained
-                # targets, etc, and because we can't parse headings within containers.
-                # perhaps we could have a config option to allow this?
-                # - for non-commonmark, the text/markdown would always be considered
-                #   the top priority, and all other mime types would be ignored.
-                # - for headings, we would also need to parsing the markdown
-                #   at the "top-level", i.e. not nested in container(s)
 
                 try:
                     mime_type = next(x for x in mime_priority if x in output["data"])
