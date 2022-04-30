@@ -43,7 +43,7 @@ Get Started
 
 ----------------
 
-::::{grid} 1 3 3 3
+::::{grid} 1 2 2 3
 :gutter: 1 1 1 2
 
 :::{grid-item-card} {material-regular}`edit_note;2em` Write
