@@ -315,21 +315,21 @@ class SphinxNbRenderer(SphinxRenderer):
                 )
                 self.add_line_and_source_path(cell_input, token)
                 with self.current_node_context(cell_input, append=True):
-                    self.render_nb_cell_code_source(token)
+                    self._render_nb_cell_code_source(token)
 
             # render the execution output, if any
-            has_outputs = self.md_options["notebook"]["cells"][cell_index].get(
-                "outputs", []
-            )
-            if (not remove_output) and has_outputs:
+            outputs: list[nbformat.NotebookNode] = self.md_options["notebook"]["cells"][
+                cell_index
+            ].get("outputs", [])
+            if (not remove_output) and outputs:
                 cell_output = nodes.container(
                     nb_element="cell_code_output", classes=["cell_output"]
                 )
                 self.add_line_and_source_path(cell_output, token)
                 with self.current_node_context(cell_output, append=True):
-                    self.render_nb_cell_code_outputs(token)
+                    self._render_nb_cell_code_outputs(token, outputs)
 
-    def render_nb_cell_code_source(self, token: SyntaxTreeNode) -> None:
+    def _render_nb_cell_code_source(self, token: SyntaxTreeNode) -> None:
         """Render a notebook code cell's source."""
         # cell_index = token.meta["index"]
         lexer = token.meta.get("lexer", None)
@@ -347,14 +347,13 @@ class SphinxNbRenderer(SphinxRenderer):
         self.add_line_and_source_path(node, token)
         self.current_node.append(node)
 
-    def render_nb_cell_code_outputs(self, token: SyntaxTreeNode) -> None:
+    def _render_nb_cell_code_outputs(
+        self, token: SyntaxTreeNode, outputs: list[nbformat.NotebookNode]
+    ) -> None:
         """Render a notebook code cell's outputs."""
         line = token_line(token, 0)
         cell_index = token.meta["index"]
         metadata = token.meta["metadata"]
-        outputs: list[nbformat.NotebookNode] = self.md_options["notebook"]["cells"][
-            cell_index
-        ].get("outputs", [])
         # render the outputs
         for output_index, output in enumerate(outputs):
             if output.output_type == "stream":

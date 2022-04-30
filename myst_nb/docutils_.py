@@ -339,21 +339,21 @@ class DocutilsNbRenderer(DocutilsRenderer):
                 )
                 self.add_line_and_source_path(cell_input, token)
                 with self.current_node_context(cell_input, append=True):
-                    self.render_nb_cell_code_source(token)
+                    self._render_nb_cell_code_source(token)
 
             # render the execution output, if any
-            has_outputs = self.md_options["notebook"]["cells"][cell_index].get(
-                "outputs", []
-            )
-            if (not remove_output) and has_outputs:
+            outputs: list[NotebookNode] = self.md_options["notebook"]["cells"][
+                cell_index
+            ].get("outputs", [])
+            if (not remove_output) and outputs:
                 cell_output = nodes.container(
                     nb_element="cell_code_output", classes=["cell_output"]
                 )
                 self.add_line_and_source_path(cell_output, token)
                 with self.current_node_context(cell_output, append=True):
-                    self.render_nb_cell_code_outputs(token)
+                    self._render_nb_cell_code_outputs(token, outputs)
 
-    def render_nb_cell_code_source(self, token: SyntaxTreeNode) -> None:
+    def _render_nb_cell_code_source(self, token: SyntaxTreeNode) -> None:
         """Render a notebook code cell's source."""
         lexer = token.meta.get("lexer", None)
         node = self.create_highlighted_code_block(
@@ -370,14 +370,13 @@ class DocutilsNbRenderer(DocutilsRenderer):
         self.add_line_and_source_path(node, token)
         self.current_node.append(node)
 
-    def render_nb_cell_code_outputs(self, token: SyntaxTreeNode) -> None:
+    def _render_nb_cell_code_outputs(
+        self, token: SyntaxTreeNode, outputs: list[NotebookNode]
+    ) -> None:
         """Render a notebook code cell's outputs."""
         cell_index = token.meta["index"]
         metadata = token.meta["metadata"]
         line = token_line(token)
-        outputs: list[NotebookNode] = self.md_options["notebook"]["cells"][
-            cell_index
-        ].get("outputs", [])
         # render the outputs
         mime_priority = get_mime_priority(
             self.nb_config.builder_name, self.nb_config.mime_priority_overrides
