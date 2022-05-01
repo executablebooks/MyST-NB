@@ -113,6 +113,8 @@ class MditRenderMixin:
         cell_index = token.meta["index"]
         tags = token.meta["metadata"].get("tags", [])
 
+        exec_count, outputs = self._get_nb_code_cell_outputs(cell_index)
+
         # TODO do we need this -/_ duplication of tag names, or can we deprecate one?
         remove_input = (
             self.get_cell_level_config(
@@ -145,7 +147,7 @@ class MditRenderMixin:
             nb_element="cell_code",
             cell_index=cell_index,
             # TODO some way to use this to allow repr of count in outputs like HTML?
-            exec_count=token.meta["execution_count"],
+            exec_count=exec_count,
             cell_metadata=token.meta["metadata"],
             classes=classes,
         )
@@ -162,10 +164,7 @@ class MditRenderMixin:
                     self._render_nb_cell_code_source(token)
 
             # render the execution output, if any
-            outputs: list[NotebookNode] = self.md_options["notebook"]["cells"][
-                cell_index
-            ].get("outputs", [])
-            if (not remove_output) and outputs:
+            if outputs and (not remove_output):
                 cell_output = nodes.container(
                     nb_element="cell_code_output", classes=["cell_output"]
                 )
@@ -173,23 +172,57 @@ class MditRenderMixin:
                 with self.current_node_context(cell_output, append=True):
                     self._render_nb_cell_code_outputs(token, outputs)
 
+    def _get_nb_source_code_lexer(
+        self: SelfType,
+        cell_index: int,
+        warn_missing: bool = True,
+        line: int | None = None,
+    ) -> str | None:
+        """Get the lexer name for code cell source."""
+        metadata = self.md_options["notebook"].metadata
+        langinfo = metadata.get("language_info") or {}
+        lexer = langinfo.get("pygments_lexer") or langinfo.get("name", None)
+        if lexer is None:
+            lexer = (metadata.get("kernelspec") or {}).get("language", None)
+        if lexer is None and warn_missing:
+            # TODO this will create a warning for every cell, but perhaps
+            # it should only be a single warning for the notebook (as previously)
+            # TODO allow user to set default lexer?
+            self.create_warning(
+                f"No source code lexer found for notebook cell {cell_index + 1}",
+                wtype=DEFAULT_LOG_TYPE,
+                subtype="lexer",
+                line=line,
+                append_to=self.current_node,
+            )
+        return lexer
+
     def _render_nb_cell_code_source(self: SelfType, token: SyntaxTreeNode) -> None:
         """Render a notebook code cell's source."""
-        # cell_index = token.meta["index"]
-        lexer = token.meta.get("lexer", None)
+        cell_index = token.meta["index"]
+        line = token_line(token, 0) or None
         node = self.create_highlighted_code_block(
             token.content,
-            lexer,
+            self._get_nb_source_code_lexer(cell_index, line=line),
             number_lines=self.get_cell_level_config(
                 "number_source_lines",
                 token.meta["metadata"],
-                line=token_line(token, 0) or None,
+                line=line,
             ),
             source=self.document["source"],
             line=token_line(token),
         )
         self.add_line_and_source_path(node, token)
         self.current_node.append(node)
+
+    def _get_nb_code_cell_outputs(
+        self, cell_index: int
+    ) -> tuple[int | None, list[NotebookNode]]:
+        """Get the outputs for a code cell and its execution count."""
+        cell: NotebookNode = self.md_options["notebook"]["cells"][cell_index]
+        exec_count: int | None = cell.get("execution_count", None)
+        outputs: list[NotebookNode] = cell.get("outputs", [])
+        return exec_count, outputs
 
     def _render_nb_cell_code_outputs(
         self, token: SyntaxTreeNode, outputs: list[NotebookNode]

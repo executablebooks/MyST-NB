@@ -37,16 +37,6 @@ def notebook_to_tokens(
     # (required to collect all reference definitions, before assessing references).
     metadata = nb_node_to_dict(notebook.metadata)
 
-    # attempt to get language lexer name
-    langinfo = metadata.get("language_info") or {}
-    lexer = langinfo.get("pygments_lexer") or langinfo.get("name", None)
-    if lexer is None:
-        lexer = (metadata.get("kernelspec") or {}).get("language", None)
-    if lexer is None:
-        logger.warning(
-            "No source code lexer found in notebook metadata", subtype="lexer"
-        )
-
     block_tokens = [
         Token("nb_metadata", "", 0, meta=metadata, map=[0, 0]),
     ]
@@ -121,8 +111,6 @@ def notebook_to_tokens(
                     content=nb_cell["source"],
                     meta={
                         "index": cell_index,
-                        "execution_count": nb_cell.get("execution_count", None),
-                        "lexer": lexer,
                         "metadata": nb_node_to_dict(nb_cell["metadata"]),
                     },
                     map=[0, 0],
