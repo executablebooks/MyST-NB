@@ -35,11 +35,7 @@ def notebook_to_tokens(
 
     # Parse block tokens only first, leaving inline parsing to a second phase
     # (required to collect all reference definitions, before assessing references).
-    metadata = nb_node_to_dict(notebook.metadata)
-
-    block_tokens = [
-        Token("nb_metadata", "", 0, meta=metadata, map=[0, 0]),
-    ]
+    block_tokens = [Token("nb_metadata", "", 0, map=[0, 0])]
     for cell_index, nb_cell in enumerate(notebook.cells):
 
         # skip empty cells
@@ -84,7 +80,6 @@ def notebook_to_tokens(
             )
         elif nb_cell["cell_type"] == "raw":
             # https://nbformat.readthedocs.io/en/5.1.3/format_description.html#raw-nbconvert-cells
-            metadata = nb_node_to_dict(nb_cell["metadata"])
             tokens = [
                 Token(
                     "nb_cell_raw",

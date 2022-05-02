@@ -68,13 +68,12 @@ def glue(name: str, variable, display: bool = True) -> None:
 
 def extract_glue_data(
     notebook: NotebookNode,
-    resources: Dict[str, Any],
     source_map: List[int],
     logger: LoggerType,
-) -> None:
-    """Extract all the glue data from the notebook, into the resources dictionary."""
+) -> Dict[str, NotebookNode]:
+    """Extract all the glue data from the notebook."""
     # note this assumes v4 notebook format
-    data: Dict[str, NotebookNode] = resources.setdefault("glue", {})
+    data: Dict[str, NotebookNode] = {}
     for index, cell in enumerate(notebook.cells):
         if cell.cell_type != "code":
             continue
@@ -98,3 +97,5 @@ def extract_glue_data(
                 # assume that the output is a displayable object
                 outputs.append(output)
         cell.outputs = outputs
+
+    return data

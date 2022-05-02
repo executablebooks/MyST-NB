@@ -26,7 +26,9 @@ from nbformat import NotebookNode
 from typing_extensions import Protocol
 
 from myst_nb.core.config import NbParserConfig
+from myst_nb.core.execute import NotebookClientBase
 from myst_nb.core.loggers import DEFAULT_LOG_TYPE, LoggerType
+from myst_nb.core.utils import coalesce_streams
 
 if TYPE_CHECKING:
     from markdown_it.tree import SyntaxTreeNode
@@ -65,6 +67,11 @@ class MditRenderMixin:
     def nb_config(self: SelfType) -> NbParserConfig:
         """Get the notebook element renderer."""
         return self.md_options["nb_config"]
+
+    @property
+    def nb_client(self: SelfType) -> NotebookClientBase:
+        """Get the notebook element renderer."""
+        return self.md_options["nb_client"]
 
     @property
     def nb_renderer(self: SelfType) -> NbElementRenderer:
@@ -113,7 +120,7 @@ class MditRenderMixin:
         cell_index = token.meta["index"]
         tags = token.meta["metadata"].get("tags", [])
 
-        exec_count, outputs = self._get_nb_code_cell_outputs(cell_index)
+        exec_count, outputs = self._get_nb_code_cell_outputs(token)
 
         # TODO do we need this -/_ duplication of tag names, or can we deprecate one?
         remove_input = (
@@ -179,11 +186,7 @@ class MditRenderMixin:
         line: int | None = None,
     ) -> str | None:
         """Get the lexer name for code cell source."""
-        metadata = self.md_options["notebook"].metadata
-        langinfo = metadata.get("language_info") or {}
-        lexer = langinfo.get("pygments_lexer") or langinfo.get("name", None)
-        if lexer is None:
-            lexer = (metadata.get("kernelspec") or {}).get("language", None)
+        lexer = self.nb_client.nb_source_code_lexer()
         if lexer is None and warn_missing:
             # TODO this will create a warning for every cell, but perhaps
             # it should only be a single warning for the notebook (as previously)
@@ -216,12 +219,18 @@ class MditRenderMixin:
         self.current_node.append(node)
 
     def _get_nb_code_cell_outputs(
-        self, cell_index: int
+        self, token: SyntaxTreeNode
     ) -> tuple[int | None, list[NotebookNode]]:
         """Get the outputs for a code cell and its execution count."""
-        cell: NotebookNode = self.md_options["notebook"]["cells"][cell_index]
-        exec_count: int | None = cell.get("execution_count", None)
-        outputs: list[NotebookNode] = cell.get("outputs", [])
+        cell_index = token.meta["index"]
+        line = token_line(token, 0) or None
+
+        exec_count, outputs = self.nb_client.code_cell_outputs(cell_index)
+
+        if self.get_cell_level_config("merge_streams", token.meta["metadata"], line):
+            # TODO should this be saved on the output notebook
+            outputs = coalesce_streams(outputs)
+
         return exec_count, outputs
 
     def _render_nb_cell_code_outputs(
@@ -323,10 +332,6 @@ class NbElementRenderer:
     def source(self):
         """The source of the notebook."""
         return self.renderer.document["source"]
-
-    def get_resources(self) -> dict[str, Any]:
-        """Get the resources from the notebook pre-processing."""
-        return self.renderer.md_options["nb_resources"]
 
     def write_file(
         self, path: list[str], content: bytes, overwrite=False, exists_ok=False

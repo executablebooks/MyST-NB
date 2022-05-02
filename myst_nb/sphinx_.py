@@ -25,8 +25,7 @@ from myst_nb._compat import findall
 from myst_nb.core.config import NbParserConfig
 from myst_nb.core.execute import ExecutionResult, execute_notebook
 from myst_nb.core.loggers import DEFAULT_LOG_TYPE, SphinxDocLogger
-from myst_nb.core.parse import nb_node_to_dict, notebook_to_tokens
-from myst_nb.core.preprocess import preprocess_notebook
+from myst_nb.core.nb_to_tokens import nb_node_to_dict, notebook_to_tokens
 from myst_nb.core.read import create_nb_reader
 from myst_nb.core.render import (
     MditRenderMixin,
@@ -111,28 +110,9 @@ class Parser(MystParser):
                     "Updated configuration with notebook metadata", subtype="config"
                 )
 
-        # potentially execute notebook and/or populate outputs from cache
-        notebook, exec_data = execute_notebook(
-            notebook, document_path, nb_config, logger, nb_reader.read_fmt
-        )
-        if exec_data:
-            NbMetadataCollector.set_exec_data(self.env, self.env.docname, exec_data)
-            if exec_data["traceback"]:
-                # store error traceback in outdir and log its path
-                reports_file = Path(self.env.app.outdir).joinpath(
-                    "reports", *(self.env.docname + ".err.log").split("/")
-                )
-                reports_file.parent.mkdir(parents=True, exist_ok=True)
-                reports_file.write_text(exec_data["traceback"], encoding="utf8")
-                logger.warning(
-                    f"Notebook exception traceback saved in: {reports_file}",
-                    subtype="exec",
-                )
-
         # Setup the parser
         mdit_parser = create_md_parser(nb_reader.md_config, SphinxNbRenderer)
         mdit_parser.options["document"] = document
-        mdit_parser.options["notebook"] = notebook
         mdit_parser.options["nb_config"] = nb_config
         mdit_renderer: SphinxNbRenderer = mdit_parser.renderer  # type: ignore
         mdit_env: dict[str, Any] = {}
@@ -149,14 +129,37 @@ class Parser(MystParser):
         # we currently do this early, so that the nb_renderer has access to things
         mdit_renderer.setup_render(mdit_parser.options, mdit_env)
 
-        # pre-process notebook and store resources for render
-        resources = preprocess_notebook(notebook, logger, nb_config)
-        mdit_renderer.md_options["nb_resources"] = resources
-
-        # parse to tokens
+        # parse notebook structure to markdown-it tokens
+        # note, this does not assume that the notebook has been executed yet
         mdit_tokens = notebook_to_tokens(notebook, mdit_parser, mdit_env, logger)
-        # convert to docutils AST, which is added to the document
-        mdit_renderer.render(mdit_tokens, mdit_parser.options, mdit_env)
+
+        # open the notebook execution client,
+        # this may execute the notebook immediately or during the page render
+        with execute_notebook(
+            notebook, document_path, nb_config, logger, nb_reader.read_fmt
+        ) as nb_client:
+            mdit_parser.options["nb_client"] = nb_client
+            # convert to docutils AST, which is added to the document
+            mdit_renderer.render(mdit_tokens, mdit_parser.options, mdit_env)
+
+        # save final execution data
+        if nb_client.exec_metadata:
+            NbMetadataCollector.set_exec_data(
+                self.env, self.env.docname, nb_client.exec_metadata
+            )
+            if nb_client.exec_metadata["traceback"]:
+                # store error traceback in outdir and log its path
+                reports_file = Path(self.env.app.outdir).joinpath(
+                    "reports", *(self.env.docname + ".err.log").split("/")
+                )
+                reports_file.parent.mkdir(parents=True, exist_ok=True)
+                reports_file.write_text(
+                    nb_client.exec_metadata["traceback"], encoding="utf8"
+                )
+                logger.warning(
+                    f"Notebook exception traceback saved in: {reports_file}",
+                    subtype="exec",
+                )
 
         # write final (updated) notebook to output folder (utf8 is standard encoding)
         path = self.env.docname.split("/")
@@ -167,15 +170,15 @@ class Parser(MystParser):
         # write glue data to the output folder,
         # and store the keys to environment doc metadata,
         # so that they may be used in any post-transform steps
-        if resources.get("glue", None):
+        if nb_client.glue_data:
             glue_path = path[:-1] + [path[-1] + ".glue.json"]
             nb_renderer.write_file(
                 glue_path,
-                json.dumps(resources["glue"], cls=BytesEncoder).encode("utf8"),
+                json.dumps(nb_client.glue_data, cls=BytesEncoder).encode("utf8"),
                 overwrite=True,
             )
             NbMetadataCollector.set_doc_data(
-                self.env, self.env.docname, "glue", list(resources["glue"].keys())
+                self.env, self.env.docname, "glue", list(nb_client.glue_data.keys())
             )
 
         # move some document metadata to environment metadata,
@@ -196,7 +199,7 @@ class SphinxNbRenderer(SphinxRenderer, MditRenderMixin):
     def render_nb_metadata(self, token: SyntaxTreeNode) -> None:
         """Render the notebook metadata."""
         env = cast(BuildEnvironment, self.sphinx_env)
-        metadata = dict(token.meta)
+        metadata = self.nb_client.nb_metadata
         special_keys = ("kernelspec", "language_info", "source_map")
         for key in special_keys:
             if key in metadata:

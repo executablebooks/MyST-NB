@@ -66,18 +66,16 @@ def retrieve_glue_data(document: nodes.document, key: str) -> RetrievedData:
     msg = f"No key {key!r} found in glue data for this document."
     if "nb_renderer" not in document:
         raise RetrievalError(msg)
-    nb_renderer: NbElementRenderer = document["nb_renderer"]
-    resources = nb_renderer.get_resources()
-    if "glue" not in resources:
-        raise RetrievalError(msg)
+    element: NbElementRenderer = document["nb_renderer"]
+    glue_data = element.renderer.nb_client.glue_data
 
-    if key not in resources["glue"]:
+    if key not in glue_data:
         raise RetrievalError(msg)
 
     return RetrievedData(
-        data=resources["glue"][key]["data"],
-        metadata=resources["glue"][key].get("metadata", {}),
-        nb_renderer=nb_renderer,
+        data=glue_data[key]["data"],
+        metadata=glue_data[key].get("metadata", {}),
+        nb_renderer=element,
     )
 
 

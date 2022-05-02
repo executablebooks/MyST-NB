@@ -25,8 +25,7 @@ from myst_nb import static
 from myst_nb.core.config import NbParserConfig
 from myst_nb.core.execute import execute_notebook
 from myst_nb.core.loggers import DEFAULT_LOG_TYPE, DocutilsDocLogger
-from myst_nb.core.parse import nb_node_to_dict, notebook_to_tokens
-from myst_nb.core.preprocess import preprocess_notebook
+from myst_nb.core.nb_to_tokens import nb_node_to_dict, notebook_to_tokens
 from myst_nb.core.read import (
     NbReader,
     UnexpectedCellDirective,
@@ -142,17 +141,9 @@ class Parser(MystParser):
                     "Updated configuration with notebook metadata", subtype="config"
                 )
 
-        # potentially execute notebook and/or populate outputs from cache
-        notebook, exec_data = execute_notebook(
-            notebook, document_source, nb_config, logger
-        )
-        if exec_data:
-            document["nb_exec_data"] = exec_data
-
         # Setup the markdown parser
         mdit_parser = create_md_parser(nb_reader.md_config, DocutilsNbRenderer)
         mdit_parser.options["document"] = document
-        mdit_parser.options["notebook"] = notebook
         mdit_parser.options["nb_config"] = nb_config
         mdit_renderer: DocutilsNbRenderer = mdit_parser.renderer  # type: ignore
         mdit_env: dict[str, Any] = {}
@@ -169,14 +160,22 @@ class Parser(MystParser):
         # we currently do this early, so that the nb_renderer has access to things
         mdit_renderer.setup_render(mdit_parser.options, mdit_env)
 
-        # pre-process notebook and store resources for render
-        resources = preprocess_notebook(notebook, logger, nb_config)
-        mdit_renderer.md_options["nb_resources"] = resources
-
-        # parse to tokens
+        # parse notebook structure to markdown-it tokens
+        # note, this does not assume that the notebook has been executed yet
         mdit_tokens = notebook_to_tokens(notebook, mdit_parser, mdit_env, logger)
-        # convert to docutils AST, which is added to the document
-        mdit_renderer.render(mdit_tokens, mdit_parser.options, mdit_env)
+
+        # open the notebook execution client,
+        # this may execute the notebook immediately or during the page render
+        with execute_notebook(
+            notebook, document_source, nb_config, logger
+        ) as nb_client:
+            mdit_parser.options["nb_client"] = nb_client
+            # convert to docutils AST, which is added to the document
+            mdit_renderer.render(mdit_tokens, mdit_parser.options, mdit_env)
+
+        # save final execution data
+        if nb_client.exec_metadata:
+            document["nb_exec_data"] = nb_client.exec_metadata
 
         if nb_config.output_folder:
             # write final (updated) notebook to output folder (utf8 is standard encoding)
@@ -220,7 +219,7 @@ class DocutilsNbRenderer(DocutilsRenderer, MditRenderMixin):
 
     def render_nb_metadata(self, token: SyntaxTreeNode) -> None:
         """Render the notebook metadata."""
-        metadata = dict(token.meta)
+        metadata = self.nb_client.nb_metadata
         special_keys = ("kernelspec", "language_info", "source_map")
         for key in special_keys:
             # save these special keys on the document, rather than as docinfo
