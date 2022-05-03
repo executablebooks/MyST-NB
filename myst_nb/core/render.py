@@ -98,6 +98,14 @@ class MditRenderMixin:
 
         return self.nb_config.get_cell_level_config(field, cell_metadata, _callback)
 
+    def render_nb_initialise(self, token: SyntaxTreeNode) -> None:
+        """Run rendering at the start of the notebook."""
+
+    def render_nb_finalise(self, token: SyntaxTreeNode) -> None:
+        """Run rendering at the end of the notebook."""
+        self.nb_client.finalise_client()
+        self.nb_renderer.render_nb_finalise(self.nb_client.nb_metadata)
+
     def render_nb_cell_markdown(self: SelfType, token: SyntaxTreeNode) -> None:
         """Render a notebook markdown cell."""
         # TODO this is currently just a "pass-through", but we could utilise the metadata
@@ -382,16 +390,13 @@ class NbElementRenderer:
         # TODO handle duplicate keys (whether to override/ignore)
         self.renderer.document["nb_js_files"][key] = (uri, kwargs)
 
-    def render_nb_metadata(self, metadata: dict) -> dict:
-        """Render the notebook metadata.
-
-        :returns: unhandled metadata
-        """
+    def render_nb_finalise(self, metadata: dict) -> None:
+        """Finalise the render of the notebook metadata."""
         # add ipywidgets state JavaScript,
         # The JSON inside the script tag is identified and parsed by:
         # https://github.com/jupyter-widgets/ipywidgets/blob/32f59acbc63c3ff0acf6afa86399cb563d3a9a86/packages/html-manager/src/libembed.ts#L36
         # see also: https://ipywidgets.readthedocs.io/en/7.6.5/embedding.html
-        ipywidgets = metadata.pop("widgets", None)
+        ipywidgets = metadata.get("widgets", None)
         ipywidgets_mime = (ipywidgets or {}).get(WIDGET_STATE_MIMETYPE, {})
         if ipywidgets_mime.get("state", None):
             self.add_js_file(
@@ -404,8 +409,6 @@ class NbElementRenderer:
             )
             for i, (path, kwargs) in enumerate(self.config.ipywidgets_js.items()):
                 self.add_js_file(f"ipywidgets_{i}", path, kwargs)
-
-        return metadata
 
     def render_raw_cell(
         self, content: str, metadata: dict, cell_index: int, source_line: int

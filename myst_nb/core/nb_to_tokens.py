@@ -35,7 +35,7 @@ def notebook_to_tokens(
 
     # Parse block tokens only first, leaving inline parsing to a second phase
     # (required to collect all reference definitions, before assessing references).
-    block_tokens = [Token("nb_metadata", "", 0, map=[0, 0])]
+    block_tokens = [Token("nb_initialise", "", 0, map=[0, 0])]
     for cell_index, nb_cell in enumerate(notebook.cells):
 
         # skip empty cells
@@ -133,6 +133,8 @@ def notebook_to_tokens(
 
         # add tokens to list
         block_tokens.extend(tokens)
+
+    block_tokens.append(Token("nb_finalise", "", 0, map=[0, 0]))
 
     # Now all definitions have been gathered, run the inline parsing phase
     state = StateCore("", mdit_parser, mdit_env, block_tokens)

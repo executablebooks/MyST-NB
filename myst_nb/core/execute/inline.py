@@ -68,14 +68,14 @@ class NotebookClientInline(NotebookClientBase):
         self._cell_error: None | Exception = None
         self._exc_string: None | str = None
 
+    def finalise_client(self):
+        try:
+            self._client.set_widgets_metadata()
+        except Exception as exc:
+            self.logger.warning(f"Failed to set widgets metadata: {exc}")
+
     def close_client(self, exc_type, exc_val, exc_tb):
         self.logger.info("Stopping inline execution client")
-        try:
-            # TODO because we set the widget state at the end,
-            # it won't be output by the renderer at present
-            self._client.set_widgets_metadata()
-        except Exception:
-            pass
         if self._client.owns_km:
             self._client._cleanup_kernel()
         del self._client

@@ -87,6 +87,13 @@ class NotebookClientBase:
     def start_client(self):
         """Start the client."""
 
+    def finalise_client(self):
+        """Finalise the client.
+
+        This is called before final rendering and should be used,
+        for example, to finalise the widget state on the metadata.
+        """
+
     def close_client(self, exc_type, exc_val, exc_tb):
         """Close the client."""
 

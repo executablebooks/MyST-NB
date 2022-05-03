@@ -196,20 +196,18 @@ class Parser(MystParser):
 class SphinxNbRenderer(SphinxRenderer, MditRenderMixin):
     """A sphinx renderer for Jupyter Notebooks."""
 
-    def render_nb_metadata(self, token: SyntaxTreeNode) -> None:
-        """Render the notebook metadata."""
+    def render_nb_initialise(self, token: SyntaxTreeNode) -> None:
         env = cast(BuildEnvironment, self.sphinx_env)
         metadata = self.nb_client.nb_metadata
-        special_keys = ("kernelspec", "language_info", "source_map")
+        special_keys = ["kernelspec", "language_info", "source_map"]
         for key in special_keys:
             if key in metadata:
                 # save these special keys on the metadata, rather than as docinfo
                 # note, sphinx_book_theme checks kernelspec is in the metadata
                 env.metadata[env.docname][key] = metadata.get(key)
 
-        metadata = self.nb_renderer.render_nb_metadata(metadata)
-
         # forward the remaining metadata to the front_matter renderer
+        special_keys.append("widgets")
         top_matter = {k: v for k, v in metadata.items() if k not in special_keys}
         self.render_front_matter(
             Token(  # type: ignore
