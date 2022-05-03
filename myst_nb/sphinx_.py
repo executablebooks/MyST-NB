@@ -23,7 +23,7 @@ from sphinx.util import logging as sphinx_logging
 
 from myst_nb._compat import findall
 from myst_nb.core.config import NbParserConfig
-from myst_nb.core.execute import ExecutionResult, execute_notebook
+from myst_nb.core.execute import ExecutionResult, create_client
 from myst_nb.core.loggers import DEFAULT_LOG_TYPE, SphinxDocLogger
 from myst_nb.core.nb_to_tokens import nb_node_to_dict, notebook_to_tokens
 from myst_nb.core.read import create_nb_reader
@@ -135,7 +135,7 @@ class Parser(MystParser):
 
         # open the notebook execution client,
         # this may execute the notebook immediately or during the page render
-        with execute_notebook(
+        with create_client(
             notebook, document_path, nb_config, logger, nb_reader.read_fmt
         ) as nb_client:
             mdit_parser.options["nb_client"] = nb_client

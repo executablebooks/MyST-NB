@@ -43,13 +43,19 @@ Read
 Execute
 -------
 
-.. autoclass:: myst_nb.core.execute.ExecutionResult
+.. autofunction:: myst_nb.core.execute.create_client
+
+.. autoclass:: myst_nb.core.execute.base.NotebookClientBase
     :members:
 
-.. autoclass:: myst_nb.core.execute.NotebookClientBase
+.. autoclass:: myst_nb.core.execute.direct.NotebookClientDirect
     :members:
 
-.. autofunction:: myst_nb.core.execute.execute_notebook
+.. autoclass:: myst_nb.core.execute.cache.NotebookClientCache
+    :members:
+
+.. autoclass:: myst_nb.core.execute.base.ExecutionResult
+    :members:
 
 Render plugin
 -------------

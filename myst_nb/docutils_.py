@@ -23,7 +23,7 @@ from pygments.formatters import get_formatter_by_name
 
 from myst_nb import static
 from myst_nb.core.config import NbParserConfig
-from myst_nb.core.execute import execute_notebook
+from myst_nb.core.execute import create_client
 from myst_nb.core.loggers import DEFAULT_LOG_TYPE, DocutilsDocLogger
 from myst_nb.core.nb_to_tokens import nb_node_to_dict, notebook_to_tokens
 from myst_nb.core.read import (
@@ -166,9 +166,7 @@ class Parser(MystParser):
 
         # open the notebook execution client,
         # this may execute the notebook immediately or during the page render
-        with execute_notebook(
-            notebook, document_source, nb_config, logger
-        ) as nb_client:
+        with create_client(notebook, document_source, nb_config, logger) as nb_client:
             mdit_parser.options["nb_client"] = nb_client
             # convert to docutils AST, which is added to the document
             mdit_renderer.render(mdit_tokens, mdit_parser.options, mdit_env)
