@@ -49,10 +49,10 @@ Execute
     :members:
 
 .. autoclass:: myst_nb.core.execute.direct.NotebookClientDirect
-    :members:
 
 .. autoclass:: myst_nb.core.execute.cache.NotebookClientCache
-    :members:
+
+.. autoclass:: myst_nb.core.execute.inline.NotebookClientInline
 
 .. autoclass:: myst_nb.core.execute.base.ExecutionResult
     :members:

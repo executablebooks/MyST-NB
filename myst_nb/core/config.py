@@ -187,7 +187,7 @@ class NbParserConfig:
             "sections": (Section.global_lvl, Section.execute),
         },
     )
-    execution_mode: Literal["off", "force", "auto", "cache"] = dc.field(
+    execution_mode: Literal["off", "force", "auto", "cache", "inline"] = dc.field(
         default="auto",
         metadata={
             "validator": in_(
@@ -196,6 +196,7 @@ class NbParserConfig:
                     "auto",
                     "force",
                     "cache",
+                    "inline",
                 ]
             ),
             "help": "Execution mode for notebooks",

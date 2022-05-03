@@ -38,6 +38,7 @@ dependencies = [
     "importlib_metadata",
     "ipython",
     "jupyter-cache~=0.5.0",
+    "nbclient",  # nbclient version pinned by jupyter-client
     "myst-parser~=0.17.2",
     "nbformat~=5.0",
     "pyyaml",

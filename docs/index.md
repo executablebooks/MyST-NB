@@ -72,8 +72,8 @@ Cache execution outputs, for fast re-builds.
 :link: render/code-cells
 :link-type: ref
 
-Convert Jupyter execution outputs to embedded content.\
-Insert outputs as variables into your documents.\
+Convert Jupyter execution outputs to rich embedded content.\
+Insert computed variables within your documents.\
 Build single or collections of documents into multiple formats, including HTML websites and PDF books.
 
 +++

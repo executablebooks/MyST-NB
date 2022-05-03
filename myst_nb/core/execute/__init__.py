@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 from .base import ExecutionError, ExecutionResult, NotebookClientBase  # noqa: F401
 from .cache import NotebookClientCache
 from .direct import NotebookClientDirect
+from .inline import NotebookClientInline
 
 if TYPE_CHECKING:
     from nbformat import NotebookNode
@@ -62,5 +63,8 @@ def create_client(
 
     if nb_config.execution_mode == "cache":
         return NotebookClientCache(notebook, path, nb_config, logger, read_fmt=read_fmt)
+
+    if nb_config.execution_mode == "inline":
+        return NotebookClientInline(notebook, path, nb_config, logger)
 
     return NotebookClientBase(notebook, path, nb_config, logger)

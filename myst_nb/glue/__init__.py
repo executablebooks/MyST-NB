@@ -1,7 +1,9 @@
 """Functionality for storing special data in notebook code cells,
 which can then be inserted into the document body.
 """
-from typing import Any, Dict, List
+from __future__ import annotations
+
+from typing import Any
 
 import IPython
 from IPython.display import display as ipy_display
@@ -12,7 +14,7 @@ from myst_nb.core.loggers import LoggerType
 GLUE_PREFIX = "application/papermill.record/"
 
 
-def get_glue_roles(prefix: str = "glue:") -> Dict[str, Any]:
+def get_glue_roles(prefix: str = "glue:") -> dict[str, Any]:
     """Return mapping of role names to role functions."""
     from .roles import PasteMarkdownRole, PasteRoleAny, PasteTextRole
 
@@ -24,7 +26,7 @@ def get_glue_roles(prefix: str = "glue:") -> Dict[str, Any]:
     }
 
 
-def get_glue_directives(prefix: str = "glue:") -> Dict[str, Any]:
+def get_glue_directives(prefix: str = "glue:") -> dict[str, Any]:
     """Return mapping of directive names to directive functions."""
     from .directives import (
         PasteAnyDirective,
@@ -42,7 +44,7 @@ def get_glue_directives(prefix: str = "glue:") -> Dict[str, Any]:
     }
 
 
-def glue(name: str, variable, display: bool = True) -> None:
+def glue(name: str, variable: Any, display: bool = True) -> None:
     """Glue a variable into the notebook's cell metadata.
 
     Parameters
@@ -68,34 +70,42 @@ def glue(name: str, variable, display: bool = True) -> None:
 
 def extract_glue_data(
     notebook: NotebookNode,
-    source_map: List[int],
+    source_map: list[int],
     logger: LoggerType,
-) -> Dict[str, NotebookNode]:
+) -> dict[str, NotebookNode]:
     """Extract all the glue data from the notebook."""
     # note this assumes v4 notebook format
-    data: Dict[str, NotebookNode] = {}
+    data: dict[str, NotebookNode] = {}
     for index, cell in enumerate(notebook.cells):
         if cell.cell_type != "code":
             continue
-        outputs = []
-        for output in cell.get("outputs", []):
-            meta = output.get("metadata", {})
-            if "scrapbook" not in meta:
-                outputs.append(output)
-                continue
-            key = meta["scrapbook"]["name"]
-            mime_prefix = len(meta["scrapbook"].get("mime_prefix", ""))
+        for key, cell_data in extract_glue_data_cell(cell):
             if key in data:
                 logger.warning(
                     f"glue key {key!r} duplicate",
                     subtype="glue",
                     line=source_map[index],
                 )
-            output["data"] = {k[mime_prefix:]: v for k, v in output["data"].items()}
-            data[key] = output
-            if not mime_prefix:
-                # assume that the output is a displayable object
-                outputs.append(output)
-        cell.outputs = outputs
+            data[key] = cell_data
 
+    return data
+
+
+def extract_glue_data_cell(cell: NotebookNode) -> list[tuple[str, NotebookNode]]:
+    """Extract glue data from a single cell."""
+    outputs = []
+    data = []
+    for output in cell.get("outputs", []):
+        meta = output.get("metadata", {})
+        if "scrapbook" not in meta:
+            outputs.append(output)
+            continue
+        key = meta["scrapbook"]["name"]
+        mime_prefix = len(meta["scrapbook"].get("mime_prefix", ""))
+        output["data"] = {k[mime_prefix:]: v for k, v in output["data"].items()}
+        data.append((key, output))
+        if not mime_prefix:
+            # assume that the output is a displayable object
+            outputs.append(output)
+        cell.outputs = outputs
     return data

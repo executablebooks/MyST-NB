@@ -58,7 +58,7 @@ class NotebookClientBase:
         self._logger = logger
         self._kwargs = kwargs
 
-        self._glue_data: dict[str, NotebookNode] | None = None
+        self._glue_data: dict[str, NotebookNode] = {}
         self._exec_metadata: ExecutionResult | None = None
 
         # get or create source map of cell to source line
@@ -113,7 +113,6 @@ class NotebookClientBase:
     @property
     def glue_data(self) -> dict[str, NotebookNode]:
         """Get the glue data."""
-        assert self._glue_data is not None
         return self._glue_data
 
     @property
