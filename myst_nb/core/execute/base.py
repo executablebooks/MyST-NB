@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 from typing import Any
 
 from nbformat import NotebookNode
@@ -10,7 +11,7 @@ from typing_extensions import TypedDict, final
 from myst_nb.core.config import NbParserConfig
 from myst_nb.core.loggers import LoggerType
 from myst_nb.core.nb_to_tokens import nb_node_to_dict
-from myst_nb.glue import extract_glue_data
+from myst_nb.ext.glue import extract_glue_data
 
 
 class ExecutionResult(TypedDict):
@@ -32,6 +33,13 @@ class ExecutionResult(TypedDict):
 
 class ExecutionError(Exception):
     """An exception for failed execution and `execution_raise_on_error` is true."""
+
+
+class EvalNameError(Exception):
+    """An exception for if an evaluation variable name is invalid."""
+
+
+EVAL_NAME_REGEX = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
 
 
 class NotebookClientBase:
@@ -161,3 +169,15 @@ class NotebookClientBase:
         cells = self.notebook.get("cells", [])
         cell = cells[cell_index]
         return cell.get("execution_count", None), cell.get("outputs", [])
+
+    def eval_variable(self, name: str) -> NotebookNode | None:
+        """Retrieve the value of a variable from the kernel.
+
+        :param name: the name of the variable,
+            must match the regex `[a-zA-Z][a-zA-Z0-9_]*`
+
+        :returns: a code cell output
+        :raises NotImplementedError: if the execution mode does not support this feature
+        :raises EvalNameError: if the variable name is invalid
+        """
+        raise NotImplementedError

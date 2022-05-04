@@ -3,7 +3,7 @@ which can then be inserted into the document body.
 """
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import IPython
 from IPython.display import display as ipy_display
@@ -11,37 +11,46 @@ from nbformat import NotebookNode
 
 from myst_nb.core.loggers import LoggerType
 
+if TYPE_CHECKING:
+    from sphinx.application import Sphinx
+
+    from myst_nb.docutils_ import DocutilsApp
+
 GLUE_PREFIX = "application/papermill.record/"
 
 
-def get_glue_roles(prefix: str = "glue:") -> dict[str, Any]:
-    """Return mapping of role names to role functions."""
-    from .roles import PasteMarkdownRole, PasteRoleAny, PasteTextRole
+def load_glue_sphinx(app: Sphinx) -> None:
+    """Load the eval domain."""
+    from .domain import NbGlueDomain
 
-    return {
-        f"{prefix}": PasteRoleAny(),
-        f"{prefix}any": PasteRoleAny(),
-        f"{prefix}text": PasteTextRole(),
-        f"{prefix}md": PasteMarkdownRole(),
-    }
+    app.add_domain(NbGlueDomain)
 
 
-def get_glue_directives(prefix: str = "glue:") -> dict[str, Any]:
-    """Return mapping of directive names to directive functions."""
+def load_glue_docutils(app: DocutilsApp) -> None:
     from .directives import (
         PasteAnyDirective,
         PasteFigureDirective,
         PasteMarkdownDirective,
         PasteMathDirective,
     )
+    from .roles import PasteMarkdownRole, PasteRoleAny, PasteTextRole
 
-    return {
-        f"{prefix}": PasteAnyDirective,
-        f"{prefix}any": PasteAnyDirective,
-        f"{prefix}figure": PasteFigureDirective,
-        f"{prefix}math": PasteMathDirective,
-        f"{prefix}md": PasteMarkdownDirective,
-    }
+    for name, role in [
+        ("glue:", PasteRoleAny()),
+        ("glue:any", PasteRoleAny()),
+        ("glue:text", PasteTextRole()),
+        ("glue:md", PasteMarkdownRole()),
+    ]:
+        app.roles[name] = role
+
+    for name, directive in [
+        ("glue:", PasteAnyDirective),
+        ("glue:any", PasteAnyDirective),
+        ("glue:figure", PasteFigureDirective),
+        ("glue:math", PasteMathDirective),
+        ("glue:md", PasteMarkdownDirective),
+    ]:
+        app.directives[name] = directive
 
 
 def glue(name: str, variable: Any, display: bool = True) -> None:

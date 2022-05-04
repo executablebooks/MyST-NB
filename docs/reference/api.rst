@@ -54,6 +54,10 @@ Execute
 
 .. autoclass:: myst_nb.core.execute.inline.NotebookClientInline
 
+.. autoexception:: myst_nb.core.execute.base.ExecutionError
+
+.. autoexception:: myst_nb.core.execute.base.EvalNameError
+
 .. autoclass:: myst_nb.core.execute.base.ExecutionResult
     :members:
 

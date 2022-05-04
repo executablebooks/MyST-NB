@@ -1,9 +1,10 @@
+"""Test the `glue` directives and roles."""
 from IPython.core.displaypub import DisplayPublisher
 from IPython.core.interactiveshell import InteractiveShell
 import nbformat
 import pytest
 
-from myst_nb.glue import extract_glue_data, glue
+from myst_nb.ext.glue import extract_glue_data, glue
 
 
 class MockDisplayPublisher(DisplayPublisher):

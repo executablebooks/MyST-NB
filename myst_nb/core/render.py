@@ -736,18 +736,7 @@ class NbElementRenderer:
 
     def render_text_plain_inline(self, data: MimeData) -> list[nodes.Element]:
         """Render a notebook text/plain mime data output."""
-        # TODO previously this was not syntax highlighted?
-        lexer = self.renderer.get_cell_level_config(
-            "render_text_lexer", data.cell_metadata, line=data.line
-        )
-        node = self.renderer.create_highlighted_code_block(
-            data.string,
-            lexer,
-            source=self.source,
-            line=data.line,
-            node_cls=nodes.literal,
-        )
-        node["classes"] += ["output", "text_plain"]
+        node = nodes.inline(data.string, data.string, classes=["output", "text_plain"])
         return [node]
 
     def render_text_html_inline(self, data: MimeData) -> list[nodes.Element]:

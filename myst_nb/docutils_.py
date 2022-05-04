@@ -1,7 +1,8 @@
 """The docutils parser implementation for myst-nb."""
 from __future__ import annotations
 
-from functools import partial
+from dataclasses import dataclass, field
+from functools import lru_cache, partial
 from importlib import resources as import_resources
 import os
 from typing import Any
@@ -40,11 +41,28 @@ from myst_nb.core.render import (
     get_mime_priority,
     load_renderer,
 )
-from myst_nb.glue import get_glue_directives, get_glue_roles
+from myst_nb.ext.eval import load_eval_docutils
+from myst_nb.ext.glue import load_glue_docutils
 
 DOCUTILS_EXCLUDED_ARGS = list(
     {f.name for f in NbParserConfig.get_fields() if f.metadata.get("docutils_exclude")}
 )
+
+
+@dataclass
+class DocutilsApp:
+    roles: dict[str, Any] = field(default_factory=dict)
+    directives: dict[str, Any] = field(default_factory=dict)
+
+
+@lru_cache(maxsize=1)
+def get_nb_roles_directives() -> DocutilsApp:
+    app = DocutilsApp()
+    app.directives["code-cell"] = UnexpectedCellDirective
+    app.directives["raw-cell"] = UnexpectedCellDirective
+    load_eval_docutils(app)
+    load_glue_docutils(app)
+    return app
 
 
 class Parser(MystParser):
@@ -65,20 +83,17 @@ class Parser(MystParser):
 
     def parse(self, inputstring: str, document: nodes.document) -> None:
         # register/unregister special directives and roles
-        new_directives = get_glue_directives()
-        new_directives["code-cell"] = UnexpectedCellDirective
-        new_directives["raw-cell"] = UnexpectedCellDirective
-        new_roles = get_glue_roles()
-        for name, directive in new_directives.items():
+        app = get_nb_roles_directives()
+        for name, directive in app.directives.items():
             _directives[name] = directive
-        for name, role in new_roles.items():
+        for name, role in app.roles.items():
             _roles[name] = role
         try:
             return self._parse(inputstring, document)
         finally:
-            for name in new_directives:
+            for name in app.directives:
                 _directives.pop(name, None)
-            for name in new_roles:
+            for name in app.roles:
                 _roles.pop(name, None)
 
     def _parse(self, inputstring: str, document: nodes.document) -> None:

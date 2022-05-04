@@ -1,18 +1,28 @@
 """Execute a notebook inline."""
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime
 import shutil
 from tempfile import mkdtemp
 import time
 import traceback
 
-from nbclient.client import CellExecutionError, CellTimeoutError, NotebookClient
+from nbclient.client import (
+    CellControlSignal,
+    CellExecutionError,
+    CellTimeoutError,
+    DeadKernelError,
+    NotebookClient,
+    ensure_async,
+    run_sync,
+)
+import nbformat
 from nbformat import NotebookNode
 
-from myst_nb.glue import extract_glue_data_cell
+from myst_nb.ext.glue import extract_glue_data_cell
 
-from .base import ExecutionError, NotebookClientBase
+from .base import EVAL_NAME_REGEX, EvalNameError, ExecutionError, NotebookClientBase
 
 
 class NotebookClientInline(NotebookClientBase):
@@ -39,7 +49,7 @@ class NotebookClientInline(NotebookClientBase):
         self.logger.info("Starting inline execution client")
 
         self._time_start = time.perf_counter()
-        self._client = NotebookClient(
+        self._client = ModifiedNotebookClient(
             self.notebook,
             record_timing=False,
             resources=resources,
@@ -139,3 +149,62 @@ class NotebookClientInline(NotebookClientBase):
 
         cell = cells[cell_index]
         return cell.get("execution_count", None), cell.get("outputs", [])
+
+    def eval_variable(self, name: str) -> NotebookNode | None:
+        if not EVAL_NAME_REGEX.match(name):
+            raise EvalNameError(name)
+        return self._client.eval_expression(name)
+
+
+class ModifiedNotebookClient(NotebookClient):
+    async def async_eval_expression(self, name: str) -> NotebookNode | None:
+        """Evaluate an expression in the kernel.
+
+        This is a modified version of `async_execute_cell`,
+        which executed a single cell, with `name` as the source and returns the result.
+        """
+        assert self.kc is not None
+        self.log.debug(f"Evaluating expression: {name}")
+        parent_msg_id = await ensure_async(
+            self.kc.execute(
+                str(name),
+                store_history=False,
+                stop_on_error=False,
+            )
+        )
+        cell = nbformat.v4.new_code_cell(source=str(name))
+        exec_timeout = self._get_timeout(cell)
+        cell_index = -1
+        self.clear_before_next_output = False
+
+        task_poll_kernel_alive = asyncio.ensure_future(self._async_poll_kernel_alive())
+        task_poll_output_msg = asyncio.ensure_future(
+            self._async_poll_output_msg(parent_msg_id, cell, cell_index)
+        )
+        self.task_poll_for_reply = asyncio.ensure_future(
+            self._async_poll_for_reply(
+                parent_msg_id,
+                cell,
+                exec_timeout,
+                task_poll_output_msg,
+                task_poll_kernel_alive,
+            )
+        )
+        try:
+            await self.task_poll_for_reply
+        except asyncio.CancelledError:
+            # can only be cancelled by task_poll_kernel_alive when the kernel is dead
+            task_poll_output_msg.cancel()
+            raise DeadKernelError("Kernel died")
+        except Exception as e:
+            # Best effort to cancel request if it hasn't been resolved
+            try:
+                # Check if the task_poll_output is doing the raising for us
+                if not isinstance(e, CellControlSignal):
+                    task_poll_output_msg.cancel()
+            finally:
+                raise
+
+        return cell.outputs[0] if cell.outputs else None
+
+    eval_expression = run_sync(async_eval_expression)

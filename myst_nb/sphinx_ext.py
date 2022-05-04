@@ -16,8 +16,9 @@ from myst_nb.core.config import NbParserConfig
 from myst_nb.core.loggers import DEFAULT_LOG_TYPE
 from myst_nb.core.read import UnexpectedCellDirective
 from myst_nb.ext.download import NbDownloadRole
-from myst_nb.glue.crossref import ReplacePendingGlueReferences
-from myst_nb.glue.domain import NbGlueDomain
+from myst_nb.ext.eval import load_eval_sphinx
+from myst_nb.ext.glue import load_glue_sphinx
+from myst_nb.ext.glue.crossref import ReplacePendingGlueReferences
 from myst_nb.sphinx_ import NbMetadataCollector, Parser, SelectMimeType
 
 SPHINX_LOGGER = sphinx_logging.getLogger(__name__)
@@ -74,6 +75,10 @@ def sphinx_setup(app: Sphinx):
     # add directive for downloading an executed notebook
     app.add_role("nb-download", NbDownloadRole())
 
+    # add directive for evaluating glue and kernel variables
+    load_eval_sphinx(app)
+    load_glue_sphinx(app)
+
     # add post-transform for selecting mime type from a bundle
     app.add_post_transform(SelectMimeType)
     app.add_post_transform(ReplacePendingGlueReferences)
@@ -97,11 +102,6 @@ def sphinx_setup(app: Sphinx):
     from myst_nb.ext.execution_tables import setup_exec_table_extension
 
     setup_exec_table_extension(app)
-
-    # add glue roles and directives
-    # note, we have to add this as a domain, to allow for ':' in the names,
-    # without a sphinx warning
-    app.add_domain(NbGlueDomain)
 
     return {
         "version": __version__,

@@ -245,6 +245,7 @@ such as giving them a caption and referenceable label:
 | class | text | A space-separated list of class names for the image |
 | figwidth | length or percentage | The width of the figure |
 | figclass | text | A space-separated list of class names for the figure |
+| align | text | left, center, or right |
 | name | text | referenceable label for the figure |
 :::
 

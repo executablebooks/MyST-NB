@@ -3,10 +3,12 @@
 Note, we restrict this to a only a subset of mime-types and data -> nodes transforms,
 since adding these nodes in a post-transform will not apply any transforms to them.
 """
+from __future__ import annotations
+
 from functools import lru_cache
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Sequence
+from typing import Any, Sequence
 
 from docutils import nodes
 from sphinx.transforms.post_transforms import SphinxPostTransform
@@ -15,14 +17,15 @@ from sphinx.util import logging as sphinx_logging
 from myst_nb._compat import findall
 from myst_nb.core.loggers import DEFAULT_LOG_TYPE
 from myst_nb.core.render import get_mime_priority
+from myst_nb.core.variables import format_plain_text
 
-from .utils import PendingGlueReference, format_plain_text
+from .utils import PendingGlueReference
 
 SPHINX_LOGGER = sphinx_logging.getLogger(__name__)
 
 
 @lru_cache(maxsize=3)
-def read_glue_cache(folder: str, docname: str) -> Dict[str, Any]:
+def read_glue_cache(folder: str, docname: str) -> dict[str, Any]:
     """Read a glue cache from the build folder, for a particular document."""
     docpath = docname.split("/")
     path = Path(folder).joinpath(*docpath[:-1]).joinpath(f"{docpath[-1]}.glue.json")
@@ -84,8 +87,8 @@ def ref_warning(msg: str, node) -> None:
 
 
 def generate_any_nodes(
-    node: PendingGlueReference, output: Dict[str, Any], priority_list: Sequence[str]
-) -> List[nodes.Element]:
+    node: PendingGlueReference, output: dict[str, Any], priority_list: Sequence[str]
+) -> list[nodes.Element]:
     """Generate nodes for a cell, according to the highest priority mime type."""
     data = output["data"]
     for mime_type in priority_list:
@@ -108,7 +111,7 @@ def generate_any_nodes(
     return []
 
 
-def generate_text_nodes(node: PendingGlueReference, output: Dict[str, Any]):
+def generate_text_nodes(node: PendingGlueReference, output: dict[str, Any]):
     """Generate nodes for a cell, for formatted text/plain."""
     data = output["data"]
     if "text/plain" not in data:

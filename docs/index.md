@@ -73,8 +73,8 @@ Cache execution outputs, for fast re-builds.
 :link-type: ref
 
 Convert Jupyter execution outputs to rich embedded content.\
-Insert computed variables within your documents.\
-Build single or collections of documents into multiple formats, including HTML websites and PDF books.
+Insert computed variables within the document flow.\
+Build single or collections of documents into multiple formats (HTML, PDF, ...).
 
 +++
 [Learn more »](render/code-cells)
