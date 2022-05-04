@@ -21,8 +21,12 @@ GLUE_PREFIX = "application/papermill.record/"
 
 def load_glue_sphinx(app: Sphinx) -> None:
     """Load the eval domain."""
+    from .directives import PasteAnyDirective
     from .domain import NbGlueDomain
+    from .roles import PasteRoleAny
 
+    app.add_directive("glue", PasteAnyDirective, override=True)
+    app.add_role("glue", PasteRoleAny(), override=True)
     app.add_domain(NbGlueDomain)
 
 
@@ -36,6 +40,7 @@ def load_glue_docutils(app: DocutilsApp) -> None:
     from .roles import PasteMarkdownRole, PasteRoleAny, PasteTextRole
 
     for name, role in [
+        ("glue", PasteRoleAny()),
         ("glue:", PasteRoleAny()),
         ("glue:any", PasteRoleAny()),
         ("glue:text", PasteTextRole()),
@@ -44,6 +49,7 @@ def load_glue_docutils(app: DocutilsApp) -> None:
         app.roles[name] = role
 
     for name, directive in [
+        ("glue", PasteAnyDirective),
         ("glue:", PasteAnyDirective),
         ("glue:any", PasteAnyDirective),
         ("glue:figure", PasteFigureDirective),

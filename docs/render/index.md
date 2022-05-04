@@ -7,6 +7,7 @@ and build output formats.
 :maxdepth: 1
 format_code_cells
 hiding
-glue
 interactive
+inline
+glue
 ```

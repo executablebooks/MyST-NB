@@ -75,6 +75,9 @@ class EvalRoleAny(RoleBase):
         except RetrievalError as exc:
             return [], [eval_warning(str(exc), self.document, self.line)]
 
+        # for text/plain, we want to strip quotes from strings
+        data.metadata["strip_text_quotes"] = True
+
         _nodes = render_variable_output(
             data,
             self.document,

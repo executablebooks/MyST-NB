@@ -44,6 +44,7 @@ WIDGET_VIEW_MIMETYPE = "application/vnd.jupyter.widget-view+json"
 RENDER_ENTRY_GROUP = "myst_nb.renderers"
 MIME_RENDER_ENTRY_GROUP = "myst_nb.mime_renderers"
 _ANSI_RE = re.compile("\x1b\\[(.*?)([@-~])")
+_QUOTED_RE = re.compile(r"^([\"']).*\1$")
 
 
 class MditRenderMixin:
@@ -736,7 +737,12 @@ class NbElementRenderer:
 
     def render_text_plain_inline(self, data: MimeData) -> list[nodes.Element]:
         """Render a notebook text/plain mime data output."""
-        node = nodes.inline(data.string, data.string, classes=["output", "text_plain"])
+        content = data.string
+        if data.output_metadata.get("strip_text_quotes", False) and _QUOTED_RE.match(
+            content
+        ):
+            content = content[1:-1]
+        node = nodes.inline(data.string, content, classes=["output", "text_plain"])
         return [node]
 
     def render_text_html_inline(self, data: MimeData) -> list[nodes.Element]:
