@@ -77,8 +77,8 @@
             <title>
                 Referencing the figs
             <paragraph>
-                <literal classes="output text_plain" language="myst-ansi">
-                    'text1'
+                <inline classes="output text_plain">
+                    ‘text1’
                 , 
                 <image candidates="{'*': '_build/jupyter_execute/8b394c6cdc09dc10c73e2d5f785aedc8eee615a4d219218f09d6732f7f8ef150.png'}" uri="_build/jupyter_execute/8b394c6cdc09dc10c73e2d5f785aedc8eee615a4d219218f09d6732f7f8ef150.png">
             <raw classes="output text_html" format="html" xml:space="preserve">
@@ -140,8 +140,8 @@
                     A caption….
                     
                     ```## A test title 
-                    <literal classes="output text_plain" language="myst-ansi">
-                        'text1'
+                    <inline classes="output text_plain">
+                        ‘text1’
         <section ids="math" names="math">
             <title>
                 Math

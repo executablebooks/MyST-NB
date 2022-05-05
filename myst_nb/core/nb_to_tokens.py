@@ -35,21 +35,7 @@ def notebook_to_tokens(
 
     # Parse block tokens only first, leaving inline parsing to a second phase
     # (required to collect all reference definitions, before assessing references).
-    metadata = nb_node_to_dict(notebook.metadata)
-
-    # attempt to get language lexer name
-    langinfo = metadata.get("language_info") or {}
-    lexer = langinfo.get("pygments_lexer") or langinfo.get("name", None)
-    if lexer is None:
-        lexer = (metadata.get("kernelspec") or {}).get("language", None)
-    if lexer is None:
-        logger.warning(
-            "No source code lexer found in notebook metadata", subtype="lexer"
-        )
-
-    block_tokens = [
-        Token("nb_metadata", "", 0, meta=metadata, map=[0, 0]),
-    ]
+    block_tokens = [Token("nb_initialise", "", 0, map=[0, 0])]
     for cell_index, nb_cell in enumerate(notebook.cells):
 
         # skip empty cells
@@ -94,7 +80,6 @@ def notebook_to_tokens(
             )
         elif nb_cell["cell_type"] == "raw":
             # https://nbformat.readthedocs.io/en/5.1.3/format_description.html#raw-nbconvert-cells
-            metadata = nb_node_to_dict(nb_cell["metadata"])
             tokens = [
                 Token(
                     "nb_cell_raw",
@@ -121,8 +106,6 @@ def notebook_to_tokens(
                     content=nb_cell["source"],
                     meta={
                         "index": cell_index,
-                        "execution_count": nb_cell.get("execution_count", None),
-                        "lexer": lexer,
                         "metadata": nb_node_to_dict(nb_cell["metadata"]),
                     },
                     map=[0, 0],
@@ -150,6 +133,8 @@ def notebook_to_tokens(
 
         # add tokens to list
         block_tokens.extend(tokens)
+
+    block_tokens.append(Token("nb_finalise", "", 0, map=[0, 0]))
 
     # Now all definitions have been gathered, run the inline parsing phase
     state = StateCore("", mdit_parser, mdit_env, block_tokens)

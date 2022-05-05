@@ -1,9 +1,10 @@
+"""Test the `glue` directives and roles."""
 from IPython.core.displaypub import DisplayPublisher
 from IPython.core.interactiveshell import InteractiveShell
 import nbformat
 import pytest
 
-from myst_nb.glue import extract_glue_data, glue
+from myst_nb.ext.glue import extract_glue_data, glue
 
 
 class MockDisplayPublisher(DisplayPublisher):
@@ -81,9 +82,8 @@ def test_extract_glue_data(get_test_path):
     path = get_test_path("with_glue.ipynb")
     with open(path) as handle:
         notebook = nbformat.read(handle, as_version=4)
-    resources = {}
-    extract_glue_data(notebook, resources, [], None)
-    assert set(resources["glue"]) == {
+    data = extract_glue_data(notebook, [], None)
+    assert set(data) == {
         "key_text1",
         "key_float",
         "key_undisplayed",

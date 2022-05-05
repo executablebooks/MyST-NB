@@ -18,6 +18,9 @@ def test_basic(file_params):
     dct = yaml.safe_load(file_params.content)
     dct.update({"nbformat": 4, "nbformat_minor": 4})
     dct.setdefault("metadata", {})
+    dct["metadata"].setdefault(
+        "kernelspec", {"name": "python3", "display_name": "Python 3", "language": ""}
+    )
     report_stream = StringIO()
     doctree = publish_doctree(
         json.dumps(dct),

@@ -23,12 +23,12 @@ from sphinx.util import logging as sphinx_logging
 
 from myst_nb._compat import findall
 from myst_nb.core.config import NbParserConfig
-from myst_nb.core.execute import ExecutionResult, execute_notebook
+from myst_nb.core.execute import ExecutionResult, create_client
 from myst_nb.core.loggers import DEFAULT_LOG_TYPE, SphinxDocLogger
-from myst_nb.core.parse import nb_node_to_dict, notebook_to_tokens
-from myst_nb.core.preprocess import preprocess_notebook
+from myst_nb.core.nb_to_tokens import nb_node_to_dict, notebook_to_tokens
 from myst_nb.core.read import create_nb_reader
 from myst_nb.core.render import (
+    MditRenderMixin,
     MimeData,
     NbElementRenderer,
     create_figure_context,
@@ -110,28 +110,9 @@ class Parser(MystParser):
                     "Updated configuration with notebook metadata", subtype="config"
                 )
 
-        # potentially execute notebook and/or populate outputs from cache
-        notebook, exec_data = execute_notebook(
-            notebook, document_path, nb_config, logger, nb_reader.read_fmt
-        )
-        if exec_data:
-            NbMetadataCollector.set_exec_data(self.env, self.env.docname, exec_data)
-            if exec_data["traceback"]:
-                # store error traceback in outdir and log its path
-                reports_file = Path(self.env.app.outdir).joinpath(
-                    "reports", *(self.env.docname + ".err.log").split("/")
-                )
-                reports_file.parent.mkdir(parents=True, exist_ok=True)
-                reports_file.write_text(exec_data["traceback"], encoding="utf8")
-                logger.warning(
-                    f"Notebook exception traceback saved in: {reports_file}",
-                    subtype="exec",
-                )
-
         # Setup the parser
         mdit_parser = create_md_parser(nb_reader.md_config, SphinxNbRenderer)
         mdit_parser.options["document"] = document
-        mdit_parser.options["notebook"] = notebook
         mdit_parser.options["nb_config"] = nb_config
         mdit_renderer: SphinxNbRenderer = mdit_parser.renderer  # type: ignore
         mdit_env: dict[str, Any] = {}
@@ -148,14 +129,37 @@ class Parser(MystParser):
         # we currently do this early, so that the nb_renderer has access to things
         mdit_renderer.setup_render(mdit_parser.options, mdit_env)
 
-        # pre-process notebook and store resources for render
-        resources = preprocess_notebook(notebook, logger, nb_config)
-        mdit_renderer.md_options["nb_resources"] = resources
-
-        # parse to tokens
+        # parse notebook structure to markdown-it tokens
+        # note, this does not assume that the notebook has been executed yet
         mdit_tokens = notebook_to_tokens(notebook, mdit_parser, mdit_env, logger)
-        # convert to docutils AST, which is added to the document
-        mdit_renderer.render(mdit_tokens, mdit_parser.options, mdit_env)
+
+        # open the notebook execution client,
+        # this may execute the notebook immediately or during the page render
+        with create_client(
+            notebook, document_path, nb_config, logger, nb_reader.read_fmt
+        ) as nb_client:
+            mdit_parser.options["nb_client"] = nb_client
+            # convert to docutils AST, which is added to the document
+            mdit_renderer.render(mdit_tokens, mdit_parser.options, mdit_env)
+
+        # save final execution data
+        if nb_client.exec_metadata:
+            NbMetadataCollector.set_exec_data(
+                self.env, self.env.docname, nb_client.exec_metadata
+            )
+            if nb_client.exec_metadata["traceback"]:
+                # store error traceback in outdir and log its path
+                reports_file = Path(self.env.app.outdir).joinpath(
+                    "reports", *(self.env.docname + ".err.log").split("/")
+                )
+                reports_file.parent.mkdir(parents=True, exist_ok=True)
+                reports_file.write_text(
+                    nb_client.exec_metadata["traceback"], encoding="utf8"
+                )
+                logger.warning(
+                    f"Notebook exception traceback saved in: {reports_file}",
+                    subtype="exec",
+                )
 
         # write final (updated) notebook to output folder (utf8 is standard encoding)
         path = self.env.docname.split("/")
@@ -166,15 +170,15 @@ class Parser(MystParser):
         # write glue data to the output folder,
         # and store the keys to environment doc metadata,
         # so that they may be used in any post-transform steps
-        if resources.get("glue", None):
+        if nb_client.glue_data:
             glue_path = path[:-1] + [path[-1] + ".glue.json"]
             nb_renderer.write_file(
                 glue_path,
-                json.dumps(resources["glue"], cls=BytesEncoder).encode("utf8"),
+                json.dumps(nb_client.glue_data, cls=BytesEncoder).encode("utf8"),
                 overwrite=True,
             )
             NbMetadataCollector.set_doc_data(
-                self.env, self.env.docname, "glue", list(resources["glue"].keys())
+                self.env, self.env.docname, "glue", list(nb_client.glue_data.keys())
             )
 
         # move some document metadata to environment metadata,
@@ -189,53 +193,21 @@ class Parser(MystParser):
         document.attributes.pop("nb_renderer")
 
 
-class SphinxNbRenderer(SphinxRenderer):
+class SphinxNbRenderer(SphinxRenderer, MditRenderMixin):
     """A sphinx renderer for Jupyter Notebooks."""
 
-    @property
-    def nb_config(self) -> NbParserConfig:
-        """Get the notebook element renderer."""
-        return self.md_options["nb_config"]
-
-    @property
-    def nb_renderer(self) -> NbElementRenderer:
-        """Get the notebook element renderer."""
-        return self.document["nb_renderer"]
-
-    def get_cell_level_config(
-        self,
-        field: str,
-        cell_metadata: dict[str, Any],
-        line: int | None = None,
-    ) -> Any:
-        """Get a configuration value at the cell level.
-
-        Takes the highest priority configuration from:
-        `cell > document > global > default`
-
-        :param field: the field name from ``NbParserConfig`` to get the value for
-        :param cell_metadata: the metadata for the cell
-        """
-
-        def _callback(msg: str, subtype: str):
-            self.create_warning(msg, line=line, subtype=subtype)
-
-        return self.nb_config.get_cell_level_config(field, cell_metadata, _callback)
-
-    def render_nb_metadata(self, token: SyntaxTreeNode) -> None:
-        """Render the notebook metadata."""
+    def render_nb_initialise(self, token: SyntaxTreeNode) -> None:
         env = cast(BuildEnvironment, self.sphinx_env)
-        metadata = dict(token.meta)
-        special_keys = ("kernelspec", "language_info", "source_map")
+        metadata = self.nb_client.nb_metadata
+        special_keys = ["kernelspec", "language_info", "source_map"]
         for key in special_keys:
             if key in metadata:
                 # save these special keys on the metadata, rather than as docinfo
                 # note, sphinx_book_theme checks kernelspec is in the metadata
                 env.metadata[env.docname][key] = metadata.get(key)
 
-        metadata = self.nb_renderer.render_nb_metadata(metadata)
-
         # forward the remaining metadata to the front_matter renderer
+        special_keys.append("widgets")
         top_matter = {k: v for k, v in metadata.items() if k not in special_keys}
         self.render_front_matter(
             Token(  # type: ignore
@@ -247,114 +219,13 @@ class SphinxNbRenderer(SphinxRenderer):
             ),
         )
 
-    def render_nb_cell_markdown(self, token: SyntaxTreeNode) -> None:
-        """Render a notebook markdown cell."""
-        # TODO this is currently just a "pass-through", but we could utilise the metadata
-        # it would be nice to "wrap" this in a container that included the metadata,
-        # but unfortunately this would break the heading structure of docutils/sphinx.
-        # perhaps we add an "invisible" (non-rendered) marker node to the document tree,
-        self.render_children(token)
-
-    def render_nb_cell_raw(self, token: SyntaxTreeNode) -> None:
-        """Render a notebook raw cell."""
-        line = token_line(token, 0)
-        _nodes = self.nb_renderer.render_raw_cell(
-            token.content, token.meta["metadata"], token.meta["index"], line
-        )
-        self.add_line_and_source_path_r(_nodes, token)
-        self.current_node.extend(_nodes)
-
-    def render_nb_cell_code(self, token: SyntaxTreeNode) -> None:
-        """Render a notebook code cell."""
-        cell_index = token.meta["index"]
-        tags = token.meta["metadata"].get("tags", [])
-
-        # TODO do we need this -/_ duplication of tag names, or can we deprecate one?
-        remove_input = (
-            self.get_cell_level_config(
-                "remove_code_source",
-                token.meta["metadata"],
-                line=token_line(token, 0) or None,
-            )
-            or ("remove_input" in tags)
-            or ("remove-input" in tags)
-        )
-        remove_output = (
-            self.get_cell_level_config(
-                "remove_code_outputs",
-                token.meta["metadata"],
-                line=token_line(token, 0) or None,
-            )
-            or ("remove_output" in tags)
-            or ("remove-output" in tags)
-        )
-
-        # if we are remove both the input and output, we can skip the cell
-        if remove_input and remove_output:
-            return
-
-        # create a container for all the input/output
-        classes = ["cell"]
-        for tag in tags:
-            classes.append(f"tag_{tag.replace(' ', '_')}")
-        cell_container = nodes.container(
-            nb_element="cell_code",
-            cell_index=cell_index,
-            # TODO some way to use this to allow repr of count in outputs like HTML?
-            exec_count=token.meta["execution_count"],
-            cell_metadata=token.meta["metadata"],
-            classes=classes,
-        )
-        self.add_line_and_source_path(cell_container, token)
-        with self.current_node_context(cell_container, append=True):
-
-            # render the code source code
-            if not remove_input:
-                cell_input = nodes.container(
-                    nb_element="cell_code_source", classes=["cell_input"]
-                )
-                self.add_line_and_source_path(cell_input, token)
-                with self.current_node_context(cell_input, append=True):
-                    self.render_nb_cell_code_source(token)
-
-            # render the execution output, if any
-            has_outputs = self.md_options["notebook"]["cells"][cell_index].get(
-                "outputs", []
-            )
-            if (not remove_output) and has_outputs:
-                cell_output = nodes.container(
-                    nb_element="cell_code_output", classes=["cell_output"]
-                )
-                self.add_line_and_source_path(cell_output, token)
-                with self.current_node_context(cell_output, append=True):
-                    self.render_nb_cell_code_outputs(token)
-
-    def render_nb_cell_code_source(self, token: SyntaxTreeNode) -> None:
-        """Render a notebook code cell's source."""
-        # cell_index = token.meta["index"]
-        lexer = token.meta.get("lexer", None)
-        node = self.create_highlighted_code_block(
-            token.content,
-            lexer,
-            number_lines=self.get_cell_level_config(
-                "number_source_lines",
-                token.meta["metadata"],
-                line=token_line(token, 0) or None,
-            ),
-            source=self.document["source"],
-            line=token_line(token),
-        )
-        self.add_line_and_source_path(node, token)
-        self.current_node.append(node)
-
-    def render_nb_cell_code_outputs(self, token: SyntaxTreeNode) -> None:
+    def _render_nb_cell_code_outputs(
+        self, token: SyntaxTreeNode, outputs: list[nbformat.NotebookNode]
+    ) -> None:
         """Render a notebook code cell's outputs."""
         line = token_line(token, 0)
         cell_index = token.meta["index"]
         metadata = token.meta["metadata"]
-        outputs: list[nbformat.NotebookNode] = self.md_options["notebook"]["cells"][
-            cell_index
-        ].get("outputs", [])
         # render the outputs
         for output_index, output in enumerate(outputs):
             if output.output_type == "stream":
@@ -387,17 +258,6 @@ class SphinxNbRenderer(SphinxRenderer):
                 # (this is what sphinx caches as "output format agnostic" AST),
                 # and replace the mime_bundle with the format specific output
                 # in a post-transform (run per output format on the cached AST)
-
-                # TODO how to output MyST Markdown?
-                # currently text/markdown is set to be rendered as CommonMark only,
-                # with headings dissallowed,
-                # to avoid "side effects" if the mime is discarded but contained
-                # targets, etc, and because we can't parse headings within containers.
-                # perhaps we could have a config option to allow this?
-                # - for non-commonmark, the text/markdown would always be considered
-                #   the top priority, and all other mime types would be ignored.
-                # - for headings, we would also need to parsing the markdown
-                #   at the "top-level", i.e. not nested in container(s)
 
                 figure_options = (
                     self.get_cell_level_config(

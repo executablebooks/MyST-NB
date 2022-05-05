@@ -6,21 +6,12 @@ kernelspec:
 
 (glue/main)=
 
-# Embedding outputs as variables
+# Saving variables to embed (glue)
 
-You often wish to run analyses in a notebook and insert them into your
-documents text elsewhere.
-For example, if you'd like to include a figure,
-or if you want to cite a statistic that you have run.
+The `glue` submodule allows you to store variables in the notebooks outputs, by keys,
+then reference those keys to embed the outputs inline of your text content.[^download]
 
-The **`glue` submodule** allows you to add a key to variables in a notebook code cell,
-then display those variables in a Markdown cell by referencing the key.
-
-This page describes how to add keys to variables in notebooks, and how to insert them
-into your book's content in a variety of ways.[^download]
-
-[^download]: This notebook can be downloaded as
-            **{nb-download}`glue.ipynb`** and {download}`glue.md`
+[^download]: This notebook can be downloaded as **{nb-download}`glue.ipynb`** and {download}`glue.md`
 
 :::{versionchanged} 0.14.0
 The `glue` roles and directives now only identify keys in the same notebook, by default.
@@ -31,11 +22,10 @@ To glue keys from other notebooks, see {ref}`glue/crossdoc`.
 
 (glue/gluing)=
 
-## Gluing variables in your notebook
+## Save variables in code cells
 
-You can use `myst_nb.glue()` to assign value of a variable to
-a key of your choice. `glue` will store all of the information that is normally used to **display**
-that variable (ie, whatever happens when you display the variable by putting it at the end of a cell).
+You can use `myst_nb.glue()` to assign the output of a variable to a key of your choice.
+`glue` will store all of the information that is normally used to display that variable (ie, whatever happens when you display the variable by putting it at the end of a cell).
 Choose a key that you will remember, as you will use it later.
 
 The following code glues a variable inside the notebook:
@@ -46,16 +36,16 @@ a = "my variable!"
 glue("my_variable", a)
 ```
 
-You can then insert it into your text like so: {glue:}`my_variable`.
+You can then insert it into your text like so: {glue}`my_variable`.
 
-That was accomplished with the following code: `` {glue:}`my_variable` ``.
+That was accomplished with the following code: `` {glue}`my_variable` ``.
 
-### Gluing numbers, plots, and tables
+### Saving different variable types
 
-You can glue anything in your notebook and display it later with `{glue:}`. Here
-we'll show how to glue and paste **numbers and images**. We'll simulate some
-data and run a simple bootstrap on it. We'll hide most of this process below,
-to focus on the glueing part.
+You can glue anything in your notebook and display it later with `{glue}`.
+Here we'll show how to glue and paste **numbers and images**.
+We'll simulate some data and run a simple bootstrap on it.
+We'll hide most of this process below, to focus on the glueing part.
 
 +++
 
@@ -74,8 +64,8 @@ data = sd*np.random.randn(n_points) + mean
 bootstrap_indices = np.random.randint(0, n_points, n_points*n_boots).reshape((n_boots, n_points))
 ```
 
-In the cell below, `data` contains our data, and `bootstrap_indices` is a collection of sample indices in each bootstrap. Below we'll calculate a few statistics of interest, and
-**`glue()`** them into the notebook.
+In the cell below, `data` contains our data, and `bootstrap_indices` is a collection of sample indices in each bootstrap.
+Below we'll calculate a few statistics of interest, and `glue()` them into the notebook.
 
 ```{code-cell} ipython3
 # Calculate the mean of a bunch of random samples
@@ -89,10 +79,10 @@ glue("boot_clo", clo)
 glue("boot_chi", chi)
 ```
 
-By default, `glue` will display the value of the variable you are gluing. This
-is useful for sanity-checking its value at glue-time. If you'd like to **prevent display**,
-use the `display=False` option. Note that below, we also *overwrite* the value of
-`boot_chi` (but using the same value):
+By default, `glue` will display the value of the variable you are gluing.
+This is useful for sanity-checking its value at glue-time.
+If you'd like to **prevent display**, use the `display=False` option.
+Note that below, we also *overwrite* the value of `boot_chi` (but using the same value):
 
 ```{code-cell} ipython3
 glue("boot_chi_notdisplayed", chi, display=False)
@@ -135,7 +125,7 @@ you may wish to remove the output here, using the `remove-output` tag
 
 (glue/pasting)=
 
-## Pasting glued variables into your page
+## Embedding variables in the page
 
 Once you have glued variables into a notebook, you can then **paste**
 those variables into your text in your book anywhere you like (even on other pages).
@@ -145,41 +135,40 @@ These variables can be pasted using one of the roles or directives in the `glue:
 
 ### The `glue` role/directive
 
-The simplest role and directive are `glue:any`,
+The simplest role and directive are `glue` (a.k.a. `glue:any`),
 which paste the glued output inline or as a block respectively,
 with no additional formatting.
-Simply add this:
+Simply add:
 
 ````
-```{glue:} your-key
+```{glue} your-key
 ```
 ````
 
 For example, we'll paste the plot we generated above with the following text:
 
 ````md
-```{glue:} boot_fig
+```{glue} boot_fig
 ```
 ````
 
 Here's how it looks:
 
-```{glue:} boot_fig
+```{glue} boot_fig
 ```
 
 Or we can paste inline objects like so:
 
-
 ```md
-Inline text; {glue:}`boot_mean`, and figure; {glue:}`boot_fig`.
+Inline text; {glue}`boot_mean`, and figure; {glue}`boot_fig`.
 ```
 
-Inline text; {glue:}`boot_mean`, and figure; {glue:}`boot_fig`.
+Inline text; {glue}`boot_mean`, and figure; {glue}`boot_fig`.
 
 ```{tip}
 We recommend using wider, shorter figures when plotting in-line, with a ratio
 around 6x2. For example, here's is an in-line figure of sorted means
-from our bootstrap: {glue:}`sorted_means_fig`.
+from our bootstrap: {glue}`sorted_means_fig`.
 It can be used to make a visual point that isn't too complex! For more
 ideas, check out [how sparklines are used](https://en.wikipedia.org/wiki/Sparkline).
 ```
@@ -189,14 +178,14 @@ control over how the outputs look in your pages.
 
 +++
 
-## Controlling the pasted outputs
+## Controlling the output format
 
-You can control the pasted outputs by using a sub-command of `{glue:}`. These are called like so:
-`` {glue:subcommand}`key` ``. These subcommands allow you to control more of the look, feel, and
-content of the pasted output.
+You can control the pasted outputs by using a sub-command of `{glue}`.
+These are called like so: `` {glue:subcommand}`key` ``.
+These subcommands allow you to control more of the look, feel, and content of the pasted output.
 
 ```{tip}
-When you use `{glue:}` you are actually using a short-hand for `{glue:any}`. This is a
+When you use `{glue}` you are actually using a short-hand for `{glue:any}`. This is a
 generic command that doesn't make many assumptions about what you are gluing.
 ```
 
@@ -245,6 +234,7 @@ such as giving them a caption and referenceable label:
 | class | text | A space-separated list of class names for the image |
 | figwidth | length or percentage | The width of the figure |
 | figclass | text | A space-separated list of class names for the figure |
+| align | text | left, center, or right |
 | name | text | referenceable label for the figure |
 :::
 
@@ -347,7 +337,7 @@ With `glue:md`, you can output `text/markdown`, that will be integrated into you
 from IPython.display import Markdown
 glue("inline_md", Markdown(
   "inline **markdown** with a [link](glue/main), "
-  "and a nested glue value: {glue:}`boot_mean`"
+  "and a nested glue value: {glue}`boot_mean`"
 ), display=False)
 glue("block_md", Markdown("""
 #### A heading
@@ -387,7 +377,7 @@ Here is some {glue:md}`inline_md:myst`!
 +++
 
 (glue/crossdoc)=
-## Pasting from other notebooks
+## Embedding outputs from other pages
 
 Certain `glue` roles and directives can be used to paste content from other notebooks,
 by specifying the (relative) path to them.
@@ -400,32 +390,32 @@ In this case, you should bundle the notebook with the rest of your content pages
 For example, the following example pastes glue variables from {ref}`orphaned-nb`:
 
 ````markdown
-- A cross-pasted `any` role: {glue:}`orphaned_nb.ipynb::var_text`
+- A cross-pasted `any` role: {glue}`orphaned_nb.ipynb::var_text`
 - A cross-pasted `text` role: {glue:text}`orphaned_nb.ipynb::var_float:.2E`
 
 A cross-pasted `any` directive:
 
-```{glue:} var_text
+```{glue} var_text
 :doc: orphaned_nb.ipynb
 ```
 ````
 
-- A cross-pasted `any` role: {glue:}`orphaned_nb.ipynb::var_text`
+- A cross-pasted `any` role: {glue}`orphaned_nb.ipynb::var_text`
 - A cross-pasted `text` role: {glue:text}`orphaned_nb.ipynb::var_float:.2E`
 
 A cross-pasted `any` directive:
 
-```{glue:} var_text
+```{glue} var_text
 :doc: orphaned_nb.ipynb
 ```
 
 +++
 
-## Advanced glue usecases
+## Advanced use-cases
 
 Here are a few more specific and advanced uses of the `glue` submodule.
 
-### Pasting into tables
+### Embedding into tables
 
 In addition to pasting blocks of outputs, or in-line with text, you can also paste directly
 into tables. This allows you to compose complex collections of structured data using outputs
@@ -434,13 +424,13 @@ that were generated in other notebooks. For example the following table:
 ````md
 | name                            |       plot                  | mean                      | ci                                                 |
 |:-------------------------------:|:---------------------------:|---------------------------|----------------------------------------------------|
-| histogram and raw text          | {glue:}`boot_fig`           | {glue:}`boot_mean`        | {glue:}`boot_clo`-{glue:}`boot_chi`                |
-| sorted means and formatted text | {glue:}`sorted_means_fig`   | {glue:text}`boot_mean:.3f`| {glue:text}`boot_clo:.3f`-{glue:text}`boot_chi:.3f`|
+| histogram and raw text          | {glue}`boot_fig`           | {glue}`boot_mean`        | {glue}`boot_clo`-{glue}`boot_chi`                |
+| sorted means and formatted text | {glue}`sorted_means_fig`   | {glue:text}`boot_mean:.3f`| {glue:text}`boot_clo:.3f`-{glue:text}`boot_chi:.3f`|
 ````
 
 Results in:
 
 | name                            |       plot                  | mean                      | ci                                                |
 |:-------------------------------:|:---------------------------:|---------------------------|---------------------------------------------------|
-| histogram and raw text          | {glue:}`boot_fig`             | {glue:}`boot_mean`          | {glue:}`boot_clo`-{glue:}`boot_chi`                   |
-| sorted means and formatted text | {glue:}`sorted_means_fig`     | {glue:text}`boot_mean:.3f` | {glue:text}`boot_clo:.3f`-{glue:text}`boot_chi:.3f` |
+| histogram and raw text          | {glue}`boot_fig`             | {glue}`boot_mean`          | {glue}`boot_clo`-{glue}`boot_chi`                   |
+| sorted means and formatted text | {glue}`sorted_means_fig`     | {glue:text}`boot_mean:.3f` | {glue:text}`boot_clo:.3f`-{glue:text}`boot_chi:.3f` |

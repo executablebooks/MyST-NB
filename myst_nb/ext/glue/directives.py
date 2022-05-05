@@ -6,19 +6,17 @@ in order to allow docutils-only use without sphinx installed.
 from typing import TYPE_CHECKING, Any, Dict, List
 
 from docutils import nodes
-from docutils.parsers.rst import Directive, directives
+from docutils.parsers.rst import directives as spec
 
 from myst_nb.core.render import MimeData, strip_latex_delimiters
+from myst_nb.core.variables import RetrievalError, is_sphinx, render_variable_output
+from myst_nb.ext.utils import DirectiveBase
 
 from .utils import (
     PendingGlueReferenceError,
-    RetrievalError,
     create_pending_glue_ref,
     glue_warning,
-    is_sphinx,
-    render_glue_output,
     retrieve_glue_data,
-    set_source_info,
 )
 
 if TYPE_CHECKING:
@@ -26,38 +24,16 @@ if TYPE_CHECKING:
     from sphinx.environment import BuildEnvironment
 
 
-class _PasteDirectiveBase(Directive):
+class PasteAnyDirective(DirectiveBase):
+    """A directive for pasting code outputs from notebooks,
+    using render priority to decide the output mime type.
+    """
 
     required_arguments = 1  # the key
     final_argument_whitespace = True
     has_content = False
 
-    @property
-    def document(self) -> nodes.document:
-        return self.state.document
-
-    def __init__(self, *args, **kwargs) -> None:
-        self.arguments: List[str]
-        self.options: Dict[str, Any]
-        self.content: str
-        super().__init__(*args, **kwargs)
-        source, line = self.state_machine.get_source_and_line(self.lineno)
-        self.source: str = source
-        self.line: int = line
-
-    def set_source_info(self, node: nodes.Node) -> None:
-        """Set source and line number to the node and its descendants."""
-        nodes = node if isinstance(node, (list, tuple)) else [node]
-        for _node in nodes:
-            set_source_info(_node, self.source, self.line)
-
-
-class PasteAnyDirective(_PasteDirectiveBase):
-    """A directive for pasting code outputs from notebooks,
-    using render priority to decide the output mime type.
-    """
-
-    option_spec = {"doc": directives.unchanged}
+    option_spec = {"doc": spec.unchanged}
 
     def run(self) -> List[nodes.Node]:
         """Run the directive."""
@@ -86,15 +62,19 @@ class PasteAnyDirective(_PasteDirectiveBase):
                     self.line,
                 )
             ]
-        return render_glue_output(data, self.document, self.line, self.source)
+        return render_variable_output(data, self.document, self.line, self.source)
 
 
 def md_fmt(argument):
-    return directives.choice(argument, ("commonmark", "gfm", "myst"))
+    return spec.choice(argument, ("commonmark", "gfm", "myst"))
 
 
-class PasteMarkdownDirective(_PasteDirectiveBase):
+class PasteMarkdownDirective(DirectiveBase):
     """A directive for pasting markdown outputs from notebooks as MyST Markdown."""
+
+    required_arguments = 1  # the key
+    final_argument_whitespace = True
+    has_content = False
 
     option_spec = {
         "format": md_fmt,
@@ -133,33 +113,36 @@ class PasteMarkdownDirective(_PasteDirectiveBase):
         return _nodes
 
 
-class PasteFigureDirective(_PasteDirectiveBase):
+class PasteFigureDirective(DirectiveBase):
     """A directive for pasting code outputs from notebooks, wrapped in a figure.
 
     Mirrors:
     https://github.com/docutils-mirror/docutils/blob/9649abee47b4ce4db51be1d90fcb1fb500fa78b3/docutils/parsers/rst/directives/images.py#95
     """
 
+    required_arguments = 1  # the key
+    final_argument_whitespace = True
+    has_content = True
+
     def align(argument):
-        return directives.choice(argument, ("left", "center", "right"))
+        return spec.choice(argument, ("left", "center", "right"))
 
     def figwidth_value(argument):
-        return directives.length_or_percentage_or_unitless(argument, "px")
+        return spec.length_or_percentage_or_unitless(argument, "px")
 
     option_spec = {
         # note we don't add converters for image options,
         # since this is handled in `NbElementRenderer.render_image`
-        "alt": directives.unchanged,
-        "height": directives.unchanged,
-        "width": directives.unchanged,
-        "scale": directives.unchanged,
-        "class": directives.unchanged,
+        "alt": spec.unchanged,
+        "height": spec.unchanged,
+        "width": spec.unchanged,
+        "scale": spec.unchanged,
+        "class": spec.unchanged,
         "figwidth": figwidth_value,
-        "figclass": directives.class_option,
+        "figclass": spec.class_option,
         "align": align,
-        "name": directives.unchanged,
+        "name": spec.unchanged,
     }
-    has_content = True
 
     def run(self):
         try:
@@ -172,7 +155,7 @@ class PasteFigureDirective(_PasteDirectiveBase):
                 render.setdefault("image", {})[
                     key.replace("classes", "class")
                 ] = self.options[key]
-        paste_nodes = render_glue_output(
+        paste_nodes = render_variable_output(
             data, self.document, self.line, self.source, render=render
         )
 
@@ -219,15 +202,19 @@ class PasteFigureDirective(_PasteDirectiveBase):
         return [figure_node]
 
 
-class PasteMathDirective(_PasteDirectiveBase):
+class PasteMathDirective(DirectiveBase):
     """A directive for pasting latex outputs from notebooks as math."""
 
+    required_arguments = 1  # the key
+    final_argument_whitespace = True
+    has_content = False
+
     option_spec = {
-        "class": directives.class_option,
-        "nowrap": directives.flag,
+        "class": spec.class_option,
+        "nowrap": spec.flag,
         # these are equivalent
-        "label": directives.unchanged,
-        "name": directives.unchanged,
+        "label": spec.unchanged,
+        "name": spec.unchanged,
     }
 
     def run(self) -> List[nodes.Node]:

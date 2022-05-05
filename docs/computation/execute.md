@@ -13,11 +13,19 @@ Notebooks can either be run each time the documentation is built, or cached loca
 Execution and caching behaviour is controlled with configuration at a global or per-file level, as outlined in the [configuration section](config/intro).
 See the sections below for a description of each configuration option and their effect.
 
-(execute/config)=
+(execute/modes)=
 
-## Triggering notebook execution
+## Notebook execution modes
 
 To trigger the execution of notebook pages, use the global `nb_execution_mode` configuration key, or per-file `execution_mode` key:
+
+|   Mode   |                             Description                              |
+| -------- | -------------------------------------------------------------------- |
+| `off`    | Do not execute the notebook                                          |
+| `force`  | Always execute the notebook (before parsing)                         |
+| `auto`   | Execute notebooks with missing outputs (before parsing)              |
+| `cache`  | Execute notebook and store/retrieve outputs from a cache             |
+| `inline` | Execute the notebook during parsing (allows for variable evaluation) |
 
 By default this is set to:
 
@@ -28,13 +36,13 @@ nb_execution_mode = "auto"
 This will only execute notebooks that are missing at least one output.
 If a notebook has *all* of its outputs populated, then it will not be executed.
 
-**To force the execution of all notebooks, regardless of their outputs**, change the above configuration value to:
+To force the execution of all notebooks, regardless of their outputs, change the above configuration value to:
 
 ```python
 nb_execution_mode = "force"
 ```
 
-**To cache execution outputs with [jupyter-cache]**, change the above configuration value to:
+To cache execution outputs with [jupyter-cache], change the above configuration value to:
 
 ```python
 nb_execution_mode = "cache"
@@ -42,13 +50,25 @@ nb_execution_mode = "cache"
 
 See {ref}`execute/cache` for more information.
 
-**To turn off notebook execution**, change the above configuration value to:
+To execute notebooks inline during parsing, change the above configuration value to:
+
+```python
+nb_execution_mode = "inline"
+```
+
+This allows for the use of `eval` roles/directives to embed variables, evaluated from the execution kernel, inline of the Markdown.
+
+See {ref}`render/eval` for more information.
+
+To turn off notebook execution, change the above configuration value to:
 
 ```python
 nb_execution_mode = "off"
 ```
 
-**To exclude certain file patterns from execution**, use the following configuration:
+## Exclude notebooks from execution
+
+To exclude certain file patterns from execution, use the following configuration:
 
 ```python
 nb_execution_excludepatterns = ['list', 'of', '*patterns']
@@ -124,7 +144,7 @@ By default, the command working directory (cwd) that a notebook runs in will be 
 However, you can set `nb_execution_in_temp=True` in your `conf.py`, to change this behaviour such that, for each execution, a temporary directory will be created and used as the cwd.
 
 (execute/timeout)=
-## Execution Timeout
+## Execution timeout
 
 The execution of notebooks is managed by {doc}`nbclient <nbclient:client>`.
 
@@ -184,7 +204,7 @@ print(thisvariabledoesntexist)
 ```
 
 (execute/raise_on_error)=
-## Error Reporting: Warning vs. Failure
+## Error reporting: Warning vs. Failure
 
 When an error occurs in a context where `nb_execution_allow_errors=False`,
 the default behaviour is for this to be reported as a warning.

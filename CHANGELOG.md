@@ -1,5 +1,12 @@
 # Change Log
 
+## v0.15.0 - 2022-05-05
+
+[Full changelog](https://github.com/executablebooks/MyST-NB/compare/v0.14.0...v0.15.0)
+
+✨ NEW: Add `inline` execution mode and `eval` role/directive, for inserting code variables directly into the text flow of your documentation!
+See [Inline variable evaluation](docs/render/inline.md) for more information.
+
 ## v0.14.0 - 2022-04-27
 
 [Full changelog](https://github.com/executablebooks/MyST-NB/compare/v0.13.2...v0.14.0)

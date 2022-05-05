@@ -3,67 +3,32 @@
 We intentionally do no import sphinx in this module,
 in order to allow docutils-only use without sphinx installed.
 """
-from typing import List, Tuple
+from __future__ import annotations
 
 from docutils import nodes
-from docutils.parsers.rst.states import Inliner
-from docutils.utils import unescape
 
 from myst_nb.core.render import MimeData
+from myst_nb.core.variables import (
+    RetrievalError,
+    format_plain_text,
+    render_variable_output,
+)
+from myst_nb.ext.utils import RoleBase
 
 from .utils import (
     PendingGlueReferenceError,
-    RetrievalError,
     create_pending_glue_ref,
-    format_plain_text,
     glue_warning,
-    render_glue_output,
     retrieve_glue_data,
-    set_source_info,
 )
 
 
-class _PasteRoleBase:
-    """A role for pasting inline code outputs from notebooks."""
-
-    @property
-    def document(self) -> nodes.document:
-        """Get the document."""
-        return self.inliner.document
-
-    def set_source_info(self, node: nodes.Node) -> None:
-        """Set the source info for a node and its descendants."""
-        set_source_info(node, self.source, self.line)
-
-    def __call__(
-        self,
-        name: str,
-        rawtext: str,
-        text: str,
-        lineno: int,
-        inliner: Inliner,
-        options=None,
-        content=(),
-    ) -> Tuple[List[nodes.Node], List[nodes.system_message]]:
-        self.text: str = unescape(text)
-        self.inliner = inliner
-        self.rawtext = rawtext
-        source, line = inliner.reporter.get_source_and_line(lineno)
-        self.source: str = source
-        self.line: int = line
-        return self.run()
-
-    def run(self) -> Tuple[List[nodes.Node], List[nodes.system_message]]:
-        """Run the role."""
-        raise NotImplementedError
-
-
-class PasteRoleAny(_PasteRoleBase):
+class PasteRoleAny(RoleBase):
     """A role for pasting inline code outputs from notebooks,
     using render priority to decide the output mime type.
     """
 
-    def run(self) -> Tuple[List[nodes.Node], List[nodes.system_message]]:
+    def run(self) -> tuple[list[nodes.Node], list[nodes.system_message]]:
 
         # check if this is a pending reference
         doc_key = self.text.split("::", 1)
@@ -87,7 +52,7 @@ class PasteRoleAny(_PasteRoleBase):
             data = retrieve_glue_data(self.document, self.text)
         except RetrievalError as exc:
             return [], [glue_warning(str(exc), self.document, self.line)]
-        paste_nodes = render_glue_output(
+        paste_nodes = render_variable_output(
             data,
             self.document,
             self.line,
@@ -97,7 +62,7 @@ class PasteRoleAny(_PasteRoleBase):
         return paste_nodes, []
 
 
-class PasteTextRole(_PasteRoleBase):
+class PasteTextRole(RoleBase):
     """A role for pasting text/plain outputs from notebooks.
 
     The role content should follow the format: ``<docpath>::<key>:<format_spec>``, where:
@@ -109,7 +74,7 @@ class PasteTextRole(_PasteRoleBase):
       it must end in the type character.
     """
 
-    def run(self) -> Tuple[List[nodes.Node], List[nodes.system_message]]:
+    def run(self) -> tuple[list[nodes.Node], list[nodes.system_message]]:
         # check if we have both key:format in the key
         key_format = self.text.rsplit(":", 1)
         if len(key_format) == 2:
@@ -175,10 +140,10 @@ class PasteTextRole(_PasteRoleBase):
         return [node], []
 
 
-class PasteMarkdownRole(_PasteRoleBase):
+class PasteMarkdownRole(RoleBase):
     """A role for pasting markdown outputs from notebooks as inline MyST Markdown."""
 
-    def run(self) -> Tuple[List[nodes.Node], List[nodes.system_message]]:
+    def run(self) -> tuple[list[nodes.Node], list[nodes.system_message]]:
         # check if we have both key:format in the key
         parts = self.text.rsplit(":", 1)
         if len(parts) == 2:

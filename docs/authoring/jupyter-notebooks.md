@@ -162,7 +162,7 @@ fig, ax = plt.subplots()
 ax.scatter(*data, c=data[2])
 ```
 
-### Raw cells
+## Raw cells
 
 The [raw cell type](https://nbformat.readthedocs.io/en/latest/format_description.html#raw-nbconvert-cells) can be used to specifically render the content as a specific [MIME media type](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types).
 

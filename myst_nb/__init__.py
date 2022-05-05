@@ -1,5 +1,5 @@
 """A docutils/sphinx parser for Jupyter Notebooks."""
-__version__ = "0.14.0"
+__version__ = "0.15.0"
 
 
 def setup(app):
@@ -27,6 +27,6 @@ def glue(name: str, variable, display: bool = True) -> None:
         state of the object at glue-time.
     """
     # we import this locally, so IPython is not automatically imported
-    from myst_nb.glue import glue
+    from myst_nb.ext.glue import glue
 
     return glue(name, variable, display)
