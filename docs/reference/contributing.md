@@ -10,7 +10,7 @@ See the [EBP Contributing Guide](https://executablebooks.org/en/latest/contribut
 
 ## Installation
 
-To install `MyST-NB` for package development:
+To install `MyST-NB` for package development (you will need a recent version of pip (>=22.0)):
 
 ```bash
 git clone https://github.com/executablebooks/MyST-NB
