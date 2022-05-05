@@ -17,7 +17,7 @@ For more information, [see the MyST-NB documentation](https://myst-nb.readthedoc
 ## Contributing
 
 We welcome all contributions!
-See the [Contributing Guide](https://myst-nb.readthedocs.io/en/latest/develop/contributing.html) for more details.
+See the [Contributing Guide](https://myst-nb.readthedocs.io/en/latest/reference/contributing.html) for more details.
 
 [github-ci]: https://github.com/executablebooks/MyST-NB/workflows/continuous-integration/badge.svg?branch=master
 [github-link]: https://github.com/executablebooks/MyST-NB
