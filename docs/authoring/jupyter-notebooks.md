@@ -22,7 +22,7 @@ For more information about what you can write with MyST Markdown, see the
 ### Configuration
 
 The MyST-NB parser derives from [the base MyST-Parser](myst:intro/get-started), and so all the same configuration options are available.
-See the [MyST configuration options](myst:sphinx/config-options) for the full set of options, and [MyST syntax guide](myst:example_syntax) for all the syntax options.
+See the [MyST configuration options](myst:sphinx/config-options) for the full set of options, and [MyST syntax guide](myst:syntax/core) for all the syntax options.
 
 To build documentation from this notebook, the following options are set:
 
