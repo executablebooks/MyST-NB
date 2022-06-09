@@ -43,7 +43,7 @@ dependencies = [
     "myst-parser~=0.17.2",
     "nbformat~=5.0",
     "pyyaml",
-    "sphinx>=3.5,<5",
+    "sphinx>=4,<6",
     "sphinx-togglebutton~=0.3.0",
     "typing-extensions",
     # ipykernel is not a requirement of the library,
