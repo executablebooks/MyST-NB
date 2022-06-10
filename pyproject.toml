@@ -19,6 +19,7 @@ classifiers = [
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
     "Topic :: Software Development :: Libraries :: Python Modules",
@@ -88,7 +89,7 @@ rtd = [
     "sympy",
 ]
 testing = [
-    "coverage<5.0",
+    "coverage~=6.4",
     "beautifulsoup4",
     "ipykernel~=5.5",
     "ipython!=8.1.0", # see https://github.com/ipython/ipython/issues/13554
@@ -100,8 +101,8 @@ testing = [
     "numpy",
     # TODO: 1.4.0 has some warnings that need to be fixed in the tests.
     "pandas<1.4",
-    "pytest~=5.4",
-    "pytest-cov~=2.8",
+    "pytest~=7.1",
+    "pytest-cov~=3.0",
     "pytest-regressions",
     "pytest-param-files~=0.3.3",
     "sympy",
