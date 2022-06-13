@@ -70,7 +70,6 @@ nitpick_ignore = [
         "docutils.nodes.system_message",
         "DocutilsNbRenderer",
         "SphinxNbRenderer",
-        "myst_parser.main.MdParserConfig",
         "nbformat.notebooknode.NotebookNode",
         "nbf.NotebookNode",
         "NotebookNode",
@@ -134,7 +133,7 @@ def setup(app):
 
     from docutils import nodes
     from docutils.parsers.rst import directives
-    from myst_parser.main import MdParserConfig
+    from myst_parser.config.main import MdParserConfig
     from sphinx.application import Sphinx
     from sphinx.util.docutils import SphinxDirective
 

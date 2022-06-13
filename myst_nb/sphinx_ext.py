@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-from myst_parser import setup_sphinx as setup_myst_parser
+from myst_parser.sphinx_ext.main import setup_sphinx as setup_myst_parser
 from sphinx.application import Sphinx
 from sphinx.util import logging as sphinx_logging
 from sphinx.util.fileutil import copy_asset_file

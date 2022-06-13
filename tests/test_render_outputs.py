@@ -27,6 +27,22 @@ def test_basic_run(sphinx_run, file_regression):
     file_regression.check(doctree.pformat(), extension=".xml", encoding="utf8")
 
 
+@pytest.mark.sphinx_params("file_level_config.md")
+def test_file_level_config_md(sphinx_run, file_regression):
+    sphinx_run.build()
+    assert sphinx_run.warnings() == ""
+    doctree = sphinx_run.get_resolved_doctree("file_level_config")
+    file_regression.check(doctree.pformat(), extension=".xml", encoding="utf8")
+
+
+@pytest.mark.sphinx_params("file_level_config.ipynb")
+def test_file_level_config_ipynb(sphinx_run, file_regression):
+    sphinx_run.build()
+    assert sphinx_run.warnings() == ""
+    doctree = sphinx_run.get_resolved_doctree("file_level_config")
+    file_regression.check(doctree.pformat(), extension=".xml", encoding="utf8")
+
+
 @pytest.mark.sphinx_params("complex_outputs.ipynb", conf={"nb_execution_mode": "off"})
 def test_complex_outputs(sphinx_run, clean_doctree, file_regression):
     sphinx_run.build()

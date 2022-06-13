@@ -5,6 +5,7 @@ from pathlib import Path
 
 from docutils.core import publish_doctree, publish_string
 import pytest
+import sphinx
 import yaml
 
 from myst_nb.docutils_ import Parser
@@ -15,6 +16,11 @@ FIXTURE_PATH = Path(__file__).parent.joinpath("nb_fixtures")
 @pytest.mark.param_file(FIXTURE_PATH / "basic.txt")
 def test_basic(file_params):
     """Test basic parsing."""
+    if (
+        "Footnote definitions defined in different cells" in file_params.title
+        and sphinx.version_info[0] < 5
+    ):
+        pytest.skip("footnote definition ids changes")
     dct = yaml.safe_load(file_params.content)
     dct.update({"nbformat": 4, "nbformat_minor": 4})
     dct.setdefault("metadata", {})

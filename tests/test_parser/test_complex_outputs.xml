@@ -4,7 +4,6 @@
             <literal_block language="ipython3" xml:space="preserve">
                 import matplotlib.pyplot as plt
                 import pandas as pd
-                pd.set_option('display.latex.repr', True)
                 import sympy as sym
                 sym.init_printing(use_latex=True)
                 import numpy as np
