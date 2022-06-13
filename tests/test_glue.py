@@ -112,6 +112,5 @@ def test_parser(sphinx_run, clean_doctree, file_regression):
     doctree = clean_doctree(sphinx_run.get_resolved_doctree("with_glue"))
     file_regression.check(
         doctree.pformat(),
-        extension=f"{sphinx_run.software_versions}.xml",
         encoding="utf8",
     )

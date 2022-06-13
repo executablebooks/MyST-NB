@@ -3,7 +3,7 @@ import dataclasses as dc
 from enum import Enum
 from typing import Any, Callable, Dict, Iterable, Optional, Sequence, Tuple
 
-from myst_parser.dc_validators import (
+from myst_parser.config.dc_validators import (
     ValidatorType,
     deep_iterable,
     deep_mapping,
@@ -78,16 +78,17 @@ def has_items(*validators) -> ValidatorType:
     :param validators: Validator to apply per item
     """
 
-    def _validator(inst, attr, value):
+    def _validator(inst, field: dc.Field, value, suffix=""):
         if not isinstance(value, Sequence):
-            raise TypeError(f"{attr.name} must be a sequence: {value}")
+            raise TypeError(f"{suffix}{field.name} must be a sequence: {value}")
         if len(value) != len(validators):
             raise TypeError(
-                f"{attr.name!r} must be a sequence of length {len(validators)}: {value}"
+                f"{suffix}{field.name!r} must be a sequence of length "
+                f"{len(validators)}: {value}"
             )
 
-        for validator, member in zip(validators, value):
-            validator(inst, attr, member)
+        for idx, (validator, member) in enumerate(zip(validators, value)):
+            validator(inst, field, member, suffix=f"{suffix}[{idx}]")
 
     return _validator
 

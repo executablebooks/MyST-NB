@@ -10,10 +10,11 @@ from typing import Any, DefaultDict, cast
 from docutils import nodes
 from markdown_it.token import Token
 from markdown_it.tree import SyntaxTreeNode
-from myst_parser.docutils_renderer import token_line
-from myst_parser.main import MdParserConfig, create_md_parser
-from myst_parser.sphinx_parser import MystParser
-from myst_parser.sphinx_renderer import SphinxRenderer
+from myst_parser.config.main import MdParserConfig, merge_file_level
+from myst_parser.mdit_to_docutils.base import token_line
+from myst_parser.mdit_to_docutils.sphinx_ import SphinxRenderer, create_warning
+from myst_parser.parsers.mdit import create_md_parser
+from myst_parser.parsers.sphinx_ import MystParser
 import nbformat
 from sphinx.application import Sphinx
 from sphinx.environment import BuildEnvironment
@@ -72,6 +73,7 @@ class Parser(MystParser):
 
         # get markdown parsing configuration
         md_config: MdParserConfig = self.env.myst_config
+
         # get notebook rendering configuration
         nb_config: NbParserConfig = self.env.mystnb_config
 
@@ -81,6 +83,14 @@ class Parser(MystParser):
         if nb_reader is None:
             return super().parse(inputstring, document)
         notebook = nb_reader.read(inputstring)
+
+        # update the global markdown config with the file-level config
+        warning = lambda wtype, msg: create_warning(  # noqa: E731
+            document, msg, line=1, append_to=document, subtype=wtype
+        )
+        nb_reader.md_config = merge_file_level(
+            nb_reader.md_config, notebook.metadata, warning
+        )
 
         # potentially replace kernel name with alias
         kernel_name = notebook.metadata.get("kernelspec", {}).get("name", None)

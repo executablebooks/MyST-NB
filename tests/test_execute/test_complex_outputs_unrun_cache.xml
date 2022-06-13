@@ -4,7 +4,6 @@
             <literal_block language="ipython3" xml:space="preserve">
                 import matplotlib.pyplot as plt
                 import pandas as pd
-                pd.set_option('display.latex.repr', True)
                 import sympy as sym
                 sym.init_printing(use_latex=True)
                 import numpy as np
@@ -183,17 +182,6 @@
                               </tbody>
                             </table>
                             </div>
-                    <container mime_type="text/latex">
-                        <math_block classes="output text_latex" nowrap="False" number="True" xml:space="preserve">
-                            \begin{tabular}{lllrr}
-                            \toprule
-                            {} &         a &  b &      c &      d \\
-                            \midrule
-                            0 &  \$\textbackslash delta\$ &  l &  0.603 &  0.545 \\
-                            1 &         x &  m &  0.438 &  0.892 \\
-                            2 &         y &  n &  0.792 &  0.529 \\
-                            \bottomrule
-                            \end{tabular}
     <section ids="equations-with-ipython-or-sympy" names="equations\ (with\ ipython\ or\ sympy)">
         <title>
             Equations (with ipython or sympy)

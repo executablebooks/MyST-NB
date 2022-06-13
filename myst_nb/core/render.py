@@ -20,8 +20,9 @@ from typing import TYPE_CHECKING, Any, ClassVar, Iterator, Sequence, Union
 from docutils import nodes
 from docutils.parsers.rst import directives as options_spec
 from importlib_metadata import entry_points
-from myst_parser.docutils_renderer import token_line
-from myst_parser.main import MdParserConfig, create_md_parser
+from myst_parser.config.main import MdParserConfig
+from myst_parser.mdit_to_docutils.base import token_line
+from myst_parser.parsers.mdit import create_md_parser
 from nbformat import NotebookNode
 from typing_extensions import Protocol
 

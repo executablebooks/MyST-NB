@@ -1,0 +1,11 @@
+<document source="file_level_config">
+    <section ids="title" names="title">
+        <title>
+            Title
+        <definition_list classes="simple myst">
+            <definition_list_item>
+                <term>
+                    name
+                <definition>
+                    <paragraph>
+                        definition

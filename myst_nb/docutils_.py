@@ -13,11 +13,18 @@ from docutils.parsers.rst.directives import _directives
 from docutils.parsers.rst.roles import _roles
 from markdown_it.token import Token
 from markdown_it.tree import SyntaxTreeNode
-from myst_parser.docutils_ import DOCUTILS_EXCLUDED_ARGS as DOCUTILS_EXCLUDED_ARGS_MYST
-from myst_parser.docutils_ import Parser as MystParser
-from myst_parser.docutils_ import create_myst_config, create_myst_settings_spec
-from myst_parser.docutils_renderer import DocutilsRenderer, token_line
-from myst_parser.main import MdParserConfig, create_md_parser
+from myst_parser.config.main import MdParserConfig, merge_file_level
+from myst_parser.mdit_to_docutils.base import (
+    DocutilsRenderer,
+    create_warning,
+    token_line,
+)
+from myst_parser.parsers.docutils_ import (
+    DOCUTILS_EXCLUDED_ARGS as DOCUTILS_EXCLUDED_ARGS_MYST,
+)
+from myst_parser.parsers.docutils_ import Parser as MystParser
+from myst_parser.parsers.docutils_ import create_myst_config, create_myst_settings_spec
+from myst_parser.parsers.mdit import create_md_parser
 import nbformat
 from nbformat import NotebookNode
 from pygments.formatters import get_formatter_by_name
@@ -140,6 +147,14 @@ class Parser(MystParser):
         else:
             nb_reader = NbReader(standard_nb_read, md_config)
         notebook = nb_reader.read(inputstring)
+
+        # update the global markdown config with the file-level config
+        warning = lambda wtype, msg: create_warning(  # noqa: E731
+            document, msg, line=1, append_to=document, subtype=wtype
+        )
+        nb_reader.md_config = merge_file_level(
+            nb_reader.md_config, notebook.metadata, warning
+        )
 
         # Update mystnb configuration with notebook level metadata
         if nb_config.metadata_key in notebook.metadata:

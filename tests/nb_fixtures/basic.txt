@@ -171,18 +171,18 @@ cells:
 .
 <document nb_kernelspec="{'name': 'python3', 'display_name': 'Python 3', 'language': ''}" source="<string>">
     <paragraph>
-        <footnote_reference auto="1" ids="id1" refid="a">
+        <footnote_reference auto="1" ids="footnote-reference-1" refid="a">
             1
          
-        <footnote_reference auto="1" ids="id2" refid="b">
+        <footnote_reference auto="1" ids="footnote-reference-2" refid="b">
             2
     <transition classes="footnotes">
-    <footnote auto="1" backrefs="id1" ids="a" names="a">
+    <footnote auto="1" backrefs="footnote-reference-1" ids="a" names="a">
         <label>
             1
         <paragraph>
             before
-    <footnote auto="1" backrefs="id2" ids="b" names="b">
+    <footnote auto="1" backrefs="footnote-reference-2" ids="b" names="b">
         <label>
             2
         <paragraph>

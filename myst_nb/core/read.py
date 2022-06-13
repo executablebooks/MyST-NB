@@ -9,7 +9,8 @@ from typing import Callable, Iterator
 
 from docutils.parsers.rst import Directive
 from markdown_it.renderer import RendererHTML
-from myst_parser.main import MdParserConfig, create_md_parser
+from myst_parser.config.main import MdParserConfig
+from myst_parser.parsers.mdit import create_md_parser
 import nbformat as nbf
 import yaml
 
@@ -312,7 +313,10 @@ class _MockDirective:
 
 
 def _read_fenced_cell(token, cell_index, cell_type):
-    from myst_parser.parse_directives import DirectiveParsingError, parse_directive_text
+    from myst_parser.parsers.directives import (
+        DirectiveParsingError,
+        parse_directive_text,
+    )
 
     try:
         _, options, body_lines, _ = parse_directive_text(
