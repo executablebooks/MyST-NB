@@ -1,5 +1,12 @@
 # Change Log
 
+## v0.16.0 - 2022-06-13
+
+[Full changelog](https://github.com/executablebooks/MyST-NB/compare/v0.15.0...v0.16.0)
+
+- ⬆️ UPGRADE: Sphinx v5 and drop v3 (see [changelog](https://www.sphinx-doc.org/en/master/changes.html)), myst-parser v0.18 (see [changelog](https://myst-parser.readthedocs.io/en/latest/develop/_changelog.html))
+- ⬆️ UPGRADE: Add Python 3.10 support
+
 ## v0.15.0 - 2022-05-05
 
 [Full changelog](https://github.com/executablebooks/MyST-NB/compare/v0.14.0...v0.15.0)
