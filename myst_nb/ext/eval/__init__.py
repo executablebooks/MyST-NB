@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Any
 from docutils import nodes
 from docutils.parsers.rst import directives as spec
 
-from myst_nb.core.execute.base import EvalNameError
 from myst_nb.core.render import NbElementRenderer
 from myst_nb.core.variables import (
     RetrievalError,
@@ -42,8 +41,6 @@ def retrieve_eval_data(document: nodes.document, key: str) -> list[VariableOutpu
         outputs = element.renderer.nb_client.eval_variable(key)
     except NotImplementedError:
         raise RetrievalError("This document does not have a running kernel")
-    except EvalNameError:
-        raise RetrievalError(f"The variable {key!r} is not a valid name")
     except Exception as exc:
         raise RetrievalError(f"variable evaluation error: {exc}")
     if not outputs:
