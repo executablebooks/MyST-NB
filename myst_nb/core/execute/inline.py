@@ -151,8 +151,6 @@ class NotebookClientInline(NotebookClientBase):
         return cell.get("execution_count", None), cell.get("outputs", [])
 
     def eval_variable(self, name: str) -> list[NotebookNode]:
-        if not EVAL_NAME_REGEX.match(name):
-            raise EvalNameError(name)
         return self._client.eval_expression(name)
 
 
