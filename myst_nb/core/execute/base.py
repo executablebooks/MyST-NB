@@ -39,9 +39,6 @@ class EvalNameError(Exception):
     """An exception for if an evaluation variable name is invalid."""
 
 
-EVAL_NAME_REGEX = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
-
-
 class NotebookClientBase:
     """A base client for interacting with Jupyter notebooks.
 
