@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-import re
 from typing import Any
 
 from nbformat import NotebookNode
@@ -33,10 +32,6 @@ class ExecutionResult(TypedDict):
 
 class ExecutionError(Exception):
     """An exception for failed execution and `execution_raise_on_error` is true."""
-
-
-class EvalNameError(Exception):
-    """An exception for if an evaluation variable name is invalid."""
 
 
 class NotebookClientBase:

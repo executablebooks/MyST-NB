@@ -22,7 +22,7 @@ from nbformat import NotebookNode
 
 from myst_nb.ext.glue import extract_glue_data_cell
 
-from .base import EVAL_NAME_REGEX, EvalNameError, ExecutionError, NotebookClientBase
+from .base import ExecutionError, NotebookClientBase
 
 
 class NotebookClientInline(NotebookClientBase):
