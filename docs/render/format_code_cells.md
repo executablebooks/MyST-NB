@@ -141,7 +141,7 @@ nb_mime_priority_overrides = [
 ## Images and Figures
 
 With the default renderer, for any image types output by the code, we can apply formatting *via* cell metadata.
-The top-level metadata key can be set using `nb_cell_metadata_key` in your `conf.py`, and is set to `render` by default.
+The top-level metadata key can be set using `nb_cell_metadata_key` in your `conf.py`, and is set to `mystnb` by default.
 Then for the image we can apply all the variables of the standard [image directive](https://docutils.sourceforge.io/docs/ref/rst/directives.html#image):
 
 - **width**: length or percentage (%) of the current line width
