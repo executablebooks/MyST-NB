@@ -47,7 +47,7 @@ class ReplacePendingGlueReferences(SphinxPostTransform):
     def apply(self, **kwargs):
         """Apply the transform."""
         cache_folder = self.env.mystnb_config.output_folder  # type: ignore
-        bname = self.app.builder.name  # type: ignore
+        bname = self.app.builder.name
         priority_list = get_mime_priority(
             bname, self.config["nb_mime_priority_overrides"]
         )
