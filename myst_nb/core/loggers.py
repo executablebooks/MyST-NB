@@ -98,7 +98,8 @@ class DocutilsDocLogger(logging.LoggerAdapter):
         for keyword in self.KEYWORDS:
             if keyword in kwargs:
                 kwargs["extra"][keyword] = kwargs.pop(keyword)
-        return f"{msg} [{self.extra['type']}{subtype}]", kwargs
+        etype = "" if not self.extra else self.extra.get("type", "")
+        return f"{msg} [{etype}{subtype}]", kwargs
 
 
 class DocutilsLogHandler(logging.Handler):
