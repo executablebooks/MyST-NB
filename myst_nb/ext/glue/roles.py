@@ -11,7 +11,7 @@ from myst_nb.core.render import MimeData
 from myst_nb.core.variables import (
     RetrievalError,
     format_plain_text,
-    render_variable_output,
+    render_variable_outputs,
 )
 from myst_nb.ext.utils import RoleBase
 
@@ -52,8 +52,8 @@ class PasteRoleAny(RoleBase):
             data = retrieve_glue_data(self.document, self.text)
         except RetrievalError as exc:
             return [], [glue_warning(str(exc), self.document, self.line)]
-        paste_nodes = render_variable_output(
-            data,
+        paste_nodes = render_variable_outputs(
+            [data],
             self.document,
             self.line,
             self.source,

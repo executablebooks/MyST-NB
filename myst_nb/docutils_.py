@@ -310,13 +310,15 @@ class DocutilsNbRenderer(DocutilsRenderer, MditRenderMixin):
                 try:
                     mime_type = next(x for x in mime_priority if x in output["data"])
                 except StopIteration:
-                    self.create_warning(
-                        "No output mime type found from render_priority",
-                        line=line,
-                        append_to=self.current_node,
-                        wtype=DEFAULT_LOG_TYPE,
-                        subtype="mime_type",
-                    )
+                    if output["data"]:
+                        self.create_warning(
+                            "No output mime type found from render_priority "
+                            f"(cell<{cell_index}>.output<{output_index}>",
+                            line=line,
+                            append_to=self.current_node,
+                            wtype=DEFAULT_LOG_TYPE,
+                            subtype="mime_type",
+                        )
                 else:
                     figure_options = (
                         self.get_cell_level_config(
