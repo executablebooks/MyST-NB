@@ -24,7 +24,7 @@ def regress_nb_doc(file_regression, sphinx_run, check_nbs):
             "e2dfbe330154316cfb6f3186e8f57fc4df8aee03b0303ed1345fc22cd51f66de",
         )
         doctree_string = doctree_string.replace(
-            "22b9ad367066892ac151e00c2cf0d7e815327649772d7623d80606baf78307cc",
+            "438c56ea3dcf99d86cd64df1b23e2b436afb25846434efb1cfec7b660ef01127",
             "e2dfbe330154316cfb6f3186e8f57fc4df8aee03b0303ed1345fc22cd51f66de",
         )
         if os.name == "nt":  # on Windows image file paths are absolute
