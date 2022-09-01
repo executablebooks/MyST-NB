@@ -102,7 +102,7 @@ testing = [
     "pytest-cov~=3.0",
     "pytest-regressions",
     "pytest-param-files~=0.3.3",
-    "sympy",
+    "sympy>=1.10.1",
 ]
 
 [project.scripts]
