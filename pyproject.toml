@@ -92,9 +92,9 @@ testing = [
     "beautifulsoup4",
     "ipykernel~=5.5",
     "ipython!=8.1.0", # see https://github.com/ipython/ipython/issues/13554
-    "ipywidgets",
+    "ipywidgets>=8",
     "jupytext~=1.11.2",
-    "matplotlib",
+    "matplotlib>=3.5.3",
     "nbdime",
     "numpy",
     "pandas",
