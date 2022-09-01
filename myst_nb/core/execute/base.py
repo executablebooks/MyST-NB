@@ -170,13 +170,13 @@ class NotebookClientBase:
         cell = cells[cell_index]
         return cell.get("execution_count", None), cell.get("outputs", [])
 
-    def eval_variable(self, name: str) -> NotebookNode | None:
+    def eval_variable(self, name: str) -> list[NotebookNode]:
         """Retrieve the value of a variable from the kernel.
 
         :param name: the name of the variable,
             must match the regex `[a-zA-Z][a-zA-Z0-9_]*`
 
-        :returns: a code cell output
+        :returns: code cell outputs
         :raises NotImplementedError: if the execution mode does not support this feature
         :raises EvalNameError: if the variable name is invalid
         """

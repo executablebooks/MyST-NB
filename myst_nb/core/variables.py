@@ -57,10 +57,12 @@ class VariableOutput:
     nb_renderer: NbElementRenderer
     vtype: str
     """The variable type (for use in warnings)."""
+    index: int = 0
+    """The index of the output."""
 
 
-def render_variable_output(
-    output: VariableOutput,
+def render_variable_outputs(
+    outputs: list[VariableOutput],
     document: nodes.document,
     line: int,
     source: str,
@@ -71,7 +73,7 @@ def render_variable_output(
     """Given output data for a variable,
     return the docutils/sphinx nodes relevant to this data.
 
-    :param output: The output data.
+    :param outputs: The output data.
     :param document: The current docutils document.
     :param line: The current source line number of the directive or role.
     :param source: The current source path or description.
@@ -80,6 +82,30 @@ def render_variable_output(
 
     :returns: the docutils/sphinx nodes
     """
+    _nodes = []
+    for output in outputs:
+        _nodes.extend(
+            _render_variable_output(
+                output,
+                document,
+                line,
+                source,
+                inline=inline,
+                render=render,
+            )
+        )
+    return _nodes
+
+
+def _render_variable_output(
+    output: VariableOutput,
+    document: nodes.document,
+    line: int,
+    source: str,
+    *,
+    inline: bool = False,
+    render: dict[str, Any] | None = None,
+) -> list[nodes.Node]:
     cell_metadata = {}
     if render:
         cell_metadata[output.nb_renderer.config.cell_metadata_key] = render
@@ -119,14 +145,17 @@ def _render_output_docutils(
     try:
         mime_type = next(x for x in mime_priority if x in output.data)
     except StopIteration:
-        return [
-            create_warning(
-                "No output mime type found from render_priority",
-                document,
-                line,
-                output.vtype,
-            )
-        ]
+        if output.data:
+            return [
+                create_warning(
+                    "No output mime type found from render_priority "
+                    f"(output<{output.index}>)",
+                    document,
+                    line,
+                    output.vtype,
+                )
+            ]
+        return []
     else:
         mime_data = MimeData(
             mime_type,

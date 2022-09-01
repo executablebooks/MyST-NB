@@ -150,14 +150,14 @@ class NotebookClientInline(NotebookClientBase):
         cell = cells[cell_index]
         return cell.get("execution_count", None), cell.get("outputs", [])
 
-    def eval_variable(self, name: str) -> NotebookNode | None:
+    def eval_variable(self, name: str) -> list[NotebookNode]:
         if not EVAL_NAME_REGEX.match(name):
             raise EvalNameError(name)
         return self._client.eval_expression(name)
 
 
 class ModifiedNotebookClient(NotebookClient):
-    async def async_eval_expression(self, name: str) -> NotebookNode | None:
+    async def async_eval_expression(self, name: str) -> list[NotebookNode]:
         """Evaluate an expression in the kernel.
 
         This is a modified version of `async_execute_cell`,
@@ -204,7 +204,6 @@ class ModifiedNotebookClient(NotebookClient):
                     task_poll_output_msg.cancel()
             finally:
                 raise
-
-        return cell.outputs[0] if cell.outputs else None
+        return cell.outputs
 
     eval_expression = run_sync(async_eval_expression)

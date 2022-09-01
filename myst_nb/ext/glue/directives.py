@@ -9,7 +9,7 @@ from docutils import nodes
 from docutils.parsers.rst import directives as spec
 
 from myst_nb.core.render import MimeData, strip_latex_delimiters
-from myst_nb.core.variables import RetrievalError, is_sphinx, render_variable_output
+from myst_nb.core.variables import RetrievalError, is_sphinx, render_variable_outputs
 from myst_nb.ext.utils import DirectiveBase
 
 from .utils import (
@@ -62,7 +62,7 @@ class PasteAnyDirective(DirectiveBase):
                     self.line,
                 )
             ]
-        return render_variable_output(data, self.document, self.line, self.source)
+        return render_variable_outputs([data], self.document, self.line, self.source)
 
 
 def md_fmt(argument):
@@ -155,8 +155,8 @@ class PasteFigureDirective(DirectiveBase):
                 render.setdefault("image", {})[
                     key.replace("classes", "class")
                 ] = self.options[key]
-        paste_nodes = render_variable_output(
-            data, self.document, self.line, self.source, render=render
+        paste_nodes = render_variable_outputs(
+            [data], self.document, self.line, self.source, render=render
         )
 
         # note: most of this is copied directly from sphinx.Figure

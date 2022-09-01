@@ -13,7 +13,7 @@ from myst_nb.core.variables import (
     RetrievalError,
     VariableOutput,
     create_warning,
-    render_variable_output,
+    render_variable_outputs,
 )
 from myst_nb.ext.utils import DirectiveBase, RoleBase
 
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 eval_warning = partial(create_warning, subtype="eval")
 
 
-def retrieve_eval_data(document: nodes.document, key: str) -> VariableOutput:
+def retrieve_eval_data(document: nodes.document, key: str) -> list[VariableOutput]:
     """Retrieve the glue data from a specific document."""
     if "nb_renderer" not in document:
         raise RetrievalError("This document does not have a running kernel")
@@ -39,29 +39,34 @@ def retrieve_eval_data(document: nodes.document, key: str) -> VariableOutput:
 
     # evaluate the variable
     try:
-        output = element.renderer.nb_client.eval_variable(key)
+        outputs = element.renderer.nb_client.eval_variable(key)
     except NotImplementedError:
         raise RetrievalError("This document does not have a running kernel")
     except EvalNameError:
         raise RetrievalError(f"The variable {key!r} is not a valid name")
     except Exception as exc:
         raise RetrievalError(f"variable evaluation error: {exc}")
-    if output is None:
+    if not outputs:
         raise RetrievalError(f"variable {key!r} does not return any outputs")
 
-    # the returned output could be one of the following:
+    # the returned outputs could be one of the following:
     # https://nbformat.readthedocs.io/en/latest/format_description.html#code-cell-outputs
 
-    if output.get("output_type") == "error":
-        msg = f"{output.get('ename', '')}: {output.get('evalue', '')}"
-        raise RetrievalError(msg)
+    for output in outputs:
+        if output.get("output_type") == "error":
+            msg = f"{output.get('ename', '')}: {output.get('evalue', '')}"
+            raise RetrievalError(msg)
 
-    return VariableOutput(
-        data=output.get("data", {}),
-        metadata=output.get("metadata", {}),
-        nb_renderer=element,
-        vtype="eval",
-    )
+    return [
+        VariableOutput(
+            data=output.get("data", {}),
+            metadata=output.get("metadata", {}),
+            nb_renderer=element,
+            vtype="eval",
+            index=i,
+        )
+        for i, output in enumerate(outputs)
+    ]
 
 
 class EvalRoleAny(RoleBase):
@@ -76,15 +81,17 @@ class EvalRoleAny(RoleBase):
             return [], [eval_warning(str(exc), self.document, self.line)]
 
         # for text/plain, we want to strip quotes from strings
-        data.metadata["strip_text_quotes"] = True
+        for output in data:
+            output.metadata["strip_text_quotes"] = True
 
-        _nodes = render_variable_output(
+        _nodes = render_variable_outputs(
             data,
             self.document,
             self.line,
             self.source,
             inline=True,
         )
+
         return _nodes, []
 
 
@@ -103,7 +110,7 @@ class EvalDirectiveAny(DirectiveBase):
             data = retrieve_eval_data(self.document, self.arguments[0])
         except RetrievalError as exc:
             return [eval_warning(str(exc), self.document, self.line)]
-        return render_variable_output(
+        return render_variable_outputs(
             data,
             self.document,
             self.line,
@@ -156,7 +163,7 @@ class EvalFigureDirective(DirectiveBase):
                     key.replace("classes", "class")
                 ] = self.options[key]
 
-        mime_nodes = render_variable_output(
+        mime_nodes = render_variable_outputs(
             data, self.document, self.line, self.source, render=render
         )
 
