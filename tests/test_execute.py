@@ -18,23 +18,14 @@ def regress_nb_doc(file_regression, sphinx_run, check_nbs):
         doctree_string = sphinx_run.get_doctree().pformat()
         # TODO this is a difference in the hashing on the CI,
         # with complex_outputs_unrun.ipynb equation PNG, after execution
+        # sympy
+        doctree_string = doctree_string.replace(
+            "91b3db0f47514d451e7c0f5a501d31c4e101b7112050634ad0788405f417782a",
+            "e2dfbe330154316cfb6f3186e8f57fc4df8aee03b0303ed1345fc22cd51f66de",
+        )
         doctree_string = doctree_string.replace(
             "438c56ea3dcf99d86cd64df1b23e2b436afb25846434efb1cfec7b660ef01127",
             "e2dfbe330154316cfb6f3186e8f57fc4df8aee03b0303ed1345fc22cd51f66de",
-        )
-        doctree_string = doctree_string.replace(
-            "ba12df2746ada2238753ff8514da1431501f9de0fbf63eacda13f6e8c3e799c4",
-            "e2dfbe330154316cfb6f3186e8f57fc4df8aee03b0303ed1345fc22cd51f66de",
-        )
-        # sympy python > 3.7
-        doctree_string = doctree_string.replace(
-            "22b9ad367066892ac151e00c2cf0d7e815327649772d7623d80606baf78307cc",
-            "e2dfbe330154316cfb6f3186e8f57fc4df8aee03b0303ed1345fc22cd51f66de",
-        )
-        # change in matplotlib > 3.3
-        doctree_string = doctree_string.replace(
-            "1716e562622b606c639ae411adceadd2bdbbaaae765ca9e118500612099a4821",
-            "cc1d31550c7aaad5128f57d4f4cae576a29174f6cd515e37c0b911f6010659f3",
         )
         if os.name == "nt":  # on Windows image file paths are absolute
             doctree_string = doctree_string.replace(
