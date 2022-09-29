@@ -15,13 +15,70 @@ div.container.cell {
 }
 
 /* Input cells */
-div.cell div.cell_input {
+div.cell div.cell_input,
+div.cell details.above-input > summary {
   padding-left: 0em;
   padding-right: 0em;
   border: 1px #ccc solid;
   background-color: #f7f7f7;
   border-left-color: green;
   border-left-width: medium;
+  border-radius: .4em;
+}
+
+div.cell details.above-input div.cell_input {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-top: 1px #ccc dashed;
+}
+
+div.cell details.above-input > summary {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom: 1px #ccc dashed;
+  padding-left: 1em;
+  margin-bottom: 0;
+}
+
+div.cell details.above-output > summary {
+  background-color: #f7f7f7;
+  padding-left: 1em;
+  padding-right: 0em;
+  border: 1px #ccc solid;
+  border-bottom: 1px #ccc dashed;
+  border-left-color: blue;
+  border-left-width: medium;
+  border-top-left-radius: .4em;
+  border-top-right-radius: .4em;
+}
+
+div.cell details.hide > summary::marker {
+  opacity: 50%;
+}
+
+div.cell details.hide > summary > span {
+  opacity: 50%;
+}
+
+div.cell details.hide[open] > summary > span.collapsed {
+  display: none;
+}
+div.cell details.hide:not([open]) > summary > span.expanded {
+  display: none;
+}
+
+@keyframes collapsed-fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+div.cell details.hide[open] > summary ~ * {
+  -moz-animation: collapsed-fade-in 0.3s ease-in-out;
+  -webkit-animation: collapsed-fade-in 0.3s ease-in-out;
+  animation: collapsed-fade-in 0.3s ease-in-out;
 }
 
 div.cell_input > div, div.cell_output div.output > div.highlight {

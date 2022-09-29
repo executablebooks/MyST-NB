@@ -144,3 +144,12 @@ def test_unknown_mimetype(sphinx_run, file_regression):
     assert warning in sphinx_run.warnings()
     doctree = sphinx_run.get_resolved_doctree("unknown_mimetype")
     file_regression.check(doctree.pformat(), extension=".xml", encoding="utf8")
+
+
+@pytest.mark.sphinx_params("hide_cell_content.ipynb", conf={"nb_execution_mode": "off"})
+def test_hide_cell_content(sphinx_run, file_regression):
+    """Test that hiding cell contents produces the correct AST."""
+    sphinx_run.build()
+    assert sphinx_run.warnings() == ""
+    doctree = sphinx_run.get_resolved_doctree("hide_cell_content")
+    file_regression.check(doctree.pformat(), extension=".xml", encoding="utf8")

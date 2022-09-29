@@ -128,38 +128,49 @@ class MditRenderMixin:
     def render_nb_cell_code(self: SelfType, token: SyntaxTreeNode) -> None:
         """Render a notebook code cell."""
         cell_index = token.meta["index"]
+        cell_line = token_line(token, 0) or None
         tags = token.meta["metadata"].get("tags", [])
 
         exec_count, outputs = self._get_nb_code_cell_outputs(token)
 
+        classes = ["cell"]
+        for tag in tags:
+            classes.append(f"tag_{tag.replace(' ', '_')}")
+
         # TODO do we need this -/_ duplication of tag names, or can we deprecate one?
+        hide_cell = "hide-cell" in tags
         remove_input = (
             self.get_cell_level_config(
-                "remove_code_source",
-                token.meta["metadata"],
-                line=token_line(token, 0) or None,
+                "remove_code_source", token.meta["metadata"], line=cell_line
             )
             or ("remove_input" in tags)
             or ("remove-input" in tags)
         )
+        hide_input = "hide-input" in tags
         remove_output = (
             self.get_cell_level_config(
-                "remove_code_outputs",
-                token.meta["metadata"],
-                line=token_line(token, 0) or None,
+                "remove_code_outputs", token.meta["metadata"], line=cell_line
             )
             or ("remove_output" in tags)
             or ("remove-output" in tags)
         )
+        hide_output = "hide-output" in tags
 
         # if we are remove both the input and output, we can skip the cell
         if remove_input and remove_output:
             return
 
+        hide_mode = None
+        if hide_cell:
+            hide_mode = "all"
+        elif hide_input and hide_output:
+            hide_mode = "all"
+        elif hide_input:
+            hide_mode = "input"
+        elif hide_output:
+            hide_mode = "output"
+
         # create a container for all the input/output
-        classes = ["cell"]
-        for tag in tags:
-            classes.append(f"tag_{tag.replace(' ', '_')}")
         cell_container = nodes.container(
             nb_element="cell_code",
             cell_index=cell_index,
@@ -168,6 +179,17 @@ class MditRenderMixin:
             cell_metadata=token.meta["metadata"],
             classes=classes,
         )
+        if hide_mode:
+            cell_container["hide_mode"] = hide_mode
+            code_prompt_show = self.get_cell_level_config(
+                "code_prompt_show", token.meta["metadata"], line=cell_line
+            )
+            code_prompt_hide = self.get_cell_level_config(
+                "code_prompt_hide", token.meta["metadata"], line=cell_line
+            )
+            cell_container["prompt_show"] = code_prompt_show
+            cell_container["prompt_hide"] = code_prompt_hide
+
         self.add_line_and_source_path(cell_container, token)
         with self.current_node_context(cell_container, append=True):
 
