@@ -1,6 +1,7 @@
 """Setup for the myst-nb sphinx extension."""
 from __future__ import annotations
 
+import hashlib
 from importlib import resources as import_resources
 import os
 from pathlib import Path
@@ -94,7 +95,7 @@ def sphinx_setup(app: Sphinx):
     HideCodeCellNode.add_to_app(app)
 
     # add HTML resources
-    app.add_css_file("mystnb.css")
+    add_css(app)
     app.connect("build-finished", add_global_html_resources)
     # note, this event is only available in Sphinx >= 3.5
     app.connect("html-page-context", add_per_page_html_resources)
@@ -178,12 +179,28 @@ def add_exclude_patterns(app: Sphinx, config):
         config.exclude_patterns.append("**.ipynb_checkpoints")
 
 
+def _get_file_hash(path: Path):
+    """Get the hash of a file."""
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def add_css(app: Sphinx):
+    """Add CSS for myst-nb."""
+    with import_resources.path(static, "mystnb.css") as source_path:
+        hash = _get_file_hash(source_path)
+    app.add_css_file(f"mystnb.{hash}.css")
+
+
 def add_global_html_resources(app: Sphinx, exception):
     """Add HTML resources that apply to all pages."""
     # see https://github.com/sphinx-doc/sphinx/issues/1379
     if app.builder is not None and app.builder.format == "html" and not exception:
         with import_resources.path(static, "mystnb.css") as source_path:
-            destination = os.path.join(app.builder.outdir, "_static", "mystnb.css")
+            with import_resources.path(static, "mystnb.css") as source_path:
+                hash = _get_file_hash(source_path)
+            destination = os.path.join(
+                app.builder.outdir, "_static", f"mystnb.{hash}.css"
+            )
             copy_asset_file(str(source_path), destination)
 
 
