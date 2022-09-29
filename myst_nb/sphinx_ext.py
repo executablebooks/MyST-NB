@@ -19,7 +19,13 @@ from myst_nb.ext.download import NbDownloadRole
 from myst_nb.ext.eval import load_eval_sphinx
 from myst_nb.ext.glue import load_glue_sphinx
 from myst_nb.ext.glue.crossref import ReplacePendingGlueReferences
-from myst_nb.sphinx_ import NbMetadataCollector, Parser, SelectMimeType
+from myst_nb.sphinx_ import (
+    HideCodeCellNode,
+    HideInputCells,
+    NbMetadataCollector,
+    Parser,
+    SelectMimeType,
+)
 
 SPHINX_LOGGER = sphinx_logging.getLogger(__name__)
 OUTPUT_FOLDER = "jupyter_execute"
@@ -83,16 +89,15 @@ def sphinx_setup(app: Sphinx):
     app.add_post_transform(SelectMimeType)
     app.add_post_transform(ReplacePendingGlueReferences)
 
+    # setup collapsible content
+    app.add_post_transform(HideInputCells)
+    HideCodeCellNode.add_to_app(app)
+
     # add HTML resources
     app.add_css_file("mystnb.css")
     app.connect("build-finished", add_global_html_resources)
     # note, this event is only available in Sphinx >= 3.5
     app.connect("html-page-context", add_per_page_html_resources)
-
-    # add configuration for hiding cell input/output
-    # TODO replace this, or make it optional
-    app.setup_extension("sphinx_togglebutton")
-    app.connect("config-inited", update_togglebutton_classes)
 
     # Note lexers are registered as `pygments.lexers` entry-points
     # and so do not need to be added here.
@@ -191,17 +196,3 @@ def add_per_page_html_resources(
     js_files = NbMetadataCollector.get_js_files(app.env, pagename)  # type: ignore
     for path, kwargs in js_files.values():
         app.add_js_file(path, **kwargs)  # type: ignore
-
-
-def update_togglebutton_classes(app: Sphinx, config):
-    """Update togglebutton classes to recognise hidden cell inputs/outputs."""
-    to_add = [
-        ".tag_hide_input div.cell_input",
-        ".tag_hide-input div.cell_input",
-        ".tag_hide_output div.cell_output",
-        ".tag_hide-output div.cell_output",
-        ".tag_hide_cell.cell",
-        ".tag_hide-cell.cell",
-    ]
-    for selector in to_add:
-        config.togglebutton_selector += f", {selector}"
