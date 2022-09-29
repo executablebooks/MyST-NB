@@ -7,8 +7,7 @@ kernelspec:
 # Hide cell contents
 
 You can use Jupyter Notebook **cell tags** to control some of the behavior of
-the rendered notebook. This uses the [**`sphinx-togglebutton`**](https://sphinx-togglebutton.readthedocs.io/en/latest/)
-package to add a little button that toggles the visibility of content.[^download]
+the rendered notebook.[^download]
 
 [^download]: This notebook can be downloaded as
             **{nb-download}`hiding.ipynb`** and {download}`hiding.md`
@@ -64,6 +63,31 @@ And the following cell has a `hide-cell` tag:
 # This cell has a hide-cell tag
 fig, ax = plt.subplots()
 points =ax.scatter(*data, c=data[0], s=data[0])
+```
+
+You can control the hide/show prompts by using the `code_prompt_show` and `code_prompt_hide` configuration options.
+`{type}` will be replaced with `content`, `source`, or `outputs`, depending on the hide tag.
+See the {ref}`config/intro` section for more details.
+
+````markdown
+
+```{code-cell} ipython3
+:tags: [hide-cell]
+:mystnb:
+:  code_prompt_show: "My show prompt"
+:  code_prompt_hide: "My hide prompt"
+
+print("hallo world")
+```
+````
+
+```{code-cell} ipython3
+:tags: [hide-cell]
+:mystnb:
+:  code_prompt_show: "My show prompt for {type}"
+:  code_prompt_hide: "My hide prompt for {type}"
+
+print("hallo world")
 ```
 
 (use/hiding/markdown)=

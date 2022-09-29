@@ -323,6 +323,35 @@ class NbParserConfig:
             ),
         },
     )
+
+    code_prompt_show: str = dc.field(
+        default="Show code cell {type}",
+        metadata={
+            "validator": instance_of(str),
+            "help": "Prompt to expand hidden code cell {content|source|outputs}",
+            "sections": (
+                Section.global_lvl,
+                Section.file_lvl,
+                Section.cell_lvl,
+                Section.render,
+            ),
+        },
+    )
+
+    code_prompt_hide: str = dc.field(
+        default="Hide code cell {type}",
+        metadata={
+            "validator": instance_of(str),
+            "help": "Prompt to collapse hidden code cell {content|source|outputs}",
+            "sections": (
+                Section.global_lvl,
+                Section.file_lvl,
+                Section.cell_lvl,
+                Section.render,
+            ),
+        },
+    )
+
     number_source_lines: bool = dc.field(
         default=False,
         metadata={
