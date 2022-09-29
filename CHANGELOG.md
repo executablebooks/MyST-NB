@@ -1,5 +1,22 @@
 # Change Log
 
+## v0.17.0 - 2022-29-09
+
+[Full changelog](https://github.com/executablebooks/MyST-NB/compare/v0.16.0...v0.17.0)
+
+- 👌 IMPROVE: Replace sphinx-togglebutton with built-in functionality (#446)
+  This allows for tighter integration with myst-nb:
+
+  - Nicer rendering of the hidden content buttons
+  - Customisation of the hide/show prompts
+
+- 🐛 FIX: Inline exec variables with multiple outputs (#440)
+  Previously, it was assumed that a variable evaluation would only ever create 0 or 1 outputs.
+  Multiple are now allowed.
+
+- 👌 IMPROVE: cache bust changes to CSS (#447)
+- 👌 IMPROVE: Move CSS colors to variables (#448)
+
 ## v0.16.0 - 2022-06-13
 
 [Full changelog](https://github.com/executablebooks/MyST-NB/compare/v0.15.0...v0.16.0)
