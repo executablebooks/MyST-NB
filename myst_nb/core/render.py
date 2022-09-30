@@ -164,7 +164,7 @@ class MditRenderMixin:
         if hide_cell:
             hide_mode = "all"
         elif hide_input and hide_output:
-            hide_mode = "all"
+            hide_mode = "input+output"
         elif hide_input:
             hide_mode = "input"
         elif hide_output:

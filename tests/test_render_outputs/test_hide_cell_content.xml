@@ -11,10 +11,10 @@
                 <literal_block classes="output stream" language="myst-ansi" linenos="False" xml:space="preserve">
                     hide-input
         <container cell_index="2" cell_metadata="{'tags': ['hide-output']}" classes="cell tag_hide-output" exec_count="2" hide_mode="output" nb_element="cell_code" prompt_hide="Hide code cell {type}" prompt_show="Show code cell {type}">
-            <container classes="cell_input" nb_element="cell_code_source">
+            <container classes="cell_input above-output-prompt" nb_element="cell_code_source">
                 <literal_block language="ipython3" linenos="False" xml:space="preserve">
                     print("hide-output")
-            <HideCodeCellNode classes="above-output" prompt_hide="Hide code cell outputs" prompt_show="Show code cell outputs">
+            <HideCodeCellNode classes="below-input" prompt_hide="Hide code cell output" prompt_show="Show code cell output">
                 <container classes="cell_output" nb_element="cell_code_output">
                     <literal_block classes="output stream" language="myst-ansi" linenos="False" xml:space="preserve">
                         hide-output
