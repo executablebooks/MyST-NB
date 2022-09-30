@@ -1,5 +1,13 @@
 # Change Log
 
+## v0.17.1 - 2022-30-09
+
+[Full changelog](https://github.com/executablebooks/MyST-NB/compare/v0.17.0...v0.17.1)
+
+- 👌 IMPROVE: `hide-output` button (#450)
+  This now uses the same margin color as the cell source and, when the cell source is present, is "connected" to that, to form a single element.
+  See [Hide cell contents](docs/render/hiding.md) for more information.
+
 ## v0.17.0 - 2022-29-09
 
 [Full changelog](https://github.com/executablebooks/MyST-NB/compare/v0.16.0...v0.17.0)
@@ -9,6 +17,8 @@
 
   - Nicer rendering of the hidden content buttons
   - Customisation of the hide/show prompts
+
+  See [Hide cell contents](docs/render/hiding.md) for more information.
 
 - 🐛 FIX: Inline exec variables with multiple outputs (#440)
   Previously, it was assumed that a variable evaluation would only ever create 0 or 1 outputs.
