@@ -516,10 +516,21 @@ class HideInputCells(SphinxPostTransform):
                 has_input = node.children[0].get("nb_element") == "cell_code_source"
                 has_output = node.children[-1].get("nb_element") == "cell_code_output"
 
-                # if we have the code source (input) element,
-                # and we are collapsing the input or input+output
-                # then we attach the "collapse button" above the input
-                if has_input and hide_mode == "input":
+                if has_input and hide_mode == "all":
+                    # wrap everything and place a summary above the input
+                    wrap_node = HideCodeCellNode(
+                        prompt_show=node["prompt_show"].replace("{type}", "content"),
+                        prompt_hide=node["prompt_hide"].replace("{type}", "content"),
+                    )
+                    wrap_node["classes"].append("above-input")
+                    wrap_node.extend(node.children)
+                    node.children = [wrap_node]
+
+                if has_input and has_output and hide_mode in ("output", "input+output"):
+                    node.children[0]["classes"].append("above-output-prompt")
+
+                if has_input and hide_mode in ("input", "input+output"):
+                    # wrap just the input and place a summary above the input
                     wrap_node = HideCodeCellNode(
                         prompt_show=node["prompt_show"].replace("{type}", "source"),
                         prompt_hide=node["prompt_hide"].replace("{type}", "source"),
@@ -529,19 +540,23 @@ class HideInputCells(SphinxPostTransform):
                     wrap_node.append(code)
                     node.replace(code, wrap_node)
 
-                elif has_input and hide_mode == "all":
+                if has_input and has_output and hide_mode in ("output", "input+output"):
+                    # wrap just the output and place a summary below the input
                     wrap_node = HideCodeCellNode(
-                        prompt_show=node["prompt_show"].replace("{type}", "content"),
-                        prompt_hide=node["prompt_hide"].replace("{type}", "content"),
+                        prompt_show=node["prompt_show"].replace("{type}", "output"),
+                        prompt_hide=node["prompt_hide"].replace("{type}", "output"),
                     )
-                    wrap_node["classes"].append("above-input")
-                    wrap_node.extend(node.children)
-                    node.children = [wrap_node]
+                    wrap_node["classes"].append("below-input")
+                    output = node.children[-1]
+                    wrap_node.append(output)
+                    node.replace(output, wrap_node)
 
-                # if we don't have the code source (input) element,
-                # or are only hiding the output,
-                # then we place the "collapse button" above the output
-                elif has_output and hide_mode in ("output", "all"):
+                if (
+                    (not has_input)
+                    and has_output
+                    and hide_mode in ("all", "input+output", "output")
+                ):
+                    # wrap just the output and place a summary above the output
                     wrap_node = HideCodeCellNode(
                         prompt_show=node["prompt_show"].replace("{type}", "outputs"),
                         prompt_hide=node["prompt_hide"].replace("{type}", "outputs"),

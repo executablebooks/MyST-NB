@@ -34,8 +34,7 @@ import numpy as np
 data = np.random.rand(2, 100) * 100
 ```
 
-Here is a cell with a `hide-input` tag. Click the "toggle" button to the
-right to show it.
+Here is a cell with a `hide-input` tag.
 
 ```{code-cell} ipython3
 :tags: [hide-input]
@@ -55,7 +54,17 @@ fig, ax = plt.subplots()
 points =ax.scatter(*data, c=data[0], s=data[0])
 ```
 
-And the following cell has a `hide-cell` tag:
+Here's a cell with both `hide-input` and `hide-output` tags:
+
+```{code-cell} ipython3
+:tags: [hide-input, hide-output]
+
+# This cell has a hide-output tag
+fig, ax = plt.subplots()
+points =ax.scatter(*data, c=data[0], s=data[0])
+```
+
+Here's a cell with a `hide-cell` tag:
 
 ```{code-cell} ipython3
 :tags: [hide-cell]
@@ -65,8 +74,17 @@ fig, ax = plt.subplots()
 points =ax.scatter(*data, c=data[0], s=data[0])
 ```
 
+Finally, a cell with both `remove-input` (see below) and `hide-output` tags:
+
+```{code-cell} ipython3
+:tags: [remove-input, hide-output]
+
+fig, ax = plt.subplots()
+points = ax.scatter(*data, c=data[0], s=data[0])
+```
+
 You can control the hide/show prompts by using the `code_prompt_show` and `code_prompt_hide` configuration options.
-`{type}` will be replaced with `content`, `source`, or `outputs`, depending on the hide tag.
+The optional `{type}` placeholder will be replaced with `content`, `source`, or `outputs`, depending on the hide tag.
 See the {ref}`config/intro` section for more details.
 
 ````markdown
@@ -74,8 +92,8 @@ See the {ref}`config/intro` section for more details.
 ```{code-cell} ipython3
 :tags: [hide-cell]
 :mystnb:
-:  code_prompt_show: "My show prompt"
-:  code_prompt_hide: "My hide prompt"
+:  code_prompt_show: "My show prompt for {type}"
+:  code_prompt_hide: "My hide prompt for {type}"
 
 print("hallo world")
 ```
@@ -131,7 +149,6 @@ the page at all.
 ```{code-cell} ipython3
 :tags: [remove-input]
 
-# This cell has a remove-input tag
 fig, ax = plt.subplots()
 points =ax.scatter(*data, c=data[0], s=data[0])
 ```
@@ -141,7 +158,6 @@ Here's a cell with a `remove-output` tag:
 ```{code-cell} ipython3
 :tags: [remove-output]
 
-# This cell has a remove-output tag
 fig, ax = plt.subplots()
 points = ax.scatter(*data, c=data[0], s=data[0])
 ```
@@ -152,7 +168,6 @@ below, since the cell will be gone).
 ```{code-cell} ipython3
 :tags: [remove-cell]
 
-# This cell has a remove-cell tag
 fig, ax = plt.subplots()
 points = ax.scatter(*data, c=data[0], s=data[0])
 ```
