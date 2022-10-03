@@ -222,7 +222,7 @@ tbody span.pasted-inline img {
  * On screens, we want to scroll, but on print show all
  *
  * It was before in https://github.com/executablebooks/sphinx-book-theme/blob/eb1b6baf098b27605e8f2b7b2979b17ebf1b9540/src/sphinx_book_theme/assets/styles/extensions/_myst-nb.scss
-*/ 
+*/
 
 div.cell.tag_output_scroll div.cell_output, div.cell.tag_scroll-output div.cell_output {
 	 max-height: 24em;
