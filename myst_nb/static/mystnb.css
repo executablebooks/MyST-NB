@@ -217,6 +217,73 @@ tbody span.pasted-inline img {
   max-height: none;
 }
 
+
+/* Adding scroll bars if tags: output_scroll, scroll-output, and scroll-input
+ * On screens, we want to scroll, but on print show all
+ *
+ * It was before in https://github.com/executablebooks/sphinx-book-theme/blob/eb1b6baf098b27605e8f2b7b2979b17ebf1b9540/src/sphinx_book_theme/assets/styles/extensions/_myst-nb.scss
+*/ 
+
+div.cell.tag_output_scroll div.cell_output, div.cell.tag_scroll-output div.cell_output {
+	 max-height: 24em;
+	 overflow-y: auto;
+	 max-width: 100%;
+	 overflow-x: auto;
+}
+
+div.cell.tag_output_scroll div.cell_output::-webkit-scrollbar, div.cell.tag_scroll-output div.cell_output::-webkit-scrollbar {
+	 width: 0.3rem;
+	 height: 0.3rem;
+}
+
+div.cell.tag_output_scroll div.cell_output::-webkit-scrollbar-thumb, div.cell.tag_scroll-output div.cell_output::-webkit-scrollbar-thumb {
+	 background: #c1c1c1;
+	 border-radius: 0.25rem;
+}
+
+div.cell.tag_output_scroll div.cell_output::-webkit-scrollbar-thumb:hover, div.cell.tag_scroll-output div.cell_output::-webkit-scrollbar-thumb:hover {
+	 background: #a0a0a0;
+}
+
+@media print {
+	 div.cell.tag_output_scroll div.cell_output, div.cell.tag_scroll-output div.cell_output {
+		 max-height: unset;
+		 overflow-y: visible;
+		 max-width: unset;
+		 overflow-x: visible;
+	}
+}
+
+div.cell.tag_scroll-input div.cell_input {
+	 max-height: 24em;
+	 overflow-y: auto;
+	 max-width: 100%;
+	 overflow-x: auto;
+}
+
+div.cell.tag_scroll-input div.cell_input::-webkit-scrollbar {
+	 width: 0.3rem;
+	 height: 0.3rem;
+}
+
+div.cell.tag_scroll-input div.cell_input::-webkit-scrollbar-thumb {
+	 background: #c1c1c1;
+	 border-radius: 0.25rem;
+}
+
+div.cell.tag_scroll-input div.cell_input::-webkit-scrollbar-thumb:hover {
+	 background: #a0a0a0;
+}
+
+@media print {
+	 div.cell.tag_scroll-input div.cell_input {
+		 max-height: unset;
+		 overflow-y: visible;
+		 max-width: unset;
+		 overflow-x: visible;
+	}
+}
+
 /* Font colors for translated ANSI escape sequences
 Color values are copied from Jupyter Notebook
 https://github.com/jupyter/notebook/blob/52581f8eda9b319eb0390ac77fe5903c38f81e3e/notebook/static/notebook/less/ansicolors.less#L14-L21
