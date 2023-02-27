@@ -22,7 +22,7 @@ from nbformat import NotebookNode
 
 from myst_nb.ext.glue import extract_glue_data_cell
 
-from .base import ExecutionError, NotebookClientBase
+from .base import EvalNameError, ExecutionError, NotebookClientBase
 
 
 class NotebookClientInline(NotebookClientBase):
@@ -151,6 +151,8 @@ class NotebookClientInline(NotebookClientBase):
         return cell.get("execution_count", None), cell.get("outputs", [])
 
     def eval_variable(self, name: str) -> list[NotebookNode]:
+        if not re.match(self.nb_config.eval_name_regex, name):
+            raise EvalNameError(name)
         return self._client.eval_expression(name)
 
 

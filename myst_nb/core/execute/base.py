@@ -34,6 +34,10 @@ class ExecutionError(Exception):
     """An exception for failed execution and `execution_raise_on_error` is true."""
 
 
+class EvalNameError(Exception):
+    """An exception for if an evaluation variable name is invalid."""
+
+
 class NotebookClientBase:
     """A base client for interacting with Jupyter notebooks.
 

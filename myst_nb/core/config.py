@@ -188,6 +188,14 @@ class NbParserConfig:
             "sections": (Section.global_lvl, Section.execute),
         },
     )
+    eval_name_regex: str = dc.field(
+        default=r"^[a-zA-Z_][a-zA-Z0-9_]*$",
+        metadata={
+            "validator": instance_of(str),
+            "help": "Regex that matches permitted values of eval expressions",
+            "sections": (Section.global_lvl, Section.file_lvl, Section.execute),
+        },
+    )
     execution_mode: Literal["off", "force", "auto", "cache", "inline"] = dc.field(
         default="auto",
         metadata={
