@@ -363,7 +363,7 @@ class SelectMimeType(SphinxPostTransform):
 
 
 class NbMetadataCollector(EnvironmentCollector):
-    """Collect myst-nb specific metdata, and handle merging of parallel builds."""
+    """Collect myst-nb specific metadata, and handle merging of parallel builds."""
 
     @staticmethod
     def set_doc_data(env: SphinxEnvType, docname: str, key: str, value: Any) -> None:
