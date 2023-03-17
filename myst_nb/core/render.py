@@ -192,7 +192,6 @@ class MditRenderMixin:
 
         self.add_line_and_source_path(cell_container, token)
         with self.current_node_context(cell_container, append=True):
-
             # render the code source code
             if not remove_input:
                 cell_input = nodes.container(
@@ -311,11 +310,6 @@ class MimeData:
     """Index of the output in the cell"""
     line: int | None = None
     """Source line of the cell"""
-    md_headings: bool = False
-    """Whether to render headings in text/markdown blocks."""
-    # we can only do this if know the content will be rendered into the main body
-    # of the document, e.g. not inside a container node
-    # (otherwise it will break the structure of the AST)
 
     @property
     def string(self) -> str:
@@ -599,9 +593,7 @@ class NbElementRenderer:
         fmt = self.renderer.get_cell_level_config(
             "render_markdown_format", data.cell_metadata, line=data.line
         )
-        return self._render_markdown_base(
-            data, fmt=fmt, inline=False, allow_headings=data.md_headings
-        )
+        return self._render_markdown_base(data, fmt=fmt, inline=False)
 
     def render_text_plain(self, data: MimeData) -> list[nodes.Element]:
         """Render a notebook text/plain mime data output."""
@@ -797,7 +789,7 @@ class NbElementRenderer:
         return self.render_widget_view(data)
 
     def _render_markdown_base(
-        self, data: MimeData, *, fmt: str, inline: bool, allow_headings: bool
+        self, data: MimeData, *, fmt: str, inline: bool
     ) -> list[nodes.Element]:
         """Base render for a notebook markdown mime output (block or inline)."""
         psuedo_element = nodes.Element()  # element to hold the parsed markdown
@@ -833,7 +825,6 @@ class NbElementRenderer:
                     data.string,
                     data.line or 0,
                     inline=inline,
-                    allow_headings=allow_headings,
                 )
         finally:
             # restore the parser

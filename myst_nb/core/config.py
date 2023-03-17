@@ -130,7 +130,7 @@ class NbParserConfig:
         default_factory=dict,
         metadata={
             "help": "Custom formats for reading notebook; suffix -> reader",
-            "docutils_exclude": True,
+            "omit": ["docutils"],
             "sections": (Section.global_lvl, Section.read),
         },
     )
@@ -184,7 +184,7 @@ class NbParserConfig:
             "validator": deep_mapping(instance_of(str), instance_of(str)),
             "help": "Mapping of kernel name regex to replacement kernel name"
             "(applied before execution)",
-            "docutils_exclude": True,
+            "omit": ["docutils"],
             "sections": (Section.global_lvl, Section.execute),
         },
     )
@@ -220,7 +220,7 @@ class NbParserConfig:
             "validator": deep_iterable(instance_of(str)),
             "help": "Exclude (POSIX) glob patterns for notebooks",
             "legacy_name": "execution_excludepatterns",
-            "docutils_exclude": True,
+            "omit": ["docutils"],
             "sections": (Section.global_lvl, Section.execute),
         },
     )
@@ -387,7 +387,7 @@ class NbParserConfig:
             "help": "Overrides for the base render priority of mime types: "
             "list of (builder name, mime type, priority)",
             # TODO how to allow this in docutils?
-            "docutils_exclude": True,
+            "omit": ["docutils"],
             "sections": (Section.global_lvl, Section.file_lvl, Section.render),
         },
         repr=False,
@@ -454,7 +454,7 @@ class NbParserConfig:
         metadata={
             "validator": deep_mapping(instance_of(str), instance_of((str, int))),
             "help": "Options for image outputs (class|alt|height|width|scale|align)",
-            "docutils_exclude": True,
+            "omit": ["docutils"],
             # TODO backward-compatible change to "image_options"?
             "cell_key": "image",
             "sections": (
@@ -471,7 +471,7 @@ class NbParserConfig:
         metadata={
             "validator": deep_mapping(instance_of(str), instance_of((str, int))),
             "help": "Options for figure outputs (classes|name|caption|caption_before)",
-            "docutils_exclude": True,
+            "omit": ["docutils"],
             "cell_key": "figure",
             "sections": (
                 Section.global_lvl,
@@ -505,7 +505,7 @@ class NbParserConfig:
                 instance_of(str), deep_mapping(instance_of(str), instance_of(str))
             ),
             "help": "Javascript to be loaded on pages containing ipywidgets",
-            "docutils_exclude": True,
+            "omit": ["docutils"],
             "sections": (Section.global_lvl, Section.render),
         },
         repr=False,

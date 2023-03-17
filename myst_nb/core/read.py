@@ -242,7 +242,6 @@ def read_myst_markdown_notebook(
     md_metadata: dict = {}
 
     for token in tokens:
-
         nesting_level += token.nesting
 
         if nesting_level != 0:
@@ -313,25 +312,22 @@ class _MockDirective:
 
 
 def _read_fenced_cell(token, cell_index, cell_type):
-    from myst_parser.parsers.directives import (
-        DirectiveParsingError,
-        parse_directive_text,
-    )
+    from myst_parser.parsers.directives import parse_directive_text
 
-    try:
-        _, options, body_lines, _ = parse_directive_text(
-            directive_class=_MockDirective,
-            first_line="",
-            content=token.content,
-            validate_options=False,
-        )
-    except DirectiveParsingError as err:
+    result = parse_directive_text(
+        directive_class=_MockDirective,
+        first_line="",
+        content=token.content,
+        validate_options=False,
+    )
+    if result.warnings:
         raise MystMetadataParsingError(
             "{} cell {} at line {} could not be read: {}".format(
-                cell_type, cell_index, token.map[0] + 1, err
+                cell_type, cell_index, token.map[0] + 1, result.warnings[0]
             )
         )
-    return options, body_lines
+
+    return result.options, result.body
 
 
 def _read_cell_metadata(token, cell_index):
