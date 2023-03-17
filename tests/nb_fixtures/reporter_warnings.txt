@@ -10,9 +10,8 @@ cells:
     source: |
         {unknown}`a`
 .
-<string>:20002: (ERROR/3) Unknown interpreted text role "unknown".
+<string>:20002: (WARNING/2) Unknown interpreted text role "unknown". [myst.role_unknown]
 .
-
 
 Unknown directive:
 .
@@ -24,7 +23,7 @@ cells:
         ```{xyz}
         ```
 .
-<string>:10003: (ERROR/3) Unknown directive type "xyz".
+<string>:10003: (WARNING/2) Unknown directive type: 'xyz' [myst.directive_unknown]
 .
 
 Directive parsing error:
@@ -66,5 +65,5 @@ cells:
 
         [a]: c
 .
-<string>:20004: (WARNING/2) Duplicate reference definition: A [myst.ref]
+<string>:20004: (WARNING/2) Duplicate reference definition: A [myst.duplicate_def]
 .

@@ -19,9 +19,6 @@ from myst_parser.mdit_to_docutils.base import (
     create_warning,
     token_line,
 )
-from myst_parser.parsers.docutils_ import (
-    DOCUTILS_EXCLUDED_ARGS as DOCUTILS_EXCLUDED_ARGS_MYST,
-)
 from myst_parser.parsers.docutils_ import Parser as MystParser
 from myst_parser.parsers.docutils_ import create_myst_config, create_myst_settings_spec
 from myst_parser.parsers.mdit import create_md_parser
@@ -81,7 +78,7 @@ class Parser(MystParser):
     settings_spec = (
         "MyST-NB options",
         None,
-        create_myst_settings_spec(DOCUTILS_EXCLUDED_ARGS, NbParserConfig, "nb_"),
+        create_myst_settings_spec(NbParserConfig, "nb_"),
         *MystParser.settings_spec,
     )
     """Runtime settings specification."""
@@ -116,18 +113,14 @@ class Parser(MystParser):
 
         # get markdown parsing configuration
         try:
-            md_config = create_myst_config(
-                document.settings, DOCUTILS_EXCLUDED_ARGS_MYST
-            )
+            md_config = create_myst_config(document.settings)
         except (TypeError, ValueError) as error:
             logger.error(f"myst configuration invalid: {error.args[0]}")
             md_config = MdParserConfig()
 
         # get notebook rendering configuration
         try:
-            nb_config = create_myst_config(
-                document.settings, DOCUTILS_EXCLUDED_ARGS, NbParserConfig, "nb_"
-            )
+            nb_config = create_myst_config(document.settings, NbParserConfig, "nb_")
         except (TypeError, ValueError) as error:
             logger.error(f"myst-nb configuration invalid: {error.args[0]}")
             nb_config = NbParserConfig()

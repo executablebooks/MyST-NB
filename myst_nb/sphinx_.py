@@ -13,7 +13,8 @@ from markdown_it.token import Token
 from markdown_it.tree import SyntaxTreeNode
 from myst_parser.config.main import MdParserConfig, merge_file_level
 from myst_parser.mdit_to_docutils.base import token_line
-from myst_parser.mdit_to_docutils.sphinx_ import SphinxRenderer, create_warning
+from myst_parser.mdit_to_docutils.sphinx_ import SphinxRenderer
+from myst_parser.warnings_ import create_warning
 from myst_parser.parsers.mdit import create_md_parser
 from myst_parser.parsers.sphinx_ import MystParser
 import nbformat
