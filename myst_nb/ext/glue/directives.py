@@ -3,6 +3,7 @@
 We intentionally do no import sphinx in this module,
 in order to allow docutils-only use without sphinx installed.
 """
+# empty diff
 from typing import TYPE_CHECKING, Any, Dict, List
 
 from docutils import nodes
