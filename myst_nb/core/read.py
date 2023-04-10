@@ -242,7 +242,6 @@ def read_myst_markdown_notebook(
     md_metadata: dict = {}
 
     for token in tokens:
-
         nesting_level += token.nesting
 
         if nesting_level != 0:
