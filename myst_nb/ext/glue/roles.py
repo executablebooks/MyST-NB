@@ -29,7 +29,6 @@ class PasteRoleAny(RoleBase):
     """
 
     def run(self) -> tuple[list[nodes.Node], list[nodes.system_message]]:
-
         # check if this is a pending reference
         doc_key = self.text.split("::", 1)
         if len(doc_key) == 2:
