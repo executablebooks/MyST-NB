@@ -16,7 +16,7 @@ Sphinx using the MyST parser.[^download]
 
 :::{seealso}
 For more information about what you can write with MyST Markdown, see the
-[MyST Parser syntax guide](myst:syntax/syntax).
+[MyST Parser documentation](myst:intro/get-started).
 :::
 
 ### Configuration
