@@ -62,7 +62,7 @@ jobs:
       # this is why we run `coverage xml` afterwards (required by codecov)
 
     - name: Upload to Codecov
-      if: github.repository == 'executablebooks/MyST-NB' && ${{ matrix.python-version }} == '3.9' && ${{ matrix.os }} == 'ubuntu-latest'
+      if: github.repository == 'executablebooks/MyST-NB' && matrix.python-version == '3.9' && matrix.os == 'ubuntu-latest'
       uses: codecov/codecov-action@v1
       with:
         name: myst-nb-pytests
