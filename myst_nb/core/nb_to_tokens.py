@@ -37,7 +37,6 @@ def notebook_to_tokens(
     # (required to collect all reference definitions, before assessing references).
     block_tokens = [Token("nb_initialise", "", 0, map=[0, 0])]
     for cell_index, nb_cell in enumerate(notebook.cells):
-
         # skip empty cells
         if len(nb_cell["source"].strip()) == 0:
             continue

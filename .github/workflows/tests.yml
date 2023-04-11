@@ -62,12 +62,12 @@ jobs:
       # this is why we run `coverage xml` afterwards (required by codecov)
 
     - name: Upload to Codecov
-      if: github.repository == 'executablebooks/MyST-NB'
-      uses: codecov/codecov-action@v1
+      if: github.repository == 'executablebooks/MyST-NB' && matrix.python-version == '3.9' && matrix.os == 'ubuntu-latest'
+      uses: codecov/codecov-action@v3
       with:
         name: myst-nb-pytests
         flags: pytests
-        file: ./coverage.xml
+        files: ./coverage.xml
         fail_ci_if_error: true
 
   publish:
