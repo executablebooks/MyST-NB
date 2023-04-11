@@ -262,7 +262,6 @@ class SphinxNbRenderer(SphinxRenderer, MditRenderMixin):
                 self.add_line_and_source_path_r(_nodes, token)
                 self.current_node.extend(_nodes)
             elif output.output_type in ("display_data", "execute_result"):
-
                 # Note, this is different to the docutils implementation,
                 # where we directly select a single output, based on the mime_priority.
                 # Here, we do not know the mime priority until we know the output format
@@ -504,9 +503,7 @@ class HideInputCells(SphinxPostTransform):
     formats = ("html",)
 
     def run(self, **kwargs):
-
         for node in findall(self.document)(nodes.container):
-
             if (
                 node.get("nb_element") == "cell_code"
                 and node.get("hide_mode")

@@ -192,7 +192,6 @@ class MditRenderMixin:
 
         self.add_line_and_source_path(cell_container, token)
         with self.current_node_context(cell_container, append=True):
-
             # render the code source code
             if not remove_input:
                 cell_input = nodes.container(

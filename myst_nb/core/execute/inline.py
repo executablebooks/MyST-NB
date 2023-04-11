@@ -34,7 +34,6 @@ class NotebookClientInline(NotebookClientBase):
     """
 
     def start_client(self):
-
         self._tmp_path = None
         if self.nb_config.execution_in_temp:
             self._tmp_path = mkdtemp()
@@ -114,12 +113,10 @@ class NotebookClientInline(NotebookClientBase):
     def code_cell_outputs(
         self, cell_index: int
     ) -> tuple[int | None, list[NotebookNode]]:
-
         cells = self.notebook.get("cells", [])
 
         # ensure all cells up to and including the requested cell have been executed
         while (not self._cell_error) and cell_index > self._last_cell_executed:
-
             self._last_cell_executed += 1
             try:
                 next_cell = cells[self._last_cell_executed]
