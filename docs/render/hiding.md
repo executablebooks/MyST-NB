@@ -7,7 +7,8 @@ kernelspec:
 # Hide cell contents
 
 You can use Jupyter Notebook **cell tags** to control some of the behavior of
-the rendered notebook.[^download]
+the rendered notebook.[^download]  
+If you are using cell tags for the first time, you can read more about them in this tutorial https://jupyterbook.org/en/stable/content/metadata.html#add-metadata-to-notebooks
 
 [^download]: This notebook can be downloaded as
             **{nb-download}`hiding.ipynb`** and {download}`hiding.md`
