@@ -187,7 +187,6 @@ def setup(app):
             return ctype
 
     class MystNbConfigDirective(_ConfigBase):
-
         required_arguments = 1
         option_spec = {
             "sphinx": directives.flag,
@@ -207,7 +206,6 @@ def setup(app):
             text = self.table_header()
             count = 0
             for name, value, field in config.as_triple():
-
                 # filter by sphinx options
                 if "sphinx" in self.options and field.metadata.get("sphinx_exclude"):
                     continue
@@ -249,7 +247,6 @@ def setup(app):
             return node.children
 
     class MystConfigDirective(_ConfigBase):
-
         option_spec = {
             "sphinx": directives.flag,
         }
@@ -260,7 +257,6 @@ def setup(app):
             text = self.table_header()
             count = 0
             for name, value, field in config.as_triple():
-
                 # filter by sphinx options
                 if "sphinx" in self.options and field.metadata.get("sphinx_exclude"):
                     continue

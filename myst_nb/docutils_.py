@@ -301,7 +301,6 @@ class DocutilsNbRenderer(DocutilsRenderer, MditRenderMixin):
                 self.add_line_and_source_path_r(_nodes, token)
                 self.current_node.extend(_nodes)
             elif output.output_type in ("display_data", "execute_result"):
-
                 # Note, this is different to the sphinx implementation,
                 # here we directly select a single output, based on the mime_priority,
                 # as opposed to output all mime types, and select in a post-transform
