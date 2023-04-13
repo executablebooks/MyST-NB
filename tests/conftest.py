@@ -1,11 +1,9 @@
 import json
 import os
-import uuid
 from pathlib import Path
+import uuid
 
-import nbformat as nbf
-import pytest
-import sphinx
+import bs4
 from docutils.nodes import image as image_node
 from nbconvert.filters import strip_ansi
 from nbdime.diffing.notebooks import (
@@ -14,6 +12,9 @@ from nbdime.diffing.notebooks import (
     set_notebook_diff_targets,
 )
 from nbdime.prettyprint import pretty_print_diff
+import nbformat as nbf
+import pytest
+import sphinx
 from sphinx.util.console import nocolor
 
 pytest_plugins = "sphinx.testing.fixtures"
@@ -70,11 +71,8 @@ class SphinxFixture:
 
     def build(self):
         """Run the sphinx build."""
-        # reset streams before each build
-        self.app._status.truncate(0)
-        self.app._status.seek(0)
-        self.app._warning.truncate(0)
-        self.app._warning.seek(0)
+        # TODO reset streams before each build,
+        # but this was wiping the warnings of a build
         self.app.build()
 
     def status(self):
@@ -90,8 +88,9 @@ class SphinxFixture:
         for name, _ in self.files:
             self.env.all_docs.pop(name)
 
-    def get_resolved_doctree(self, docname):
+    def get_resolved_doctree(self, docname=None):
         """Load and return the built docutils.document, after post-transforms."""
+        docname = docname or self.files[0][0]
         doctree = self.env.get_and_resolve_doctree(docname, self.app.builder)
         doctree["source"] = docname
         return doctree
@@ -109,7 +108,7 @@ class SphinxFixture:
         _path = self.app.outdir / (name + ".html")
         if not _path.exists():
             pytest.fail("html not output")
-        return read_text(_path)
+        return bs4.BeautifulSoup(read_text(_path), "html.parser")
 
     def get_nb(self, index=0):
         """Return the output notebook (after any execution)."""
@@ -122,7 +121,7 @@ class SphinxFixture:
     def get_report_file(self, index=0):
         """Return the report file for a failed execution."""
         name = self.files[index][0]
-        _path = self.app.outdir / "reports" / (name + ".log")
+        _path = self.app.outdir / "reports" / (name + ".err.log")
         if not _path.exists():
             pytest.fail("report log not output")
         return read_text(_path)
@@ -164,7 +163,7 @@ def sphinx_run(sphinx_params, make_app, tempdir):
         "extensions": ["myst_nb"],
         "master_doc": os.path.splitext(sphinx_params["files"][0])[0],
         "exclude_patterns": ["_build"],
-        "execution_show_tb": True,
+        "nb_execution_show_tb": True,
     }
     confoverrides.update(conf)
 

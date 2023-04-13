@@ -1,98 +1,125 @@
-# MyST-NB
+---
+sd_hide_title: true
+---
 
-[![Github-CI][github-badge]][github-link]
-[![Github-CI][github-ci]][github-link]
-[![Coverage Status][codecov-badge]][codecov-link]
-[![Documentation Status][rtd-badge]][rtd-link]
-[![PyPI][pypi-badge]][pypi-link]
+# Overview
 
-**Read, write, and execute Jupyter Notebooks in Sphinx**
+::::{grid}
+:reverse:
+:gutter: 3 4 4 4
+:margin: 1 2 1 2
 
-`MyST-NB` is a reference implementation of MyST Markdown Notebooks, and
-an open source tool for working with Jupyter Notebooks in the
-Sphinx ecosystem. It provides the following primary features:
+:::{grid-item}
+:columns: 12 4 4 4
 
-* **{ref}`Parse ipynb files in Sphinx<installation>`**. Directly convert Jupyter
-  Notebooks into Sphinx documents.
-* [**Execute and Cache your notebook content**](use/execute.md).
-  Save time building your documentation without needing to commit your notebook outputs
-  directly into `git`.
-* **{doc}`Write MyST Markdown<use/myst>`**. MyST Markdown
-  allows you to write Sphinx roles and directives in markdown.
-* **{doc}`Insert notebook outputs into your content <use/glue>`**. Generate outputs
-  as you build your documentation, and insert them across pages.
-* **{doc}`Write Jupyter Notebooks entirely with Markdown <use/markdown>`**. You can
-  define the structure of a notebook *in pure-text* making it more diff-able.
+```{image} _static/logo-square.svg
+:width: 200px
+:class: sd-m-auto
+```
 
-In addition, there are several options for controlling the look and feel of how your
-notebooks are used in your documentation. See the documentation pages to the left for
-more information.
-
-:::{note}
-This project is in a beta state. Comments, requests, or bugreports are welcome and
-recommended! Please [open an issue here](https://github.com/executablebooks/myst-nb/issues)
 :::
 
-(installation)=
-## Installation and basic usage
+:::{grid-item}
+:columns: 12 8 8 8
+:child-align: justify
+:class: sd-fs-5
 
-To install `myst-nb`, do the following:
-
-* Install `myst-nb` with the following command:
-
-  ```bash
-  pip install myst-nb
-  ```
-
-* Enable the `myst_nb` extension in your Sphinx repository's extensions:
-
-  ```python
-  extensions = [
-      ...,
-      "myst_nb"
-  ]
-  ```
-
-  By default, MyST-NB will parse both markdown (`.md`) and notebooks (`.ipynb`).
-
-* Write Jupyter Notebooks with your built documentation, and remember to include them
-  in your `toctree`, and that's it!
-
-## Customize and configure
-
-For information on using and configuring MyST-NB, as well as some examples of notebook
-outputs, see the pages below:
-
-```{toctree}
-:maxdepth: 2
-use/index
-use/markdown
+```{rubric} Jupyter Notebook Publishing
 ```
 
-In addition, here is a reference page that uses the `jupyter-sphinx` package to create
-outputs, to compare how these outputs look relative to the MyST-NB style.
+A Sphinx and Docutils extension for compiling Jupyter Notebooks into high quality documentation formats.
 
-```{toctree}
-:maxdepth: 2
-examples/index
+```{button-ref} quickstart
+:ref-type: doc
+:color: primary
+:class: sd-rounded-pill
+
+Get Started
 ```
 
-Finally, here is documentation on contributing to the development of MySt-NB
+:::
+
+::::
+
+----------------
+
+::::{grid} 1 2 2 3
+:gutter: 1 1 1 2
+
+:::{grid-item-card} {material-regular}`edit_note;2em` Write
+:link: authoring/intro
+:link-type: ref
+
+Mix Jupyter notebooks with text-based notebooks, Markdown and RST documents.\
+Use MyST Markdown syntax to support technical authoring features such as cross-referencing, figures, and admonitions.
+
++++
+[Learn more »](authoring/intro)
+:::
+
+:::{grid-item-card} {material-regular}`published_with_changes;2em` Compute
+:link: execute/intro
+:link-type: ref
+
+Generate dynamic outputs using Jupyter kernels, with configurable execution handling.\
+Cache execution outputs, for fast re-builds.
+
++++
+[Learn more »](execute/intro)
+:::
+
+:::{grid-item-card} {material-regular}`preview;2em` Render
+:link: render/code-cells
+:link-type: ref
+
+Convert Jupyter execution outputs to rich embedded content.\
+Insert computed variables within the document flow.\
+Build single or collections of documents into multiple formats (HTML, PDF, ...).
+
++++
+[Learn more »](render/code-cells)
+:::
+
+::::
+
+----------------
+
+MyST-NB is a module within the [Executable Books Project](https://executablebooks.org),
+an international collaboration to build open source tools that facilitate publishing computational narratives using the Jupyter ecosystem.
+It is also a core component of [Jupyter Book](jb:intro).
+
+Check out the [Gallery of Jupyter Books](https://executablebooks.org/en/latest/gallery),
+for inspiration from across the community.
+
+See also, the [MyST-Markdown VS Code extension](https://marketplace.visualstudio.com/items?itemName=ExecutableBookProject.myst-highlight)
+and [jupyterlab-myst](https://github.com/executablebooks/jupyterlab-myst), for editor tools to author your notebooks.
 
 ```{toctree}
+:hidden:
+:maxdepth: 2
+
+quickstart
+```
+
+```{toctree}
+:caption: Guides
+:hidden:
+:maxdepth: 2
+
+authoring/index
+computation/index
+render/index
+configuration
+docutils
+```
+
+```{toctree}
+:caption: Reference
+:hidden:
 :titlesonly:
 :maxdepth: 1
-develop/contributing
-api/index
-GitHub Repo <https://github.com/executablebooks/myst-nb>
-```
 
-[github-ci]: https://github.com/executablebooks/MyST-NB/workflows/continuous-integration/badge.svg?branch=master
-[github-link]: https://github.com/executablebooks/MyST-NB
-[rtd-badge]: https://readthedocs.org/projects/myst-nb/badge/?version=latest
-[rtd-link]: https://myst-nb.readthedocs.io/en/latest/?badge=latest
-[codecov-badge]: https://codecov.io/gh/executablebooks/MyST-NB/branch/master/graph/badge.svg
-[codecov-link]: https://codecov.io/gh/executablebooks/MyST-NB
-[pypi-badge]: https://img.shields.io/pypi/v/myst-nb.svg
-[pypi-link]: https://pypi.org/project/myst-nb
-[github-badge]: https://img.shields.io/github/stars/executablebooks/myst-nb?label=github
+reference/api
+reference/changelog
+reference/contributing
+```

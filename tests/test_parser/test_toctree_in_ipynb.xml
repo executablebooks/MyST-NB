@@ -1,6 +1,6 @@
 <document source="latex_build/other">
     <target refid="title-ref">
-    <section classes="tex2jax_ignore mathjax_ignore" ids="title title-ref" names="title title_ref">
+    <section ids="title title-ref" names="title title_ref">
         <title refid="id1">
             Title
         <topic classes="contents" ids="contents" names="contents">
@@ -13,9 +13,10 @@
                             Title
         <paragraph>
             Content
-        <CellNode cell_type="code" classes="cell">
-            <CellInputNode classes="cell_input">
+        <container cell_index="1" cell_metadata="{}" classes="cell" exec_count="3" nb_element="cell_code">
+            <container classes="cell_input" nb_element="cell_code_source">
                 <literal_block language="ipython3" xml:space="preserve">
                     print(1)
-            <CellOutputNode classes="cell_output">
-                <CellOutputBundleNode output_count="1">
+            <container classes="cell_output" nb_element="cell_code_output">
+                <literal_block classes="output stream" language="myst-ansi" xml:space="preserve">
+                    1

@@ -1,0 +1,36 @@
+<document source="hide_cell_content">
+    <section ids="hide-code-cell-content" names="hide\ code\ cell\ content">
+        <title>
+            Hide Code Cell Content
+        <container cell_index="1" cell_metadata="{'tags': ['hide-input']}" classes="cell tag_hide-input" exec_count="1" hide_mode="input" nb_element="cell_code" prompt_hide="Hide code cell {type}" prompt_show="Show code cell {type}">
+            <HideCodeCellNode classes="above-input" prompt_hide="Hide code cell source" prompt_show="Show code cell source">
+                <container classes="cell_input" nb_element="cell_code_source">
+                    <literal_block language="ipython3" linenos="False" xml:space="preserve">
+                        print("hide-input")
+            <container classes="cell_output" nb_element="cell_code_output">
+                <literal_block classes="output stream" language="myst-ansi" linenos="False" xml:space="preserve">
+                    hide-input
+        <container cell_index="2" cell_metadata="{'tags': ['hide-output']}" classes="cell tag_hide-output" exec_count="2" hide_mode="output" nb_element="cell_code" prompt_hide="Hide code cell {type}" prompt_show="Show code cell {type}">
+            <container classes="cell_input above-output-prompt" nb_element="cell_code_source">
+                <literal_block language="ipython3" linenos="False" xml:space="preserve">
+                    print("hide-output")
+            <HideCodeCellNode classes="below-input" prompt_hide="Hide code cell output" prompt_show="Show code cell output">
+                <container classes="cell_output" nb_element="cell_code_output">
+                    <literal_block classes="output stream" language="myst-ansi" linenos="False" xml:space="preserve">
+                        hide-output
+        <container cell_index="3" cell_metadata="{'tags': ['hide-cell']}" classes="cell tag_hide-cell" exec_count="4" hide_mode="all" nb_element="cell_code" prompt_hide="Hide code cell {type}" prompt_show="Show code cell {type}">
+            <HideCodeCellNode classes="above-input" prompt_hide="Hide code cell content" prompt_show="Show code cell content">
+                <container classes="cell_input" nb_element="cell_code_source">
+                    <literal_block language="ipython3" linenos="False" xml:space="preserve">
+                        print("hide-cell")
+                <container classes="cell_output" nb_element="cell_code_output">
+                    <literal_block classes="output stream" language="myst-ansi" linenos="False" xml:space="preserve">
+                        hide-cell
+        <container cell_index="4" cell_metadata="{'tags': ['hide-cell'], 'mystnb': {'code_prompt_show': 'My show message', 'code_prompt_hide': 'My hide message'}}" classes="cell tag_hide-cell" exec_count="5" hide_mode="all" nb_element="cell_code" prompt_hide="My hide message" prompt_show="My show message">
+            <HideCodeCellNode classes="above-input" prompt_hide="My hide message" prompt_show="My show message">
+                <container classes="cell_input" nb_element="cell_code_source">
+                    <literal_block language="ipython3" linenos="False" xml:space="preserve">
+                        print("hide-cell custom message")
+                <container classes="cell_output" nb_element="cell_code_output">
+                    <literal_block classes="output stream" language="myst-ansi" linenos="False" xml:space="preserve">
+                        hide-cell custom message

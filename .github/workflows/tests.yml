@@ -17,7 +17,7 @@ jobs:
     - name: Set up Python 3.8
       uses: actions/setup-python@v1
       with:
-        python-version: 3.8
+        python-version: 3.9
     - uses: pre-commit/action@v2.0.0
 
   tests:
@@ -26,15 +26,18 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: [3.6, 3.7, 3.8, 3.9]
-        sphinx: [">=3,<4", ">=4,<5"]
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
+        sphinx: [">=5,<6"]
         include:
-          - os: windows-latest
+          - os: ubuntu-latest
             python-version: 3.7
-            sphinx: ">=3,<4"
-          - os: macos-latest
-            python-version: 3.9
             sphinx: ">=4,<5"
+          - os: windows-latest
+            python-version: 3.8
+            sphinx: ">=5,<6"
+          - os: macos-latest
+            python-version: 3.8
+            sphinx: ">=5,<6"
 
     runs-on: ${{ matrix.os }}
 
@@ -59,12 +62,12 @@ jobs:
       # this is why we run `coverage xml` afterwards (required by codecov)
 
     - name: Upload to Codecov
-      if: matrix.os == 'ubuntu-latest' && matrix.python-version == 3.7 && matrix.sphinx == '>=3,<4' && github.repository == 'executablebooks/MyST-NB'
-      uses: codecov/codecov-action@v1
+      if: github.repository == 'executablebooks/MyST-NB' && matrix.python-version == '3.9' && matrix.os == 'ubuntu-latest'
+      uses: codecov/codecov-action@v3
       with:
-        name: myst-nb-pytests-py3.7
+        name: myst-nb-pytests
         flags: pytests
-        file: ./coverage.xml
+        files: ./coverage.xml
         fail_ci_if_error: true
 
   publish:
@@ -74,18 +77,18 @@ jobs:
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout source
-        uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v1
-        with:
-          python-version: 3.8
-      - name: Build package
-        run: |
-          pip install wheel
-          python setup.py sdist bdist_wheel
-      - name: Publish
-        uses: pypa/gh-action-pypi-publish@v1.1.0
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_KEY }}
+    - name: Checkout source
+      uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+    - name: install flit
+      run: |
+        pip install flit~=3.4
+    - name: Build and publish
+      run: |
+        flit publish
+      env:
+        FLIT_USERNAME: __token__
+        FLIT_PASSWORD: ${{ secrets.PYPI_KEY }}

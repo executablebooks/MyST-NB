@@ -14,6 +14,10 @@ author: Chris
 
 # Test the `nb-exec-table` directive
 
+```{code-cell} ipython3
+print("hi")
+```
+
 This directive should generate a table of executed notebook statistics.
 
 ```{nb-exec-table}

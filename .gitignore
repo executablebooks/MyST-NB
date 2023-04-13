@@ -14,7 +14,6 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
 lib64/
 parts/
 sdist/
@@ -130,9 +129,12 @@ dmypy.json
 .pyre/
 
 # Jupyter Cache
-docs/.jupyter_cache
+.jupyter_cache
 
 # OSX
 .DS_Store
 
 .vscode/
+
+todos.md
+_archive/

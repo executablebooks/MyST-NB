@@ -6,10 +6,9 @@ cells:
     source: |
         # A Title
 .
-<document source="notset">
-    <section ids="a-title" names="a\ title">
-        <title>
-            A Title
+<document ids="a-title" names="a\ title" nb_kernelspec="{'name': 'python3', 'display_name': 'Python 3', 'language': ''}" source="<string>" title="A Title">
+    <title>
+        A Title
 .
 
 Code Cell (no output):
@@ -23,10 +22,10 @@ cells:
         print(a)
     outputs: []
 .
-<document source="notset">
-    <CellNode cell_type="code" classes="cell">
-        <CellInputNode classes="cell_input">
-            <literal_block xml:space="preserve">
+<document nb_kernelspec="{'name': 'python3', 'display_name': 'Python 3', 'language': ''}" source="<string>">
+    <container cell_index="0" cell_metadata="{}" classes="cell" exec_count="True" nb_element="cell_code">
+        <container classes="cell_input" nb_element="cell_code_source">
+            <literal_block classes="code" xml:space="preserve">
                 a=1
                 print(a)
 .
@@ -35,7 +34,8 @@ Code Cell (with lexer):
 .
 metadata:
     language_info:
-        pygments_lexer: mylexer
+        name: python
+        pygments_lexer: ipython3
 cells:
   - cell_type: code
     metadata: {}
@@ -43,17 +43,16 @@ cells:
     source: a=1
     outputs: []
 .
-<document source="notset">
-    <field_list>
-        <field>
-            <field_name>
-                language_info
-            <field_body>
-                {"pygments_lexer": "mylexer"}
-    <CellNode cell_type="code" classes="cell">
-        <CellInputNode classes="cell_input">
-            <literal_block language="mylexer" xml:space="preserve">
-                a=1
+<document nb_kernelspec="{'name': 'python3', 'display_name': 'Python 3', 'language': ''}" nb_language_info="{'name': 'python', 'pygments_lexer': 'ipython3'}" source="<string>">
+    <container cell_index="0" cell_metadata="{}" classes="cell" exec_count="True" nb_element="cell_code">
+        <container classes="cell_input" nb_element="cell_code_source">
+            <literal_block classes="code ipython3" xml:space="preserve">
+                <inline classes="n">
+                    a
+                <inline classes="o">
+                    =
+                <inline classes="mi">
+                    1
 .
 
 Code Cell (simple output):
@@ -68,16 +67,34 @@ cells:
     outputs:
       - name: stdout
         output_type: stream
-        text: 1
+        text: "1"
 .
-<document source="notset">
-    <CellNode cell_type="code" classes="cell">
-        <CellInputNode classes="cell_input">
-            <literal_block xml:space="preserve">
+<document nb_kernelspec="{'name': 'python3', 'display_name': 'Python 3', 'language': ''}" source="<string>">
+    <container cell_index="0" cell_metadata="{}" classes="cell" exec_count="1" nb_element="cell_code">
+        <container classes="cell_input" nb_element="cell_code_source">
+            <literal_block classes="code" xml:space="preserve">
                 a=1
                 print(a)
-        <CellOutputNode classes="cell_output">
-            <CellOutputBundleNode output_count="1">
+        <container classes="cell_output" nb_element="cell_code_output">
+            <literal_block classes="code myst-ansi output stream" xml:space="preserve">
+                1
+.
+
+Raw Cell
+.
+cells:
+  - cell_type: raw
+    metadata: {"format": "text/html"}
+    source: |
+        <div>
+            <h1>A Title</h1>
+        </div>
+.
+<document nb_kernelspec="{'name': 'python3', 'display_name': 'Python 3', 'language': ''}" source="<string>">
+    <raw classes="output text_html" format="html" xml:space="preserve">
+        <div>
+            <h1>A Title</h1>
+        </div>
 .
 
 Mixed Cells:
@@ -99,17 +116,16 @@ cells:
     source: |
         b
 .
-<document source="notset">
-    <section ids="a-title" names="a\ title">
-        <title>
-            A Title
-        <CellNode cell_type="code" classes="cell">
-            <CellInputNode classes="cell_input">
-                <literal_block xml:space="preserve">
-                    a=1
-                    print(a)
-        <paragraph>
-            b
+<document ids="a-title" names="a\ title" nb_kernelspec="{'name': 'python3', 'display_name': 'Python 3', 'language': ''}" source="<string>" title="A Title">
+    <title>
+        A Title
+    <container cell_index="1" cell_metadata="{}" classes="cell" exec_count="True" nb_element="cell_code">
+        <container classes="cell_input" nb_element="cell_code_source">
+            <literal_block classes="code" xml:space="preserve">
+                a=1
+                print(a)
+    <paragraph>
+        b
 .
 
 Reference definitions defined in different cells:
@@ -128,15 +144,13 @@ cells:
     source: |
         [b]: after
 .
-<document source="notset">
+<document nb_kernelspec="{'name': 'python3', 'display_name': 'Python 3', 'language': ''}" source="<string>">
     <paragraph>
-        <pending_xref refdoc="mock_docname" refdomain="True" refexplicit="True" reftarget="before" reftype="myst" refwarn="True">
-            <inline classes="xref myst">
-                a
+        <reference refuri="before">
+            a
          
-        <pending_xref refdoc="mock_docname" refdomain="True" refexplicit="True" reftarget="after" reftype="myst" refwarn="True">
-            <inline classes="xref myst">
-                b
+        <reference refuri="after">
+            b
 .
 
 Footnote definitions defined in different cells:
@@ -155,16 +169,22 @@ cells:
     source: |
         [^b]: after
 .
-<document source="notset">
+<document nb_kernelspec="{'name': 'python3', 'display_name': 'Python 3', 'language': ''}" source="<string>">
     <paragraph>
-        <footnote_reference auto="1" ids="id1" refname="a">
+        <footnote_reference auto="1" ids="footnote-reference-1" refid="a">
+            1
          
-        <footnote_reference auto="1" ids="id2" refname="b">
+        <footnote_reference auto="1" ids="footnote-reference-2" refid="b">
+            2
     <transition classes="footnotes">
-    <footnote auto="1" ids="a" names="a">
+    <footnote auto="1" backrefs="footnote-reference-1" ids="a" names="a">
+        <label>
+            1
         <paragraph>
             before
-    <footnote auto="1" ids="b" names="b">
+    <footnote auto="1" backrefs="footnote-reference-2" ids="b" names="b">
+        <label>
+            2
         <paragraph>
             after
 .
