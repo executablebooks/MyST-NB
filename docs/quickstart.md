@@ -11,7 +11,7 @@ pip install myst-nb
 You can use the `mystnb-quickstart` CLI to quickly create an example Sphinx + MyST-NB project:
 
 ```bash
-mystnb-quickstart my_project/
+mystnb-quickstart my_project/docs/
 ```
 
 or simply add `myst_nb` to your existing Sphinx configuration:
