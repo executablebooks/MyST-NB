@@ -64,7 +64,7 @@ def ipywidgets_js_factory() -> Dict[str, Dict[str, str]]:
             "crossorigin": "anonymous",
         },
         # Load IPywidgets bundle for embedding.
-        "https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js": {
+        "https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@0.20.0/dist/embed-amd.js": {
             "data-jupyter-widgets-cdn": "https://cdn.jsdelivr.net/npm/",
             "crossorigin": "anonymous",
         },
