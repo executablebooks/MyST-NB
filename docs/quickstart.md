@@ -38,9 +38,13 @@ Once you have finished authoring your content, you can now use the [sphinx-build
 sphinx-build -nW --keep-going -b html docs/ docs/_build/html
 ```
 
+
 :::{tip}
 MyST-NB is parallel-friendly, so you can also distribute the build (and execution of notebooks) over *N* processes with: `sphinx-build -j 4`
 :::
+
+In case that you experience the message "Extension error"  in the build log, make sure you call the right sphinx-build command. For python virtual environments, that would be `.venv/bin/sphinx-build  -nW --keep-going -b html docs/ docs/_build/html`.
+
 
 :::{seealso}
 Check out [Read the Docs](https://docs.readthedocs.io) for hosting and *continuous deployment* of documentation
