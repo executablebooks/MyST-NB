@@ -1,5 +1,37 @@
 # Change Log
 
+## v0.17.2 - 2023-04-21
+
+This is primarily a maintenance release to support newer versions of dependencies and fix a few bugs.
+
+### Maintenance and upkeep improvements
+
+- MAINT: Create dependabot.yml [#499](https://github.com/executablebooks/MyST-NB/pull/499) ([@choldgraf](https://github.com/choldgraf))
+- MAINT: Fix codecov jobs and update pre-commit [#460](https://github.com/executablebooks/MyST-NB/pull/460) ([@choldgraf](https://github.com/choldgraf))
+- UPDATE: jupyter-cache v0.6.0 [#498](https://github.com/executablebooks/MyST-NB/pull/498) ([@choldgraf](https://github.com/choldgraf))
+
+### Documentation improvements
+
+- DOCS: Hint to avoid Extension error in sphinx-build [#494](https://github.com/executablebooks/MyST-NB/pull/494) ([@kolibril13](https://github.com/kolibril13), [@choldgraf](https://github.com/choldgraf))
+- DOCS: fix link to gallery [#483](https://github.com/executablebooks/MyST-NB/pull/483) ([@michaelaye](https://github.com/michaelaye), [@choldgraf](https://github.com/choldgraf), [@agoose77](https://github.com/agoose77))
+- Add note about how to use cell tags [#490](https://github.com/executablebooks/MyST-NB/pull/490) ([@kolibril13](https://github.com/kolibril13), [@choldgraf](https://github.com/choldgraf))
+- Update quickstart.md to include docs folder [#489](https://github.com/executablebooks/MyST-NB/pull/489) ([@kolibril13](https://github.com/kolibril13), [@choldgraf](https://github.com/choldgraf))
+- docs: update to latest `sphinx-design` [#486](https://github.com/executablebooks/MyST-NB/pull/486) ([@agoose77](https://github.com/agoose77), [@choldgraf](https://github.com/choldgraf))
+
+### Bug fixes
+
+- fix: use jsdelivr CDN for ipywidgets [#491](https://github.com/executablebooks/MyST-NB/pull/491) ([@agoose77](https://github.com/agoose77), [@choldgraf](https://github.com/choldgraf))
+- Add ipywidgets javascript [#469](https://github.com/executablebooks/MyST-NB/pull/469) ([@OriolAbril](https://github.com/OriolAbril), [@agoose77](https://github.com/agoose77))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/executablebooks/MyST-NB/graphs/contributors?from=2022-09-30&to=2023-04-21&type=c))
+
+@agoose77 ([activity](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Aagoose77+updated%3A2022-09-30..2023-04-21&type=Issues)) | @choldgraf ([activity](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Acholdgraf+updated%3A2022-09-30..2023-04-21&type=Issues)) | @chrisjsewell ([activity](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Achrisjsewell+updated%3A2022-09-30..2023-04-21&type=Issues)) | @dependabot ([activity](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Adependabot+updated%3A2022-09-30..2023-04-21&type=Issues)) | @kolibril13 ([activity](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Akolibril13+updated%3A2022-09-30..2023-04-21&type=Issues)) | @michaelaye ([activity](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Amichaelaye+updated%3A2022-09-30..2023-04-21&type=Issues)) | @OriolAbril ([activity](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3AOriolAbril+updated%3A2022-09-30..2023-04-21&type=Issues)) | @pre-commit-ci ([activity](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Apre-commit-ci+updated%3A2022-09-30..2023-04-21&type=Issues))
+
 ## v0.17.1 - 2022-30-09
 
 [Full changelog](https://github.com/executablebooks/MyST-NB/compare/v0.17.0...v0.17.1)
