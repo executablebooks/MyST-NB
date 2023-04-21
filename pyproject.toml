@@ -87,7 +87,7 @@ rtd = [
     "sympy",
 ]
 testing = [
-    "coverage~=6.4",
+    "coverage>=6.4,<8.0",
     "beautifulsoup4",
     "ipykernel~=5.5",
     # for issue with 8.1.0 see https://github.com/ipython/ipython/issues/13554
