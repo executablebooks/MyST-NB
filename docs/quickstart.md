@@ -38,9 +38,17 @@ Once you have finished authoring your content, you can now use the [sphinx-build
 sphinx-build -nW --keep-going -b html docs/ docs/_build/html
 ```
 
+
 :::{tip}
 MyST-NB is parallel-friendly, so you can also distribute the build (and execution of notebooks) over *N* processes with: `sphinx-build -j 4`
 :::
+
+```{admonition} The execution environment is the same as your Sphinx environment
+Your Sphinx build shares the same environment with the notebooks you execute during a build.
+Ensure that you call the correct `sphinx-build` command when building your documentation, or the environment needed to run the notebooks may not be correct.
+This often happens if you see an `Extension error`  in the build log, or an error from `jupyter-cache`.
+```
+
 
 :::{seealso}
 Check out [Read the Docs](https://docs.readthedocs.io) for hosting and *continuous deployment* of documentation
