@@ -43,7 +43,11 @@ sphinx-build -nW --keep-going -b html docs/ docs/_build/html
 MyST-NB is parallel-friendly, so you can also distribute the build (and execution of notebooks) over *N* processes with: `sphinx-build -j 4`
 :::
 
-In case that you experience the message "Extension error"  in the build log, make sure you call the right sphinx-build command. For python virtual environments, that would be `.venv/bin/sphinx-build  -nW --keep-going -b html docs/ docs/_build/html`.
+```{admonition} The execution environment is the same as your Sphinx environment
+Your Sphinx build shares the same environment with the notebooks you execute during a build.
+Ensure that you call the correct `sphinx-build` command when building your documentation, or the environment needed to run the notebooks may not be correct.
+This often happens if you see an `Extension error`  in the build log, or an error from `jupyter-cache`.
+```
 
 
 :::{seealso}
