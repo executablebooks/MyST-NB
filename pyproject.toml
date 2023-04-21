@@ -101,7 +101,7 @@ testing = [
     "numpy",
     "pandas",
     "pytest~=7.1",
-    "pytest-cov~=3.0",
+    "pytest-cov>=3,<5",
     "pytest-regressions",
     "pytest-param-files~=0.3.3",
     "sympy>=1.10.1",
