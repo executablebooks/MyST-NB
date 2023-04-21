@@ -72,7 +72,7 @@ rtd = [
     "alabaster",
     "altair",
     "bokeh",
-    "coconut~=1.4.3",
+    "coconut>=1.4.3,<2.3.0",
     "ipykernel~=5.5",
     "ipywidgets",
     "jupytext~=1.11.2",
