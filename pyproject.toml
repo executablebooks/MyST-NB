@@ -80,7 +80,7 @@ rtd = [
     "numpy",
     "pandas",
     "plotly",
-    "sphinx-book-theme~=0.3.0",
+    "sphinx-book-theme>=0.3,<1.1",
     "sphinx-copybutton",
     "sphinx-design~=0.4.0",
     "sphinxcontrib-bibtex",
