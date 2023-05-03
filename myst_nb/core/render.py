@@ -33,6 +33,8 @@ from myst_nb.core.utils import coalesce_streams
 
 if TYPE_CHECKING:
     from markdown_it.tree import SyntaxTreeNode
+    
+    from myst_parser.warnings_ import MystWarnings
 
     from myst_nb.docutils_ import DocutilsNbRenderer, DocutilsRenderer
     from myst_nb.sphinx_ import SphinxNbRenderer, SphinxRenderer
@@ -95,7 +97,7 @@ class MditRenderMixin:
         :param cell_metadata: the metadata for the cell
         """
 
-        def _callback(msg: str, subtype: str):
+        def _callback(msg: str, subtype: MystWarnings):
             self.create_warning(msg, line=line, subtype=subtype)
 
         return self.nb_config.get_cell_level_config(field, cell_metadata, _callback)
