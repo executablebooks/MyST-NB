@@ -33,7 +33,6 @@ from myst_nb.core.utils import coalesce_streams
 
 if TYPE_CHECKING:
     from markdown_it.tree import SyntaxTreeNode
-    
     from myst_parser.warnings_ import MystWarnings
 
     from myst_nb.docutils_ import DocutilsNbRenderer, DocutilsRenderer
