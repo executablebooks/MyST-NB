@@ -28,12 +28,12 @@ from typing_extensions import Protocol
 
 from myst_nb.core.config import NbParserConfig
 from myst_nb.core.execute import NotebookClientBase
-from myst_nb.core.loggers import DEFAULT_LOG_TYPE, LoggerType
+from myst_nb.core.loggers import LoggerType  # DEFAULT_LOG_TYPE,
 from myst_nb.core.utils import coalesce_streams
+from myst_nb.warnings_ import MystNBWarnings
 
 if TYPE_CHECKING:
     from markdown_it.tree import SyntaxTreeNode
-    from myst_parser.warnings_ import MystWarnings
 
     from myst_nb.docutils_ import DocutilsNbRenderer, DocutilsRenderer
     from myst_nb.sphinx_ import SphinxNbRenderer, SphinxRenderer
@@ -96,7 +96,7 @@ class MditRenderMixin:
         :param cell_metadata: the metadata for the cell
         """
 
-        def _callback(msg: str, subtype: MystWarnings):
+        def _callback(msg: str, subtype: MystNBWarnings):
             self.create_warning(msg, line=line, subtype=subtype)
 
         return self.nb_config.get_cell_level_config(field, cell_metadata, _callback)
@@ -225,8 +225,8 @@ class MditRenderMixin:
             # TODO allow user to set default lexer?
             self.create_warning(
                 f"No source code lexer found for notebook cell {cell_index + 1}",
-                wtype=DEFAULT_LOG_TYPE,
-                subtype="lexer",
+                # wtype=DEFAULT_LOG_TYPE,
+                subtype=MystNBWarnings.LEXER,
                 line=line,
                 append_to=self.current_node,
             )
@@ -980,8 +980,8 @@ def create_figure_context(
             self.create_warning(
                 "Figure caption must be a paragraph or empty comment.",
                 line=line,
-                wtype=DEFAULT_LOG_TYPE,
-                subtype="fig_caption",
+                # wtype=DEFAULT_LOG_TYPE,
+                subtype=MystNBWarnings.FIG_CAPTION,
             )
 
     self.current_node.append(figure_node)

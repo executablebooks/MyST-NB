@@ -29,7 +29,7 @@ from pygments.formatters import get_formatter_by_name
 from myst_nb import static
 from myst_nb.core.config import NbParserConfig
 from myst_nb.core.execute import create_client
-from myst_nb.core.loggers import DEFAULT_LOG_TYPE, DocutilsDocLogger
+from myst_nb.core.loggers import DocutilsDocLogger  # DEFAULT_LOG_TYPE,
 from myst_nb.core.nb_to_tokens import nb_node_to_dict, notebook_to_tokens
 from myst_nb.core.read import (
     NbReader,
@@ -47,6 +47,7 @@ from myst_nb.core.render import (
 )
 from myst_nb.ext.eval import load_eval_docutils
 from myst_nb.ext.glue import load_glue_docutils
+from myst_nb.warnings_ import MystNBWarnings
 
 DOCUTILS_EXCLUDED_ARGS = list(
     {f.name for f in NbParserConfig.get_fields() if f.metadata.get("docutils_exclude")}
@@ -308,8 +309,8 @@ class DocutilsNbRenderer(DocutilsRenderer, MditRenderMixin):
                             f"(cell<{cell_index}>.output<{output_index}>",
                             line=line,
                             append_to=self.current_node,
-                            wtype=DEFAULT_LOG_TYPE,
-                            subtype="mime_type",
+                            # wtype=DEFAULT_LOG_TYPE,
+                            subtype=MystNBWarnings.MIME_TYPE,
                         )
                 else:
                     figure_options = (
@@ -338,8 +339,8 @@ class DocutilsNbRenderer(DocutilsRenderer, MditRenderMixin):
                     f"Unsupported output type: {output.output_type}",
                     line=line,
                     append_to=self.current_node,
-                    wtype=DEFAULT_LOG_TYPE,
-                    subtype="output_type",
+                    # wtype=DEFAULT_LOG_TYPE,
+                    subtype=MystNBWarnings.OUTPUT_TYPE,
                 )
 
 

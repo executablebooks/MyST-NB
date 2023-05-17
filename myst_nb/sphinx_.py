@@ -16,7 +16,6 @@ from myst_parser.mdit_to_docutils.base import token_line
 from myst_parser.mdit_to_docutils.sphinx_ import SphinxRenderer
 from myst_parser.parsers.mdit import create_md_parser
 from myst_parser.parsers.sphinx_ import MystParser
-from myst_parser.warnings_ import create_warning
 import nbformat
 from sphinx.application import Sphinx
 from sphinx.environment import BuildEnvironment
@@ -39,6 +38,7 @@ from myst_nb.core.render import (
     get_mime_priority,
     load_renderer,
 )
+from myst_nb.warnings_ import MystNBWarnings, create_warning
 
 SPHINX_LOGGER = sphinx_logging.getLogger(__name__)
 
@@ -306,8 +306,8 @@ class SphinxNbRenderer(SphinxRenderer, MditRenderMixin):
                     f"Unsupported output type: {output.output_type}",
                     line=line,
                     append_to=self.current_node,
-                    wtype=DEFAULT_LOG_TYPE,
-                    subtype="output_type",
+                    # wtype=DEFAULT_LOG_TYPE,
+                    subtype=MystNBWarnings.OUTPUT_TYPE,
                 )
 
 
