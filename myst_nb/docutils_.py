@@ -14,11 +14,7 @@ from docutils.parsers.rst.roles import _roles
 from markdown_it.token import Token
 from markdown_it.tree import SyntaxTreeNode
 from myst_parser.config.main import MdParserConfig, merge_file_level
-from myst_parser.mdit_to_docutils.base import (
-    DocutilsRenderer,
-    create_warning,
-    token_line,
-)
+from myst_parser.mdit_to_docutils.base import DocutilsRenderer, token_line
 from myst_parser.parsers.docutils_ import Parser as MystParser
 from myst_parser.parsers.docutils_ import create_myst_config, create_myst_settings_spec
 from myst_parser.parsers.mdit import create_md_parser
@@ -47,7 +43,7 @@ from myst_nb.core.render import (
 )
 from myst_nb.ext.eval import load_eval_docutils
 from myst_nb.ext.glue import load_glue_docutils
-from myst_nb.warnings_ import MystNBWarnings
+from myst_nb.warnings_ import MystNBWarnings, create_warning
 
 DOCUTILS_EXCLUDED_ARGS = list(
     {f.name for f in NbParserConfig.get_fields() if f.metadata.get("docutils_exclude")}
@@ -304,7 +300,8 @@ class DocutilsNbRenderer(DocutilsRenderer, MditRenderMixin):
                     mime_type = next(x for x in mime_priority if x in output["data"])
                 except StopIteration:
                     if output["data"]:
-                        self.create_warning(
+                        create_warning(
+                            self.document,
                             "No output mime type found from render_priority "
                             f"(cell<{cell_index}>.output<{output_index}>",
                             line=line,
@@ -335,7 +332,8 @@ class DocutilsNbRenderer(DocutilsRenderer, MditRenderMixin):
                         self.current_node.extend(_nodes)
                         self.add_line_and_source_path_r(_nodes, token)
             else:
-                self.create_warning(
+                create_warning(
+                    self.document,
                     f"Unsupported output type: {output.output_type}",
                     line=line,
                     append_to=self.current_node,

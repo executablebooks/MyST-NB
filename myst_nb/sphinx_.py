@@ -302,7 +302,8 @@ class SphinxNbRenderer(SphinxRenderer, MditRenderMixin):
                         self.add_line_and_source_path_r([mime_bundle], token)
                         self.current_node.append(mime_bundle)
             else:
-                self.create_warning(
+                create_warning(
+                    self.document,
                     f"Unsupported output type: {output.output_type}",
                     line=line,
                     append_to=self.current_node,

@@ -30,7 +30,7 @@ from myst_nb.core.config import NbParserConfig
 from myst_nb.core.execute import NotebookClientBase
 from myst_nb.core.loggers import LoggerType  # DEFAULT_LOG_TYPE,
 from myst_nb.core.utils import coalesce_streams
-from myst_nb.warnings_ import MystNBWarnings
+from myst_nb.warnings_ import MystNBWarnings, create_warning
 
 if TYPE_CHECKING:
     from markdown_it.tree import SyntaxTreeNode
@@ -58,7 +58,6 @@ class MditRenderMixin:
     # required by mypy
     md_options: dict[str, Any]
     document: nodes.document
-    create_warning: Any
     render_children: Any
     add_line_and_source_path: Any
     add_line_and_source_path_r: Any
@@ -97,7 +96,7 @@ class MditRenderMixin:
         """
 
         def _callback(msg: str, subtype: MystNBWarnings):
-            self.create_warning(msg, line=line, subtype=subtype)
+            create_warning(self.document, msg, line=line, subtype=subtype)
 
         return self.nb_config.get_cell_level_config(field, cell_metadata, _callback)
 
@@ -223,7 +222,8 @@ class MditRenderMixin:
             # TODO this will create a warning for every cell, but perhaps
             # it should only be a single warning for the notebook (as previously)
             # TODO allow user to set default lexer?
-            self.create_warning(
+            create_warning(
+                self.document,
                 f"No source code lexer found for notebook cell {cell_index + 1}",
                 # wtype=DEFAULT_LOG_TYPE,
                 subtype=MystNBWarnings.LEXER,
@@ -977,7 +977,8 @@ def create_figure_context(
             caption.source = self.document["source"]
             caption.line = line
         elif not (isinstance(first_node, nodes.comment) and len(first_node) == 0):
-            self.create_warning(
+            create_warning(
+                self.document,
                 "Figure caption must be a paragraph or empty comment.",
                 line=line,
                 # wtype=DEFAULT_LOG_TYPE,

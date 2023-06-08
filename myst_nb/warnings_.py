@@ -5,6 +5,14 @@ from enum import Enum
 from typing import Sequence
 
 from docutils import nodes
+from myst_parser.warnings_ import MystWarnings
+from myst_parser.warnings_ import create_warning as myst_parser_create_warnings
+
+__all__ = [
+    "MystWarnings",
+    "MystNBWarnings",
+    "create_warning",
+]
 
 
 class MystNBWarnings(Enum):
@@ -50,7 +58,7 @@ def _is_suppressed_warning(
 def create_warning(
     document: nodes.document,
     message: str,
-    subtype: MystNBWarnings,
+    subtype: MystNBWarnings | MystWarnings,
     *,
     line: int | None = None,
     append_to: nodes.Element | None = None,
@@ -60,6 +68,16 @@ def create_warning(
     If the warning type is listed in the ``suppress_warnings`` configuration,
     then ``None`` will be returned and no warning logged.
     """
+    # Pass off Myst Parser warnings to that package
+    if isinstance(subtype, MystWarnings):
+        myst_parser_create_warnings(
+            document=document,
+            message=message,
+            subtype=subtype,
+            line=line,
+            append_to=append_to,
+        )
+
     wtype = "myst-nb"
     # figure out whether to suppress the warning, if sphinx is available,
     # it will have been set up by the Sphinx environment,
