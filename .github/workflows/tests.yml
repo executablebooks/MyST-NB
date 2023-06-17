@@ -26,15 +26,15 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.8", "3.9", "3.10"]
-        sphinx: [">=5,<6"]
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        sphinx: ["~=5.0","~=6.0","~=7.0"]
         include:
           - os: windows-latest
             python-version: 3.9
-            sphinx: ">=5,<6"
+            sphinx: "~=5.0"
           - os: macos-latest
             python-version: 3.9
-            sphinx: ">=5,<6"
+            sphinx: "~=5.0"
 
     runs-on: ${{ matrix.os }}
 
@@ -44,11 +44,11 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
+        cache: pip
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install "sphinx${{ matrix.sphinx }}"
-        pip install -e .[testing]
+        pip install --upgrade pip
+        pip install --upgrade "Sphinx${{ matrix.sphinx }}" -e .[testing]
 
     - name: Run pytest
       run: pytest --durations=10 --cov=myst_nb --cov-report=xml --cov-report=term-missing
