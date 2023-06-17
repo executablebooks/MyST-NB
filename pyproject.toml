@@ -38,10 +38,10 @@ dependencies = [
     "ipython",
     "jupyter-cache>=0.5,<0.7",
     "nbclient",  # nbclient version pinned by jupyter-client
-    "myst-parser~=1.0.0",
+    "myst-parser>=0.18.0",
     "nbformat~=5.0",
     "pyyaml",
-    "sphinx>=4,<6",
+    "sphinx>=4",
     "typing-extensions",
     # ipykernel is not a requirement of the library,
     # but is a common requirement for users (registers the python3 kernel)
@@ -79,7 +79,7 @@ rtd = [
     "numpy",
     "pandas",
     "plotly",
-    "sphinx-book-theme~=1.0.0",
+    "sphinx-book-theme>=0.3",
     "sphinx-copybutton",
     "sphinx-design~=0.4.0",
     "sphinxcontrib-bibtex",
