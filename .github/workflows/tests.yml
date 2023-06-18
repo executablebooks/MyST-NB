@@ -45,10 +45,29 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         cache: pip
-    - name: Install dependencies
+    - name: Install myst-nb with Sphinx ${{ matrix.sphinx }}
       run: |
         pip install --upgrade pip
         pip install --upgrade "Sphinx${{ matrix.sphinx }}" -e .[testing]
+
+    - name: Run pytest
+      run: pytest --durations=10
+
+  coverage:
+    needs: [tests]
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+        cache: pip
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install -e .[testing]
 
     - name: Run pytest
       run: pytest --durations=10 --cov=myst_nb --cov-report=xml --cov-report=term-missing
@@ -59,13 +78,11 @@ jobs:
       # this is why we run `coverage xml` afterwards (required by codecov)
 
     - name: Upload to Codecov
-      if: github.repository == 'executablebooks/MyST-NB' && matrix.python-version == '3.9' && matrix.os == 'ubuntu-latest'
       uses: codecov/codecov-action@v3
       with:
         name: myst-nb-pytests
         flags: pytests
         files: ./coverage.xml
-        fail_ci_if_error: true
 
   publish:
 
