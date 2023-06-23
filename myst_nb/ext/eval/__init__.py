@@ -43,7 +43,9 @@ def retrieve_eval_data(document: nodes.document, key: str) -> list[VariableOutpu
     except NotImplementedError:
         raise RetrievalError("This document does not have a running kernel")
     except EvalNameError:
-        raise RetrievalError(f"The expression {key!r} is not valid according to the configured pattern")
+        raise RetrievalError(
+            f"The expression {key!r} is not valid according to the configured pattern"
+        )
     except Exception as exc:
         raise RetrievalError(f"variable evaluation error: {exc}")
     if not outputs:
