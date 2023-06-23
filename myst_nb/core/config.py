@@ -14,6 +14,8 @@ from myst_parser.config.dc_validators import (
 )
 from typing_extensions import Literal
 
+from myst_nb.warnings_ import MystNBWarnings
+
 
 def custom_formats_converter(value: dict) -> Dict[str, Tuple[str, dict, bool]]:
     """Convert the custom format dict."""
@@ -567,7 +569,7 @@ class NbParserConfig:
         self,
         field_name: str,
         cell_metadata: Dict[str, Any],
-        warning_callback: Callable[[str, str], Any],
+        warning_callback: Callable[[str, MystNBWarnings], Any],
     ) -> Any:
         """Get a configuration value at the cell level.
 
@@ -593,7 +595,7 @@ class NbParserConfig:
             warning_callback(
                 f"Deprecated `cell_metadata_key` 'render' "
                 f"found, replace with {self.cell_metadata_key!r}",
-                "cell_metadata_key",
+                MystNBWarnings.CELL_METADATA_KEY,
             )
             cell_meta = cell_metadata["render"]
         else:
@@ -611,7 +613,10 @@ class NbParserConfig:
                             field.metadata["validator"](self, field, value)
                     return value
             except Exception as exc:
-                warning_callback(f"Cell metadata invalid: {exc}", "cell_config")
+                warning_callback(
+                    f"Cell metadata invalid: {exc}",
+                    MystNBWarnings.CELL_CONFIG,
+                )
 
         # default/global/file level should have already been merged
         return getattr(self, field.name)

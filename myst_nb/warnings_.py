@@ -29,6 +29,11 @@ class MystNBWarnings(Enum):
     OUTPUT_TYPE = "output_type"
     """Issue resolving Output type"""
 
+    CELL_METADATA_KEY = "cell_metadata_key"
+    """Issue with a key in a cell's `metadata` dictionary."""
+    CELL_CONFIG = "cell_config"
+    """Issue with a cell's configuration or metadata."""
+
 
 def _is_suppressed_warning(
     type: str, subtype: str, suppress_warnings: Sequence[str]
