@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-import re
 from typing import Any
 
 from nbformat import NotebookNode
@@ -37,9 +36,6 @@ class ExecutionError(Exception):
 
 class EvalNameError(Exception):
     """An exception for if an evaluation variable name is invalid."""
-
-
-EVAL_NAME_REGEX = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
 
 
 class NotebookClientBase:
