@@ -16,13 +16,13 @@ Sphinx using the MyST parser.[^download]
 
 :::{seealso}
 For more information about what you can write with MyST Markdown, see the
-[MyST Parser documentation](myst:intro/get-started).
+[MyST Parser documentation](inv:myst#intro/get-started).
 :::
 
 ### Configuration
 
-The MyST-NB parser derives from [the base MyST-Parser](myst:intro/get-started), and so all the same configuration options are available.
-See the [MyST configuration options](myst:sphinx/config-options) for the full set of options, and [MyST syntax guide](myst:syntax/core) for all the syntax options.
+The MyST-NB parser derives from [the base MyST-Parser](inv:myst#intro/get-started), and so all the same configuration options are available.
+See the [MyST configuration options](inv:myst#sphinx/config-options) for the full set of options, and [MyST syntax guide](inv:myst#syntax/core) for all the syntax options.
 
 To build documentation from this notebook, the following options are set:
 
@@ -38,7 +38,7 @@ myst_url_schemes = ("http", "https", "mailto")
 ```
 
 :::{note}
-Loading the `myst_nb` extension also activates the [`myst_parser`](myst:index) extension, for enabling the MyST flavour of Markdown.
+Loading the `myst_nb` extension also activates the [`myst_parser`](inv:myst#index) extension, for enabling the MyST flavour of Markdown.
 It is not required to add this explicitly in the list of `extensions`.
 :::
 
@@ -53,7 +53,7 @@ For example, here's the MyST-NB logo:
 
 ![myst-nb logo](../_static/logo-wide.svg)
 
-By adding `"html_image"` to the `myst_enable_extensions` list in the sphinx configuration ([see here](myst:syntax/images)), you can even add HTML `img` tags with attributes:
+By adding `"html_image"` to the `myst_enable_extensions` list in the sphinx configuration ([see here](inv:myst#syntax/images)), you can even add HTML `img` tags with attributes:
 
 ```html
 <img src="../_static/logo-wide.svg" alt="logo" width="200px" class="shadow mb-2">
@@ -66,7 +66,7 @@ For example, here's a note admonition block:
 
 :::::{note}
 **Wow**, a note!
-It was generated with this code ([as explained here](myst:syntax/admonitions)):
+It was generated with this code ([as explained here](inv:myst:std:label#syntax/admonitions)):
 
 ````md
 :::{note}
@@ -77,7 +77,7 @@ It was generated with this code ([as explained here](myst:syntax/admonitions)):
 :::::
 
 If you wish to use "bare" LaTeX equations, then you should add `"amsmath"` to the `myst_enable_extensions` list in the sphinx configuration.
-This is [explained here](myst:syntax/amsmath), and works as such:
+This is [explained here](inv:myst:std:label#syntax/amsmath), and works as such:
 
 ```latex
 \begin{equation}
@@ -110,7 +110,7 @@ $$e^{i\pi} + 1 = 0$$ (euler)
 Euler's identity, equation {math:numref}`euler`, was elected one of the
 most beautiful mathematical formulas.
 
-You can see the syntax used for this example [here in the MyST documentation](myst:syntax/math).
+You can see the syntax used for this example [here in the MyST documentation](inv:myst:std:label#syntax/math).
 
 ## Code cells and outputs
 

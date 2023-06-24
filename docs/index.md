@@ -86,7 +86,7 @@ Build single or collections of documents into multiple formats (HTML, PDF, ...).
 
 MyST-NB is a module within the [Executable Books Project](https://executablebooks.org),
 an international collaboration to build open source tools that facilitate publishing computational narratives using the Jupyter ecosystem.
-It is also a core component of [Jupyter Book](jb:intro).
+It is also a core component of [Jupyter Book](inv:jb#intro).
 
 Check out the [Gallery of Jupyter Books](https://executablebooks.org/en/latest/gallery),
 for inspiration from across the community.
