@@ -92,7 +92,7 @@ WARNING: 'jupyter_execute_notebooks' is deprecated for 'nb_execution_mode' [myst
 
 `nb_render_priority` has been removed and replaced by `nb_mime_priority_overrides`, which has a different format and is more flexible. See [Outputs MIME priority](docs/render/format_code_cells.md) for more information.
 
-As per the changes in [`myst_parser`](myst:develop/_changelog), the `dollarmath` syntax extension is no longer included by default.
+As per the changes in [`myst_parser`](inv:myst#develop/_changelog), the `dollarmath` syntax extension is no longer included by default.
 To re-add this extension, ensure that it is specified in your `conf.py`: `myst_enable_extensions = ["dollarmath"]`.
 
 For cell-level configuration the top-level key `render` has now been deprecated for `mystnb`.
@@ -168,7 +168,7 @@ See [Embedding outputs as variables](docs/render/glue.md) for more details.
   - `nbconvert`
 - Updated:
   - `Python`: `3.6+ -> 3.7+`
-  - `myst_parser`: [`0.15 -> 0.17`](myst:develop/_changelog)
+  - `myst_parser`: [`0.15 -> 0.17`](inv:myst#develop/_changelog)
   - `jupyter-cache`: [`0.4 -> 0.5`](https://github.com/executablebooks/jupyter-cache/blob/master/CHANGELOG.md)
   - `sphinx-togglebutton`: [`0.1 -> 0.3`](https://sphinx-togglebutton.readthedocs.io/en/latest/changelog.html)
 
