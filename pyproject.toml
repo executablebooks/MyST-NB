@@ -41,7 +41,7 @@ dependencies = [
     "myst-parser~=1.0.0",
     "nbformat~=5.0",
     "pyyaml",
-    "sphinx>=4,<6",
+    "sphinx>=4,<8",
     "typing-extensions",
     # ipykernel is not a requirement of the library,
     # but is a common requirement for users (registers the python3 kernel)
