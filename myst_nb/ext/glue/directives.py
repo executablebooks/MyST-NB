@@ -106,7 +106,6 @@ class PasteMarkdownDirective(DirectiveBase):
             },
             output_metadata=result.metadata,
             line=self.line,
-            md_headings=True,
         )
         _nodes = result.nb_renderer.render_markdown(mime)
         self.set_source_info(_nodes)
