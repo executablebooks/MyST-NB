@@ -14,14 +14,7 @@ from docutils.parsers.rst.roles import _roles
 from markdown_it.token import Token
 from markdown_it.tree import SyntaxTreeNode
 from myst_parser.config.main import MdParserConfig, merge_file_level
-from myst_parser.mdit_to_docutils.base import (
-    DocutilsRenderer,
-    create_warning,
-    token_line,
-)
-from myst_parser.parsers.docutils_ import (
-    DOCUTILS_EXCLUDED_ARGS as DOCUTILS_EXCLUDED_ARGS_MYST,
-)
+from myst_parser.mdit_to_docutils.base import DocutilsRenderer, token_line
 from myst_parser.parsers.docutils_ import Parser as MystParser
 from myst_parser.parsers.docutils_ import create_myst_config, create_myst_settings_spec
 from myst_parser.parsers.mdit import create_md_parser
@@ -32,7 +25,7 @@ from pygments.formatters import get_formatter_by_name
 from myst_nb import static
 from myst_nb.core.config import NbParserConfig
 from myst_nb.core.execute import create_client
-from myst_nb.core.loggers import DEFAULT_LOG_TYPE, DocutilsDocLogger
+from myst_nb.core.loggers import DocutilsDocLogger  # DEFAULT_LOG_TYPE,
 from myst_nb.core.nb_to_tokens import nb_node_to_dict, notebook_to_tokens
 from myst_nb.core.read import (
     NbReader,
@@ -50,6 +43,7 @@ from myst_nb.core.render import (
 )
 from myst_nb.ext.eval import load_eval_docutils
 from myst_nb.ext.glue import load_glue_docutils
+from myst_nb.warnings_ import MystNBWarnings, create_warning
 
 DOCUTILS_EXCLUDED_ARGS = list(
     {f.name for f in NbParserConfig.get_fields() if f.metadata.get("docutils_exclude")}
@@ -81,7 +75,7 @@ class Parser(MystParser):
     settings_spec = (
         "MyST-NB options",
         None,
-        create_myst_settings_spec(DOCUTILS_EXCLUDED_ARGS, NbParserConfig, "nb_"),
+        create_myst_settings_spec(NbParserConfig, "nb_"),
         *MystParser.settings_spec,
     )
     """Runtime settings specification."""
@@ -116,18 +110,14 @@ class Parser(MystParser):
 
         # get markdown parsing configuration
         try:
-            md_config = create_myst_config(
-                document.settings, DOCUTILS_EXCLUDED_ARGS_MYST
-            )
+            md_config = create_myst_config(document.settings)
         except (TypeError, ValueError) as error:
             logger.error(f"myst configuration invalid: {error.args[0]}")
             md_config = MdParserConfig()
 
         # get notebook rendering configuration
         try:
-            nb_config = create_myst_config(
-                document.settings, DOCUTILS_EXCLUDED_ARGS, NbParserConfig, "nb_"
-            )
+            nb_config = create_myst_config(document.settings, NbParserConfig, "nb_")
         except (TypeError, ValueError) as error:
             logger.error(f"myst-nb configuration invalid: {error.args[0]}")
             nb_config = NbParserConfig()
@@ -310,13 +300,14 @@ class DocutilsNbRenderer(DocutilsRenderer, MditRenderMixin):
                     mime_type = next(x for x in mime_priority if x in output["data"])
                 except StopIteration:
                     if output["data"]:
-                        self.create_warning(
+                        create_warning(
+                            self.document,
                             "No output mime type found from render_priority "
                             f"(cell<{cell_index}>.output<{output_index}>",
                             line=line,
                             append_to=self.current_node,
-                            wtype=DEFAULT_LOG_TYPE,
-                            subtype="mime_type",
+                            # wtype=DEFAULT_LOG_TYPE,
+                            subtype=MystNBWarnings.MIME_TYPE,
                         )
                 else:
                     figure_options = (
@@ -341,12 +332,13 @@ class DocutilsNbRenderer(DocutilsRenderer, MditRenderMixin):
                         self.current_node.extend(_nodes)
                         self.add_line_and_source_path_r(_nodes, token)
             else:
-                self.create_warning(
+                create_warning(
+                    self.document,
                     f"Unsupported output type: {output.output_type}",
                     line=line,
                     append_to=self.current_node,
-                    wtype=DEFAULT_LOG_TYPE,
-                    subtype="output_type",
+                    # wtype=DEFAULT_LOG_TYPE,
+                    subtype=MystNBWarnings.OUTPUT_TYPE,
                 )
 
 

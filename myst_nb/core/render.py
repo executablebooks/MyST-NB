@@ -28,8 +28,9 @@ from typing_extensions import Protocol
 
 from myst_nb.core.config import NbParserConfig
 from myst_nb.core.execute import NotebookClientBase
-from myst_nb.core.loggers import DEFAULT_LOG_TYPE, LoggerType
+from myst_nb.core.loggers import LoggerType  # DEFAULT_LOG_TYPE,
 from myst_nb.core.utils import coalesce_streams
+from myst_nb.warnings_ import MystNBWarnings, create_warning
 
 if TYPE_CHECKING:
     from markdown_it.tree import SyntaxTreeNode
@@ -57,7 +58,6 @@ class MditRenderMixin:
     # required by mypy
     md_options: dict[str, Any]
     document: nodes.document
-    create_warning: Any
     render_children: Any
     add_line_and_source_path: Any
     add_line_and_source_path_r: Any
@@ -96,8 +96,8 @@ class MditRenderMixin:
         :param cell_metadata: the metadata for the cell
         """
 
-        def _callback(msg: str, subtype: str):
-            self.create_warning(msg, line=line, subtype=subtype)
+        def _callback(msg: str, subtype: MystNBWarnings):
+            create_warning(self.document, msg, line=line, subtype=subtype)
 
         return self.nb_config.get_cell_level_config(field, cell_metadata, _callback)
 
@@ -234,10 +234,11 @@ class MditRenderMixin:
             # TODO this will create a warning for every cell, but perhaps
             # it should only be a single warning for the notebook (as previously)
             # TODO allow user to set default lexer?
-            self.create_warning(
+            create_warning(
+                self.document,
                 f"No source code lexer found for notebook cell {cell_index + 1}",
-                wtype=DEFAULT_LOG_TYPE,
-                subtype="lexer",
+                # wtype=DEFAULT_LOG_TYPE,
+                subtype=MystNBWarnings.LEXER,
                 line=line,
                 append_to=self.current_node,
             )
@@ -322,11 +323,6 @@ class MimeData:
     """Index of the output in the cell"""
     line: int | None = None
     """Source line of the cell"""
-    md_headings: bool = False
-    """Whether to render headings in text/markdown blocks."""
-    # we can only do this if know the content will be rendered into the main body
-    # of the document, e.g. not inside a container node
-    # (otherwise it will break the structure of the AST)
 
     @property
     def string(self) -> str:
@@ -610,9 +606,7 @@ class NbElementRenderer:
         fmt = self.renderer.get_cell_level_config(
             "render_markdown_format", data.cell_metadata, line=data.line
         )
-        return self._render_markdown_base(
-            data, fmt=fmt, inline=False, allow_headings=data.md_headings
-        )
+        return self._render_markdown_base(data, fmt=fmt, inline=False)
 
     def render_text_plain(self, data: MimeData) -> list[nodes.Element]:
         """Render a notebook text/plain mime data output."""
@@ -765,9 +759,7 @@ class NbElementRenderer:
         fmt = self.renderer.get_cell_level_config(
             "render_markdown_format", data.cell_metadata, line=data.line
         )
-        return self._render_markdown_base(
-            data, fmt=fmt, inline=True, allow_headings=data.md_headings
-        )
+        return self._render_markdown_base(data, fmt=fmt, inline=True)
 
     def render_text_plain_inline(self, data: MimeData) -> list[nodes.Element]:
         """Render a notebook text/plain mime data output."""
@@ -808,7 +800,7 @@ class NbElementRenderer:
         return self.render_widget_view(data)
 
     def _render_markdown_base(
-        self, data: MimeData, *, fmt: str, inline: bool, allow_headings: bool
+        self, data: MimeData, *, fmt: str, inline: bool
     ) -> list[nodes.Element]:
         """Base render for a notebook markdown mime output (block or inline)."""
         psuedo_element = nodes.Element()  # element to hold the parsed markdown
@@ -844,7 +836,6 @@ class NbElementRenderer:
                     data.string,
                     data.line or 0,
                     inline=inline,
-                    allow_headings=allow_headings,
                 )
         finally:
             # restore the parser
@@ -998,11 +989,12 @@ def create_figure_context(
             caption.source = self.document["source"]
             caption.line = line
         elif not (isinstance(first_node, nodes.comment) and len(first_node) == 0):
-            self.create_warning(
+            create_warning(
+                self.document,
                 "Figure caption must be a paragraph or empty comment.",
                 line=line,
-                wtype=DEFAULT_LOG_TYPE,
-                subtype="fig_caption",
+                # wtype=DEFAULT_LOG_TYPE,
+                subtype=MystNBWarnings.FIG_CAPTION,
             )
 
     self.current_node.append(figure_node)
