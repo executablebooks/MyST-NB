@@ -182,7 +182,7 @@ class MditRenderMixin:
         )
 
         cell_id = token.meta["id"]
-        if cell_id:
+        if cell_id and not cell_id.startswith("RANDOM_CELL_ID"):
             self.document.note_implicit_target(cell_container, cell_container)
             slug = "cell-id=" + cell_id
             cell_container["slug"] = slug
