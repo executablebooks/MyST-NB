@@ -102,7 +102,7 @@ testing = [
     "pytest~=7.1",
     "pytest-cov>=3,<5",
     "pytest-regressions",
-    "pytest-param-files~=0.3.3",
+    "pytest-param-files>=0.3.3,<0.7.0",
     "sympy>=1.10.1",
 ]
 
