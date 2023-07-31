@@ -74,7 +74,7 @@ rtd = [
     "coconut>=1.4.3,<3.1.0",
     "ipykernel>=5.5,<7.0",
     "ipywidgets",
-    "jupytext>=1.11.2,<1.15.0",
+    "jupytext>=1.11.2,<1.16.0",
     "matplotlib",
     "numpy",
     "pandas",
@@ -94,7 +94,7 @@ testing = [
     # see https://ipython.readthedocs.io/en/stable/whatsnew/version8.html#restore-line-numbers-for-input
     "ipython!=8.1.0,<8.15",
     "ipywidgets>=8",
-    "jupytext>=1.11.2,<1.15.0",
+    "jupytext>=1.11.2,<1.16.0",
     "matplotlib>=3.5.3,<3.6",  # TODO mpl 3.6 subtly changes output of test regressions
     "nbdime",
     "numpy",
