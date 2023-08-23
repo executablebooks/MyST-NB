@@ -56,3 +56,9 @@ repos:
         (?x)^(
             myst_nb/.+\.py|
         )$
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.2.2
+    hooks:
+    - id: codespell
+      args: ["-S", "*.ipynb"]
