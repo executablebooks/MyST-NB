@@ -257,3 +257,26 @@ def clean_doctree():
         return doctree
 
     return _func
+
+
+# TODO Remove when support for Sphinx<=6 is dropped,
+# comparison files will need updating
+# alternatively the resolution of https://github.com/ESSS/pytest-regressions/issues/32
+@pytest.fixture()
+def file_regression(file_regression):
+    return FileRegression(file_regression)
+
+
+class FileRegression:
+    ignores = (" translation_progress=\"{'total': 0, 'translated': 0}\"",)
+
+    def __init__(self, file_regression):
+        self.file_regression = file_regression
+
+    def check(self, data, **kwargs):
+        return self.file_regression.check(self._strip_ignores(data), **kwargs)
+
+    def _strip_ignores(self, data):
+        for ig in self.ignores:
+            data = data.replace(ig, "")
+        return data
