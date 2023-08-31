@@ -5,7 +5,7 @@ import os
 # -- Project information -----------------------------------------------------
 
 project = "MyST-NB"
-copyright = "2022, Executable Book Project"
+copyright = "2023, Executable Book Project"
 author = "Executable Book Project"
 
 master_doc = "index"
@@ -190,16 +190,12 @@ def setup(app):
         required_arguments = 1
         option_spec = {
             "sphinx": directives.flag,
-            "section": lambda x: directives.choice(
-                x, ["config", "read", "execute", "render"]
-            ),
+            "section": lambda x: directives.choice(x, ["config", "read", "execute", "render"]),
         }
 
         def run(self):
             """Run the directive."""
-            level_name = directives.choice(
-                self.arguments[0], ["global_lvl", "file_lvl", "cell_lvl"]
-            )
+            level_name = directives.choice(self.arguments[0], ["global_lvl", "file_lvl", "cell_lvl"])
             level = Section[level_name]
 
             config = NbParserConfig()
