@@ -12,7 +12,7 @@ def test_quickstart(tmp_path: Path, sphinx_run, make_app):
     """Test the quickstart CLI builds a valid sphinx project."""
     project_path = tmp_path / "project"
     quickstart([str(project_path)])
-    assert {p.name for p in path.iterdir()} == {
+    assert {p.name for p in project_path.iterdir()} == {
         ".gitignore",
         "conf.py",
         "index.md",
