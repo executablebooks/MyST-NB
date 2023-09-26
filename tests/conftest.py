@@ -1,6 +1,7 @@
 import json
 import os
 from pathlib import Path
+import re
 import uuid
 
 import bs4
@@ -15,6 +16,7 @@ from nbdime.prettyprint import pretty_print_diff
 import nbformat as nbf
 import pytest
 import sphinx
+from sphinx import version_info as sphinx_version_info
 from sphinx.util.console import nocolor
 
 pytest_plugins = "sphinx.testing.fixtures"
@@ -148,11 +150,11 @@ def sphinx_params(request):
 
 
 @pytest.fixture()
-def sphinx_run(sphinx_params, make_app, tempdir):
+def sphinx_run(sphinx_params, make_app, tmp_path):
     """A fixture to setup and run a sphinx build, in a sandboxed folder.
 
-    The `myst_nb` extension ius added by default,
-    and the first file will be set as the materdoc
+    The `myst_nb` extension is added by default,
+    and the first file will be set as the masterdoc
 
     """
     assert len(sphinx_params["files"]) > 0, sphinx_params["files"]
@@ -169,13 +171,11 @@ def sphinx_run(sphinx_params, make_app, tempdir):
 
     current_dir = os.getcwd()
     if "working_dir" in sphinx_params:
-        from sphinx.testing.path import path
-
-        base_dir = path(sphinx_params["working_dir"]) / str(uuid.uuid4())
+        base_dir = Path(sphinx_params["working_dir"]) / str(uuid.uuid4())
     else:
-        base_dir = tempdir
+        base_dir = tmp_path
     srcdir = base_dir / "source"
-    srcdir.makedirs(exist_ok=True)
+    srcdir.mkdir(exist_ok=True)
     os.chdir(base_dir)
     (srcdir / "conf.py").write_text(
         "# conf overrides (passed directly to sphinx):\n"
@@ -188,11 +188,24 @@ def sphinx_run(sphinx_params, make_app, tempdir):
     for nb_file in sphinx_params["files"]:
         nb_path = TEST_FILE_DIR.joinpath(nb_file)
         assert nb_path.exists(), nb_path
-        (srcdir / nb_file).parent.makedirs(exist_ok=True)
-        (srcdir / nb_file).write_text(nb_path.read_text(encoding="utf8"))
+        (srcdir / nb_file).parent.mkdir(exist_ok=True)
+        (srcdir / nb_file).write_text(
+            nb_path.read_text(encoding="utf-8"), encoding="utf-8"
+        )
 
     nocolor()
-    app = make_app(buildername=buildername, srcdir=srcdir, confoverrides=confoverrides)
+
+    # For compatibility with multiple versions of sphinx, convert pathlib.Path to
+    # sphinx.testing.path.path here.
+    if sphinx_version_info >= (7, 2):
+        app_srcdir = srcdir
+    else:
+        from sphinx.testing.path import path
+
+        app_srcdir = path(os.fspath(srcdir))
+    app = make_app(
+        buildername=buildername, srcdir=app_srcdir, confoverrides=confoverrides
+    )
 
     yield SphinxFixture(app, sphinx_params["files"])
 
@@ -259,7 +272,6 @@ def clean_doctree():
     return _func
 
 
-# TODO Remove when support for Sphinx<=6 is dropped,
 # comparison files will need updating
 # alternatively the resolution of https://github.com/ESSS/pytest-regressions/issues/32
 @pytest.fixture()
@@ -268,7 +280,12 @@ def file_regression(file_regression):
 
 
 class FileRegression:
-    ignores = (" translation_progress=\"{'total': 0, 'translated': 0}\"",)
+    ignores = (
+        # TODO: Remove when support for Sphinx<=6 is dropped,
+        re.escape(" translation_progress=\"{'total': 0, 'translated': 0}\""),
+        # TODO: Remove when support for Sphinx<7.2 is dropped,
+        r"original_uri=\"[^\"]*\"\s",
+    )
 
     def __init__(self, file_regression):
         self.file_regression = file_regression
@@ -278,5 +295,5 @@ class FileRegression:
 
     def _strip_ignores(self, data):
         for ig in self.ignores:
-            data = data.replace(ig, "")
+            data = re.sub(ig, "", data)
         return data
