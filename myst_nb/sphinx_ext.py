@@ -5,6 +5,7 @@ import hashlib
 from importlib import resources as import_resources
 import os
 from pathlib import Path
+import sys
 from typing import Any
 
 from myst_parser.sphinx_ext.main import setup_sphinx as setup_myst_parser
@@ -184,9 +185,20 @@ def _get_file_hash(path: Path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _import_resources_path(package, resource):
+    if sys.version_info < (3, 9):
+        with import_resources.path(package, resource) as path:
+            yield path
+    else:
+        with import_resources.as_file(
+            import_resources.files(package).joinpath(resource)
+        ) as path:
+            yield path
+
+
 def add_css(app: Sphinx):
     """Add CSS for myst-nb."""
-    with import_resources.path(static, "mystnb.css") as source_path:
+    with _import_resources_path(static, "mystnb.css") as source_path:
         hash = _get_file_hash(source_path)
     app.add_css_file(f"mystnb.{hash}.css")
 
@@ -195,9 +207,8 @@ def add_global_html_resources(app: Sphinx, exception):
     """Add HTML resources that apply to all pages."""
     # see https://github.com/sphinx-doc/sphinx/issues/1379
     if app.builder is not None and app.builder.format == "html" and not exception:
-        with import_resources.path(static, "mystnb.css") as source_path:
-            with import_resources.path(static, "mystnb.css") as source_path:
-                hash = _get_file_hash(source_path)
+        with _import_resources_path(static, "mystnb.css") as source_path:
+            hash = _get_file_hash(source_path)
             destination = os.path.join(
                 app.builder.outdir, "_static", f"mystnb.{hash}.css"
             )
@@ -210,6 +221,6 @@ def add_per_page_html_resources(
     """Add JS files for this page, identified from the parsing of the notebook."""
     if app.env is None or app.builder is None or app.builder.format != "html":
         return
-    js_files = NbMetadataCollector.get_js_files(app.env, pagename)  # type: ignore
+    js_files = NbMetadataCollector.get_js_files(app.env, pagename)
     for path, kwargs in js_files.values():
-        app.add_js_file(path, **kwargs)  # type: ignore
+        app.add_js_file(path, **kwargs)
