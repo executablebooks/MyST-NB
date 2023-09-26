@@ -15,6 +15,7 @@ from nbdime.prettyprint import pretty_print_diff
 import nbformat as nbf
 import pytest
 import sphinx
+from sphinx.testing.path import path as sphinx_path
 from sphinx.util.console import nocolor
 
 pytest_plugins = "sphinx.testing.fixtures"
@@ -148,7 +149,7 @@ def sphinx_params(request):
 
 
 @pytest.fixture()
-def sphinx_run(sphinx_params, make_app, tempdir):
+def sphinx_run(sphinx_params, make_app, tmpdir):
     """A fixture to setup and run a sphinx build, in a sandboxed folder.
 
     The `myst_nb` extension ius added by default,
@@ -169,13 +170,11 @@ def sphinx_run(sphinx_params, make_app, tempdir):
 
     current_dir = os.getcwd()
     if "working_dir" in sphinx_params:
-        from sphinx.testing.path import path
-
-        base_dir = path(sphinx_params["working_dir"]) / str(uuid.uuid4())
+        base_dir = Path(sphinx_params["working_dir"]) / str(uuid.uuid4())
     else:
-        base_dir = tempdir
+        base_dir = Path(tmpdir)
     srcdir = base_dir / "source"
-    srcdir.makedirs(exist_ok=True)
+    srcdir.mkdir(exist_ok=True)
     os.chdir(base_dir)
     (srcdir / "conf.py").write_text(
         "# conf overrides (passed directly to sphinx):\n"
@@ -188,11 +187,16 @@ def sphinx_run(sphinx_params, make_app, tempdir):
     for nb_file in sphinx_params["files"]:
         nb_path = TEST_FILE_DIR.joinpath(nb_file)
         assert nb_path.exists(), nb_path
-        (srcdir / nb_file).parent.makedirs(exist_ok=True)
+        (srcdir / nb_file).parent.mkdir(exist_ok=True)
         (srcdir / nb_file).write_text(nb_path.read_text(encoding="utf8"))
 
     nocolor()
-    app = make_app(buildername=buildername, srcdir=srcdir, confoverrides=confoverrides)
+
+    # For compatibility with multiple versions of sphinx, convert pathlib.Path to
+    # sphinx.testing.path.path here.
+    app = make_app(
+        buildername=buildername, srcdir=sphinx_path(srcdir), confoverrides=confoverrides
+    )
 
     yield SphinxFixture(app, sphinx_params["files"])
 
