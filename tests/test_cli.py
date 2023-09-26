@@ -8,7 +8,7 @@ from sphinx import version_info as sphinx_version_info
 from myst_nb.cli import md_to_nb, quickstart
 
 
-def test_quickstart(tmp_path: Path, sphinx_run, make_app):
+def test_quickstart(tmp_path: Path, make_app):
     """Test the quickstart CLI builds a valid sphinx project."""
     project_path = tmp_path / "project"
     quickstart([str(project_path)])
