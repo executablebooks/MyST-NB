@@ -15,7 +15,7 @@ from nbdime.prettyprint import pretty_print_diff
 import nbformat as nbf
 import pytest
 import sphinx
-from sphinx.testing.path import path as sphinx_path
+from sphinx import version_info as sphinx_version_info
 from sphinx.util.console import nocolor
 
 pytest_plugins = "sphinx.testing.fixtures"
@@ -172,7 +172,7 @@ def sphinx_run(sphinx_params, make_app, tmpdir):
     if "working_dir" in sphinx_params:
         base_dir = Path(sphinx_params["working_dir"]) / str(uuid.uuid4())
     else:
-        base_dir = Path(tmpdir)
+        base_dir = tmpdir
     srcdir = base_dir / "source"
     srcdir.mkdir(exist_ok=True)
     os.chdir(base_dir)
@@ -194,8 +194,15 @@ def sphinx_run(sphinx_params, make_app, tmpdir):
 
     # For compatibility with multiple versions of sphinx, convert pathlib.Path to
     # sphinx.testing.path.path here.
+    app_srcdir: Any
+    if sphinx_version_info >= (7, 2):
+        app_srcdir = srcdir
+    else:
+        from sphinx.testing.path import path
+
+        app_srcdir = path(os.fspath(srcdir))
     app = make_app(
-        buildername=buildername, srcdir=sphinx_path(srcdir), confoverrides=confoverrides
+        buildername=buildername, srcdir=app_srcdir, confoverrides=confoverrides
     )
 
     yield SphinxFixture(app, sphinx_params["files"])
