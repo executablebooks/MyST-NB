@@ -2,6 +2,7 @@ import json
 import os
 from pathlib import Path
 import uuid
+import re
 
 import bs4
 from docutils.nodes import image as image_node
@@ -269,7 +270,6 @@ def clean_doctree():
     return _func
 
 
-# TODO Remove when support for Sphinx<=6 is dropped,
 # comparison files will need updating
 # alternatively the resolution of https://github.com/ESSS/pytest-regressions/issues/32
 @pytest.fixture()
@@ -278,7 +278,12 @@ def file_regression(file_regression):
 
 
 class FileRegression:
-    ignores = (" translation_progress=\"{'total': 0, 'translated': 0}\"",)
+    ignores = (
+        # TODO: Remove when support for Sphinx<=6 is dropped,
+        re.escape(" translation_progress=\"{'total': 0, 'translated': 0}\""),
+        # TODO: Remove when support for Sphinx<7.2 is dropped,
+        r"original_uri=\"[^\"]*\"\s",
+    )
 
     def __init__(self, file_regression):
         self.file_regression = file_regression
@@ -288,5 +293,5 @@ class FileRegression:
 
     def _strip_ignores(self, data):
         for ig in self.ignores:
-            data = data.replace(ig, "")
+            data = re.sub(ig, "", data)
         return data
