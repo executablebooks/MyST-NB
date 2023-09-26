@@ -1,8 +1,8 @@
 import json
 import os
 from pathlib import Path
-import uuid
 import re
+import uuid
 
 import bs4
 from docutils.nodes import image as image_node
