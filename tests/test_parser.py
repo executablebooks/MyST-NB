@@ -28,7 +28,7 @@ def test_basic_run(sphinx_run, file_regression):
     )
 
     filenames = {
-        p for p in (sphinx_run.app.srcdir / "_build" / "jupyter_execute").listdir()
+        p.name for p in Path(os.fspath(sphinx_run.app.srcdir / "_build" / "jupyter_execute")).iterdir()
     }
     assert filenames == {"basic_run.ipynb"}
 
@@ -67,8 +67,8 @@ def test_complex_outputs(sphinx_run, file_regression):
     file_regression.check(doctree_string, extension=".xml", encoding="utf8")
 
     filenames = {
-        p.replace(".jpeg", ".jpg")
-        for p in (sphinx_run.app.srcdir / "_build" / "jupyter_execute").listdir()
+        p.replace(".jpeg", ".jpg").name
+        for p in Path(os.fspath(sphinx_run.app.srcdir / "_build" / "jupyter_execute")).iterdir()
     }
     # print(filenames)
     assert filenames == {

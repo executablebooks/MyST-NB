@@ -149,11 +149,11 @@ def sphinx_params(request):
 
 
 @pytest.fixture()
-def sphinx_run(sphinx_params, make_app, tmpdir):
+def sphinx_run(sphinx_params, make_app, tmp_path):
     """A fixture to setup and run a sphinx build, in a sandboxed folder.
 
-    The `myst_nb` extension ius added by default,
-    and the first file will be set as the materdoc
+    The `myst_nb` extension is added by default,
+    and the first file will be set as the masterdoc
 
     """
     assert len(sphinx_params["files"]) > 0, sphinx_params["files"]
@@ -172,7 +172,7 @@ def sphinx_run(sphinx_params, make_app, tmpdir):
     if "working_dir" in sphinx_params:
         base_dir = Path(sphinx_params["working_dir"]) / str(uuid.uuid4())
     else:
-        base_dir = tmpdir
+        base_dir = tmp_path
     srcdir = base_dir / "source"
     srcdir.mkdir(exist_ok=True)
     os.chdir(base_dir)
@@ -194,7 +194,6 @@ def sphinx_run(sphinx_params, make_app, tmpdir):
 
     # For compatibility with multiple versions of sphinx, convert pathlib.Path to
     # sphinx.testing.path.path here.
-    app_srcdir: Any
     if sphinx_version_info >= (7, 2):
         app_srcdir = srcdir
     else:

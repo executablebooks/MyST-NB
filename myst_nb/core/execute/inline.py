@@ -188,6 +188,7 @@ class ModifiedNotebookClient(NotebookClient):
                 task_poll_kernel_alive,
             )
         )
+        print("EXECUTE", str(name))
         try:
             await self.task_poll_for_reply
         except asyncio.CancelledError:
@@ -202,6 +203,7 @@ class ModifiedNotebookClient(NotebookClient):
                     task_poll_output_msg.cancel()
             finally:
                 raise
+        print("EXECUTE DONE", str(name), cell.outputs)
         return cell.outputs
 
     eval_expression = run_sync(async_eval_expression)

@@ -2,15 +2,16 @@
 from pathlib import Path
 
 import nbformat
-from sphinx.testing.path import path as sphinx_path
+import os
+from sphinx import version_info as sphinx_version_info
 
 from myst_nb.cli import md_to_nb, quickstart
 
 
-def test_quickstart(tmp_path: Path, make_app):
+def test_quickstart(tmp_path: Path, sphinx_run, make_app):
     """Test the quickstart CLI builds a valid sphinx project."""
-    path = tmp_path / "project"
-    quickstart([str(path)])
+    project_path = tmp_path / "project"
+    quickstart([str(project_path)])
     assert {p.name for p in path.iterdir()} == {
         ".gitignore",
         "conf.py",
@@ -18,7 +19,17 @@ def test_quickstart(tmp_path: Path, make_app):
         "notebook1.ipynb",
         "notebook2.md",
     }
-    app = make_app(srcdir=sphinx_path(str(path)), buildername="html")
+
+    # For compatibility with multiple versions of sphinx, convert pathlib.Path to
+    # sphinx.testing.path.path here.
+    if sphinx_version_info >= (7, 2):
+        app_srcdir = project_path
+    else:
+        from sphinx.testing.path import path
+
+        app_srcdir = path(os.fspath(project_path))
+
+    app = make_app(srcdir=app_srcdir, buildername="html")
     app.build()
     assert app._warning.getvalue().strip() == ""
     assert (path / "_build/html/index.html").exists()
