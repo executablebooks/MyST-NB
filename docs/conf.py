@@ -5,7 +5,7 @@ import os
 # -- Project information -----------------------------------------------------
 
 project = "MyST-NB"
-copyright = "2022, Executable Book Project"
+copyright = "2023, Executable Book Project"
 author = "Executable Book Project"
 
 master_doc = "index"
