@@ -189,7 +189,9 @@ def sphinx_run(sphinx_params, make_app, tmp_path):
         nb_path = TEST_FILE_DIR.joinpath(nb_file)
         assert nb_path.exists(), nb_path
         (srcdir / nb_file).parent.mkdir(exist_ok=True)
-        (srcdir / nb_file).write_text(nb_path.read_text(encoding="utf8"))
+        (srcdir / nb_file).write_text(
+            nb_path.read_text(encoding="utf-8"), encoding="utf-8"
+        )
 
     nocolor()
 

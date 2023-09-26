@@ -24,7 +24,7 @@ def test_basic_run(sphinx_run, file_regression):
         "name": "python3",
     }
     file_regression.check(
-        sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf8"
+        sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf-8"
     )
 
     filenames = {
@@ -67,7 +67,7 @@ def test_complex_outputs(sphinx_run, file_regression):
         doctree_string = doctree_string.replace(
             Path(sphinx_run.app.srcdir).as_posix() + "/", ""
         )
-    file_regression.check(doctree_string, extension=".xml", encoding="utf8")
+    file_regression.check(doctree_string, extension=".xml", encoding="utf-8")
 
     filenames = {
         p.name.replace(".jpeg", ".jpg")

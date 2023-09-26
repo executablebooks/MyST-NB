@@ -12,7 +12,10 @@ from myst_nb.sphinx_ import NbMetadataCollector
 def regress_nb_doc(file_regression, sphinx_run, check_nbs):
     try:
         file_regression.check(
-            sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb", encoding="utf8"
+            sphinx_run.get_nb(),
+            check_fn=check_nbs,
+            extension=".ipynb",
+            encoding="utf-8",
         )
     finally:
         doctree_string = sphinx_run.get_doctree().pformat()
@@ -31,7 +34,7 @@ def regress_nb_doc(file_regression, sphinx_run, check_nbs):
             doctree_string = doctree_string.replace(
                 Path(sphinx_run.app.srcdir).as_posix() + "/", ""
             )
-        file_regression.check(doctree_string, extension=".xml", encoding="utf8")
+        file_regression.check(doctree_string, extension=".xml", encoding="utf-8")
 
 
 @pytest.mark.sphinx_params("basic_unrun.ipynb", conf={"nb_execution_mode": "auto"})
@@ -112,7 +115,7 @@ def test_exclude_path(sphinx_run, file_regression):
     assert not NbMetadataCollector.new_exec_data(sphinx_run.env)
     assert "Executing" not in sphinx_run.status(), sphinx_run.status()
     file_regression.check(
-        sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf8"
+        sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf-8"
     )
 
 
@@ -317,7 +320,7 @@ def test_nb_exec_table(sphinx_run, file_regression):
     # print(sphinx_run.status())
     assert not sphinx_run.warnings()
     file_regression.check(
-        sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf8"
+        sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf-8"
     )
     # print(sphinx_run.get_html())
     rows = sphinx_run.get_html().select("table.docutils tr")

@@ -27,10 +27,10 @@ def test_basic_run(sphinx_run, file_regression, check_nbs):
         "name": "python3",
     }
     file_regression.check(
-        sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb", encoding="utf8"
+        sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb", encoding="utf-8"
     )
     file_regression.check(
-        sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf8"
+        sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf-8"
     )
 
 
@@ -52,10 +52,10 @@ def test_basic_run_exec_off(sphinx_run, file_regression, check_nbs):
     assert sphinx_run.env.metadata["basic_unrun"]["author"] == "Chris"
 
     file_regression.check(
-        sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb", encoding="utf8"
+        sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb", encoding="utf-8"
     )
     file_regression.check(
-        sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf8"
+        sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf-8"
     )
 
 

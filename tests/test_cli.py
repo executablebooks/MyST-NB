@@ -49,7 +49,7 @@ kernelspec:
 +++
 next cell
 """,
-        "utf8",
+        "utf-8",
     )
     md_to_nb([str(path)])
     assert path.exists()
