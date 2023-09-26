@@ -12,5 +12,5 @@ def test_sphinx(sphinx_run, clean_doctree, file_regression):
     doctree = clean_doctree(sphinx_run.get_resolved_doctree("with_eval"))
     file_regression.check(
         doctree.pformat(),
-        encoding="utf8",
+        encoding="utf-8",
     )
