@@ -32,7 +32,7 @@ def test_quickstart(tmp_path: Path, make_app):
     app = make_app(srcdir=app_srcdir, buildername="html")
     app.build()
     assert app._warning.getvalue().strip() == ""
-    assert (path / "_build/html/index.html").exists()
+    assert (project_path / "_build/html/index.html").exists()
 
 
 def test_md_to_nb(tmp_path: Path):
