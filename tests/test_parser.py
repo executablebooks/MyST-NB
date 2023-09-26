@@ -28,7 +28,10 @@ def test_basic_run(sphinx_run, file_regression):
     )
 
     filenames = {
-        p.name for p in Path(os.fspath(sphinx_run.app.srcdir / "_build" / "jupyter_execute")).iterdir()
+        p.name
+        for p in Path(
+            os.fspath(sphinx_run.app.srcdir / "_build" / "jupyter_execute")
+        ).iterdir()
     }
     assert filenames == {"basic_run.ipynb"}
 
@@ -68,7 +71,9 @@ def test_complex_outputs(sphinx_run, file_regression):
 
     filenames = {
         p.replace(".jpeg", ".jpg").name
-        for p in Path(os.fspath(sphinx_run.app.srcdir / "_build" / "jupyter_execute")).iterdir()
+        for p in Path(
+            os.fspath(sphinx_run.app.srcdir / "_build" / "jupyter_execute")
+        ).iterdir()
     }
     # print(filenames)
     assert filenames == {

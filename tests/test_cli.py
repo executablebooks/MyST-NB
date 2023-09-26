@@ -1,8 +1,8 @@
 """Test the quickstart CLI"""
+import os
 from pathlib import Path
 
 import nbformat
-import os
 from sphinx import version_info as sphinx_version_info
 
 from myst_nb.cli import md_to_nb, quickstart
