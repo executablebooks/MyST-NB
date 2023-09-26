@@ -70,7 +70,7 @@ def test_complex_outputs(sphinx_run, file_regression):
     file_regression.check(doctree_string, extension=".xml", encoding="utf8")
 
     filenames = {
-        p.replace(".jpeg", ".jpg").name
+        p.name.replace(".jpeg", ".jpg")
         for p in Path(
             os.fspath(sphinx_run.app.srcdir / "_build" / "jupyter_execute")
         ).iterdir()
