@@ -1,12 +1,14 @@
 """Setup for the myst-nb sphinx extension."""
 from __future__ import annotations
 
+import contextlib
 import hashlib
 from importlib import resources as import_resources
 import os
 from pathlib import Path
 import sys
-from typing import Any
+from types import ModuleType
+from typing import Any, Iterator
 
 from myst_parser.sphinx_ext.main import setup_sphinx as setup_myst_parser
 from sphinx.application import Sphinx
@@ -185,7 +187,8 @@ def _get_file_hash(path: Path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def _import_resources_path(package, resource):
+@contextlib.contextmanager
+def _import_resources_path(package: ModuleType, resource: str) -> Iterator[Path]:
     if sys.version_info < (3, 9):
         with import_resources.path(package, resource) as path:
             yield path
