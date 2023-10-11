@@ -48,8 +48,8 @@ repos:
       args: [--config-file=pyproject.toml]
       additional_dependencies:
       - importlib_metadata
-      - myst-parser~=1.0.0
-      - "sphinx~=5.0"
+      - myst-parser~=2.0.0
+      - "sphinx~=7.0"
       - nbclient
       - types-PyYAML
       files: >
