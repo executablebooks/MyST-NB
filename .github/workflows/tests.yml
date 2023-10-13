@@ -52,7 +52,7 @@ jobs:
     - name: Install myst-nb with Sphinx ${{ matrix.sphinx }}
       run: |
         pip install --upgrade pip
-        pip install --upgrade "Sphinx${{ matrix.sphinx }}" "myst-parser{{ matrix.myst-parser }}" -e .[testing]
+        pip install --upgrade "Sphinx${{ matrix.sphinx }}" "myst-parser${{ matrix.myst-parser }}" -e .[testing]
 
     - name: Run pytest
       run: pytest --durations=10
