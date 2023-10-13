@@ -27,7 +27,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
-        sphinx: [">=4.0,<=7.*"]  # Newest Sphinx (any)
+        sphinx: [">=5.0,<=7.*"]  # Newest Sphinx (any)
         myst-parser: [">=1.0.0,<=2.*"]  # Newest MyST Parser (any)
         include:
           # Just check the other platforms once
@@ -42,7 +42,7 @@ jobs:
           # Oldest known-compatible dependencies
           - os: ubuntu-latest
             python-version: "3.8"
-            sphinx: "~=4.0"
+            sphinx: "~=5.0"
             myst-parser: "~=0.19.0"
           # Newest known-compatible dependencies
           - os: ubuntu-latest
