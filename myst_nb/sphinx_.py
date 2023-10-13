@@ -61,6 +61,8 @@ class Parser(MystParser):
     config_section = "myst-nb parser"
     config_section_dependencies = ("parsers",)
 
+    env: SphinxEnvType
+
     def parse(self, inputstring: str, document: nodes.document) -> None:
         """Parse source text.
 
@@ -68,7 +70,6 @@ class Parser(MystParser):
         :param document: The root docutils node to add AST elements to
         """
         assert self.env is not None, "env not set"
-        self.env: SphinxEnvType
         document_path = self.env.doc2path(self.env.docname)
 
         # get a logger for this document
