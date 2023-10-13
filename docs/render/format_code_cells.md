@@ -134,7 +134,7 @@ nb_mime_priority_overrides = [
 ```
 
 :::{seealso}
-[](render/output/cutomise), for a more advanced means of customisation.
+[](render/output/customise), for a more advanced means of customisation.
 :::
 
 (render/output/images)=
@@ -353,7 +353,7 @@ This is currently not supported, but we hope to introduce it at a later date
 (raise an issue on the repository if you require it!).
 :::
 
-(render/output/cutomise)=
+(render/output/customise)=
 ## Customise the render process
 
 The render process is governed by subclasses of {py:class}`~myst_nb.core.render.NbElementRenderer`, which dictate how to create the `docutils` AST nodes for elements of the notebook.
