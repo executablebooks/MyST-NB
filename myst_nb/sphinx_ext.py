@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 import sys
 from types import ModuleType
-from typing import Any, Iterator
+from typing import Any, Iterator, cast
 
 from myst_parser.sphinx_ext.main import setup_sphinx as setup_myst_parser
 from sphinx.application import Sphinx
@@ -29,6 +29,7 @@ from myst_nb.sphinx_ import (
     NbMetadataCollector,
     Parser,
     SelectMimeType,
+    SphinxEnvType,
 )
 
 SPHINX_LOGGER = sphinx_logging.getLogger(__name__)
@@ -224,6 +225,6 @@ def add_per_page_html_resources(
     """Add JS files for this page, identified from the parsing of the notebook."""
     if app.env is None or app.builder is None or app.builder.format != "html":
         return
-    js_files = NbMetadataCollector.get_js_files(app.env, pagename)
+    js_files = NbMetadataCollector.get_js_files(cast(SphinxEnvType, app.env), pagename)
     for path, kwargs in js_files.values():
-        app.add_js_file(path, **kwargs)
+        app.add_js_file(path, **kwargs)  # type: ignore

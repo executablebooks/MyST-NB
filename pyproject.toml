@@ -144,3 +144,9 @@ ignore_missing_imports = true
 profile = "black"
 src_paths = ["myst_nb", "tests"]
 force_sort_within_sections = true
+
+[tool.ruff]
+extend-ignore = [
+    "E203",    # Whitespace before punctuation
+]
+line-length = 100

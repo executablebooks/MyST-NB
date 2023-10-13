@@ -61,6 +61,8 @@ class Parser(MystParser):
     config_section = "myst-nb parser"
     config_section_dependencies = ("parsers",)
 
+    env: SphinxEnvType
+
     def parse(self, inputstring: str, document: nodes.document) -> None:
         """Parse source text.
 
@@ -68,7 +70,6 @@ class Parser(MystParser):
         :param document: The root docutils node to add AST elements to
         """
         assert self.env is not None, "env not set"
-        self.env: SphinxEnvType
         document_path = self.env.doc2path(self.env.docname)
 
         # get a logger for this document
@@ -327,10 +328,13 @@ class SelectMimeType(SphinxPostTransform):
         priority_list = get_mime_priority(
             bname, self.config["nb_mime_priority_overrides"]
         )
-        condition = (
-            lambda node: isinstance(node, nodes.container)
-            and node.attributes.get("nb_element", "") == "mime_bundle"
-        )
+
+        def condition(node):
+            return (
+                isinstance(node, nodes.container)
+                and node.attributes.get("nb_element", "") == "mime_bundle"
+            )
+
         # remove/replace_self will not work with an iterator
         for node in list(findall(self.document)(condition)):
             # get available mime types
