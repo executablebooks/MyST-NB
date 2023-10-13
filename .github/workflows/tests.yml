@@ -27,7 +27,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
-        sphinx: ["~=5.0","~=6.0","~=7.0"]
+        sphinx: ["~=7.0"]
         myst-parser: [">=2.0"]
         # Just check the other platforms once
         include:
@@ -39,10 +39,10 @@ jobs:
             python-version: "3.10"
             sphinx: "~=7.0"
             myst-parser: ">=2.0"
-          # Old dependencies
+          # Oldest dependencies
           - os: ubuntu-latest
-            python-version: "3.10"
-            sphinx: "~=5.0"
+            python-version: "3.8"
+            sphinx: "~=4.0"
             myst-parser: "~=0.18.0"
 
     runs-on: ${{ matrix.os }}
