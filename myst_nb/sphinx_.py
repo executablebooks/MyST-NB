@@ -327,10 +327,13 @@ class SelectMimeType(SphinxPostTransform):
         priority_list = get_mime_priority(
             bname, self.config["nb_mime_priority_overrides"]
         )
-        condition = (
-            lambda node: isinstance(node, nodes.container)
-            and node.attributes.get("nb_element", "") == "mime_bundle"
-        )
+
+        def condition(node):
+            return (
+                isinstance(node, nodes.container)
+                and node.attributes.get("nb_element", "") == "mime_bundle"
+            )
+
         # remove/replace_self will not work with an iterator
         for node in list(findall(self.document)(condition)):
             # get available mime types
