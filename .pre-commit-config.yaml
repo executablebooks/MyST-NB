@@ -18,6 +18,11 @@ repos:
     - id: check-yaml
     - id: end-of-file-fixer
     - id: trailing-whitespace
+    - id: check-added-large-files
+    - id: check-case-conflict
+    - id: check-merge-conflict
+    - id: mixed-line-ending
+    - id: trailing-whitespace
 
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.15.0
@@ -35,11 +40,11 @@ repos:
     hooks:
     - id: black
 
-  - repo: https://github.com/PyCQA/flake8
-    rev: 6.1.0
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.0.291
     hooks:
-    - id: flake8
-      additional_dependencies: [flake8-bugbear]
+    - id: ruff
+      args: ["--fix", "--show-fixes"]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.5.1

@@ -894,7 +894,7 @@ class ExampleMimeRenderPlugin(MimeRenderPlugin):
         return None
 
 
-@lru_cache()
+@lru_cache
 def load_mime_renders() -> list[MimeRenderPlugin]:
     all_eps = entry_points()
     if hasattr(all_eps, "select"):
