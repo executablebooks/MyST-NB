@@ -28,7 +28,7 @@ jobs:
         os: [ubuntu-latest]
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
         sphinx: ["~=5.0","~=6.0","~=7.0"]
-        myst-parser: ">=2.0"
+        myst-parser: [">=2.0"]
         # Just check the other platforms once
         include:
           - os: windows-latest
