@@ -27,10 +27,10 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
-        sphinx: ["~=7.0"]
-        myst-parser: [">=2.0"]
-        # Just check the other platforms once
+        sphinx: [">=4.0,<=7.*"]  # Newest Sphinx (any)
+        myst-parser: [">=0.18.0,<=2.*"]  # Newest MyST Parser (any)
         include:
+          # Just check the other platforms once
           - os: windows-latest
             python-version: "3.10"
             sphinx: "~=7.0"
@@ -39,11 +39,16 @@ jobs:
             python-version: "3.10"
             sphinx: "~=7.0"
             myst-parser: ">=2.0"
-          # Oldest dependencies
+          # Oldest known-compatible dependencies
           - os: ubuntu-latest
             python-version: "3.8"
             sphinx: "~=4.0"
             myst-parser: "~=0.18.0"
+          # Newest known-compatible dependencies
+          - os: ubuntu-latest
+            python-version: "3.12"
+            sphinx: "~=7.0"
+            myst-parser: "~=2.0.0"
 
     runs-on: ${{ matrix.os }}
 
