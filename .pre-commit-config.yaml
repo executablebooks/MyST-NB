@@ -41,13 +41,13 @@ repos:
     - id: black
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.0.291
+    rev: v0.0.292
     hooks:
     - id: ruff
       args: ["--fix", "--show-fixes"]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.5.1
+    rev: v1.6.0
     hooks:
     - id: mypy
       args: [--config-file=pyproject.toml]
