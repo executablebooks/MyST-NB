@@ -7,10 +7,11 @@ name = "myst-nb"
 dynamic = ["version"]
 description = "A Jupyter Notebook Sphinx reader built on top of the MyST markdown parser."
 authors = [{name = "ExecutableBookProject", email = "chrisj_sewell@hotmail.com"}]
+maintainers = [{name = "Angus Hollands", email = "goosey15@gmail.com"}]
 readme = "README.md"
 license = {file = "LICENSE"}
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Framework :: Sphinx :: Extension",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
