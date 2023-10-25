@@ -134,6 +134,7 @@ html_static_path = ["_static"]
 html_css_files = ["custom.css"]
 
 copybutton_selector = "div:not(.output) > div.highlight pre"
+navigation_with_keys = False
 
 
 def setup(app):
