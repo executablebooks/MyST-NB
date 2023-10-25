@@ -119,7 +119,7 @@
                 <literal_block language="ipython3" xml:space="preserve">
                     np.random.seed(0) 
                     df = pd.DataFrame(np.random.rand(3,4),columns=['a','b','c','d'])
-                    df.a = ['$\delta$','x','y']
+                    df.a = [r'$\delta$','x','y']
                     df.b = ['l','m','n']
                     df.set_index(['a','b'])
                     df.round(3)

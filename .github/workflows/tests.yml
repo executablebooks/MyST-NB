@@ -14,10 +14,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python 3.9
+    - name: Set up Python 3.10
       uses: actions/setup-python@v4
       with:
-        python-version: 3.9
+        python-version: "3.10"
     - uses: pre-commit/action@v3.0.0
 
   tests:
@@ -26,15 +26,29 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
-        sphinx: ["~=5.0","~=6.0","~=7.0"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        sphinx: [">=5.0,<=7.*"]  # Newest Sphinx (any)
+        myst-parser: [">=1.0.0,<=2.*"]  # Newest MyST Parser (any)
         include:
+          # Just check the other platforms once
           - os: windows-latest
-            python-version: 3.9
-            sphinx: "~=5.0"
+            python-version: "3.10"
+            sphinx: "~=7.0"
+            myst-parser: ">=2.0"
           - os: macos-latest
-            python-version: 3.9
+            python-version: "3.10"
+            sphinx: "~=7.0"
+            myst-parser: ">=2.0"
+          # Oldest known-compatible dependencies
+          - os: ubuntu-latest
+            python-version: "3.8"
             sphinx: "~=5.0"
+            myst-parser: "~=1.0.0"
+          # Newest known-compatible dependencies
+          - os: ubuntu-latest
+            python-version: "3.12"
+            sphinx: "~=7.0"
+            myst-parser: "~=2.0.0"
 
     runs-on: ${{ matrix.os }}
 
@@ -48,7 +62,7 @@ jobs:
     - name: Install myst-nb with Sphinx ${{ matrix.sphinx }}
       run: |
         pip install --upgrade pip
-        pip install --upgrade "Sphinx${{ matrix.sphinx }}" -e .[testing]
+        pip install --upgrade "Sphinx${{ matrix.sphinx }}" "myst-parser${{ matrix.myst-parser }}" -e .[testing]
 
     - name: Run pytest
       run: pytest --durations=10
@@ -62,7 +76,7 @@ jobs:
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
-        python-version: 3.11
+        python-version: "3.11"
         cache: pip
     - name: Install dependencies
       run: |
@@ -96,7 +110,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: 3.9
+        python-version: "3.10"
     - name: install flit
       run: |
         pip install flit~=3.4
