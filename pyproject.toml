@@ -98,7 +98,8 @@ testing = [
     "ipython!=8.1.0,<8.17",
     "ipywidgets>=8",
     "jupytext>=1.11.2,<1.16.0",
-    "matplotlib>=3.5.3,<3.6",  # TODO mpl 3.6 subtly changes output of test regressions
+    # Matplotlib outputs are sensitive to the matplotlib version
+    "matplotlib==3.7.*",
     "nbdime",
     "numpy",
     "pandas",

@@ -214,7 +214,7 @@
                             (√5⋅ⅈ)      ⋅⎜─ - ──────⎟ + (-√5⋅ⅈ)      ⋅⎜─ + ──────⎟
                                          ⎝2     5   ⎠                 ⎝2     5   ⎠
                     <container mime_type="image/png">
-                        <image candidates="{'*': '_build/jupyter_execute/e2dfbe330154316cfb6f3186e8f57fc4df8aee03b0303ed1345fc22cd51f66de.png'}" uri="_build/jupyter_execute/e2dfbe330154316cfb6f3186e8f57fc4df8aee03b0303ed1345fc22cd51f66de.png">
+                        <image candidates="{'*': '_build/jupyter_execute/a04ee1a78ad33a6345469c5f6d84ff6ef0bfcb4d9e3a8d10eaa7ea3f445bbc5c.png'}" uri="_build/jupyter_execute/a04ee1a78ad33a6345469c5f6d84ff6ef0bfcb4d9e3a8d10eaa7ea3f445bbc5c.png">
                     <container mime_type="text/latex">
                         <math_block classes="output text_latex" nowrap="False" number="True" xml:space="preserve">
                             \displaystyle \left(\sqrt{5} i\right)^{\alpha} \left(\frac{1}{2} - \frac{2 \sqrt{5} i}{5}\right) + \left(- \sqrt{5} i\right)^{\alpha} \left(\frac{1}{2} + \frac{2 \sqrt{5} i}{5}\right)
