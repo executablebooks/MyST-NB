@@ -14,7 +14,9 @@ class NbDownloadRole(ReferenceRole):
         """Run the role."""
         # get a path relative to the current document
         self.env: BuildEnvironment
-        path = Path(self.env.mystnb_config.output_folder).joinpath(  # type: ignore
+        path = Path(
+            self.env.mystnb_config.output_folder
+        ).joinpath(  # type: ignore
             *(self.env.docname.split("/")[:-1] + self.target.split("/"))
         )
         reftarget = (
@@ -25,7 +27,5 @@ class NbDownloadRole(ReferenceRole):
         node = download_reference(self.rawtext, reftarget=reftarget)
         self.set_source_info(node)
         title = self.title if self.has_explicit_title else self.target
-        node += nodes.literal(
-            self.rawtext, title, classes=["xref", "download", "myst-nb"]
-        )
+        node += nodes.literal(self.rawtext, title, classes=["xref", "download", "myst-nb"])
         return [node], []

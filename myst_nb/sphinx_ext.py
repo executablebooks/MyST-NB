@@ -54,9 +54,7 @@ def sphinx_setup(app: Sphinx):
             # TODO add types?
             app.add_config_value(f"nb_{name}", default, "env", Any)
             if "legacy_name" in field.metadata:
-                app.add_config_value(
-                    f"{field.metadata['legacy_name']}", _UNSET, "env", Any
-                )
+                app.add_config_value(f"{field.metadata['legacy_name']}", _UNSET, "env", Any)
     # Handle non-standard deprecation
     app.add_config_value("nb_render_priority", _UNSET, "env", Any)
 
@@ -157,9 +155,7 @@ def create_mystnb_config(app):
 
     try:
         app.env.mystnb_config = NbParserConfig(**values)
-        SPHINX_LOGGER.info(
-            bold("myst-nb v%s:") + " %s", __version__, app.env.mystnb_config
-        )
+        SPHINX_LOGGER.info(bold("myst-nb v%s:") + " %s", __version__, app.env.mystnb_config)
     except (TypeError, ValueError) as error:
         SPHINX_LOGGER.critical("myst-nb configuration invalid: %s", error.args[0])
         raise
@@ -194,9 +190,7 @@ def _import_resources_path(package: ModuleType, resource: str) -> Iterator[Path]
         with import_resources.path(package, resource) as path:
             yield path
     else:
-        with import_resources.as_file(
-            import_resources.files(package).joinpath(resource)
-        ) as path:
+        with import_resources.as_file(import_resources.files(package).joinpath(resource)) as path:
             yield path
 
 
@@ -213,15 +207,11 @@ def add_global_html_resources(app: Sphinx, exception):
     if app.builder is not None and app.builder.format == "html" and not exception:
         with _import_resources_path(static, "mystnb.css") as source_path:
             hash = _get_file_hash(source_path)
-            destination = os.path.join(
-                app.builder.outdir, "_static", f"mystnb.{hash}.css"
-            )
+            destination = os.path.join(app.builder.outdir, "_static", f"mystnb.{hash}.css")
             copy_asset_file(str(source_path), destination)
 
 
-def add_per_page_html_resources(
-    app: Sphinx, pagename: str, *args: Any, **kwargs: Any
-) -> None:
+def add_per_page_html_resources(app: Sphinx, pagename: str, *args: Any, **kwargs: Any) -> None:
     """Add JS files for this page, identified from the parsing of the notebook."""
     if app.env is None or app.builder is None or app.builder.format != "html":
         return

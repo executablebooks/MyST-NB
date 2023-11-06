@@ -66,9 +66,7 @@ def test_codecell_file_warnings(sphinx_run, file_regression, check_nbs, get_test
     assert set(sphinx_run.env.nb_metadata["mystnb_codecell_file_warnings"].keys()) == {
         "exec_data",
     }
-    assert (
-        sphinx_run.env.metadata["mystnb_codecell_file_warnings"]["author"] == "Aakash"
-    )
+    assert sphinx_run.env.metadata["mystnb_codecell_file_warnings"]["author"] == "Aakash"
     assert sphinx_run.env.metadata["mystnb_codecell_file_warnings"]["kernelspec"] == {
         "display_name": "Python 3",
         "language": "python",

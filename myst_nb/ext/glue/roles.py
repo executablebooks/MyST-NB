@@ -121,18 +121,14 @@ class PasteTextRole(RoleBase):
             ]
         if "text/plain" not in result.data:
             return [], [
-                glue_warning(
-                    f"No text/plain found in {key!r} data", self.document, self.line
-                )
+                glue_warning(f"No text/plain found in {key!r} data", self.document, self.line)
             ]
 
         try:
             text = format_plain_text(result.data["text/plain"], fmt_spec)
         except Exception as exc:
             return [], [
-                glue_warning(
-                    f"Failed to format text/plain data: {exc}", self.document, self.line
-                )
+                glue_warning(f"Failed to format text/plain data: {exc}", self.document, self.line)
             ]
         node = nodes.inline(text, text, classes=["pasted-text"])
         self.set_source_info(node)

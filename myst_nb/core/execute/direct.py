@@ -24,9 +24,7 @@ class NotebookClientDirect(NotebookClientBase):
             cwd_context = TemporaryDirectory()
         else:
             if self.path is None:
-                raise ValueError(
-                    "Input source must exist as file, if execution_in_temp=False"
-                )
+                raise ValueError("Input source must exist as file, if execution_in_temp=False")
             cwd_context = nullcontext(str(self.path.parent))
 
         # execute in the context of the current working directory

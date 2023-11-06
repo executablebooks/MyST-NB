@@ -60,19 +60,13 @@ def create_pending_glue_ref(
 ) -> PendingGlueReference:
     """Create a pending glue reference."""
     if not is_sphinx(document):
-        raise PendingGlueReferenceError(
-            "Pending glue references are only supported in sphinx."
-        )
+        raise PendingGlueReferenceError("Pending glue references are only supported in sphinx.")
     env: BuildEnvironment = document.settings.env
     _, filepath = env.relfn2path(rel_doc, env.docname)
     refdoc = env.path2doc(filepath)
     if refdoc is None:
-        raise PendingGlueReferenceError(
-            f"Pending glue reference document not found: {filepath!r}."
-        )
-    ref = PendingGlueReference(
-        refdoc=refdoc, key=key, inline=inline, gtype=gtype, **kwargs
-    )
+        raise PendingGlueReferenceError(f"Pending glue reference document not found: {filepath!r}.")
+    ref = PendingGlueReference(refdoc=refdoc, key=key, inline=inline, gtype=gtype, **kwargs)
     ref.source = source
     ref.line = line
     return ref

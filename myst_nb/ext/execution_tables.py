@@ -62,9 +62,7 @@ def update_exec_tables(app: Sphinx, env: SphinxEnvType):
         if data.get(METADATA_KEY)
     ]
     if to_update:
-        SPHINX_LOGGER.info(
-            f"Updating {len(to_update)} file(s) with execution table [mystnb]"
-        )
+        SPHINX_LOGGER.info(f"Updating {len(to_update)} file(s) with execution table [mystnb]")
     return to_update
 
 
@@ -78,9 +76,7 @@ class ExecutionStatsPostTransform(SphinxPostTransform):
         self.env: SphinxEnvType
         for node in self.document.traverse(ExecutionStatsNode):
             node.replace_self(
-                make_stat_table(
-                    self.env.docname, NbMetadataCollector.get_doc_data(self.env)
-                )
+                make_stat_table(self.env.docname, NbMetadataCollector.get_doc_data(self.env))
             )
 
 
@@ -92,18 +88,14 @@ _key2header: dict[str, str] = {
 }
 
 _key2transform: dict[str, Callable[[Any], str]] = {
-    "mtime": lambda x: datetime.fromtimestamp(x).strftime("%Y-%m-%d %H:%M")
-    if x
-    else "",
+    "mtime": lambda x: datetime.fromtimestamp(x).strftime("%Y-%m-%d %H:%M") if x else "",
     "method": str,
     "runtime": lambda x: "-" if x is None else str(round(x, 2)),
     "succeeded": lambda x: "✅" if x is True else "❌",
 }
 
 
-def make_stat_table(
-    parent_docname: str, metadata: DefaultDict[str, dict]
-) -> nodes.table:
+def make_stat_table(parent_docname: str, metadata: DefaultDict[str, dict]) -> nodes.table:
     """Create a table of statistics on executed notebooks."""
 
     # top-level element
