@@ -142,9 +142,7 @@ class Parser(MystParser):
         warning = lambda wtype, msg: create_warning(  # noqa: E731
             document, msg, line=1, append_to=document, subtype=wtype
         )
-        nb_reader.md_config = merge_file_level(
-            nb_reader.md_config, notebook.metadata, warning
-        )
+        nb_reader.md_config = merge_file_level(nb_reader.md_config, notebook.metadata, warning)
 
         # Update mystnb configuration with notebook level metadata
         if nb_config.metadata_key in notebook.metadata:
@@ -157,9 +155,7 @@ class Parser(MystParser):
                     subtype="config",
                 )
             else:
-                logger.debug(
-                    "Updated configuration with notebook metadata", subtype="config"
-                )
+                logger.debug("Updated configuration with notebook metadata", subtype="config")
 
         # Setup the markdown parser
         mdit_parser = create_md_parser(nb_reader.md_config, DocutilsNbRenderer)
@@ -171,9 +167,7 @@ class Parser(MystParser):
         # load notebook element renderer class from entry-point name
         # this is separate from DocutilsNbRenderer, so that users can override it
         renderer_name = nb_config.render_plugin
-        nb_renderer: NbElementRenderer = load_renderer(renderer_name)(
-            mdit_renderer, logger
-        )
+        nb_renderer: NbElementRenderer = load_renderer(renderer_name)(mdit_renderer, logger)
         # we temporarily store nb_renderer on the document,
         # so that roles/directives can access it
         document.attributes["nb_renderer"] = nb_renderer
@@ -271,23 +265,17 @@ class DocutilsNbRenderer(DocutilsRenderer, MditRenderMixin):
         for output_index, output in enumerate(outputs):
             if output.output_type == "stream":
                 if output.name == "stdout":
-                    _nodes = self.nb_renderer.render_stdout(
-                        output, metadata, cell_index, line
-                    )
+                    _nodes = self.nb_renderer.render_stdout(output, metadata, cell_index, line)
                     self.add_line_and_source_path_r(_nodes, token)
                     self.current_node.extend(_nodes)
                 elif output.name == "stderr":
-                    _nodes = self.nb_renderer.render_stderr(
-                        output, metadata, cell_index, line
-                    )
+                    _nodes = self.nb_renderer.render_stderr(output, metadata, cell_index, line)
                     self.add_line_and_source_path_r(_nodes, token)
                     self.current_node.extend(_nodes)
                 else:
                     pass  # TODO warning
             elif output.output_type == "error":
-                _nodes = self.nb_renderer.render_error(
-                    output, metadata, cell_index, line
-                )
+                _nodes = self.nb_renderer.render_error(output, metadata, cell_index, line)
                 self.add_line_and_source_path_r(_nodes, token)
                 self.current_node.extend(_nodes)
             elif output.output_type in ("display_data", "execute_result"):
@@ -311,9 +299,7 @@ class DocutilsNbRenderer(DocutilsRenderer, MditRenderMixin):
                         )
                 else:
                     figure_options = (
-                        self.get_cell_level_config(
-                            "render_figure_options", metadata, line=line
-                        )
+                        self.get_cell_level_config("render_figure_options", metadata, line=line)
                         or None
                     )
 
@@ -342,9 +328,7 @@ class DocutilsNbRenderer(DocutilsRenderer, MditRenderMixin):
                 )
 
 
-def _run_cli(
-    writer_name: str, builder_name: str, writer_description: str, argv: list[str] | None
-):
+def _run_cli(writer_name: str, builder_name: str, writer_description: str, argv: list[str] | None):
     """Run the command line interface for a particular writer."""
     publish_cmdline(
         parser=Parser(),

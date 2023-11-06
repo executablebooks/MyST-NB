@@ -78,9 +78,7 @@ def glue(name: str, variable: Any, display: bool = True) -> None:
     mimebundle, metadata = IPython.core.formatters.format_display_data(variable)
     mime_prefix = "" if display else GLUE_PREFIX
     metadata["scrapbook"] = dict(name=name, mime_prefix=mime_prefix)
-    ipy_display(
-        {mime_prefix + k: v for k, v in mimebundle.items()}, raw=True, metadata=metadata
-    )
+    ipy_display({mime_prefix + k: v for k, v in mimebundle.items()}, raw=True, metadata=metadata)
 
 
 def extract_glue_data(

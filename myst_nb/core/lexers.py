@@ -20,9 +20,7 @@ _ansi_code_to_color = {
 }
 
 
-def _token_from_lexer_state(
-    bold: bool, faint: bool, fg_color: str | None, bg_color: str | None
-):
+def _token_from_lexer_state(bold: bool, faint: bool, fg_color: str | None, bg_color: str | None):
     """Construct a token given the current lexer state.
 
     We can only emit one token even though we have a multiple-tuple state.

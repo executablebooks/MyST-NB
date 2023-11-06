@@ -80,9 +80,7 @@ class DocutilsDocLogger(logging.LoggerAdapter):
     ]
 
     def __init__(self, document: nodes.document, type_name: str = DEFAULT_LOG_TYPE):
-        self.logger: logging.Logger = logging.getLogger(
-            f"{type_name}-{document.source}"
-        )
+        self.logger: logging.Logger = logging.getLogger(f"{type_name}-{document.source}")
         # docutils handles the level of output logging
         self.logger.setLevel(logging.DEBUG)
         if not self.logger.handlers:

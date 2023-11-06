@@ -92,9 +92,7 @@ class Parser(MystParser):
         warning = lambda wtype, msg: create_warning(  # noqa: E731
             document, msg, line=1, append_to=document, subtype=wtype
         )
-        nb_reader.md_config = merge_file_level(
-            nb_reader.md_config, notebook.metadata, warning
-        )
+        nb_reader.md_config = merge_file_level(nb_reader.md_config, notebook.metadata, warning)
 
         # potentially replace kernel name with alias
         kernel_name = notebook.metadata.get("kernelspec", {}).get("name", None)
@@ -120,9 +118,7 @@ class Parser(MystParser):
                     subtype="config",
                 )
             else:
-                logger.debug(
-                    "Updated configuration with notebook metadata", subtype="config"
-                )
+                logger.debug("Updated configuration with notebook metadata", subtype="config")
 
         # Setup the parser
         mdit_parser = create_md_parser(nb_reader.md_config, SphinxNbRenderer)
@@ -134,9 +130,7 @@ class Parser(MystParser):
         # load notebook element renderer class from entry-point name
         # this is separate from SphinxNbRenderer, so that users can override it
         renderer_name = nb_config.render_plugin
-        nb_renderer: NbElementRenderer = load_renderer(renderer_name)(
-            mdit_renderer, logger
-        )
+        nb_renderer: NbElementRenderer = load_renderer(renderer_name)(mdit_renderer, logger)
         # we temporarily store nb_renderer on the document,
         # so that roles/directives can access it
         document.attributes["nb_renderer"] = nb_renderer
@@ -158,18 +152,14 @@ class Parser(MystParser):
 
         # save final execution data
         if nb_client.exec_metadata:
-            NbMetadataCollector.set_exec_data(
-                self.env, self.env.docname, nb_client.exec_metadata
-            )
+            NbMetadataCollector.set_exec_data(self.env, self.env.docname, nb_client.exec_metadata)
             if nb_client.exec_metadata["traceback"]:
                 # store error traceback in outdir and log its path
                 reports_file = Path(self.env.app.outdir).joinpath(
                     "reports", *(self.env.docname + ".err.log").split("/")
                 )
                 reports_file.parent.mkdir(parents=True, exist_ok=True)
-                reports_file.write_text(
-                    nb_client.exec_metadata["traceback"], encoding="utf8"
-                )
+                reports_file.write_text(nb_client.exec_metadata["traceback"], encoding="utf8")
                 logger.warning(
                     f"Notebook exception traceback saved in: {reports_file}",
                     subtype="exec",
@@ -199,9 +189,7 @@ class Parser(MystParser):
         # so that we can later read it from the environment,
         # rather than having to load the whole doctree
         for key, (uri, kwargs) in document.attributes.pop("nb_js_files", {}).items():
-            NbMetadataCollector.add_js_file(
-                self.env, self.env.docname, key, uri, kwargs
-            )
+            NbMetadataCollector.add_js_file(self.env, self.env.docname, key, uri, kwargs)
 
         # remove temporary state
         document.attributes.pop("nb_renderer")
@@ -244,23 +232,17 @@ class SphinxNbRenderer(SphinxRenderer, MditRenderMixin):
         for output_index, output in enumerate(outputs):
             if output.output_type == "stream":
                 if output.name == "stdout":
-                    _nodes = self.nb_renderer.render_stdout(
-                        output, metadata, cell_index, line
-                    )
+                    _nodes = self.nb_renderer.render_stdout(output, metadata, cell_index, line)
                     self.add_line_and_source_path_r(_nodes, token)
                     self.current_node.extend(_nodes)
                 elif output.name == "stderr":
-                    _nodes = self.nb_renderer.render_stderr(
-                        output, metadata, cell_index, line
-                    )
+                    _nodes = self.nb_renderer.render_stderr(output, metadata, cell_index, line)
                     self.add_line_and_source_path_r(_nodes, token)
                     self.current_node.extend(_nodes)
                 else:
                     pass  # TODO warning
             elif output.output_type == "error":
-                _nodes = self.nb_renderer.render_error(
-                    output, metadata, cell_index, line
-                )
+                _nodes = self.nb_renderer.render_error(output, metadata, cell_index, line)
                 self.add_line_and_source_path_r(_nodes, token)
                 self.current_node.extend(_nodes)
             elif output.output_type in ("display_data", "execute_result"):
@@ -273,10 +255,7 @@ class SphinxNbRenderer(SphinxRenderer, MditRenderMixin):
                 # in a post-transform (run per output format on the cached AST)
 
                 figure_options = (
-                    self.get_cell_level_config(
-                        "render_figure_options", metadata, line=line
-                    )
-                    or None
+                    self.get_cell_level_config("render_figure_options", metadata, line=line) or None
                 )
 
                 with create_figure_context(self, figure_options, line):
@@ -325,9 +304,7 @@ class SelectMimeType(SphinxPostTransform):
         # get priority list for this builder
         # TODO allow for per-notebook/cell priority dicts?
         bname = self.app.builder.name
-        priority_list = get_mime_priority(
-            bname, self.config["nb_mime_priority_overrides"]
-        )
+        priority_list = get_mime_priority(bname, self.config["nb_mime_priority_overrides"])
 
         def condition(node):
             return (
@@ -385,9 +362,7 @@ class NbMetadataCollector(EnvironmentCollector):
         return env.nb_metadata
 
     @classmethod
-    def set_exec_data(
-        cls, env: SphinxEnvType, docname: str, value: ExecutionResult
-    ) -> None:
+    def set_exec_data(cls, env: SphinxEnvType, docname: str, value: ExecutionResult) -> None:
         """Add nb metadata for a docname to the environment."""
         cls.set_doc_data(env, docname, "exec_data", value)
         # TODO this does not take account of cache data
@@ -510,11 +485,7 @@ class HideInputCells(SphinxPostTransform):
 
     def run(self, **kwargs):
         for node in findall(self.document)(nodes.container):
-            if (
-                node.get("nb_element") == "cell_code"
-                and node.get("hide_mode")
-                and node.children
-            ):
+            if node.get("nb_element") == "cell_code" and node.get("hide_mode") and node.children:
                 hide_mode = node.get("hide_mode")
                 has_input = node.children[0].get("nb_element") == "cell_code_source"
                 has_output = node.children[-1].get("nb_element") == "cell_code_output"

@@ -78,9 +78,7 @@ class NotebookClientBase:
         """Enter the context manager."""
         self.start_client()
         # extract glue data from the notebook
-        self._glue_data = extract_glue_data(
-            self.notebook, self._source_map, self.logger
-        )
+        self._glue_data = extract_glue_data(self.notebook, self._source_map, self.logger)
         return self
 
     @final
@@ -154,9 +152,7 @@ class NotebookClientBase:
             lexer = (metadata.get("kernelspec") or {}).get("language", None)
         return lexer
 
-    def code_cell_outputs(
-        self, cell_index: int
-    ) -> tuple[int | None, list[NotebookNode]]:
+    def code_cell_outputs(self, cell_index: int) -> tuple[int | None, list[NotebookNode]]:
         """Get the outputs of a cell.
 
         :returns: a tuple of the execution_count and the outputs

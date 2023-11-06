@@ -27,9 +27,7 @@ def custom_formats_converter(value: dict) -> Dict[str, Tuple[str, dict, bool]]:
         if isinstance(reader, str):
             output[suffix] = (reader, {}, False)
         elif not isinstance(reader, Sequence):
-            raise TypeError(
-                f"`nb_custom_formats` values must be a string or sequence: {reader}"
-            )
+            raise TypeError(f"`nb_custom_formats` values must be a string or sequence: {reader}")
         elif len(reader) == 2:
             output[suffix] = (reader[0], reader[1], False)
         elif len(reader) == 3:
@@ -40,18 +38,12 @@ def custom_formats_converter(value: dict) -> Dict[str, Tuple[str, dict, bool]]:
                 f"2 or 3: {reader}"
             )
         if not isinstance(output[suffix][0], str):
-            raise TypeError(
-                f"`nb_custom_formats` values[0] must be a string: {output[suffix][0]}"
-            )
+            raise TypeError(f"`nb_custom_formats` values[0] must be a string: {output[suffix][0]}")
             # TODO check can be loaded as a python object?
         if not isinstance(output[suffix][1], dict):
-            raise TypeError(
-                f"`nb_custom_formats` values[1] must be a dict: {output[suffix][1]}"
-            )
+            raise TypeError(f"`nb_custom_formats` values[1] must be a dict: {output[suffix][1]}")
         if not isinstance(output[suffix][2], bool):
-            raise TypeError(
-                f"`nb_custom_formats` values[2] must be a bool: {output[suffix][2]}"
-            )
+            raise TypeError(f"`nb_custom_formats` values[2] must be a bool: {output[suffix][2]}")
     return output
 
 
@@ -264,8 +256,7 @@ class NbParserConfig:
         default=False,
         metadata={
             "validator": instance_of(bool),
-            "help": "Raise an exception on failed execution, "
-            "rather than emitting a warning",
+            "help": "Raise an exception on failed execution, " "rather than emitting a warning",
             "sections": (Section.global_lvl, Section.file_lvl, Section.execute),
         },
     )
@@ -389,9 +380,7 @@ class NbParserConfig:
         default=(),
         metadata={
             "validator": deep_iterable(
-                has_items(
-                    instance_of(str), instance_of(str), optional(instance_of(int))
-                ),
+                has_items(instance_of(str), instance_of(str), optional(instance_of(int))),
             ),
             "help": "Overrides for the base render priority of mime types: "
             "list of (builder name, mime type, priority)",
@@ -401,9 +390,7 @@ class NbParserConfig:
         },
         repr=False,
     )
-    output_stderr: Literal[
-        "show", "remove", "remove-warn", "warn", "error", "severe"
-    ] = dc.field(
+    output_stderr: Literal["show", "remove", "remove-warn", "warn", "error", "severe"] = dc.field(
         default="show",
         metadata={
             "validator": in_(

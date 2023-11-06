@@ -48,9 +48,7 @@ class ReplacePendingGlueReferences(SphinxPostTransform):
         """Apply the transform."""
         cache_folder = self.env.mystnb_config.output_folder  # type: ignore
         bname = self.app.builder.name
-        priority_list = get_mime_priority(
-            bname, self.config["nb_mime_priority_overrides"]
-        )
+        priority_list = get_mime_priority(bname, self.config["nb_mime_priority_overrides"])
         node: PendingGlueReference
         for node in list(findall(self.document)(PendingGlueReference)):
             data = read_glue_cache(cache_folder, node.refdoc)
@@ -100,14 +98,8 @@ def generate_any_nodes(
             else:
                 return [nodes.literal_block(data[mime_type], data[mime_type])]
         if mime_type == "text/html":
-            return [
-                nodes.raw(
-                    text=data[mime_type], format="html", classes=["output", "text_html"]
-                )
-            ]
-    ref_warning(
-        f"No allowed mime type found in {node.key!r}: {list(output['data'])}", node
-    )
+            return [nodes.raw(text=data[mime_type], format="html", classes=["output", "text_html"])]
+    ref_warning(f"No allowed mime type found in {node.key!r}: {list(output['data'])}", node)
     return []
 
 
