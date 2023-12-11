@@ -148,7 +148,8 @@ def _render_output_docutils(
         if output.data:
             return [
                 create_warning(
-                    "No output mime type found from render_priority " f"(output<{output.index}>)",
+                    "No output mime type found from render_priority "
+                    f"(output<{output.index}>)",
                     document,
                     line,
                     output.vtype,

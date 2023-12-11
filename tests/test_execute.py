@@ -114,7 +114,9 @@ def test_exclude_path(sphinx_run, file_regression):
     sphinx_run.build()
     assert not NbMetadataCollector.new_exec_data(sphinx_run.env)
     assert "Executing" not in sphinx_run.status(), sphinx_run.status()
-    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf-8")
+    file_regression.check(
+        sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf-8"
+    )
 
 
 @pytest.mark.skipif(ipy_version[0] < 8, reason="Error message changes for ipython v8")
@@ -204,7 +206,9 @@ def test_raise_on_error_cache(sphinx_run):
         sphinx_run.build()
 
 
-@pytest.mark.sphinx_params("complex_outputs_unrun.ipynb", conf={"nb_execution_mode": "cache"})
+@pytest.mark.sphinx_params(
+    "complex_outputs_unrun.ipynb", conf={"nb_execution_mode": "cache"}
+)
 def test_complex_outputs_unrun_cache(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
     # print(sphinx_run.status())
@@ -214,14 +218,18 @@ def test_complex_outputs_unrun_cache(sphinx_run, file_regression, check_nbs):
     # Widget view and widget state should make it into the HTML
     scripts = sphinx_run.get_html().select("script")
     assert any(
-        "application/vnd.jupyter.widget-view+json" in script.get("type", "") for script in scripts
+        "application/vnd.jupyter.widget-view+json" in script.get("type", "")
+        for script in scripts
     )
     assert any(
-        "application/vnd.jupyter.widget-state+json" in script.get("type", "") for script in scripts
+        "application/vnd.jupyter.widget-state+json" in script.get("type", "")
+        for script in scripts
     )
 
 
-@pytest.mark.sphinx_params("complex_outputs_unrun.ipynb", conf={"nb_execution_mode": "auto"})
+@pytest.mark.sphinx_params(
+    "complex_outputs_unrun.ipynb", conf={"nb_execution_mode": "auto"}
+)
 def test_complex_outputs_unrun_auto(sphinx_run, file_regression, check_nbs):
     sphinx_run.build()
     # print(sphinx_run.status())
@@ -231,10 +239,12 @@ def test_complex_outputs_unrun_auto(sphinx_run, file_regression, check_nbs):
     # Widget view and widget state should make it into the HTML
     scripts = sphinx_run.get_html().select("script")
     assert any(
-        "application/vnd.jupyter.widget-view+json" in script.get("type", "") for script in scripts
+        "application/vnd.jupyter.widget-view+json" in script.get("type", "")
+        for script in scripts
     )
     assert any(
-        "application/vnd.jupyter.widget-state+json" in script.get("type", "") for script in scripts
+        "application/vnd.jupyter.widget-state+json" in script.get("type", "")
+        for script in scripts
     )
 
 
@@ -309,7 +319,9 @@ def test_nb_exec_table(sphinx_run, file_regression):
     sphinx_run.build()
     # print(sphinx_run.status())
     assert not sphinx_run.warnings()
-    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf-8")
+    file_regression.check(
+        sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf-8"
+    )
     # print(sphinx_run.get_html())
     rows = sphinx_run.get_html().select("table.docutils tr")
     assert any("nb_exec_table" in row.text for row in rows)

@@ -171,7 +171,9 @@ def sphinx_run(sphinx_params, make_app, tmp_path):
     os.chdir(base_dir)
     (srcdir / "conf.py").write_text(
         "# conf overrides (passed directly to sphinx):\n"
-        + "\n".join(["# " + ll for ll in json.dumps(confoverrides, indent=2).splitlines()])
+        + "\n".join(
+            ["# " + ll for ll in json.dumps(confoverrides, indent=2).splitlines()]
+        )
         + "\n"
     )
 
@@ -179,7 +181,9 @@ def sphinx_run(sphinx_params, make_app, tmp_path):
         nb_path = TEST_FILE_DIR.joinpath(nb_file)
         assert nb_path.exists(), nb_path
         (srcdir / nb_file).parent.mkdir(exist_ok=True)
-        (srcdir / nb_file).write_text(nb_path.read_text(encoding="utf-8"), encoding="utf-8")
+        (srcdir / nb_file).write_text(
+            nb_path.read_text(encoding="utf-8"), encoding="utf-8"
+        )
 
     nocolor()
 
@@ -191,7 +195,9 @@ def sphinx_run(sphinx_params, make_app, tmp_path):
         from sphinx.testing.path import path
 
         app_srcdir = path(os.fspath(srcdir))
-    app = make_app(buildername=buildername, srcdir=app_srcdir, confoverrides=confoverrides)
+    app = make_app(
+        buildername=buildername, srcdir=app_srcdir, confoverrides=confoverrides
+    )
 
     yield SphinxFixture(app, sphinx_params["files"])
 
@@ -206,7 +212,8 @@ def empty_non_deterministic_outputs(cell):
                 item.data["image/png"] = ""
             if "filenames" in item.get("metadata", {}):
                 item["metadata"]["filenames"] = {
-                    k: os.path.basename(v) for k, v in item["metadata"]["filenames"].items()
+                    k: os.path.basename(v)
+                    for k, v in item["metadata"]["filenames"].items()
                 }
             if "traceback" in item:
                 item["traceback"] = [strip_ansi(line) for line in item["traceback"]]
@@ -226,9 +233,13 @@ def check_nbs():
             empty_non_deterministic_outputs(cell)
             cell.id = "none"
         diff = diff_notebooks(obtained_nb, expect_nb)
-        filename_without_path = str(expected_filename)[str(expected_filename).rfind("/") + 1 :]
+        filename_without_path = str(expected_filename)[
+            str(expected_filename).rfind("/") + 1 :
+        ]
         if diff:
-            raise AssertionError(pretty_print_diff(obtained_nb, diff, str(filename_without_path)))
+            raise AssertionError(
+                pretty_print_diff(obtained_nb, diff, str(filename_without_path))
+            )
 
     return _check_nbs
 
@@ -239,11 +250,14 @@ def clean_doctree():
         if os.name == "nt":  # on Windows file paths are absolute
             for node in doctree.traverse(image_node):  # type: image_node
                 if "candidates" in node:
-                    node["candidates"]["*"] = "_build/jupyter_execute/" + os.path.basename(
-                        node["candidates"]["*"]
+                    node["candidates"]["*"] = (
+                        "_build/jupyter_execute/"
+                        + os.path.basename(node["candidates"]["*"])
                     )
                 if "uri" in node:
-                    node["uri"] = "_build/jupyter_execute/" + os.path.basename(node["uri"])
+                    node["uri"] = "_build/jupyter_execute/" + os.path.basename(
+                        node["uri"]
+                    )
         return doctree
 
     return _func

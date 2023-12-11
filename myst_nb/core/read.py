@@ -137,7 +137,9 @@ def is_myst_markdown_notebook(text: str | Iterator[str]) -> bool:
     if "file_format" in metadata and metadata["file_format"] == "mystnb":
         return True
     if (
-        metadata.get("jupytext", {}).get("text_representation", {}).get("format_name", None)
+        metadata.get("jupytext", {})
+        .get("text_representation", {})
+        .get("format_name", None)
         != "myst"
     ):
         return False
@@ -162,7 +164,9 @@ def myst_nb_reader_plugin(uri: str) -> nbf.NotebookNode:
 
     Used as plugin for jupyter-cache.
     """
-    return read_myst_markdown_notebook(Path(uri).read_text("utf8"), add_source_map=True, path=uri)
+    return read_myst_markdown_notebook(
+        Path(uri).read_text("utf8"), add_source_map=True, path=uri
+    )
 
 
 def read_myst_markdown_notebook(
@@ -189,7 +193,9 @@ def read_myst_markdown_notebook(
     """
     config = config or MdParserConfig()
     # parse markdown file up to the block level (i.e. don't worry about inline text)
-    inline_config = dc.replace(config, disable_syntax=(list(config.disable_syntax) + ["inline"]))
+    inline_config = dc.replace(
+        config, disable_syntax=(list(config.disable_syntax) + ["inline"])
+    )
     parser = create_md_parser(inline_config, RendererHTML)
     tokens = parser.parse(text + "\n")
     lines = text.splitlines()
@@ -227,7 +233,9 @@ def read_myst_markdown_notebook(
         meta = nbf.from_dict(md_metadata)
         if md_source:
             source_map.append(start_line)
-            notebook.cells.append(nbf_version.new_markdown_cell(source=md_source, metadata=meta))
+            notebook.cells.append(
+                nbf_version.new_markdown_cell(source=md_source, metadata=meta)
+            )
 
     # iterate through the tokens to identify notebook cells
     nesting_level = 0
@@ -247,7 +255,9 @@ def read_myst_markdown_notebook(
             options, body_lines = _read_fenced_cell(token, len(notebook.cells), "Code")
             # Parse :load: or load: tags and populate body with contents of file
             if "load" in options:
-                body_lines = _load_code_from_file(path, options["load"], token, body_lines)
+                body_lines = _load_code_from_file(
+                    path, options["load"], token, body_lines
+                )
             meta = nbf.from_dict(options)
             source_map.append(token_map[0] + 1)
             notebook.cells.append(
@@ -333,13 +343,17 @@ def _read_cell_metadata(token, cell_index):
             )
         if not isinstance(metadata, dict):
             raise MystMetadataParsingError(
-                "Markdown cell {} at line {} is not a dict".format(cell_index, token.map[0] + 1)
+                "Markdown cell {} at line {} is not a dict".format(
+                    cell_index, token.map[0] + 1
+                )
             )
 
     return metadata
 
 
-def _load_code_from_file(nb_path: None | str | Path, file_name: str, token, body_lines: list[str]):
+def _load_code_from_file(
+    nb_path: None | str | Path, file_name: str, token, body_lines: list[str]
+):
     """load source code from a file."""
     if nb_path is None:
         raise _LoadFileParsingError("path to notebook not supplied for :load:")

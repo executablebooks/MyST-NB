@@ -35,7 +35,9 @@ class MystNBWarnings(Enum):
     """Issue with a cell's configuration or metadata."""
 
 
-def _is_suppressed_warning(type: str, subtype: str, suppress_warnings: Sequence[str]) -> bool:
+def _is_suppressed_warning(
+    type: str, subtype: str, suppress_warnings: Sequence[str]
+) -> bool:
     """Check whether the warning is suppressed or not.
 
     Mirrors:

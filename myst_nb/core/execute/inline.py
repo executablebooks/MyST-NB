@@ -41,7 +41,9 @@ class NotebookClientInline(NotebookClientBase):
             resources = {"metadata": {"path": self._tmp_path}}
         else:
             if self.path is None:
-                raise ValueError("Input source must exist as file, if execution_in_temp=False")
+                raise ValueError(
+                    "Input source must exist as file, if execution_in_temp=False"
+                )
             resources = {"metadata": {"path": str(self.path.parent)}}
 
         self.logger.info("Starting inline execution client")
@@ -66,7 +68,9 @@ class NotebookClientInline(NotebookClientBase):
         msg_id = self._client.kc.kernel_info()
         info_msg = self._client.wait_for_reply(msg_id)
         if info_msg is not None and "language_info" in info_msg["content"]:
-            self.notebook.metadata["language_info"] = info_msg["content"]["language_info"]
+            self.notebook.metadata["language_info"] = info_msg["content"][
+                "language_info"
+            ]
         else:
             self.logger.warning("Failed to retrieve language info from kernel")
 
@@ -92,7 +96,9 @@ class NotebookClientInline(NotebookClientBase):
             "runtime": _exec_time,
             "method": self.nb_config.execution_mode,
             "succeeded": False if self._cell_error else True,
-            "error": f"{self._cell_error.__class__.__name__}" if self._cell_error else None,
+            "error": f"{self._cell_error.__class__.__name__}"
+            if self._cell_error
+            else None,
             "traceback": self._exc_string,
         }
         if not self._cell_error:
@@ -105,7 +111,9 @@ class NotebookClientInline(NotebookClientBase):
         if self._tmp_path:
             shutil.rmtree(self._tmp_path, ignore_errors=True)
 
-    def code_cell_outputs(self, cell_index: int) -> tuple[int | None, list[NotebookNode]]:
+    def code_cell_outputs(
+        self, cell_index: int
+    ) -> tuple[int | None, list[NotebookNode]]:
         cells = self.notebook.get("cells", [])
 
         # ensure all cells up to and including the requested cell have been executed

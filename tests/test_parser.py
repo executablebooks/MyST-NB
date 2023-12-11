@@ -23,11 +23,15 @@ def test_basic_run(sphinx_run, file_regression):
         "language": "python",
         "name": "python3",
     }
-    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf-8")
+    file_regression.check(
+        sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf-8"
+    )
 
     filenames = {
         p.name
-        for p in Path(os.fspath(sphinx_run.app.srcdir / "_build" / "jupyter_execute")).iterdir()
+        for p in Path(
+            os.fspath(sphinx_run.app.srcdir / "_build" / "jupyter_execute")
+        ).iterdir()
     }
     assert filenames == {"basic_run.ipynb"}
 
@@ -60,12 +64,16 @@ def test_complex_outputs(sphinx_run, file_regression):
     }
     doctree_string = sphinx_run.get_doctree().pformat()
     if os.name == "nt":  # on Windows image file paths are absolute
-        doctree_string = doctree_string.replace(Path(sphinx_run.app.srcdir).as_posix() + "/", "")
+        doctree_string = doctree_string.replace(
+            Path(sphinx_run.app.srcdir).as_posix() + "/", ""
+        )
     file_regression.check(doctree_string, extension=".xml", encoding="utf-8")
 
     filenames = {
         p.name.replace(".jpeg", ".jpg")
-        for p in Path(os.fspath(sphinx_run.app.srcdir / "_build" / "jupyter_execute")).iterdir()
+        for p in Path(
+            os.fspath(sphinx_run.app.srcdir / "_build" / "jupyter_execute")
+        ).iterdir()
     }
     # print(filenames)
     assert filenames == {
@@ -86,7 +94,9 @@ def test_toctree_in_ipynb(sphinx_run, file_regression):
     sphinx_run.build()
     print(sphinx_run.status())
     print(sphinx_run.warnings())
-    file_regression.check(sphinx_run.get_doctree("latex_build/other").pformat(), extension=".xml")
+    file_regression.check(
+        sphinx_run.get_doctree("latex_build/other").pformat(), extension=".xml"
+    )
     assert sphinx_run.warnings() == ""
 
 

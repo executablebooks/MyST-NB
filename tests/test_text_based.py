@@ -29,7 +29,9 @@ def test_basic_run(sphinx_run, file_regression, check_nbs):
     file_regression.check(
         sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb", encoding="utf-8"
     )
-    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf-8")
+    file_regression.check(
+        sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf-8"
+    )
 
 
 @pytest.mark.sphinx_params(
@@ -52,7 +54,9 @@ def test_basic_run_exec_off(sphinx_run, file_regression, check_nbs):
     file_regression.check(
         sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb", encoding="utf-8"
     )
-    file_regression.check(sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf-8")
+    file_regression.check(
+        sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf-8"
+    )
 
 
 @pytest.mark.sphinx_params(
