@@ -269,7 +269,7 @@ class NbParserConfig:
             "sections": (Section.global_lvl, Section.file_lvl, Section.execute),
         },
     )
-    execution_show_tb: bool = dc.field(  # TODO implement
+    execution_show_tb: bool = dc.field(
         default=False,
         metadata={
             "validator": instance_of(bool),
