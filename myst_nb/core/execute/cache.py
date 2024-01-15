@@ -45,7 +45,9 @@ class NotebookClientCache(NotebookClientBase):
             return
 
         if self.path is None:
-            raise ValueError("Input source must exist as file, if execution_mode is 'cache'")
+            raise ValueError(
+                "Input source must exist as file, if execution_mode is 'cache'"
+            )
 
         # attempt to execute the notebook
         read_fmt = self._kwargs.get("read_fmt", None)

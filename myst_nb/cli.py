@@ -29,7 +29,9 @@ def quickstart(args: list[str] | None = None):
     # write conf.py
     (path / "conf.py").write_text(generate_conf_py(), encoding="utf-8")
     # write index.md
-    (path / "index.md").write_text(generate_index(["notebook1", "notebook2"]), encoding="utf-8")
+    (path / "index.md").write_text(
+        generate_index(["notebook1", "notebook2"]), encoding="utf-8"
+    )
     # write notebook1.ipynb
     (path / "notebook1.ipynb").write_text(generate_jupyter_notebook(), encoding="utf-8")
     # write notebook2.md
@@ -40,8 +42,12 @@ def quickstart(args: list[str] | None = None):
 
 def create_quickstart_cli():
     cli = argparse.ArgumentParser(description="Create a basic myst_nb project.")
-    cli.add_argument("path", metavar="PATH", type=str, help="Directory to output the project.")
-    cli.add_argument("-o", "--overwrite", action="store_true", help="Overwrite existing files.")
+    cli.add_argument(
+        "path", metavar="PATH", type=str, help="Directory to output the project."
+    )
+    cli.add_argument(
+        "-o", "--overwrite", action="store_true", help="Overwrite existing files."
+    )
     cli.add_argument("-v", "--verbose", action="store_true", help="Increase verbosity.")
     return cli
 
@@ -160,7 +166,9 @@ def create_md_to_nb_cli():
     cli = argparse.ArgumentParser(
         description="Convert a text-based notebook to a Jupyter notebook."
     )
-    cli.add_argument("inpath", metavar="PATH_IN", type=str, help="Path to Markdown file.")
+    cli.add_argument(
+        "inpath", metavar="PATH_IN", type=str, help="Path to Markdown file."
+    )
     cli.add_argument(
         "outpath",
         metavar="PATH_OUT",
@@ -168,6 +176,8 @@ def create_md_to_nb_cli():
         type=str,
         help="Path to output to.",
     )
-    cli.add_argument("-o", "--overwrite", action="store_true", help="Overwrite existing files.")
+    cli.add_argument(
+        "-o", "--overwrite", action="store_true", help="Overwrite existing files."
+    )
     cli.add_argument("-v", "--verbose", action="store_true", help="Increase verbosity.")
     return cli

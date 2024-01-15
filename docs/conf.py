@@ -191,7 +191,9 @@ def setup(app):
         required_arguments = 1
         option_spec = {
             "sphinx": directives.flag,
-            "section": lambda x: directives.choice(x, ["config", "read", "execute", "render"]),
+            "section": lambda x: directives.choice(
+                x, ["config", "read", "execute", "render"]
+            ),
         }
 
         def run(self):

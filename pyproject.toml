@@ -143,9 +143,6 @@ follow_imports = "skip"
 module = ["docutils.*", "nbformat.*", "jupyter_cache.*", "IPython.*", "pygments.*"]
 ignore_missing_imports = true
 
-[tool.ruff]
-line-length = 100
-
 [tool.ruff.lint]
 ignore = [
     "E203",    # Whitespace before punctuation

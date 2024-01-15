@@ -140,7 +140,9 @@ class MditRenderMixin:
         # TODO do we need this -/_ duplication of tag names, or can we deprecate one?
         hide_cell = "hide-cell" in tags
         remove_input = (
-            self.get_cell_level_config("remove_code_source", token.meta["metadata"], line=cell_line)
+            self.get_cell_level_config(
+                "remove_code_source", token.meta["metadata"], line=cell_line
+            )
             or ("remove_input" in tags)
             or ("remove-input" in tags)
         )
@@ -192,7 +194,9 @@ class MditRenderMixin:
         with self.current_node_context(cell_container, append=True):
             # render the code source code
             if not remove_input:
-                cell_input = nodes.container(nb_element="cell_code_source", classes=["cell_input"])
+                cell_input = nodes.container(
+                    nb_element="cell_code_source", classes=["cell_input"]
+                )
                 self.add_line_and_source_path(cell_input, token)
                 with self.current_node_context(cell_input, append=True):
                     self._render_nb_cell_code_source(token)
@@ -320,7 +324,9 @@ class MimeData:
 class NbElementRenderer:
     """A class for rendering notebook elements."""
 
-    def __init__(self, renderer: DocutilsNbRenderer | SphinxNbRenderer, logger: LoggerType) -> None:
+    def __init__(
+        self, renderer: DocutilsNbRenderer | SphinxNbRenderer, logger: LoggerType
+    ) -> None:
         """Initialize the renderer.
 
         :params output_folder: the folder path for external outputs (like images)
@@ -354,7 +360,9 @@ class NbElementRenderer:
         """The source of the notebook."""
         return self.renderer.document["source"]
 
-    def write_file(self, path: list[str], content: bytes, overwrite=False, exists_ok=False) -> str:
+    def write_file(
+        self, path: list[str], content: bytes, overwrite=False, exists_ok=False
+    ) -> str:
         """Write a file to the external output folder.
 
         :param path: the path to write the file to, relative to the output folder
@@ -438,7 +446,9 @@ class NbElementRenderer:
             # skip without warning, since e.g. jupytext saves raw cells with no format
             return []
         return self.render_mime_type(
-            MimeData(mime_type, content, metadata, cell_index=cell_index, line=source_line)
+            MimeData(
+                mime_type, content, metadata, cell_index=cell_index, line=source_line
+            )
         )
 
     def render_stdout(
@@ -599,7 +609,9 @@ class NbElementRenderer:
 
     def render_text_html(self, data: MimeData) -> list[nodes.Element]:
         """Render a notebook text/html mime data output."""
-        return [nodes.raw(text=data.string, format="html", classes=["output", "text_html"])]
+        return [
+            nodes.raw(text=data.string, format="html", classes=["output", "text_html"])
+        ]
 
     def render_text_latex(self, data: MimeData) -> list[nodes.Element]:
         """Render a notebook text/latex mime data output."""
@@ -631,7 +643,9 @@ class NbElementRenderer:
             # ensure correct line separator
             data_bytes = os.linesep.join(data.content.splitlines()).encode("utf-8")
         # create filename
-        extension = guess_extension(data.mime_type) or "." + data.mime_type.rsplit("/")[-1]
+        extension = (
+            guess_extension(data.mime_type) or "." + data.mime_type.rsplit("/")[-1]
+        )
         # latex does not recognize the '.jpe' extension
         extension = ".jpeg" if extension == ".jpe" else extension
         # ensure de-duplication of outputs by using hash as filename
@@ -738,7 +752,9 @@ class NbElementRenderer:
     def render_text_plain_inline(self, data: MimeData) -> list[nodes.Element]:
         """Render a notebook text/plain mime data output."""
         content = data.string
-        if data.output_metadata.get("strip_text_quotes", False) and _QUOTED_RE.match(content):
+        if data.output_metadata.get("strip_text_quotes", False) and _QUOTED_RE.match(
+            content
+        ):
             content = content[1:-1]
         node = nodes.inline(data.string, content, classes=["output", "text_plain"])
         return [node]
@@ -1191,7 +1207,9 @@ def base_render_priority() -> dict[str, dict[str, int | None]]:
     }
 
 
-def get_mime_priority(builder: str, overrides: Sequence[tuple[str, str, int | None]]) -> list[str]:
+def get_mime_priority(
+    builder: str, overrides: Sequence[tuple[str, str, int | None]]
+) -> list[str]:
     """Return the priority list for the builder.
 
     Takes the base priority list, overrides from the config,
@@ -1204,5 +1222,7 @@ def get_mime_priority(builder: str, overrides: Sequence[tuple[str, str, int | No
     for override in overrides:
         if override[0] == "*" or override[0] == builder:
             base[override[1]] = override[2]
-    sort = sorted(((k, p) for k, p in base.items() if p is not None), key=lambda x: x[1])
+    sort = sorted(
+        ((k, p) for k, p in base.items() if p is not None), key=lambda x: x[1]
+    )
     return [k for k, _ in sort]
