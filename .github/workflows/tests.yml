@@ -92,7 +92,7 @@ jobs:
       # this is why we run `coverage xml` afterwards (required by codecov)
 
     - name: Upload to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         name: myst-nb-pytests
         flags: pytests
