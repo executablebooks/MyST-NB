@@ -102,6 +102,7 @@ testing = [
     "nbdime",
     "numpy",
     "pandas",
+    "pyarrow",
     "pytest~=7.1",
     "pytest-cov>=3,<5",
     "pytest-regressions",

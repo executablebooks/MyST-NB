@@ -248,7 +248,8 @@ def check_nbs():
 def clean_doctree():
     def _func(doctree):
         if os.name == "nt":  # on Windows file paths are absolute
-            for node in doctree.traverse(image_node):  # type: image_node
+            findall = getattr(doctree, "findall", doctree.traverse)
+            for node in findall(image_node):  # type: image_node
                 if "candidates" in node:
                     node["candidates"]["*"] = (
                         "_build/jupyter_execute/"
