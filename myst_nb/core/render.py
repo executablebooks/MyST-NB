@@ -662,11 +662,13 @@ class NbElementRenderer:
             "render_image_options", data.cell_metadata, line=data.line
         )
         # Overwrite with metadata stored in output
-        image_options.update({
-            key: str(value)
-            for key, value in data.output_metadata.get(data.mime_type, {}).items()
-            if key in {"width", "height"}
-        })
+        image_options.update(
+            {
+                key: str(value)
+                for key, value in data.output_metadata.get(data.mime_type, {}).items()
+                if key in {"width", "height"}
+            }
+        )
         for key, spec in [
             ("classes", options_spec.class_option),
             ("alt", options_spec.unchanged),
