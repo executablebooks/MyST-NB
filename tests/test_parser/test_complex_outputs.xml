@@ -109,7 +109,7 @@
             <container classes="cell_output" nb_element="cell_code_output">
                 <container nb_element="mime_bundle">
                     <container mime_type="image/jpeg">
-                        <image candidates="{'*': '_build/jupyter_execute/a4c9580c74dacf6f3316a3bd2e2a347933aa4463834dcf1bb8f20b4fcb476ae1.jpg'}" uri="_build/jupyter_execute/a4c9580c74dacf6f3316a3bd2e2a347933aa4463834dcf1bb8f20b4fcb476ae1.jpg">
+                        <image candidates="{'*': '_build/jupyter_execute/a4c9580c74dacf6f3316a3bd2e2a347933aa4463834dcf1bb8f20b4fcb476ae1.jpg'}" height="400" uri="_build/jupyter_execute/a4c9580c74dacf6f3316a3bd2e2a347933aa4463834dcf1bb8f20b4fcb476ae1.jpg">
                     <container mime_type="text/plain">
                         <literal_block classes="output text_plain" language="myst-ansi" xml:space="preserve">
                             <IPython.core.display.Image object>
