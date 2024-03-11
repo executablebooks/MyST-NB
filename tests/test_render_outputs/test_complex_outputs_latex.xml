@@ -107,7 +107,7 @@
                 <literal_block language="ipython3" linenos="False" xml:space="preserve">
                     Image('example.jpg',height=400)
             <container classes="cell_output" nb_element="cell_code_output">
-                <image candidates="{'*': '_build/jupyter_execute/a4c9580c74dacf6f3316a3bd2e2a347933aa4463834dcf1bb8f20b4fcb476ae1.jpg'}" uri="_build/jupyter_execute/a4c9580c74dacf6f3316a3bd2e2a347933aa4463834dcf1bb8f20b4fcb476ae1.jpg">
+                <image candidates="{'*': '_build/jupyter_execute/a4c9580c74dacf6f3316a3bd2e2a347933aa4463834dcf1bb8f20b4fcb476ae1.jpg'}" height="400" uri="_build/jupyter_execute/a4c9580c74dacf6f3316a3bd2e2a347933aa4463834dcf1bb8f20b4fcb476ae1.jpg">
         <section ids="displaying-a-plot-with-its-code" names="displaying\ a\ plot\ with\ its\ code">
             <title>
                 Displaying a plot with its code
