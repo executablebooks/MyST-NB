@@ -1,4 +1,5 @@
 """Tests for rendering code cell outputs."""
+
 import pytest
 
 from myst_nb.core.render import EntryPointError, load_renderer
