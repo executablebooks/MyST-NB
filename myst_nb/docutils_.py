@@ -207,7 +207,7 @@ class Parser(MystParser):
                 css_paths.append(
                     nb_renderer.write_file(
                         ["mystnb.css"],
-                        import_resources.read_binary(static, "mystnb.css"),
+                        (import_resources.files(static) / "mystnb.css").read_bytes(),
                         overwrite=True,
                     )
                 )
