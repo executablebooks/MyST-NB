@@ -2,15 +2,18 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from nbformat import NotebookNode
+from nbformat import NotebookNode, from_dict
 from typing_extensions import TypedDict, final
 
 from myst_nb.core.config import NbParserConfig
 from myst_nb.core.loggers import LoggerType
 from myst_nb.core.nb_to_tokens import nb_node_to_dict
 from myst_nb.ext.glue import extract_glue_data
+
+if TYPE_CHECKING:
+    from markdown_it.tree import SyntaxTreeNode
 
 
 class ExecutionResult(TypedDict):
@@ -166,7 +169,7 @@ class NotebookClientBase:
         cell = cells[cell_index]
         return cell.get("execution_count", None), cell.get("outputs", [])
 
-    def eval_variable(self, name: str) -> list[NotebookNode]:
+    def eval_variable(self, name: str, current_cell: SyntaxTreeNode) -> list[NotebookNode]:
         """Retrieve the value of a variable from the kernel.
 
         :param name: the name of the variable,
@@ -176,4 +179,7 @@ class NotebookClientBase:
         :raises NotImplementedError: if the execution mode does not support this feature
         :raises EvalNameError: if the variable name is invalid
         """
+        for ux in current_cell.meta.get("metadata", {}).get("user_expressions", []):
+            if ux["expression"] == name:
+                return from_dict([ux["result"]])
         raise NotImplementedError
