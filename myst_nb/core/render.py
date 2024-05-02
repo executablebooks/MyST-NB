@@ -115,7 +115,7 @@ class MditRenderMixin:
         # it would be nice to "wrap" this in a container that included the metadata,
         # but unfortunately this would break the heading structure of docutils/sphinx.
         # perhaps we add an "invisible" (non-rendered) marker node to the document tree,
-        self.current_cell = token
+        self.current_cell = token  # type: ignore[union-attr]
         self.render_children(token)
 
     def render_nb_cell_raw(self: SelfType, token: SyntaxTreeNode) -> None:
