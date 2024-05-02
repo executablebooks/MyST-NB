@@ -5,4 +5,4 @@
                 x = 2
     <paragraph>
         <inline classes="output text_plain">
-            1’
+            2’
