@@ -169,7 +169,9 @@ class NotebookClientBase:
         cell = cells[cell_index]
         return cell.get("execution_count", None), cell.get("outputs", [])
 
-    def eval_variable(self, name: str, current_cell: SyntaxTreeNode) -> list[NotebookNode]:
+    def eval_variable(
+        self, name: str, current_cell: SyntaxTreeNode
+    ) -> list[NotebookNode]:
         """Retrieve the value of a variable from the kernel.
 
         :param name: the name of the variable,
