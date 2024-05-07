@@ -84,7 +84,7 @@ class Parser(MystParser):
         # create a reader for the notebook
         nb_reader = create_nb_reader(document_path, md_config, nb_config, inputstring)
         # If the nb_reader is None, then we default to a standard Markdown parser
-        if nb_reader is None:
+        if nb_reader is None or document.current_source.endswith("<translated>"):
             return super().parse(inputstring, document)
         notebook = nb_reader.read(inputstring)
 
