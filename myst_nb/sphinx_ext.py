@@ -52,13 +52,13 @@ def sphinx_setup(app: Sphinx):
     for name, default, field in NbParserConfig().as_triple():
         if not field.metadata.get("sphinx_exclude"):
             # TODO add types?
-            app.add_config_value(f"nb_{name}", default, "env", object)
+            app.add_config_value(f"nb_{name}", default, "env", [object])
             if "legacy_name" in field.metadata:
                 app.add_config_value(
-                    f"{field.metadata['legacy_name']}", _UNSET, "env", object
+                    f"{field.metadata['legacy_name']}", _UNSET, "env", [object]
                 )
     # Handle non-standard deprecation
-    app.add_config_value("nb_render_priority", _UNSET, "env", object)
+    app.add_config_value("nb_render_priority", _UNSET, "env", [object])
 
     # generate notebook configuration from Sphinx configuration
     # this also validates the configuration values
