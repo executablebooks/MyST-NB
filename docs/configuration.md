@@ -129,7 +129,7 @@ Tags are a list of strings under the `tags` key in the cell metadata, e.g.
   "cell_type": "code",
   "source": ["print('hello world')"],
   "metadata": {
-    "tags": ["my-tag1", "my-tag2"],
+    "tags": ["my-tag1", "my-tag2"]
   }
 }
 ```
