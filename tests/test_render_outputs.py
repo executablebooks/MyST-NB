@@ -2,6 +2,7 @@
 import pytest
 
 from myst_nb.core.render import EntryPointError, load_renderer
+from sphinx.util.fileutil import copy_asset_file
 
 
 def test_load_renderer_not_found():
@@ -111,6 +112,24 @@ def test_metadata_image(sphinx_run, clean_doctree, file_regression):
     sphinx_run.build()
     assert sphinx_run.warnings() == ""
     doctree = clean_doctree(sphinx_run.get_resolved_doctree("metadata_image"))
+    file_regression.check(
+        doctree.pformat().replace(".jpeg", ".jpg"), extension=".xml", encoding="utf-8"
+    )
+
+
+@pytest.mark.sphinx_params(
+    "metadata_image_output.ipynb",
+    conf={"nb_execution_mode": "force"},
+)
+def test_metadata_image_output(
+    sphinx_run, clean_doctree, file_regression, get_test_path
+):
+    """Test configuring image attributes to be rendered from cell metadata."""
+    asset_path = get_test_path("example.jpg")
+    copy_asset_file(str(asset_path), str(sphinx_run.app.srcdir))
+    sphinx_run.build()
+    assert sphinx_run.warnings() == ""
+    doctree = clean_doctree(sphinx_run.get_resolved_doctree("metadata_image_output"))
     file_regression.check(
         doctree.pformat().replace(".jpeg", ".jpg"), extension=".xml", encoding="utf-8"
     )
