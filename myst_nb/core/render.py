@@ -662,7 +662,7 @@ class NbElementRenderer:
         # TODO backwards-compatible re-naming to image_options?
         image_options = self.renderer.get_cell_level_config(
             "render_image_options", data.cell_metadata, line=data.line
-        )
+        ).copy()
         # Overwrite with metadata stored in output
         image_options.update(
             {

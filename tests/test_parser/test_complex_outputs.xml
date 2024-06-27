@@ -130,7 +130,7 @@
                 <container classes="cell_output" nb_element="cell_code_output">
                     <container nb_element="mime_bundle">
                         <container mime_type="image/png">
-                            <image candidates="{'*': '_build/jupyter_execute/16832f45917c1c9862c50f0948f64a498402d6ccde1f3a291da17f240797b160.png'}" height="400" uri="_build/jupyter_execute/16832f45917c1c9862c50f0948f64a498402d6ccde1f3a291da17f240797b160.png">
+                            <image candidates="{'*': '_build/jupyter_execute/16832f45917c1c9862c50f0948f64a498402d6ccde1f3a291da17f240797b160.png'}" height="288" uri="_build/jupyter_execute/16832f45917c1c9862c50f0948f64a498402d6ccde1f3a291da17f240797b160.png" width="432">
                         <container mime_type="text/plain">
                             <literal_block classes="output text_plain" language="myst-ansi" xml:space="preserve">
                                 <Figure size 432x288 with 1 Axes>
@@ -244,7 +244,7 @@
             <container classes="cell_output" nb_element="cell_code_output">
                 <container nb_element="mime_bundle">
                     <container mime_type="image/png">
-                        <image candidates="{'*': '_build/jupyter_execute/8c43e5c8cccf697754876b7fec1b0a9b731d7900bb585e775a5fa326b4de8c5a.png'}" height="400" uri="_build/jupyter_execute/8c43e5c8cccf697754876b7fec1b0a9b731d7900bb585e775a5fa326b4de8c5a.png">
+                        <image candidates="{'*': '_build/jupyter_execute/8c43e5c8cccf697754876b7fec1b0a9b731d7900bb585e775a5fa326b4de8c5a.png'}" uri="_build/jupyter_execute/8c43e5c8cccf697754876b7fec1b0a9b731d7900bb585e775a5fa326b4de8c5a.png">
                     <container mime_type="text/latex">
                         <math_block classes="output text_latex" nowrap="False" number="True" xml:space="preserve">
                             \displaystyle \left(\sqrt{5} i\right)^{\alpha} \left(\frac{1}{2} - \frac{2 \sqrt{5} i}{5}\right) + \left(- \sqrt{5} i\right)^{\alpha} \left(\frac{1}{2} + \frac{2 \sqrt{5} i}{5}\right)
