@@ -230,4 +230,4 @@ def add_per_page_html_resources(
         return
     js_files = NbMetadataCollector.get_js_files(cast(SphinxEnvType, app.env), pagename)
     for path, kwargs in js_files.values():
-        app.add_js_file(path, **kwargs)
+        app.add_js_file(path, **kwargs)  # type: ignore[arg-type]
