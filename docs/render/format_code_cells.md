@@ -166,7 +166,7 @@ You can also wrap the output in a [`figure`](https://docutils.sourceforge.io/doc
 ---
 mystnb:
   image:
-    width: 200px
+    width: 300px
     alt: fun-fish
     classes: shadow bg-primary
   figure:
