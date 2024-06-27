@@ -52,13 +52,16 @@ def sphinx_setup(app: Sphinx):
     for name, default, field in NbParserConfig().as_triple():
         if not field.metadata.get("sphinx_exclude"):
             # TODO add types?
-            app.add_config_value(f"nb_{name}", default, "env", Any)
+            app.add_config_value(f"nb_{name}", default, "env", Any)  # type: ignore[arg-type]
             if "legacy_name" in field.metadata:
                 app.add_config_value(
-                    f"{field.metadata['legacy_name']}", _UNSET, "env", Any
+                    f"{field.metadata['legacy_name']}",
+                    _UNSET,
+                    "env",
+                    Any,  # type: ignore[arg-type]
                 )
     # Handle non-standard deprecation
-    app.add_config_value("nb_render_priority", _UNSET, "env", Any)
+    app.add_config_value("nb_render_priority", _UNSET, "env", Any)  # type: ignore[arg-type]
 
     # generate notebook configuration from Sphinx configuration
     # this also validates the configuration values
@@ -130,7 +133,7 @@ def create_mystnb_config(app):
     """Generate notebook configuration from Sphinx configuration"""
 
     # Ignore type checkers because the attribute is dynamically assigned
-    from sphinx.util.console import bold  # type: ignore[attr-defined]
+    from sphinx.util.console import bold
 
     values = {}
     for name, _, field in NbParserConfig().as_triple():
@@ -227,4 +230,4 @@ def add_per_page_html_resources(
         return
     js_files = NbMetadataCollector.get_js_files(cast(SphinxEnvType, app.env), pagename)
     for path, kwargs in js_files.values():
-        app.add_js_file(path, **kwargs)  # type: ignore
+        app.add_js_file(path, **kwargs)  # type: ignore[arg-type]
