@@ -14,3 +14,14 @@ def test_sphinx(sphinx_run, clean_doctree, file_regression):
         doctree.pformat(),
         encoding="utf-8",
     )
+
+
+@pytest.mark.sphinx_params(
+    "with_eval_executed.ipynb", conf={"nb_execution_mode": "off"}
+)
+def test_no_build(sphinx_run, clean_doctree, file_regression):
+    """Test using eval from cell metadata."""
+    sphinx_run.build()
+    assert sphinx_run.warnings() == ""
+    doctree = clean_doctree(sphinx_run.get_resolved_doctree("with_eval_executed"))
+    file_regression.check(doctree.pformat(), encoding="utf-8")
