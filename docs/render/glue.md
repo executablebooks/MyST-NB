@@ -54,6 +54,8 @@ We'll hide most of this process below, to focus on the glueing part.
 
 # Simulate some data and bootstrap the mean of the data
 import numpy as np
+np.set_printoptions(legacy="1.25")
+
 import pandas as pd
 import matplotlib.pyplot as plt
 
