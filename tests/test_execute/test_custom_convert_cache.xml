@@ -12,10 +12,10 @@
                 <container nb_element="mime_bundle">
                     <container mime_type="text/plain">
                         <literal_block classes="output text_plain" language="myst-ansi" xml:space="preserve">
-                            <AxesSubplot:title={'center':'Sample plot'}>
+                            <Axes: title={'center': 'Sample plot'}>
                 <container nb_element="mime_bundle">
                     <container mime_type="text/plain">
                         <literal_block classes="output text_plain" language="myst-ansi" xml:space="preserve">
                             <Figure size 640x480 with 1 Axes>
                     <container mime_type="image/png">
-                        <image candidates="{'*': '_build/jupyter_execute/2aa920248a8b11a7531c6c9ddfc3aa680313c113533604c8eb221e9be94bc574.png'}" uri="_build/jupyter_execute/2aa920248a8b11a7531c6c9ddfc3aa680313c113533604c8eb221e9be94bc574.png">
+                        <image candidates="{'*': '_build/jupyter_execute/a2e637020dfe58f670ba2c942d7a55e49ba48bed09312569ee15a84f5ac680cb.png'}" uri="_build/jupyter_execute/a2e637020dfe58f670ba2c942d7a55e49ba48bed09312569ee15a84f5ac680cb.png">

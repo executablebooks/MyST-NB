@@ -17,6 +17,7 @@ from sphinx.transforms.post_transforms import SphinxPostTransform
 from sphinx.util import logging
 from sphinx.util.docutils import SphinxDirective
 
+from myst_nb._compat import findall
 from myst_nb.sphinx_ import NbMetadataCollector, SphinxEnvType
 
 SPHINX_LOGGER = logging.getLogger(__name__)
@@ -76,7 +77,7 @@ class ExecutionStatsPostTransform(SphinxPostTransform):
     def run(self, **kwargs) -> None:
         """Replace the placeholder node with the final table nodes."""
         self.env: SphinxEnvType
-        for node in self.document.traverse(ExecutionStatsNode):
+        for node in findall(self.document)(ExecutionStatsNode):
             node.replace_self(
                 make_stat_table(
                     self.env.docname, NbMetadataCollector.get_doc_data(self.env)

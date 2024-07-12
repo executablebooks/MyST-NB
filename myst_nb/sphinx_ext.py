@@ -1,11 +1,14 @@
 """Setup for the myst-nb sphinx extension."""
 from __future__ import annotations
 
+import contextlib
 import hashlib
 from importlib import resources as import_resources
 import os
 from pathlib import Path
-from typing import Any
+import sys
+from types import ModuleType
+from typing import Any, Iterator, cast
 
 from myst_parser.sphinx_ext.main import setup_sphinx as setup_myst_parser
 from sphinx.application import Sphinx
@@ -26,6 +29,7 @@ from myst_nb.sphinx_ import (
     NbMetadataCollector,
     Parser,
     SelectMimeType,
+    SphinxEnvType,
 )
 
 SPHINX_LOGGER = sphinx_logging.getLogger(__name__)
@@ -48,13 +52,16 @@ def sphinx_setup(app: Sphinx):
     for name, default, field in NbParserConfig().as_triple():
         if not field.metadata.get("sphinx_exclude"):
             # TODO add types?
-            app.add_config_value(f"nb_{name}", default, "env", Any)
+            app.add_config_value(f"nb_{name}", default, "env", Any)  # type: ignore[arg-type]
             if "legacy_name" in field.metadata:
                 app.add_config_value(
-                    f"{field.metadata['legacy_name']}", _UNSET, "env", Any
+                    f"{field.metadata['legacy_name']}",
+                    _UNSET,
+                    "env",
+                    Any,  # type: ignore[arg-type]
                 )
     # Handle non-standard deprecation
-    app.add_config_value("nb_render_priority", _UNSET, "env", Any)
+    app.add_config_value("nb_render_priority", _UNSET, "env", Any)  # type: ignore[arg-type]
 
     # generate notebook configuration from Sphinx configuration
     # this also validates the configuration values
@@ -126,7 +133,7 @@ def create_mystnb_config(app):
     """Generate notebook configuration from Sphinx configuration"""
 
     # Ignore type checkers because the attribute is dynamically assigned
-    from sphinx.util.console import bold  # type: ignore[attr-defined]
+    from sphinx.util.console import bold
 
     values = {}
     for name, _, field in NbParserConfig().as_triple():
@@ -184,9 +191,21 @@ def _get_file_hash(path: Path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+@contextlib.contextmanager
+def _import_resources_path(package: ModuleType, resource: str) -> Iterator[Path]:
+    if sys.version_info < (3, 9):
+        with import_resources.path(package, resource) as path:
+            yield path
+    else:
+        with import_resources.as_file(
+            import_resources.files(package).joinpath(resource)
+        ) as path:
+            yield path
+
+
 def add_css(app: Sphinx):
     """Add CSS for myst-nb."""
-    with import_resources.path(static, "mystnb.css") as source_path:
+    with _import_resources_path(static, "mystnb.css") as source_path:
         hash = _get_file_hash(source_path)
     app.add_css_file(f"mystnb.{hash}.css")
 
@@ -195,9 +214,8 @@ def add_global_html_resources(app: Sphinx, exception):
     """Add HTML resources that apply to all pages."""
     # see https://github.com/sphinx-doc/sphinx/issues/1379
     if app.builder is not None and app.builder.format == "html" and not exception:
-        with import_resources.path(static, "mystnb.css") as source_path:
-            with import_resources.path(static, "mystnb.css") as source_path:
-                hash = _get_file_hash(source_path)
+        with _import_resources_path(static, "mystnb.css") as source_path:
+            hash = _get_file_hash(source_path)
             destination = os.path.join(
                 app.builder.outdir, "_static", f"mystnb.{hash}.css"
             )
@@ -210,6 +228,6 @@ def add_per_page_html_resources(
     """Add JS files for this page, identified from the parsing of the notebook."""
     if app.env is None or app.builder is None or app.builder.format != "html":
         return
-    js_files = NbMetadataCollector.get_js_files(app.env, pagename)  # type: ignore
+    js_files = NbMetadataCollector.get_js_files(cast(SphinxEnvType, app.env), pagename)
     for path, kwargs in js_files.values():
-        app.add_js_file(path, **kwargs)  # type: ignore
+        app.add_js_file(path, **kwargs)  # type: ignore[arg-type]

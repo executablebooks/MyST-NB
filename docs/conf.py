@@ -5,7 +5,7 @@ import os
 # -- Project information -----------------------------------------------------
 
 project = "MyST-NB"
-copyright = "2022, Executable Book Project"
+copyright = "2023, Executable Book Project"
 author = "Executable Book Project"
 
 master_doc = "index"
@@ -125,6 +125,7 @@ html_theme_options = {
         "binderhub_url": "https://mybinder.org",
         "notebook_interface": "classic",
     },
+    "navigation_with_keys": False,
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,

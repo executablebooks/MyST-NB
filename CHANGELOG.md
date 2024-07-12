@@ -1,5 +1,74 @@
 # Change Log
 
+
+## v1.0.0 - 2023-11-08
+
+([full changelog](https://github.com/executablebooks/MyST-NB/compare/e8fd165...48edb5d852eb73b09eae962c7518045f836633d5))
+
+### New features added
+
+- FEAT: allow any value for expr [#429](https://github.com/executablebooks/MyST-NB/pull/429) ([@agoose77](https://github.com/agoose77))
+
+### Bugs fixed
+
+- FIX: update tests for newer matplotlib [#559](https://github.com/executablebooks/MyST-NB/pull/559) ([@agoose77](https://github.com/agoose77))
+- FIX: remove warnings for 3.11+ [#547](https://github.com/executablebooks/MyST-NB/pull/547) ([@agoose77](https://github.com/agoose77))
+- FIX: Show traceback before raising ExecutionError [#531](https://github.com/executablebooks/MyST-NB/pull/531) ([@paugier](https://github.com/paugier))
+
+### Maintenance and upkeep improvements
+
+- MAINT: uncap nbformat [#568](https://github.com/executablebooks/MyST-NB/pull/568) ([@agoose77](https://github.com/agoose77))
+- MAINT: unpin jupyer-cache [#567](https://github.com/executablebooks/MyST-NB/pull/567) ([@agoose77](https://github.com/agoose77))
+- MAINT: bump minimum Python version [#566](https://github.com/executablebooks/MyST-NB/pull/566) ([@agoose77](https://github.com/agoose77))
+- MAINT: enable ruff formatter [#565](https://github.com/executablebooks/MyST-NB/pull/565) ([@agoose77](https://github.com/agoose77))
+- MAINT: test wider matrix [#552](https://github.com/executablebooks/MyST-NB/pull/552) ([@agoose77](https://github.com/agoose77))
+- MAINT: update linting [#551](https://github.com/executablebooks/MyST-NB/pull/551) ([@agoose77](https://github.com/agoose77))
+- MAINT: Patch `file_regression` fixture for Sphinx backwards compatibility [#536](https://github.com/executablebooks/MyST-NB/pull/536) ([@je-cook](https://github.com/je-cook))
+- MAINT: remove python=3.7 as EOL is June 2023 [#516](https://github.com/executablebooks/MyST-NB/pull/516) ([@mmcky](https://github.com/mmcky))
+
+### Documentation improvements
+
+- DOCS: Fix broken pytest fixture [#546](https://github.com/executablebooks/MyST-NB/pull/546) ([@peytondmurray](https://github.com/peytondmurray))
+- 📚 DOCS: Fix typos and add codespell pre-commit hook [#475](https://github.com/executablebooks/MyST-NB/pull/475) ([@kianmeng](https://github.com/kianmeng))
+
+### API and Breaking Changes
+
+- UPGRADE: Support Sphinx 7 [#524](https://github.com/executablebooks/MyST-NB/pull/524) ([@LecrisUT](https://github.com/LecrisUT))
+- UPGRADE: myst-parser 1.0 [#479](https://github.com/executablebooks/MyST-NB/pull/479) ([@aleivag](https://github.com/aleivag))
+
+### Other merged PRs
+
+- [pre-commit.ci] pre-commit autoupdate [#564](https://github.com/executablebooks/MyST-NB/pull/564) ([@pre-commit-ci](https://github.com/pre-commit-ci))
+- [pre-commit.ci] pre-commit autoupdate [#561](https://github.com/executablebooks/MyST-NB/pull/561) ([@pre-commit-ci](https://github.com/pre-commit-ci))
+- [pre-commit.ci] pre-commit autoupdate [#556](https://github.com/executablebooks/MyST-NB/pull/556) ([@pre-commit-ci](https://github.com/pre-commit-ci))
+- Update readthedocs Config File to fix Test Error [#554](https://github.com/executablebooks/MyST-NB/pull/554) ([@michaelweinold](https://github.com/michaelweinold))
+- [pre-commit.ci] pre-commit autoupdate [#553](https://github.com/executablebooks/MyST-NB/pull/553) ([@pre-commit-ci](https://github.com/pre-commit-ci))
+- build(deps): update ipython requirement from <=8.16.0 to <=8.16.1 [#550](https://github.com/executablebooks/MyST-NB/pull/550) ([@dependabot](https://github.com/dependabot))
+- [pre-commit.ci] pre-commit autoupdate [#549](https://github.com/executablebooks/MyST-NB/pull/549) ([@pre-commit-ci](https://github.com/pre-commit-ci))
+- build(deps): update ipython requirement from !=8.1.0,<8.16 to !=8.1.0,<8.17 [#548](https://github.com/executablebooks/MyST-NB/pull/548) ([@dependabot](https://github.com/dependabot))
+- [pre-commit.ci] pre-commit autoupdate [#542](https://github.com/executablebooks/MyST-NB/pull/542) ([@pre-commit-ci](https://github.com/pre-commit-ci))
+- build(deps): bump actions/checkout from 3 to 4 [#539](https://github.com/executablebooks/MyST-NB/pull/539) ([@dependabot](https://github.com/dependabot))
+- build(deps): update ipython requirement from !=8.1.0,<8.15 to !=8.1.0,<8.16 [#538](https://github.com/executablebooks/MyST-NB/pull/538) ([@dependabot](https://github.com/dependabot))
+- Update copyright year to 2023 [#537](https://github.com/executablebooks/MyST-NB/pull/537) ([@GlobalMin](https://github.com/GlobalMin))
+- build(deps-dev): update jupytext requirement from <1.15.0,>=1.11.2 to >=1.11.2,<1.16.0 [#534](https://github.com/executablebooks/MyST-NB/pull/534) ([@dependabot](https://github.com/dependabot))
+- [pre-commit.ci] pre-commit autoupdate [#529](https://github.com/executablebooks/MyST-NB/pull/529) ([@pre-commit-ci](https://github.com/pre-commit-ci))
+- build(deps-dev): update coconut requirement from <2.3.0,>=1.4.3 to >=1.4.3,<3.1.0 [#527](https://github.com/executablebooks/MyST-NB/pull/527) ([@dependabot](https://github.com/dependabot))
+- [pre-commit.ci] pre-commit autoupdate [#526](https://github.com/executablebooks/MyST-NB/pull/526) ([@pre-commit-ci](https://github.com/pre-commit-ci))
+- Update ipython requirement from !=8.1.0,<8.5 to !=8.1.0,<8.15 [#521](https://github.com/executablebooks/MyST-NB/pull/521) ([@dependabot](https://github.com/dependabot))
+- [pre-commit.ci] pre-commit autoupdate [#518](https://github.com/executablebooks/MyST-NB/pull/518) ([@pre-commit-ci](https://github.com/pre-commit-ci))
+- Update coconut requirement from <2.3.0,>=1.4.3 to >=1.4.3,<3.1.0 [#517](https://github.com/executablebooks/MyST-NB/pull/517) ([@dependabot](https://github.com/dependabot))
+- [pre-commit.ci] pre-commit autoupdate [#515](https://github.com/executablebooks/MyST-NB/pull/515) ([@pre-commit-ci](https://github.com/pre-commit-ci))
+- Update ipykernel requirement from ~=5.5 to >=5.5,<7.0 [#512](https://github.com/executablebooks/MyST-NB/pull/512) ([@dependabot](https://github.com/dependabot))
+- Update sphinx-book-theme requirement from ~=0.3.0 to >=0.3,<1.1 [#510](https://github.com/executablebooks/MyST-NB/pull/510) ([@dependabot](https://github.com/dependabot))
+- Update jupytext requirement from ~=1.11.2 to >=1.11.2,<1.15.0 [#509](https://github.com/executablebooks/MyST-NB/pull/509) ([@dependabot](https://github.com/dependabot))
+
+### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/executablebooks/MyST-NB/graphs/contributors?from=2023-04-24&to=2023-11-29&type=c))
+
+[@agoose77](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Aagoose77+updated%3A2023-04-24..2023-11-29&type=Issues) | [@aleivag](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Aaleivag+updated%3A2023-04-24..2023-11-29&type=Issues) | [@choldgraf](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Acholdgraf+updated%3A2023-04-24..2023-11-29&type=Issues) | [@chrisjsewell](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Achrisjsewell+updated%3A2023-04-24..2023-11-29&type=Issues) | [@cisaacstern](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Acisaacstern+updated%3A2023-04-24..2023-11-29&type=Issues) | [@codecov](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Acodecov+updated%3A2023-04-24..2023-11-29&type=Issues) | [@dependabot](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Adependabot+updated%3A2023-04-24..2023-11-29&type=Issues) | [@GlobalMin](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3AGlobalMin+updated%3A2023-04-24..2023-11-29&type=Issues) | [@je-cook](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Aje-cook+updated%3A2023-04-24..2023-11-29&type=Issues) | [@joeldodson](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Ajoeldodson+updated%3A2023-04-24..2023-11-29&type=Issues) | [@kianmeng](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Akianmeng+updated%3A2023-04-24..2023-11-29&type=Issues) | [@kloczek](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Akloczek+updated%3A2023-04-24..2023-11-29&type=Issues) | [@LecrisUT](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3ALecrisUT+updated%3A2023-04-24..2023-11-29&type=Issues) | [@michaelweinold](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Amichaelweinold+updated%3A2023-04-24..2023-11-29&type=Issues) | [@mmcky](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Ammcky+updated%3A2023-04-24..2023-11-29&type=Issues) | [@paugier](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Apaugier+updated%3A2023-04-24..2023-11-29&type=Issues) | [@peytondmurray](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Apeytondmurray+updated%3A2023-04-24..2023-11-29&type=Issues) | [@PhilipVinc](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3APhilipVinc+updated%3A2023-04-24..2023-11-29&type=Issues) | [@pre-commit-ci](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Apre-commit-ci+updated%3A2023-04-24..2023-11-29&type=Issues) | [@rowanc1](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Arowanc1+updated%3A2023-04-24..2023-11-29&type=Issues) | [@sphuber](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Asphuber+updated%3A2023-04-24..2023-11-29&type=Issues) | [@tupui](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Atupui+updated%3A2023-04-24..2023-11-29&type=Issues) | [@WarrenWeckesser](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3AWarrenWeckesser+updated%3A2023-04-24..2023-11-29&type=Issues) | [@welcome](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Awelcome+updated%3A2023-04-24..2023-11-29&type=Issues) | [@Yoshanuikabundi](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3AYoshanuikabundi+updated%3A2023-04-24..2023-11-29&type=Issues)
+
+
 ## v0.17.2 - 2023-04-21
 
 This is primarily a maintenance release to support newer versions of dependencies and fix a few bugs.

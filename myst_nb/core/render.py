@@ -288,7 +288,7 @@ class MditRenderMixin:
 
         # TODO how to output MyST Markdown?
         # currently text/markdown is set to be rendered as CommonMark only,
-        # with headings dissallowed,
+        # with headings disallowed,
         # to avoid "side effects" if the mime is discarded but contained
         # targets, etc, and because we can't parse headings within containers.
         # perhaps we could have a config option to allow this?
@@ -652,7 +652,7 @@ class NbElementRenderer:
             # data is b64-encoded as text
             data_bytes = a2b_base64(data.content)
         elif isinstance(data.content, str):
-            # ensure corrent line separator
+            # ensure correct line separator
             data_bytes = os.linesep.join(data.content.splitlines()).encode("utf-8")
         # create filename
         extension = (
@@ -672,6 +672,14 @@ class NbElementRenderer:
         # TODO backwards-compatible re-naming to image_options?
         image_options = self.renderer.get_cell_level_config(
             "render_image_options", data.cell_metadata, line=data.line
+        ).copy()
+        # Overwrite with metadata stored in output
+        image_options.update(
+            {
+                key: str(value)
+                for key, value in data.output_metadata.get(data.mime_type, {}).items()
+                if key in {"width", "height"}
+            }
         )
         for key, spec in [
             ("classes", options_spec.class_option),
@@ -803,7 +811,7 @@ class NbElementRenderer:
         self, data: MimeData, *, fmt: str, inline: bool
     ) -> list[nodes.Element]:
         """Base render for a notebook markdown mime output (block or inline)."""
-        psuedo_element = nodes.Element()  # element to hold the parsed markdown
+        pseudo_element = nodes.Element()  # element to hold the parsed markdown
         current_parser = self.renderer.md
         current_md_config = self.renderer.md_config
         try:
@@ -831,7 +839,7 @@ class NbElementRenderer:
                 )
                 return []
 
-            with self.renderer.current_node_context(psuedo_element):
+            with self.renderer.current_node_context(pseudo_element):
                 self.renderer.nested_render_text(
                     data.string,
                     data.line or 0,
@@ -842,7 +850,7 @@ class NbElementRenderer:
             self.renderer.md = current_parser
             self.renderer.md_config = current_md_config
 
-        return psuedo_element.children
+        return pseudo_element.children
 
 
 class EntryPointError(Exception):
@@ -906,7 +914,7 @@ class ExampleMimeRenderPlugin(MimeRenderPlugin):
         return None
 
 
-@lru_cache()
+@lru_cache
 def load_mime_renders() -> list[MimeRenderPlugin]:
     all_eps = entry_points()
     if hasattr(all_eps, "select"):

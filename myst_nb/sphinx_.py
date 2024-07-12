@@ -61,6 +61,8 @@ class Parser(MystParser):
     config_section = "myst-nb parser"
     config_section_dependencies = ("parsers",)
 
+    env: SphinxEnvType
+
     def parse(self, inputstring: str, document: nodes.document) -> None:
         """Parse source text.
 
@@ -68,7 +70,6 @@ class Parser(MystParser):
         :param document: The root docutils node to add AST elements to
         """
         assert self.env is not None, "env not set"
-        self.env: SphinxEnvType
         document_path = self.env.doc2path(self.env.docname)
 
         # get a logger for this document
@@ -146,7 +147,7 @@ class Parser(MystParser):
         # so that roles/directives can access it
         document.attributes["nb_renderer"] = nb_renderer
         # we currently do this early, so that the nb_renderer has access to things
-        mdit_renderer.setup_render(mdit_parser.options, mdit_env)
+        mdit_renderer.setup_render(mdit_parser.options, mdit_env)  # type: ignore
 
         # parse notebook structure to markdown-it tokens
         # note, this does not assume that the notebook has been executed yet
@@ -333,10 +334,13 @@ class SelectMimeType(SphinxPostTransform):
         priority_list = get_mime_priority(
             bname, self.config["nb_mime_priority_overrides"]
         )
-        condition = (
-            lambda node: isinstance(node, nodes.container)
-            and node.attributes.get("nb_element", "") == "mime_bundle"
-        )
+
+        def condition(node):
+            return (
+                isinstance(node, nodes.container)
+                and node.attributes.get("nb_element", "") == "mime_bundle"
+            )
+
         # remove/replace_self will not work with an iterator
         for node in list(findall(self.document)(condition)):
             # get available mime types
@@ -370,7 +374,7 @@ class SelectMimeType(SphinxPostTransform):
 
 
 class NbMetadataCollector(EnvironmentCollector):
-    """Collect myst-nb specific metdata, and handle merging of parallel builds."""
+    """Collect myst-nb specific metadata, and handle merging of parallel builds."""
 
     @staticmethod
     def set_doc_data(env: SphinxEnvType, docname: str, key: str, value: Any) -> None:

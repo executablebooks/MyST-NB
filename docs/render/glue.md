@@ -54,6 +54,8 @@ We'll hide most of this process below, to focus on the glueing part.
 
 # Simulate some data and bootstrap the mean of the data
 import numpy as np
+np.set_printoptions(legacy="1.25")
+
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -70,7 +72,7 @@ Below we'll calculate a few statistics of interest, and `glue()` them into the n
 ```{code-cell} ipython3
 # Calculate the mean of a bunch of random samples
 means = data[bootstrap_indices].mean(0)
-# Calcualte the 95% confidence interval for the mean
+# Calculate the 95% confidence interval for the mean
 clo, chi = np.percentile(means, [2.5, 97.5])
 
 # Store the values in our notebook
@@ -91,7 +93,7 @@ glue("boot_chi_notdisplayed", chi, display=False)
 You can also glue visualizations, such as matplotlib figures (here we use `display=False` to ensure that the figure isn't plotted twice):
 
 ```{code-cell} ipython3
-# Visualize the historgram with the intervals
+# Visualize the histogram with the intervals
 fig, ax = plt.subplots()
 ax.hist(means)
 for ln in [clo, chi]:

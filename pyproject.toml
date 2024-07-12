@@ -1,4 +1,4 @@
-[build-system]
+ [build-system]
 requires = ["flit_core >=3.4,<4"]
 build-backend = "flit_core.buildapi"
 
@@ -7,18 +7,19 @@ name = "myst-nb"
 dynamic = ["version"]
 description = "A Jupyter Notebook Sphinx reader built on top of the MyST markdown parser."
 authors = [{name = "ExecutableBookProject", email = "chrisj_sewell@hotmail.com"}]
+maintainers = [{name = "Angus Hollands", email = "goosey15@gmail.com"}]
 readme = "README.md"
 license = {file = "LICENSE"}
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Framework :: Sphinx :: Extension",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
     "Topic :: Software Development :: Libraries :: Python Modules",
@@ -32,16 +33,16 @@ keywords = [
     "docutils",
     "sphinx",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
     "importlib_metadata",
     "ipython",
-    "jupyter-cache>=0.5,<0.7",
+    "jupyter-cache>=0.5",
     "nbclient",  # nbclient version pinned by jupyter-client
-    "myst-parser>=0.18.0",
-    "nbformat~=5.0",
+    "myst-parser>=1.0.0",
+    "nbformat>=5.0",
     "pyyaml",
-    "sphinx>=4",
+    "sphinx>=5",
     "typing-extensions",
     # ipykernel is not a requirement of the library,
     # but is a common requirement for users (registers the python3 kernel)
@@ -74,7 +75,7 @@ rtd = [
     "coconut>=1.4.3,<3.1.0",
     "ipykernel>=5.5,<7.0",
     "ipywidgets",
-    "jupytext>=1.11.2,<1.15.0",
+    "jupytext>=1.11.2,<1.16.0",
     "matplotlib",
     "numpy",
     "pandas",
@@ -92,13 +93,15 @@ testing = [
     # for issue with 8.1.0 see https://github.com/ipython/ipython/issues/13554
     # TODO ipython 8.5 subtly changes output of test regressions
     # see https://ipython.readthedocs.io/en/stable/whatsnew/version8.html#restore-line-numbers-for-input
-    "ipython!=8.1.0,<8.15",
+    "ipython!=8.1.0,<8.17",
     "ipywidgets>=8",
-    "jupytext>=1.11.2,<1.15.0",
-    "matplotlib>=3.5.3,<3.6",  # TODO mpl 3.6 subtly changes output of test regressions
+    "jupytext>=1.11.2,<1.16.0",
+    # Matplotlib outputs are sensitive to the matplotlib version
+    "matplotlib==3.7.*",
     "nbdime",
     "numpy",
-    "pandas",
+    "pandas==1.5.*",
+    "pyarrow",
     "pytest~=7.1",
     "pytest-cov>=3,<5",
     "pytest-regressions",
@@ -140,7 +143,10 @@ follow_imports = "skip"
 module = ["docutils.*", "nbformat.*", "jupyter_cache.*", "IPython.*", "pygments.*"]
 ignore_missing_imports = true
 
-[tool.isort]
-profile = "black"
-src_paths = ["myst_nb", "tests"]
-force_sort_within_sections = true
+[tool.ruff.lint]
+ignore = [
+    "E203",    # Whitespace before punctuation
+]
+
+[tool.ruff.lint.isort]
+force-sort-within-sections = true

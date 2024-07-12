@@ -178,7 +178,7 @@ class Parser(MystParser):
         # so that roles/directives can access it
         document.attributes["nb_renderer"] = nb_renderer
         # we currently do this early, so that the nb_renderer has access to things
-        mdit_renderer.setup_render(mdit_parser.options, mdit_env)
+        mdit_renderer.setup_render(mdit_parser.options, mdit_env)  # type: ignore
 
         # parse notebook structure to markdown-it tokens
         # note, this does not assume that the notebook has been executed yet
@@ -207,7 +207,7 @@ class Parser(MystParser):
                 css_paths.append(
                     nb_renderer.write_file(
                         ["mystnb.css"],
-                        import_resources.read_binary(static, "mystnb.css"),
+                        (import_resources.files(static) / "mystnb.css").read_bytes(),
                         overwrite=True,
                     )
                 )

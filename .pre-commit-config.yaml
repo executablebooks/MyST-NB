@@ -12,47 +12,43 @@ exclude: >
 repos:
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v4.5.0
     hooks:
     - id: check-json
     - id: check-yaml
     - id: end-of-file-fixer
     - id: trailing-whitespace
+    - id: check-added-large-files
+    - id: check-case-conflict
+    - id: check-merge-conflict
+    - id: mixed-line-ending
+    - id: trailing-whitespace
 
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v3.7.0
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.4
     hooks:
-    - id: pyupgrade
-      args: [--py37-plus]
-
-  - repo: https://github.com/PyCQA/isort
-    rev: 5.12.0
-    hooks:
-    - id: isort
-
-  - repo: https://github.com/psf/black
-    rev: 23.3.0
-    hooks:
-    - id: black
-
-  - repo: https://github.com/PyCQA/flake8
-    rev: 6.0.0
-    hooks:
-    - id: flake8
-      additional_dependencies: [flake8-bugbear]
+    - id: ruff
+      args: ["--fix", "--show-fixes"]
+    - id: ruff-format
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.4.1
+    rev: v1.6.1
     hooks:
     - id: mypy
       args: [--config-file=pyproject.toml]
       additional_dependencies:
       - importlib_metadata
-      - myst-parser~=1.0.0
-      - "sphinx~=5.0"
+      - myst-parser~=2.0.0
+      - "sphinx~=7.3.7"
       - nbclient
       - types-PyYAML
       files: >
         (?x)^(
             myst_nb/.+\.py|
         )$
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.2.6
+    hooks:
+    - id: codespell
+      args: ["-S", "*.ipynb"]

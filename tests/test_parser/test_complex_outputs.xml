@@ -109,7 +109,7 @@
             <container classes="cell_output" nb_element="cell_code_output">
                 <container nb_element="mime_bundle">
                     <container mime_type="image/jpeg">
-                        <image candidates="{'*': '_build/jupyter_execute/a4c9580c74dacf6f3316a3bd2e2a347933aa4463834dcf1bb8f20b4fcb476ae1.jpg'}" uri="_build/jupyter_execute/a4c9580c74dacf6f3316a3bd2e2a347933aa4463834dcf1bb8f20b4fcb476ae1.jpg">
+                        <image candidates="{'*': '_build/jupyter_execute/a4c9580c74dacf6f3316a3bd2e2a347933aa4463834dcf1bb8f20b4fcb476ae1.jpg'}" height="400" uri="_build/jupyter_execute/a4c9580c74dacf6f3316a3bd2e2a347933aa4463834dcf1bb8f20b4fcb476ae1.jpg">
                     <container mime_type="text/plain">
                         <literal_block classes="output text_plain" language="myst-ansi" xml:space="preserve">
                             <IPython.core.display.Image object>
@@ -130,7 +130,7 @@
                 <container classes="cell_output" nb_element="cell_code_output">
                     <container nb_element="mime_bundle">
                         <container mime_type="image/png">
-                            <image candidates="{'*': '_build/jupyter_execute/16832f45917c1c9862c50f0948f64a498402d6ccde1f3a291da17f240797b160.png'}" uri="_build/jupyter_execute/16832f45917c1c9862c50f0948f64a498402d6ccde1f3a291da17f240797b160.png">
+                            <image candidates="{'*': '_build/jupyter_execute/16832f45917c1c9862c50f0948f64a498402d6ccde1f3a291da17f240797b160.png'}" height="288" uri="_build/jupyter_execute/16832f45917c1c9862c50f0948f64a498402d6ccde1f3a291da17f240797b160.png" width="432">
                         <container mime_type="text/plain">
                             <literal_block classes="output text_plain" language="myst-ansi" xml:space="preserve">
                                 <Figure size 432x288 with 1 Axes>
@@ -143,7 +143,7 @@
             <container classes="cell_input" nb_element="cell_code_source">
                 <literal_block language="ipython3" xml:space="preserve">
                     df = pd.DataFrame(np.random.rand(3,4),columns=['a','b','c','d'])
-                    df.a = ['$\delta$','x','y']
+                    df.a = [r'$\delta$','x','y']
                     df.b = ['l','m','n']
                     df.set_index(['a','b'])
                     df.round(3)

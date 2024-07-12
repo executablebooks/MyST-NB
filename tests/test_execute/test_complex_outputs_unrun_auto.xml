@@ -119,7 +119,7 @@
                 <literal_block language="ipython3" xml:space="preserve">
                     np.random.seed(0) 
                     df = pd.DataFrame(np.random.rand(3,4),columns=['a','b','c','d'])
-                    df.a = ['$\delta$','x','y']
+                    df.a = [r'$\delta$','x','y']
                     df.b = ['l','m','n']
                     df.set_index(['a','b'])
                     df.round(3)
@@ -214,7 +214,7 @@
                             (√5⋅ⅈ)      ⋅⎜─ - ──────⎟ + (-√5⋅ⅈ)      ⋅⎜─ + ──────⎟
                                          ⎝2     5   ⎠                 ⎝2     5   ⎠
                     <container mime_type="image/png">
-                        <image candidates="{'*': '_build/jupyter_execute/e2dfbe330154316cfb6f3186e8f57fc4df8aee03b0303ed1345fc22cd51f66de.png'}" uri="_build/jupyter_execute/e2dfbe330154316cfb6f3186e8f57fc4df8aee03b0303ed1345fc22cd51f66de.png">
+                        <image candidates="{'*': '_build/jupyter_execute/9bc81205a14646a235d284d1b68223d17f30f7f1d3d8ed3e52cf47830b02e3bb.png'}" uri="_build/jupyter_execute/9bc81205a14646a235d284d1b68223d17f30f7f1d3d8ed3e52cf47830b02e3bb.png">
                     <container mime_type="text/latex">
                         <math_block classes="output text_latex" nowrap="False" number="True" xml:space="preserve">
                             \displaystyle \left(\sqrt{5} i\right)^{\alpha} \left(\frac{1}{2} - \frac{2 \sqrt{5} i}{5}\right) + \left(- \sqrt{5} i\right)^{\alpha} \left(\frac{1}{2} + \frac{2 \sqrt{5} i}{5}\right)

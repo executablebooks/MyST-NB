@@ -1,8 +1,7 @@
 """Configuration for myst-nb."""
 import dataclasses as dc
 from enum import Enum
-import sys
-from typing import Any, Callable, Dict, Iterable, Optional, Sequence, Tuple
+from typing import Any, Callable, Dict, Iterable, Literal, Optional, Sequence, Tuple
 
 from myst_parser.config.dc_validators import (
     ValidatorType,
@@ -13,11 +12,6 @@ from myst_parser.config.dc_validators import (
     optional,
     validate_fields,
 )
-
-if sys.version_info >= (3, 8):
-    from typing import Literal
-else:
-    from typing_extensions import Literal  # noqa: F401
 
 from myst_nb.warnings_ import MystNBWarnings
 
@@ -275,7 +269,7 @@ class NbParserConfig:
             "sections": (Section.global_lvl, Section.file_lvl, Section.execute),
         },
     )
-    execution_show_tb: bool = dc.field(  # TODO implement
+    execution_show_tb: bool = dc.field(
         default=False,
         metadata={
             "validator": instance_of(bool),
