@@ -68,7 +68,7 @@ def create_nb_reader(
     # we check suffixes ordered by longest first, to ensure we get the "closest" match
     iterator = sorted(readers.items(), key=lambda x: len(x[0]), reverse=True)
     for suffix, (reader, reader_kwargs, commonmark_only) in iterator:
-        if path.endswith(suffix):
+        if path.suffix == suffix:
             if isinstance(reader, str):
                 # attempt to load the reader as an object path
                 reader = import_object(reader)
