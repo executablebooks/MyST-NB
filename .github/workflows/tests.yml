@@ -21,11 +21,11 @@ jobs:
         include:
           # Just check the other platforms once
           - os: windows-latest
-            python-version: "3.10"
+            python-version: "3.12"
             sphinx: "~=8.0"
             myst-parser: "~=4.0"
           - os: macos-latest
-            python-version: "3.10"
+            python-version: "3.12"
             sphinx: "~=8.0"
             myst-parser: "~=4.0"
           # Oldest known-compatible dependencies
@@ -33,6 +33,11 @@ jobs:
             python-version: "3.9"
             sphinx: "==5.0.0"
             myst-parser: "==1.0.0"
+          # Mid-range dependencies
+          - os: ubuntu-latest
+            python-version: "3.11"
+            sphinx: "==7.0.0"
+            myst-parser: "==2.0.0"
           # Newest known-compatible dependencies
           - os: ubuntu-latest
             python-version: "3.12"
