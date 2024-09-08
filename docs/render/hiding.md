@@ -117,7 +117,7 @@ Cell tags are helpfully propagated to the LaTeX source (e.g. `hide-cell` tag wil
 
 ```{code-cell} latex
 
-\NewDocumentEnvironment{HIDDEN}{+b}{\relax}                              % defines a new environment HIDDEN suppressing output
+\NewDocumentEnvironment{HIDDEN}{+b}{}{}                                  % defines a new environment HIDDEN which ignores its contents (no output)
 \newenvironment{sphinxclasstag_hide-cell}{\begin{HIDDEN}}{\end{HIDDEN}}  % this will be used by \begin{sphinxuseclass}{tag_hide-cell}…\end{sphinxuseclass}
 ```
 
