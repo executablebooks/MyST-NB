@@ -1,2 +1,2 @@
 # this is only required by coconut kernel
-ipython<=8.16.1
+ipython<=8.27.0
