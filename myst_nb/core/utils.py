@@ -29,8 +29,8 @@ def coalesce_streams(outputs: list[NotebookNode]) -> list[NotebookNode]:
                 if out:
                     streams[output["name"]]["text"] += f"{out}\n"
             else:
-                new_outputs.append(output)
                 output["text"] = output["text"].strip() + "\n"
+                new_outputs.append(output)
                 streams[output["name"]] = output
         else:
             new_outputs.append(output)
