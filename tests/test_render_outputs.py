@@ -1,4 +1,5 @@
 """Tests for rendering code cell outputs."""
+
 import pytest
 
 from myst_nb.core.render import EntryPointError, load_renderer
@@ -100,6 +101,18 @@ def test_merge_streams(sphinx_run, file_regression):
     sphinx_run.build()
     assert sphinx_run.warnings() == ""
     doctree = sphinx_run.get_resolved_doctree("merge_streams")
+    file_regression.check(doctree.pformat(), extension=".xml", encoding="utf-8")
+
+
+@pytest.mark.sphinx_params(
+    "merge_streams_parallel.ipynb",
+    conf={"nb_execution_mode": "off", "nb_merge_streams": True},
+)
+def test_merge_streams_parallel(sphinx_run, file_regression):
+    """Test configuring multiple concurrent stdout/stderr outputs to be merged."""
+    sphinx_run.build()
+    assert sphinx_run.warnings() == ""
+    doctree = sphinx_run.get_resolved_doctree("merge_streams_parallel")
     file_regression.check(doctree.pformat(), extension=".xml", encoding="utf-8")
 
 
