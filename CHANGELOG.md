@@ -1,5 +1,66 @@
 # Change Log
 
+## v1.1.1 - 2024-06-27
+
+([full changelog](https://github.com/executablebooks/MyST-NB/compare/v1.1.0...6ce30cd41fa82543e0f315ac8bbee82669b0cc82))
+
+### Bugs fixed
+
+- FIX: output metadata overwrites image size for all following images [#609](https://github.com/executablebooks/MyST-NB/pull/609) ([@aeisenbarth](https://github.com/aeisenbarth))
+
+- FIX: remove incorrect license classifier [#603](https://github.com/executablebooks/MyST-NB/pull/603) ([@agoose77](https://github.com/agoose77))
+
+### Maintenance and upkeep improvements
+
+- MAINT: bump version [#614](https://github.com/executablebooks/MyST-NB/pull/614) ([@agoose77](https://github.com/agoose77))
+
+- MAINT: appease mypy [#612](https://github.com/executablebooks/MyST-NB/pull/612) ([@agoose77](https://github.com/agoose77))
+
+- MAINT: fix specs for CI matrix [#611](https://github.com/executablebooks/MyST-NB/pull/611) ([@agoose77](https://github.com/agoose77))
+
+- MAINT: bump version [#592](https://github.com/executablebooks/MyST-NB/pull/592) ([@agoose77](https://github.com/agoose77))
+
+### Documentation improvements
+
+- DOCS: set printoptions to disable modern scalar printing [#613](https://github.com/executablebooks/MyST-NB/pull/613) ([@agoose77](https://github.com/agoose77))
+
+- DOCS: extra comma forgotten [#606](https://github.com/executablebooks/MyST-NB/pull/606) ([@jeertmans](https://github.com/jeertmans))
+
+- DOCS: update shown code to match source [#598](https://github.com/executablebooks/MyST-NB/pull/598) ([@OriolAbril](https://github.com/OriolAbril))
+
+### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/executablebooks/MyST-NB/graphs/contributors?from=2024-04-12&to=2024-06-27&type=c))
+
+[@aeisenbarth](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Aaeisenbarth+updated%3A2024-04-12..2024-06-27&type=Issues) | [@agoose77](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Aagoose77+updated%3A2024-04-12..2024-06-27&type=Issues) | [@jeertmans](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Ajeertmans+updated%3A2024-04-12..2024-06-27&type=Issues) | [@OriolAbril](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3AOriolAbril+updated%3A2024-04-12..2024-06-27&type=Issues) | [@sstroemer](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Asstroemer+updated%3A2024-04-12..2024-06-27&type=Issues) | [@welcome](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Awelcome+updated%3A2024-04-12..2024-06-27&type=Issues)
+
+
+## v1.1.0 - 2024-04-12
+
+([full changelog](https://github.com/executablebooks/MyST-NB/compare/v1.0.0...9943ec214c35844c4535d0184f7840574fc7ab03))
+
+### Enhancements made
+
+- ENH: pass-through image metadata [#588](https://github.com/executablebooks/MyST-NB/pull/588) ([@flying-sheep](https://github.com/flying-sheep))
+
+### Maintenance and upkeep improvements
+
+- MAINT: bump version [#592](https://github.com/executablebooks/MyST-NB/pull/592) ([@agoose77](https://github.com/agoose77))
+
+- MAINT: use `findall` instead of `traverse` [#585](https://github.com/executablebooks/MyST-NB/pull/585) ([@agoose77](https://github.com/agoose77))
+
+- MAINT: restore default line length [#577](https://github.com/executablebooks/MyST-NB/pull/577) ([@agoose77](https://github.com/agoose77))
+
+### Other merged PRs
+
+- build(deps): bump actions/setup-python from 4 to 5 [#576](https://github.com/executablebooks/MyST-NB/pull/576) ([@dependabot](https://github.com/dependabot))
+
+### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/executablebooks/MyST-NB/graphs/contributors?from=2023-11-08&to=2024-04-12&type=c))
+
+[@agoose77](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Aagoose77+updated%3A2023-11-08..2024-04-12&type=Issues) | [@cisaacstern](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Acisaacstern+updated%3A2023-11-08..2024-04-12&type=Issues) | [@dependabot](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Adependabot+updated%3A2023-11-08..2024-04-12&type=Issues) | [@flying-sheep](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Aflying-sheep+updated%3A2023-11-08..2024-04-12&type=Issues) | [@ma-sadeghi](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Ama-sadeghi+updated%3A2023-11-08..2024-04-12&type=Issues) | [@peytondmurray](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Apeytondmurray+updated%3A2023-11-08..2024-04-12&type=Issues) | [@PhilipVinc](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3APhilipVinc+updated%3A2023-11-08..2024-04-12&type=Issues) | [@sphuber](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Asphuber+updated%3A2023-11-08..2024-04-12&type=Issues) | [@welcome](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Awelcome+updated%3A2023-11-08..2024-04-12&type=Issues)
+
 
 ## v1.0.0 - 2023-11-08
 
