@@ -123,7 +123,7 @@
                         plt.ylabel(r'a y label with latex $\alpha$')
                         plt.legend();
                 <container classes="cell_output" nb_element="cell_code_output">
-                    <image candidates="{'*': '_build/jupyter_execute/16832f45917c1c9862c50f0948f64a498402d6ccde1f3a291da17f240797b160.png'}" height="400" uri="_build/jupyter_execute/16832f45917c1c9862c50f0948f64a498402d6ccde1f3a291da17f240797b160.png">
+                    <image candidates="{'*': '_build/jupyter_execute/16832f45917c1c9862c50f0948f64a498402d6ccde1f3a291da17f240797b160.png'}" height="288" uri="_build/jupyter_execute/16832f45917c1c9862c50f0948f64a498402d6ccde1f3a291da17f240797b160.png" width="432">
     <section ids="tables-with-pandas" names="tables\ (with\ pandas)">
         <title>
             Tables (with pandas)
@@ -168,7 +168,7 @@
                     f = y(n)-2*y(n-1/sym.pi)-5*y(n-2)
                     sym.rsolve(f,y(n),[1,4])
             <container classes="cell_output" nb_element="cell_code_output">
-                <image candidates="{'*': '_build/jupyter_execute/8c43e5c8cccf697754876b7fec1b0a9b731d7900bb585e775a5fa326b4de8c5a.png'}" height="400" uri="_build/jupyter_execute/8c43e5c8cccf697754876b7fec1b0a9b731d7900bb585e775a5fa326b4de8c5a.png">
+                <image candidates="{'*': '_build/jupyter_execute/8c43e5c8cccf697754876b7fec1b0a9b731d7900bb585e775a5fa326b4de8c5a.png'}" uri="_build/jupyter_execute/8c43e5c8cccf697754876b7fec1b0a9b731d7900bb585e775a5fa326b4de8c5a.png">
         <container cell_index="25" cell_metadata="{}" classes="cell" exec_count="7" nb_element="cell_code">
             <container classes="cell_input" nb_element="cell_code_source">
                 <literal_block language="ipython3" linenos="False" xml:space="preserve">
