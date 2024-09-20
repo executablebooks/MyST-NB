@@ -104,6 +104,15 @@ class SphinxFixture:
             pytest.fail("html not output")
         return bs4.BeautifulSoup(_path.read_text(), "html.parser")
 
+    def get_latex(self, index=0):
+        """Return the built LaTeX file."""
+        # name = self.files[index][0]
+        # not sure why latex output is named python.tex
+        _path = self.app.outdir / "python.tex"  # (name + ".tex")
+        if not _path.exists():
+            pytest.fail("tex not output")
+        return _path.read_text(encoding="utf-8")
+
     def get_nb(self, index=0):
         """Return the output notebook (after any execution)."""
         name = self.files[index][0]
