@@ -35,7 +35,10 @@ def test_basic_run(sphinx_run, file_regression):
     }
     assert filenames == {"basic_run.ipynb"}
 
-@pytest.mark.sphinx_params("basic_run_intl.ipynb", conf={"language": "es", "locale_dirs": ["locale"]})
+
+@pytest.mark.sphinx_params(
+    "basic_run_intl.ipynb", conf={"language": "es", "locale_dirs": ["locale"]}
+)
 def test_basic_run_intl(sphinx_run, file_regression):
     sphinx_run.build()
     # print(sphinx_run.status())
