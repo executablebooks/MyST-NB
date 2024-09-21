@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 import re
 import uuid
+import shutil
 
 import bs4
 from docutils.nodes import image as image_node
@@ -176,6 +177,8 @@ def sphinx_run(sphinx_params, make_app, tmp_path):
         )
         + "\n"
     )
+    if "language" in conf:
+        shutil.copytree(TEST_FILE_DIR / "locale", srcdir / "locale")
 
     for nb_file in sphinx_params["files"]:
         nb_path = TEST_FILE_DIR.joinpath(nb_file)

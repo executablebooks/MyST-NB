@@ -35,6 +35,36 @@ def test_basic_run(sphinx_run, file_regression):
     }
     assert filenames == {"basic_run.ipynb"}
 
+@pytest.mark.sphinx_params("basic_run_intl.ipynb", conf={"language": "es", "locale_dirs": ["locale"]})
+def test_basic_run_intl(sphinx_run, file_regression):
+    sphinx_run.build()
+    # print(sphinx_run.status())
+    assert sphinx_run.warnings() == ""
+    assert set(sphinx_run.env.metadata["basic_run_intl"].keys()) == {
+        "test_name",
+        "wordcount",
+        "kernelspec",
+        "language_info",
+    }
+    assert set(sphinx_run.env.nb_metadata["basic_run_intl"].keys()) == set()
+    assert sphinx_run.env.metadata["basic_run_intl"]["test_name"] == "notebook1"
+    assert sphinx_run.env.metadata["basic_run_intl"]["kernelspec"] == {
+        "display_name": "Python 3",
+        "language": "python",
+        "name": "python3",
+    }
+    file_regression.check(
+        sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf-8"
+    )
+
+    filenames = {
+        p.name
+        for p in Path(
+            os.fspath(sphinx_run.app.srcdir / "_build" / "jupyter_execute")
+        ).iterdir()
+    }
+    assert filenames == {"basic_run_intl.ipynb"}
+
 
 @pytest.mark.sphinx_params("complex_outputs.ipynb", conf={"nb_execution_mode": "off"})
 def test_complex_outputs(sphinx_run, file_regression):
