@@ -106,9 +106,8 @@ class SphinxFixture:
 
     def get_latex(self, index=0):
         """Return the built LaTeX file."""
-        # name = self.files[index][0]
-        # not sure why latex output is named python.tex
-        _path = self.app.outdir / "python.tex"  # (name + ".tex")
+        name = self.files[index][0]
+        _path = self.app.outdir / (name + ".tex")
         if not _path.exists():
             pytest.fail("tex not output")
         return _path.read_text(encoding="utf-8")

@@ -344,7 +344,7 @@ def test_only_html(sphinx_run, file_regression):
     # print(sphinx_run.get_html())
     output = sphinx_run.get_html().select("div.output div.highlight pre")
     assert len(output) == 1  # check that other cell is not present
-    assert "2" in output  # check value to ensure correct cell is present
+    assert "2" in output[0].text  # check value to ensure correct cell is present
 
 
 @pytest.mark.sphinx_params(
