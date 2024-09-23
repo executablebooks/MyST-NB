@@ -348,7 +348,12 @@ def test_only_html(sphinx_run, file_regression):
 
 
 @pytest.mark.sphinx_params(
-    "with_only.md", conf={"nb_execution_mode": "auto"}, buildername="latex"
+    "with_only.md", 
+    conf={
+        "nb_execution_mode": "auto",
+        "latex_documents": [('with_only', 'with_only.tex', "project", "author", 'manual')]
+        }, 
+    buildername="latex"
 )
 def test_only_latex(sphinx_run, file_regression):
     """Test that the table gets output into the HTML,
