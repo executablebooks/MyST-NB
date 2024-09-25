@@ -1,0 +1,36 @@
+name: continuous-integration-devdeps
+
+on:
+  push:
+    branches: [master]
+  schedule:
+    # run every Monday at 5am UTC
+    - cron: '0 5 * * 1'
+  workflow_dispatch:
+
+jobs:
+
+  tests:
+
+    strategy:
+      fail-fast: false
+      matrix:
+        sphinx: [""]  # Newest Sphinx (any)
+        myst-parser: [""]  # Newest MyST Parser (any)
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+        cache: pip
+    - name: Install myst-nb with development Sphinx and myst-parser versions
+      run: |
+        pip install --upgrade pip
+        pip install --upgrade git+https://github.com/executablebooks/MyST-Parser.git#egg=myst-parser git+https://github.com/sphinx-doc/sphinx.git#egg=sphinx -e .[testing]
+
+    - name: Run pytest
+      run: pytest --durations=10
