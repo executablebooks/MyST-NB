@@ -8,7 +8,6 @@ import pytest
 @pytest.mark.sphinx_params("basic_run.ipynb", conf={"nb_execution_mode": "off"})
 def test_basic_run(sphinx_run, file_regression):
     sphinx_run.build()
-    # print(sphinx_run.status())
     assert sphinx_run.warnings() == ""
     assert set(sphinx_run.env.metadata["basic_run"].keys()) == {
         "test_name",
@@ -41,7 +40,6 @@ def test_basic_run(sphinx_run, file_regression):
 )
 def test_basic_run_intl(sphinx_run, file_regression):
     sphinx_run.build()
-    # print(sphinx_run.status())
     assert sphinx_run.warnings() == ""
     assert set(sphinx_run.env.metadata["basic_run_intl"].keys()) == {
         "test_name",
