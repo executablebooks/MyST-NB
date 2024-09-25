@@ -280,6 +280,9 @@ class FileRegression:
         re.escape(" translation_progress=\"{'total': 0, 'translated': 0}\""),
         # TODO: Remove when support for Sphinx<7.2 is dropped,
         r"original_uri=\"[^\"]*\"\s",
+        # TODO: Remove when support for Sphinx<8 is dropped,
+        re.escape(" translated=\"True\""),
+        re.escape(" translation_progress=\"{'total': 4, 'translated': 2}\""),
     )
 
     def __init__(self, file_regression):
