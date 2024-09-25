@@ -55,8 +55,13 @@ jobs:
         allow-prereleases: true
         cache: pip
     - name: Install myst-nb with Sphinx ${{ matrix.sphinx }}
+      shell: bash
       run: |
         pip install --upgrade pip
+        # Temporary: for python 3.13 we need the nightly pandas wheels
+        if [[ ${{ matrix.python-version }} == '3.13' ]] ; then
+          PIP_EXTRA_INDEX_URL=https://pypi.anaconda.org/scientific-python-nightly-wheels/simple pip install -U pandas pyarrow
+        fi
         pip install --upgrade "Sphinx${{ matrix.sphinx }}" "myst-parser${{ matrix.myst-parser }}" -e .[testing]
 
     - name: Run pytest
