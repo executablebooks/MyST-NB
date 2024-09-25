@@ -6,6 +6,10 @@ on:
     tags:
       - 'v*'
   pull_request:
+  schedule:
+    # run every Monday at 5am UTC
+    - cron: '0 5 * * 1'
+  workflow_dispatch:
 
 jobs:
 
