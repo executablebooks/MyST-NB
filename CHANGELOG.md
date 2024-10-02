@@ -1,5 +1,36 @@
 # Change Log
 
+## v1.1.2 - 2024-09-24
+
+([full changelog](https://github.com/executablebooks/MyST-NB/compare/v1.1.1...c6a2d4b61205c2b20943391a656f01a4cc446076))
+
+### Bugs fixed
+
+- Fix incorrect output from prints originating from different processes [#604](https://github.com/executablebooks/MyST-NB/pull/604) ([@basnijholt](https://github.com/basnijholt))
+
+### Maintenance and upkeep improvements
+
+- MAINT: removing version pinnings for testing and rtd [#634](https://github.com/executablebooks/MyST-NB/pull/634) ([@bsipocz](https://github.com/bsipocz))
+- MAINT: only doing monthly pre-commit update [#627](https://github.com/executablebooks/MyST-NB/pull/627) ([@bsipocz](https://github.com/bsipocz))
+- MAINT: no need for weekly dependabot [#626](https://github.com/executablebooks/MyST-NB/pull/626) ([@bsipocz](https://github.com/bsipocz))
+- MAINT: fix sphinx 8.0 compatibility [#620](https://github.com/executablebooks/MyST-NB/pull/620) ([@bsipocz](https://github.com/bsipocz))
+- MAINT: bump version [#614](https://github.com/executablebooks/MyST-NB/pull/614) ([@agoose77](https://github.com/agoose77))
+
+### Documentation improvements
+
+- DOC: adding changelog for 1.1.0 and 1.1.1 [#625](https://github.com/executablebooks/MyST-NB/pull/625) ([@bsipocz](https://github.com/bsipocz))
+- Update glueing docs for NumPy >=2.0 [#615](https://github.com/executablebooks/MyST-NB/pull/615) ([@bryanwweber](https://github.com/bryanwweber))
+
+### Other merged PRs
+
+- build(deps): bump codecov/codecov-action from 3.1.4 to 4.5.0 in the actions group [#630](https://github.com/executablebooks/MyST-NB/pull/630) ([@dependabot](https://github.com/dependabot))
+
+### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/executablebooks/MyST-NB/graphs/contributors?from=2024-06-27&to=2024-09-24&type=c))
+
+[@agoose77](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Aagoose77+updated%3A2024-06-27..2024-09-24&type=Issues) | [@basnijholt](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Abasnijholt+updated%3A2024-06-27..2024-09-24&type=Issues) | [@bryanwweber](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Abryanwweber+updated%3A2024-06-27..2024-09-24&type=Issues) | [@bsipocz](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Absipocz+updated%4A2024-06-27..2024-09-24&type=Issues) | [@choldgraf](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Acholdgraf+updated%3A2024-06-27..2024-09-24&type=Issues) | [@chrisjsewell](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Achrisjsewell+updated%3A2024-06-27..2024-09-24&type=Issues) | [@dependabot](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Adependabot+updated%3A2024-06-27..2024-09-24&type=Issues) | [@LecrisUT](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3ALecrisUT+updated%3A2024-06-27..2024-09-24&type=Issues) | [@OriolAbril](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3AOriolAbril+updated%3A2024-06-27..2024-09-24&type=Issues) | [@tupui](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Atupui+updated%3A2024-06-27..2024-09-24&type=Issues) | [@welcome](https://github.com/search?q=repo%3Aexecutablebooks%2FMyST-NB+involves%3Awelcome+updated%3A2024-06-27..2024-09-24&type=Issues)
+
 ## v1.1.1 - 2024-06-27
 
 ([full changelog](https://github.com/executablebooks/MyST-NB/compare/v1.1.0...6ce30cd41fa82543e0f315ac8bbee82669b0cc82))
