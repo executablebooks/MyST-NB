@@ -374,7 +374,9 @@ def test_custom_convert_cache(sphinx_run, file_regression, check_nbs):
         "nb_custom_formats": {".extra.exnt": ["jupytext.reads", {"fmt": "Rmd"}]},
     },
 )
-def test_custom_convert_multiple_extensions_auto(sphinx_run, file_regression, check_nbs):
+def test_custom_convert_multiple_extensions_auto(
+    sphinx_run, file_regression, check_nbs
+):
     """The outputs should be populated."""
     sphinx_run.build()
     assert sphinx_run.warnings() == ""
