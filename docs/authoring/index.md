@@ -9,5 +9,4 @@ basics
 jupyter-notebooks
 text-notebooks
 custom-formats
-custom-formats2
 ```
