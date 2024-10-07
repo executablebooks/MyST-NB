@@ -39,6 +39,20 @@ def build_matplotlib_font_cache():
     FontManager()
 
 
+def _split_ext(conf, sphinx_params):
+    if custom_formats := conf.get("nb_custom_formats"):
+        split_files = [
+            file.rstrip(k)
+            for file in sphinx_params["files"]
+            for k in custom_formats.keys()
+            if file.endswith(k)
+        ]
+    else:
+        split_files = [os.path.splitext(file)[0] for file in sphinx_params["files"]]
+
+    return split_files[0], split_files
+
+
 @pytest.fixture()
 def get_test_path():
     def _get_test_path(name):
@@ -55,7 +69,7 @@ class SphinxFixture:
     def __init__(self, app, filenames):
         self.app = app
         self.env = app.env
-        self.files = [os.path.splitext(ff) for ff in filenames]
+        self.files = filenames
         self.software_versions = (
             f".sphinx{sphinx.version_info[0]}"  # software version tracking for fixtures
         )
@@ -79,26 +93,26 @@ class SphinxFixture:
 
     def invalidate_files(self):
         """Invalidate the files, such that it will be flagged for a re-read."""
-        for name, _ in self.files:
+        for name in self.files:
             self.env.all_docs.pop(name)
 
     def get_resolved_doctree(self, docname=None):
         """Load and return the built docutils.document, after post-transforms."""
-        docname = docname or self.files[0][0]
+        docname = docname or self.files[0]
         doctree = self.env.get_and_resolve_doctree(docname, self.app.builder)
         doctree["source"] = docname
         return doctree
 
     def get_doctree(self, docname=None):
         """Load and return the built docutils.document."""
-        docname = docname or self.files[0][0]
+        docname = docname or self.files[0]
         doctree = self.env.get_doctree(docname)
         doctree["source"] = docname
         return doctree
 
     def get_html(self, index=0):
         """Return the built HTML file."""
-        name = self.files[index][0]
+        name = self.files[index]
         _path = self.app.outdir / (name + ".html")
         if not _path.exists():
             pytest.fail("html not output")
@@ -106,7 +120,7 @@ class SphinxFixture:
 
     def get_nb(self, index=0):
         """Return the output notebook (after any execution)."""
-        name = self.files[index][0]
+        name = self.files[index]
         _path = self.app.srcdir / "_build" / "jupyter_execute" / (name + ".ipynb")
         if not _path.exists():
             pytest.fail("notebook not output")
@@ -114,7 +128,7 @@ class SphinxFixture:
 
     def get_report_file(self, index=0):
         """Return the report file for a failed execution."""
-        name = self.files[index][0]
+        name = self.files[index]
         _path = self.app.outdir / "reports" / (name + ".err.log")
         if not _path.exists():
             pytest.fail("report log not output")
@@ -153,9 +167,11 @@ def sphinx_run(sphinx_params, make_app, tmp_path):
     conf = sphinx_params.get("conf", {})
     buildername = sphinx_params.get("buildername", "html")
 
+    master_doc, split_files = _split_ext(conf, sphinx_params)
+
     confoverrides = {
         "extensions": ["myst_nb"],
-        "master_doc": os.path.splitext(sphinx_params["files"][0])[0],
+        "master_doc": master_doc,
         "exclude_patterns": ["_build"],
         "nb_execution_show_tb": True,
     }
@@ -199,7 +215,7 @@ def sphinx_run(sphinx_params, make_app, tmp_path):
         buildername=buildername, srcdir=app_srcdir, confoverrides=confoverrides
     )
 
-    yield SphinxFixture(app, sphinx_params["files"])
+    yield SphinxFixture(app, split_files)
 
     # reset working directory
     os.chdir(current_dir)
