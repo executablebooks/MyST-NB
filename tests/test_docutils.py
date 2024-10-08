@@ -1,5 +1,4 @@
 """Run parsing tests against the docutils parser."""
-
 from io import StringIO
 import json
 from pathlib import Path

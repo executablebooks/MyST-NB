@@ -1,5 +1,4 @@
 """Central handling of warnings for the myst-nb extension."""
-
 from __future__ import annotations
 
 from enum import Enum

@@ -1,5 +1,4 @@
 """Execute a notebook directly."""
-
 from __future__ import annotations
 
 from contextlib import nullcontext

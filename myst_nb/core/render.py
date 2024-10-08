@@ -3,7 +3,6 @@
 Note, this module purposely does not import any Sphinx modules at the top-level,
 in order for docutils-only use.
 """
-
 from __future__ import annotations
 
 from binascii import a2b_base64

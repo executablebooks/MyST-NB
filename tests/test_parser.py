@@ -1,5 +1,4 @@
 """Test parsing of already executed notebooks."""
-
 import os
 from pathlib import Path
 

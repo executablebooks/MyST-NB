@@ -1,5 +1,4 @@
 """The sphinx parser implementation for myst-nb."""
-
 from __future__ import annotations
 
 from collections import defaultdict
