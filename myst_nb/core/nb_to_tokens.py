@@ -1,5 +1,4 @@
 """Module for parsing notebooks to Markdown-it tokens."""
-
 from __future__ import annotations
 
 from typing import Any

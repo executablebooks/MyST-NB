@@ -9,7 +9,6 @@ and can also both handle ``line`` and ``subtype`` keyword arguments:
 ``logger.warning("message", line=1, subtype="foo")``
 
 """
-
 import logging
 from typing import Union
 

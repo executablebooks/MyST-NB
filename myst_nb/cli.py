@@ -1,5 +1,4 @@
 """A basic CLI for quickstart of a myst_nb project."""
-
 from __future__ import annotations
 
 import argparse

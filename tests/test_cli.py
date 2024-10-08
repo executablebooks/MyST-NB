@@ -1,5 +1,4 @@
 """Test the quickstart CLI"""
-
 import os
 from pathlib import Path
 

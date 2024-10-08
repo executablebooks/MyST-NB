@@ -1,5 +1,4 @@
 """Configuration for myst-nb."""
-
 import dataclasses as dc
 from enum import Enum
 from typing import Any, Callable, Dict, Iterable, Literal, Optional, Sequence, Tuple

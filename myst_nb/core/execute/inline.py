@@ -1,5 +1,4 @@
 """Execute a notebook inline."""
-
 from __future__ import annotations
 
 import asyncio
