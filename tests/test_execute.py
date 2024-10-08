@@ -365,3 +365,47 @@ def test_custom_convert_cache(sphinx_run, file_regression, check_nbs):
     assert data
     assert data["method"] == "cache"
     assert data["succeeded"] is True
+
+
+@pytest.mark.sphinx_params(
+    "custom-formats2.extra.exnt",
+    conf={
+        "nb_execution_mode": "auto",
+        "nb_custom_formats": {".extra.exnt": ["jupytext.reads", {"fmt": "Rmd"}]},
+    },
+)
+def test_custom_convert_multiple_extensions_auto(
+    sphinx_run, file_regression, check_nbs
+):
+    """The outputs should be populated."""
+    sphinx_run.build()
+    assert sphinx_run.warnings() == ""
+    regress_nb_doc(file_regression, sphinx_run, check_nbs)
+
+    assert NbMetadataCollector.new_exec_data(sphinx_run.env)
+    data = NbMetadataCollector.get_exec_data(sphinx_run.env, "custom-formats2")
+    assert data
+    assert data["method"] == "auto"
+    assert data["succeeded"] is True
+
+
+@pytest.mark.sphinx_params(
+    "custom-formats2.extra.exnt",
+    conf={
+        "nb_execution_mode": "cache",
+        "nb_custom_formats": {".extra.exnt": ["jupytext.reads", {"fmt": "Rmd"}]},
+    },
+)
+def test_custom_convert_multiple_extensions_cache(
+    sphinx_run, file_regression, check_nbs
+):
+    """The outputs should be populated."""
+    sphinx_run.build()
+    assert sphinx_run.warnings() == ""
+    regress_nb_doc(file_regression, sphinx_run, check_nbs)
+
+    assert NbMetadataCollector.new_exec_data(sphinx_run.env)
+    data = NbMetadataCollector.get_exec_data(sphinx_run.env, "custom-formats2")
+    assert data
+    assert data["method"] == "cache"
+    assert data["succeeded"] is True
