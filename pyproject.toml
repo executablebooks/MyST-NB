@@ -149,3 +149,12 @@ ignore = [
 
 [tool.ruff.lint.isort]
 force-sort-within-sections = true
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "error",
+]
+
+markers = [
+    "sphinx_params",
+]
