@@ -58,7 +58,7 @@ def create_nb_reader(
         or None if the input cannot be read as a notebook.
     """
     # the import is here so this module can be loaded without sphinx
-    from sphinx.util import import_object
+    from importlib import import_module
 
     # get all possible readers
     readers = nb_config.custom_formats.copy()
@@ -71,7 +71,7 @@ def create_nb_reader(
         if str(Path(path)).endswith(suffix):
             if isinstance(reader, str):
                 # attempt to load the reader as an object path
-                reader = import_object(reader)
+                reader = import_module(reader)
             if commonmark_only:
                 # Markdown cells should be read as Markdown only
                 md_config = dc.replace(md_config, commonmark_only=True)
