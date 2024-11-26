@@ -12,7 +12,7 @@ This allows you to store notebook metadata, Markdown, and cell inputs in a text-
 
 MyST notebooks have a 1-to-1 mapping with Jupyter notebook,
 so can be [converted to `.ipynb` files](converting-ipynb) and [opened as notebooks in Jupyter interfaces](myst-nb/jupyter-interfaces) (with jupytext installed).
-When used with `myst_nb`, MyST notebooks are also integrated directly into the {ref}`Execution and Caching <execute/cache>` machinery.
+When used with `myst_nb`, MyST notebooks are also integrated directly into the {ref}`Execution and Caching <execute/cache>` machinery.[^download]
 
 [^download]: This notebook can be downloaded as **{nb-download}`text-notebooks.ipynb`** and {download}`text-notebooks.md`
 

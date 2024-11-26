@@ -6,6 +6,10 @@ on:
     tags:
       - 'v*'
   pull_request:
+  schedule:
+    # run every Monday at 5am UTC
+    - cron: '0 5 * * 1'
+  workflow_dispatch:
 
 jobs:
 
@@ -15,29 +19,34 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
-        sphinx: [">=5,<8"]  # Newest Sphinx (any)
-        myst-parser: [">=1,<3"]  # Newest MyST Parser (any)
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        sphinx: [""]  # Newest Sphinx (any)
+        myst-parser: [""]  # Newest MyST Parser (any)
         include:
           # Just check the other platforms once
           - os: windows-latest
-            python-version: "3.10"
-            sphinx: "~=7.0"
-            myst-parser: "~=2.0"
+            python-version: "3.12"
+            sphinx: "~=8.0"
+            myst-parser: "~=4.0"
           - os: macos-latest
-            python-version: "3.10"
-            sphinx: "~=7.0"
-            myst-parser: "~=2.0"
+            python-version: "3.12"
+            sphinx: "~=8.0"
+            myst-parser: "~=4.0"
           # Oldest known-compatible dependencies
           - os: ubuntu-latest
             python-version: "3.9"
             sphinx: "==5.0.0"
             myst-parser: "==1.0.0"
+          # Mid-range dependencies
+          - os: ubuntu-latest
+            python-version: "3.11"
+            sphinx: "==7.0.0"
+            myst-parser: "==2.0.0"
           # Newest known-compatible dependencies
           - os: ubuntu-latest
             python-version: "3.12"
-            sphinx: "==7.0.0"
-            myst-parser: "==2.0.0"
+            sphinx: "==8.0.2"
+            myst-parser: "==4.0.0"
 
     runs-on: ${{ matrix.os }}
 
@@ -47,11 +56,17 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+        allow-prereleases: true
         cache: pip
     - name: Install myst-nb with Sphinx ${{ matrix.sphinx }}
+      shell: bash
       run: |
-        pip install --upgrade pip
+        # Temporary: for python 3.13 we need the nightly pyarrow wheels
+        if [[ ${{ matrix.python-version }} == '3.13' ]] ; then
+          PIP_EXTRA_INDEX_URL=https://pypi.anaconda.org/scientific-python-nightly-wheels/simple pip install --pre pyarrow
+        fi
         pip install --upgrade "Sphinx${{ matrix.sphinx }}" "myst-parser${{ matrix.myst-parser }}" -e .[testing]
+        pip freeze
 
     - name: Run pytest
       run: pytest --durations=10
@@ -69,8 +84,8 @@ jobs:
         cache: pip
     - name: Install dependencies
       run: |
-        pip install --upgrade pip
         pip install -e .[testing]
+        pip freeze
 
     - name: Run pytest
       run: pytest --durations=10 --cov=myst_nb --cov-report=xml --cov-report=term-missing
@@ -82,7 +97,7 @@ jobs:
 
     # TEMPORARY FIX: Disable codecov until we can get it working again
     - name: Upload to Codecov
-      uses: codecov/codecov-action@v3.1.4
+      uses: codecov/codecov-action@v4
       if: false
       with:
         name: myst-nb-pytests
