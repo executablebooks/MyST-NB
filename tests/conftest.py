@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 import re
 import uuid
+import shutil
 
 import bs4
 from docutils.nodes import image as image_node
@@ -192,6 +193,8 @@ def sphinx_run(sphinx_params, make_app, tmp_path):
         )
         + "\n"
     )
+    if "language" in conf:
+        shutil.copytree(TEST_FILE_DIR / "locale", srcdir / "locale")
 
     for nb_file in sphinx_params["files"]:
         nb_path = TEST_FILE_DIR.joinpath(nb_file)
@@ -293,6 +296,9 @@ class FileRegression:
         re.escape(" translation_progress=\"{'total': 0, 'translated': 0}\""),
         # TODO: Remove when support for Sphinx<7.2 is dropped,
         r"original_uri=\"[^\"]*\"\s",
+        # TODO: Remove when support for Sphinx<8 is dropped,
+        re.escape(' translated="True"'),
+        re.escape(" translation_progress=\"{'total': 4, 'translated': 2}\""),
     )
 
     def __init__(self, file_regression):
