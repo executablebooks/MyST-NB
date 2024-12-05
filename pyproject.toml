@@ -131,6 +131,7 @@ show_error_codes = true
 check_untyped_defs = true
 strict_equality = true
 no_implicit_optional = true
+ignore_missing_imports = true
 warn_unused_ignores = true
 
 [[tool.mypy.overrides]]
@@ -149,3 +150,25 @@ ignore = [
 
 [tool.ruff.lint.isort]
 force-sort-within-sections = true
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    'error',
+    'ignore:unclosed database in:ResourceWarning',
+    # from asyncio triggered by jupyter_client
+    'ignore:There is no current event loop:DeprecationWarning',
+    'ignore:Parsing dates involving a day of month without a year specified is :DeprecationWarning',
+    # from jupyter_core
+    'ignore:Jupyter is migrating its paths to use standard platformdirs:DeprecationWarning',
+    # nbclient
+    'ignore:Parsing dates involving a day of month without a year specified is :DeprecationWarning:nbclient',
+    # From dateutil in sqlalchemy and jupyter_cache
+    'ignore:datetime.datetime.utcnow\(\) is deprecated:DeprecationWarning:sqlalchemy',
+    'ignore:datetime.datetime.utcnow\(\) is deprecated:DeprecationWarning:jupyter_cache',
+    # Windows issues, some may need to be fixed in MyST-NB, others are upstream
+    'ignore:Proactor event loop does not implement add_reader:RuntimeWarning:zmq',
+]
+
+markers = [
+    "sphinx_params",
+]
