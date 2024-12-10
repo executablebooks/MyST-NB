@@ -42,7 +42,7 @@ class EvalNameError(Exception):
 
 
 class NotebookClientBase:
-    """A base client for interacting with Jupyter notebooks.
+    """A client base class for interacting with Jupyter notebooks.
 
     This class is intended to be used as a context manager,
     and should only be entered once.
@@ -181,7 +181,30 @@ class NotebookClientBase:
         :raises NotImplementedError: if the execution mode does not support this feature
         :raises EvalNameError: if the variable name is invalid
         """
+        raise NotImplementedError
+
+
+class NotebookClientReadOnly(NotebookClientBase):
+    """A notebook client that does not execute the notebook."""
+
+    def eval_variable(
+        self, name: str, current_cell: SyntaxTreeNode
+    ) -> list[NotebookNode]:
+        """Retrieve the value of a variable from the current cell metadata if possible.
+
+        :param name: the name of the variable
+        :returns: code cell outputs
+        :raises RetrievalError: if the cell metadata does not contain the eval result
+        :raises EvalNameError: if the variable name is invalid
+        """
         for ux in current_cell.meta.get("metadata", {}).get("user_expressions", []):
             if ux["expression"] == name:
                 return from_dict([ux["result"]])
-        raise NotImplementedError
+
+        from myst_nb.core.variables import RetrievalError
+
+        msg = (
+            f"Cell {current_cell.meta.get('index', '')} does "
+            f"not contain execution result for variable {name!r}"
+        )
+        raise RetrievalError(msg)

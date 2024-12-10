@@ -42,6 +42,8 @@ def retrieve_eval_data(document: nodes.document, key: str) -> list[VariableOutpu
         outputs = element.renderer.nb_client.eval_variable(
             key, element.renderer.current_cell
         )
+    except RetrievalError:
+        raise
     except NotImplementedError:
         raise RetrievalError("This document does not have a running kernel")
     except EvalNameError:
