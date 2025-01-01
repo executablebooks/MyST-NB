@@ -96,7 +96,7 @@ testing = [
     "ipywidgets>=8",
     "jupytext>=1.11.2",
     # Matplotlib outputs are sensitive to the matplotlib version
-    "matplotlib==3.7.*",
+    "matplotlib>=3.7,<3.11",
     "nbdime",
     "numpy",
     "pandas",
