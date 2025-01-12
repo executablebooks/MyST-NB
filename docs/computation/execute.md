@@ -37,7 +37,7 @@ nb_execution_mode = "auto"
 This will only execute notebooks that are missing at least one output.
 If a notebook has *all* of its outputs populated, then it will not be executed.
 
-To only execute notebooks that do not have *any* of its outpus populated, change the above configuration value to:
+To only execute notebooks that do not have *any* of its outputs populated, change the above configuration value to:
 
 ```python
 nb_execution_mode = "lazy"
