@@ -28,29 +28,35 @@ jobs:
             python-version: "3.12"
             sphinx: "~=8.0"
             myst-parser: "~=4.0"
+            pillow: "==11.0.0"
           - os: macos-latest
             python-version: "3.12"
             sphinx: "~=8.0"
             myst-parser: "~=4.0"
+            pillow: "==11.0.0"
           - os: ubuntu-latest
             python-version: "3.12"
             sphinx: "~=8.0"
             myst-parser: "~=4.0"
+            pillow: "==11.0.0"
           # Oldest known-compatible dependencies
           - os: ubuntu-latest
             python-version: "3.9"
             sphinx: "==5.0.0"
             myst-parser: "==1.0.0"
+            pillow: "==11.0.0"
           # Mid-range dependencies
           - os: ubuntu-latest
             python-version: "3.11"
             sphinx: "==7.0.0"
             myst-parser: "==3.0.0"
+            pillow: "==11.0.0"
           # Newest known-compatible dependencies
           - os: ubuntu-latest
             python-version: "3.12"
             sphinx: "==8.0.2"
             myst-parser: "==4.0.0"
+            pillow: "==11.0.0"
 
     runs-on: ${{ matrix.os }}
 
@@ -65,7 +71,7 @@ jobs:
     - name: Install myst-nb with Sphinx ${{ matrix.sphinx }}
       shell: bash
       run: |
-        pip install --upgrade "Sphinx${{ matrix.sphinx }}" "myst-parser${{ matrix.myst-parser }}" -e .[testing]
+        pip install --upgrade "Sphinx${{ matrix.sphinx }}" "myst-parser${{ matrix.myst-parser }}" "pillow${{ matrix.pillow }}" -e .[testing]
         pip freeze
 
     - name: Run pytest
