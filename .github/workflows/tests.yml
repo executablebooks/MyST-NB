@@ -32,6 +32,10 @@ jobs:
             python-version: "3.12"
             sphinx: "~=8.0"
             myst-parser: "~=4.0"
+          - os: ubuntu-latest
+            python-version: "3.12"
+            sphinx: "~=8.0"
+            myst-parser: "~=4.0"
           # Oldest known-compatible dependencies
           - os: ubuntu-latest
             python-version: "3.9"
