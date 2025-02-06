@@ -61,10 +61,6 @@ jobs:
     - name: Install myst-nb with Sphinx ${{ matrix.sphinx }}
       shell: bash
       run: |
-        # Temporary: for python 3.13 we need the nightly pyarrow wheels
-        if [[ ${{ matrix.python-version }} == '3.13' ]] ; then
-          PIP_EXTRA_INDEX_URL=https://pypi.anaconda.org/scientific-python-nightly-wheels/simple pip install --pre pyarrow
-        fi
         pip install --upgrade "Sphinx${{ matrix.sphinx }}" "myst-parser${{ matrix.myst-parser }}" -e .[testing]
         pip freeze
 
