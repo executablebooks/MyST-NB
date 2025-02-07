@@ -1,5 +1,38 @@
 # Change Log
 
+## v1.2.0 - 2025-02-07
+
+([full changelog](https://github.com/executablebooks/MyST-NB/compare/v1.1.2...v1.2.0))
+
+### Enhancements made
+
+- ENH: Support translated notebooks by @OriolAbril in https://github.com/executablebooks/MyST-NB/pull/600
+
+### Bugs Fixed
+
+- BUG: using rstrip to preserve indents by @bsipocz in https://github.com/executablebooks/MyST-NB/pull/637
+- FIX: fix path suffix condition in core/read.py by @je-cook in https://github.com/executablebooks/MyST-NB/pull/641
+
+### Maintenance and upkeep improvements
+
+- DOCS: adding changelog for 1.1.2 by @bsipocz in https://github.com/executablebooks/MyST-NB/pull/638
+- MAINT: adding python 3.13 to CI and classifiers by @bsipocz in https://github.com/executablebooks/MyST-NB/pull/635
+- CI: adding devdeps testing and cron and workflow dispatch by @bsipocz in https://github.com/executablebooks/MyST-NB/pull/639
+- TST: fail on warnings by @bsipocz in https://github.com/executablebooks/MyST-NB/pull/647
+- add `configuration` key to readthedocs.yml by @sneakers-the-rat in https://github.com/executablebooks/MyST-NB/pull/657
+- MAINT: fix CI in prep for release by @bsipocz in https://github.com/executablebooks/MyST-NB/pull/659
+
+### Other merged PRs
+
+- [pre-commit.ci] pre-commit autoupdate by @pre-commit-ci in https://github.com/executablebooks/MyST-NB/pull/569
+- Revert "[pre-commit.ci] pre-commit autoupdate" by @agoose77 in https://github.com/executablebooks/MyST-NB/pull/642
+
+### New Contributors
+- @sneakers-the-rat made their first contribution in https://github.com/executablebooks/MyST-NB/pull/657
+
+([GitHub contributors page for this release](https://github.com/executablebooks/MyST-NB/graphs/contributors?from=2024-09-24&to=2025-02-07&type=c))
+
+
 ## v1.1.2 - 2024-09-24
 
 ([full changelog](https://github.com/executablebooks/MyST-NB/compare/v1.1.1...c6a2d4b61205c2b20943391a656f01a4cc446076))
