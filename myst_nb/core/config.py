@@ -285,7 +285,7 @@ class NbParserConfig:
         default=False,
         metadata={
             "validator": instance_of(bool),
-            "help": "Merge stdout/stderr execution output streams",
+            "help": "Merge all stdout execution output streams; same with stderr",
             "sections": (
                 Section.global_lvl,
                 Section.file_lvl,
