@@ -6,6 +6,7 @@
             <container classes="cell_input" nb_element="cell_code_source">
                 <literal_block language="ipython3" linenos="False" xml:space="preserve">
                     from IPython.display import Image
+                    
                     Image("fun-fish.png")
             <container classes="cell_output" nb_element="cell_code_output">
                 <figure align="default" ids="fun-fish" names="fun-fish">

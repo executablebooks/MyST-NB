@@ -2,12 +2,12 @@
     <container cell_index="0" cell_metadata="{'init_cell': True, 'slideshow': {'slide_type': 'skip'}}" classes="cell" exec_count="1" nb_element="cell_code">
         <container classes="cell_input" nb_element="cell_code_source">
             <literal_block language="ipython3" xml:space="preserve">
-                import matplotlib.pyplot as plt
                 import pandas as pd
                 import sympy as sym
+                
                 sym.init_printing(use_latex=True)
                 import numpy as np
-                from IPython.display import Image, Latex
+                from IPython.display import Latex
     <section ids="markdown" names="markdown">
         <title>
             Markdown
@@ -117,11 +117,11 @@
         <container cell_index="18" cell_metadata="{'ipub': {'code': {'asfloat': True, 'caption': '', 'label': 'code:example_pd', 'placement': 'H', 'widefigure': False}, 'table': {'alternate': 'gray!20', 'caption': 'An example of a table created with pandas dataframe.', 'label': 'tbl:example', 'placement': 'H'}}}" classes="cell" exec_count="3" nb_element="cell_code">
             <container classes="cell_input" nb_element="cell_code_source">
                 <literal_block language="ipython3" xml:space="preserve">
-                    np.random.seed(0) 
-                    df = pd.DataFrame(np.random.rand(3,4),columns=['a','b','c','d'])
-                    df.a = [r'$\delta$','x','y']
-                    df.b = ['l','m','n']
-                    df.set_index(['a','b'])
+                    np.random.seed(0)
+                    df = pd.DataFrame(np.random.rand(3, 4), columns=["a", "b", "c", "d"])
+                    df.a = [r"$\delta$", "x", "y"]
+                    df.b = ["l", "m", "n"]
+                    df.set_index(["a", "b"])
                     df.round(3)
             <container classes="cell_output" nb_element="cell_code_output">
                 <container nb_element="mime_bundle">
@@ -188,7 +188,7 @@
         <container cell_index="20" cell_metadata="{'ipub': {'equation': {'label': 'eqn:example_ipy'}}}" classes="cell" exec_count="4" nb_element="cell_code">
             <container classes="cell_input" nb_element="cell_code_source">
                 <literal_block language="ipython3" xml:space="preserve">
-                    Latex('$$ a = b+c $$')
+                    Latex("$$ a = b+c $$")
             <container classes="cell_output" nb_element="cell_code_output">
                 <container nb_element="mime_bundle">
                     <container mime_type="text/plain">
@@ -202,10 +202,10 @@
         <container cell_index="22" cell_metadata="{'ipub': {'code': {'asfloat': True, 'caption': '', 'label': 'code:example_sym', 'placement': 'H', 'widefigure': False}, 'equation': {'environment': 'equation', 'label': 'eqn:example_sympy'}}}" classes="cell" exec_count="5" nb_element="cell_code">
             <container classes="cell_input" nb_element="cell_code_source">
                 <literal_block language="ipython3" xml:space="preserve">
-                    y = sym.Function('y')
-                    n = sym.symbols(r'\alpha')
-                    f = y(n)-2*y(n-1/sym.pi)-5*y(n-2)
-                    sym.rsolve(f,y(n),[1,4])
+                    y = sym.Function("y")
+                    n = sym.symbols(r"\alpha")
+                    f = y(n) - 2 * y(n - 1 / sym.pi) - 5 * y(n - 2)
+                    sym.rsolve(f, y(n), [1, 4])
             <container classes="cell_output" nb_element="cell_code_output">
                 <container nb_element="mime_bundle">
                     <container mime_type="text/plain">
@@ -228,6 +228,7 @@
                 <container classes="cell_input" nb_element="cell_code_source">
                     <literal_block language="ipython3" xml:space="preserve">
                         import ipywidgets as widgets
+                        
                         widgets.Layout(model_id="1337h4x0R")
                 <container classes="cell_output" nb_element="cell_code_output">
                     <container nb_element="mime_bundle">
@@ -241,7 +242,8 @@
                 <container classes="cell_input" nb_element="cell_code_source">
                     <literal_block language="ipython3" xml:space="preserve">
                         from IPython.display import display, Markdown
-                        display(Markdown('**_some_ markdown**'))
+                        
+                        display(Markdown("**_some_ markdown**"))
                 <container classes="cell_output" nb_element="cell_code_output">
                     <container nb_element="mime_bundle">
                         <container mime_type="text/plain">
