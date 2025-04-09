@@ -59,7 +59,7 @@ class NotebookClientCache(NotebookClientBase):
         # TODO do in try/except, in case of db write errors
         NbProjectRecord.remove_tracebacks([stage_record.pk], cache.db)
         cwd_context: ContextManager[str] = (
-            TemporaryDirectory()  # type: ignore
+            TemporaryDirectory()
             if self.nb_config.execution_in_temp
             else nullcontext(str(self.path.parent))
         )
