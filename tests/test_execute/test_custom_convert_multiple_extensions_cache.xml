@@ -1,0 +1,22 @@
+<document source="custom-formats2">
+    <section ids="custom-formats" names="custom\ formats">
+        <title>
+            Custom Formats
+        <container cell_index="2" cell_metadata="{'echo': True}" classes="cell" exec_count="1" nb_element="cell_code">
+            <container classes="cell_input" nb_element="cell_code_source">
+                <literal_block language="ipython3" xml:space="preserve">
+                    import pandas as pd
+                    
+                    x = pd.Series({"A": 1, "B": 3, "C": 2})
+        <container cell_index="3" cell_metadata="{'name': 'bar_plot', 'tags': ['remove_input'], 'fig.height': 5, 'fig.width': 8}" classes="cell tag_remove_input" exec_count="2" nb_element="cell_code">
+            <container classes="cell_output" nb_element="cell_code_output">
+                <container nb_element="mime_bundle">
+                    <container mime_type="text/plain">
+                        <literal_block classes="output text_plain" language="myst-ansi" xml:space="preserve">
+                            <Axes: title={'center': 'Sample plot'}>
+                <container nb_element="mime_bundle">
+                    <container mime_type="text/plain">
+                        <literal_block classes="output text_plain" language="myst-ansi" xml:space="preserve">
+                            <Figure size 640x480 with 1 Axes>
+                    <container mime_type="image/png">
+                        <image candidates="{'*': '_build/jupyter_execute/a2e637020dfe58f670ba2c942d7a55e49ba48bed09312569ee15a84f5ac680cb.png'}" uri="_build/jupyter_execute/a2e637020dfe58f670ba2c942d7a55e49ba48bed09312569ee15a84f5ac680cb.png">

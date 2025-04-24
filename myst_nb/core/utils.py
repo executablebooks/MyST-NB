@@ -1,4 +1,5 @@
 """Shared utilities."""
+
 from __future__ import annotations
 
 import re
@@ -25,8 +26,11 @@ def coalesce_streams(outputs: list[NotebookNode]) -> list[NotebookNode]:
     for output in outputs:
         if output["output_type"] == "stream":
             if output["name"] in streams:
-                streams[output["name"]]["text"] += output["text"]
+                out = output["text"].rstrip()
+                if out:
+                    streams[output["name"]]["text"] += f"{out}\n"
             else:
+                output["text"] = output["text"].rstrip() + "\n"
                 new_outputs.append(output)
                 streams[output["name"]] = output
         else:

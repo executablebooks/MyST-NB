@@ -1,4 +1,5 @@
 """Execute a notebook from the cache."""
+
 from __future__ import annotations
 
 from contextlib import nullcontext, suppress
@@ -58,7 +59,7 @@ class NotebookClientCache(NotebookClientBase):
         # TODO do in try/except, in case of db write errors
         NbProjectRecord.remove_tracebacks([stage_record.pk], cache.db)
         cwd_context: ContextManager[str] = (
-            TemporaryDirectory()  # type: ignore
+            TemporaryDirectory()
             if self.nb_config.execution_in_temp
             else nullcontext(str(self.path.parent))
         )
@@ -80,12 +81,12 @@ class NotebookClientCache(NotebookClientBase):
         # handle success / failure cases
         # TODO do in try/except to be careful (in case of database write errors?
         if result.err is not None:
-            if self.nb_config.execution_raise_on_error:
-                raise ExecutionError(str(self.path)) from result.err
             msg = f"Executing notebook failed: {result.err.__class__.__name__}"
             if self.nb_config.execution_show_tb:
                 msg += f"\n{result.exc_string}"
             self.logger.warning(msg, subtype="exec")
+            if self.nb_config.execution_raise_on_error:
+                raise ExecutionError(str(self.path)) from result.err
             NbProjectRecord.set_traceback(stage_record.uri, result.exc_string, cache.db)
         else:
             self.logger.info(f"Executed notebook in {result.time:.2f} seconds")

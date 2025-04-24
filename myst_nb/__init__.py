@@ -1,5 +1,6 @@
 """A docutils/sphinx parser for Jupyter Notebooks."""
-__version__ = "0.17.1"
+
+__version__ = "1.2.0"
 
 
 def setup(app):

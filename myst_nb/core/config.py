@@ -1,7 +1,8 @@
 """Configuration for myst-nb."""
+
 import dataclasses as dc
 from enum import Enum
-from typing import Any, Callable, Dict, Iterable, Optional, Sequence, Tuple
+from typing import Any, Callable, Dict, Iterable, Literal, Optional, Sequence, Tuple
 
 from myst_parser.config.dc_validators import (
     ValidatorType,
@@ -12,7 +13,8 @@ from myst_parser.config.dc_validators import (
     optional,
     validate_fields,
 )
-from typing_extensions import Literal
+
+from myst_nb.warnings_ import MystNBWarnings
 
 
 def custom_formats_converter(value: dict) -> Dict[str, Tuple[str, dict, bool]]:
@@ -64,7 +66,7 @@ def ipywidgets_js_factory() -> Dict[str, Dict[str, str]]:
             "crossorigin": "anonymous",
         },
         # Load IPywidgets bundle for embedding.
-        "https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js": {
+        "https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@1.0.6/dist/embed-amd.js": {
             "data-jupyter-widgets-cdn": "https://cdn.jsdelivr.net/npm/",
             "crossorigin": "anonymous",
         },
@@ -130,7 +132,7 @@ class NbParserConfig:
         default_factory=dict,
         metadata={
             "help": "Custom formats for reading notebook; suffix -> reader",
-            "docutils_exclude": True,
+            "omit": ["docutils"],
             "sections": (Section.global_lvl, Section.read),
         },
     )
@@ -184,8 +186,16 @@ class NbParserConfig:
             "validator": deep_mapping(instance_of(str), instance_of(str)),
             "help": "Mapping of kernel name regex to replacement kernel name"
             "(applied before execution)",
-            "docutils_exclude": True,
+            "omit": ["docutils"],
             "sections": (Section.global_lvl, Section.execute),
+        },
+    )
+    eval_name_regex: str = dc.field(
+        default=r"^[a-zA-Z_][a-zA-Z0-9_]*$",
+        metadata={
+            "validator": instance_of(str),
+            "help": "Regex that matches permitted values of eval expressions",
+            "sections": (Section.global_lvl, Section.file_lvl, Section.execute),
         },
     )
     execution_mode: Literal["off", "force", "auto", "cache", "inline"] = dc.field(
@@ -220,7 +230,7 @@ class NbParserConfig:
             "validator": deep_iterable(instance_of(str)),
             "help": "Exclude (POSIX) glob patterns for notebooks",
             "legacy_name": "execution_excludepatterns",
-            "docutils_exclude": True,
+            "omit": ["docutils"],
             "sections": (Section.global_lvl, Section.execute),
         },
     )
@@ -260,7 +270,7 @@ class NbParserConfig:
             "sections": (Section.global_lvl, Section.file_lvl, Section.execute),
         },
     )
-    execution_show_tb: bool = dc.field(  # TODO implement
+    execution_show_tb: bool = dc.field(
         default=False,
         metadata={
             "validator": instance_of(bool),
@@ -276,7 +286,7 @@ class NbParserConfig:
         default=False,
         metadata={
             "validator": instance_of(bool),
-            "help": "Merge stdout/stderr execution output streams",
+            "help": "Merge all stdout execution output streams; same with stderr",
             "sections": (
                 Section.global_lvl,
                 Section.file_lvl,
@@ -387,7 +397,7 @@ class NbParserConfig:
             "help": "Overrides for the base render priority of mime types: "
             "list of (builder name, mime type, priority)",
             # TODO how to allow this in docutils?
-            "docutils_exclude": True,
+            "omit": ["docutils"],
             "sections": (Section.global_lvl, Section.file_lvl, Section.render),
         },
         repr=False,
@@ -454,7 +464,7 @@ class NbParserConfig:
         metadata={
             "validator": deep_mapping(instance_of(str), instance_of((str, int))),
             "help": "Options for image outputs (class|alt|height|width|scale|align)",
-            "docutils_exclude": True,
+            "omit": ["docutils"],
             # TODO backward-compatible change to "image_options"?
             "cell_key": "image",
             "sections": (
@@ -471,7 +481,7 @@ class NbParserConfig:
         metadata={
             "validator": deep_mapping(instance_of(str), instance_of((str, int))),
             "help": "Options for figure outputs (classes|name|caption|caption_before)",
-            "docutils_exclude": True,
+            "omit": ["docutils"],
             "cell_key": "figure",
             "sections": (
                 Section.global_lvl,
@@ -505,7 +515,7 @@ class NbParserConfig:
                 instance_of(str), deep_mapping(instance_of(str), instance_of(str))
             ),
             "help": "Javascript to be loaded on pages containing ipywidgets",
-            "docutils_exclude": True,
+            "omit": ["docutils"],
             "sections": (Section.global_lvl, Section.render),
         },
         repr=False,
@@ -567,7 +577,7 @@ class NbParserConfig:
         self,
         field_name: str,
         cell_metadata: Dict[str, Any],
-        warning_callback: Callable[[str, str], Any],
+        warning_callback: Callable[[str, MystNBWarnings], Any],
     ) -> Any:
         """Get a configuration value at the cell level.
 
@@ -593,7 +603,7 @@ class NbParserConfig:
             warning_callback(
                 f"Deprecated `cell_metadata_key` 'render' "
                 f"found, replace with {self.cell_metadata_key!r}",
-                "cell_metadata_key",
+                MystNBWarnings.CELL_METADATA_KEY,
             )
             cell_meta = cell_metadata["render"]
         else:
@@ -611,7 +621,10 @@ class NbParserConfig:
                             field.metadata["validator"](self, field, value)
                     return value
             except Exception as exc:
-                warning_callback(f"Cell metadata invalid: {exc}", "cell_config")
+                warning_callback(
+                    f"Cell metadata invalid: {exc}",
+                    MystNBWarnings.CELL_CONFIG,
+                )
 
         # default/global/file level should have already been merged
         return getattr(self, field.name)

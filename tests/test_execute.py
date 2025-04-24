@@ -1,4 +1,5 @@
 """Test sphinx builds which execute notebooks."""
+
 import os
 from pathlib import Path
 
@@ -12,7 +13,10 @@ from myst_nb.sphinx_ import NbMetadataCollector
 def regress_nb_doc(file_regression, sphinx_run, check_nbs):
     try:
         file_regression.check(
-            sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb", encoding="utf8"
+            sphinx_run.get_nb(),
+            check_fn=check_nbs,
+            extension=".ipynb",
+            encoding="utf-8",
         )
     finally:
         doctree_string = sphinx_run.get_doctree().pformat()
@@ -31,7 +35,7 @@ def regress_nb_doc(file_regression, sphinx_run, check_nbs):
             doctree_string = doctree_string.replace(
                 Path(sphinx_run.app.srcdir).as_posix() + "/", ""
             )
-        file_regression.check(doctree_string, extension=".xml", encoding="utf8")
+        file_regression.check(doctree_string, extension=".xml", encoding="utf-8")
 
 
 @pytest.mark.sphinx_params("basic_unrun.ipynb", conf={"nb_execution_mode": "auto"})
@@ -112,7 +116,7 @@ def test_exclude_path(sphinx_run, file_regression):
     assert not NbMetadataCollector.new_exec_data(sphinx_run.env)
     assert "Executing" not in sphinx_run.status(), sphinx_run.status()
     file_regression.check(
-        sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf8"
+        sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf-8"
     )
 
 
@@ -317,7 +321,7 @@ def test_nb_exec_table(sphinx_run, file_regression):
     # print(sphinx_run.status())
     assert not sphinx_run.warnings()
     file_regression.check(
-        sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf8"
+        sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf-8"
     )
     # print(sphinx_run.get_html())
     rows = sphinx_run.get_html().select("table.docutils tr")
@@ -359,6 +363,50 @@ def test_custom_convert_cache(sphinx_run, file_regression, check_nbs):
 
     assert NbMetadataCollector.new_exec_data(sphinx_run.env)
     data = NbMetadataCollector.get_exec_data(sphinx_run.env, "custom-formats")
+    assert data
+    assert data["method"] == "cache"
+    assert data["succeeded"] is True
+
+
+@pytest.mark.sphinx_params(
+    "custom-formats2.extra.exnt",
+    conf={
+        "nb_execution_mode": "auto",
+        "nb_custom_formats": {".extra.exnt": ["jupytext.reads", {"fmt": "Rmd"}]},
+    },
+)
+def test_custom_convert_multiple_extensions_auto(
+    sphinx_run, file_regression, check_nbs
+):
+    """The outputs should be populated."""
+    sphinx_run.build()
+    assert sphinx_run.warnings() == ""
+    regress_nb_doc(file_regression, sphinx_run, check_nbs)
+
+    assert NbMetadataCollector.new_exec_data(sphinx_run.env)
+    data = NbMetadataCollector.get_exec_data(sphinx_run.env, "custom-formats2")
+    assert data
+    assert data["method"] == "auto"
+    assert data["succeeded"] is True
+
+
+@pytest.mark.sphinx_params(
+    "custom-formats2.extra.exnt",
+    conf={
+        "nb_execution_mode": "cache",
+        "nb_custom_formats": {".extra.exnt": ["jupytext.reads", {"fmt": "Rmd"}]},
+    },
+)
+def test_custom_convert_multiple_extensions_cache(
+    sphinx_run, file_regression, check_nbs
+):
+    """The outputs should be populated."""
+    sphinx_run.build()
+    assert sphinx_run.warnings() == ""
+    regress_nb_doc(file_regression, sphinx_run, check_nbs)
+
+    assert NbMetadataCollector.new_exec_data(sphinx_run.env)
+    data = NbMetadataCollector.get_exec_data(sphinx_run.env, "custom-formats2")
     assert data
     assert data["method"] == "cache"
     assert data["succeeded"] is True

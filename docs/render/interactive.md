@@ -90,6 +90,22 @@ show(p)
 
 ## ipywidgets
 
+:::{note}
+IPyWidgets uses a special JS package `@jupyter-widgets/html-manager` for rendering Jupyter widgets outside notebooks. `myst-nb` loads a specific version of this package, which may be incompatible with your installation of IPyWidgets. If this is the case, you might need to specify the appropriate `nb_ipywidgets_js` config value, e.g. for `0.20.0`
+```yaml
+
+sphinx:
+  recursive_update: true
+  config:
+    nb_ipywidgets_js:
+        # Load IPywidgets bundle for embedding.
+        "https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@0.20.0/dist/embed-amd.js":
+            "data-jupyter-widgets-cdn": "https://cdn.jsdelivr.net/npm/"
+            "crossorigin": "anonymous"
+```
+To determine which version of `@jupyter-widgets/html-manager` is required, find the `html-manager` JS package in the [`ipywidgets` repo](https://github.com/jupyter-widgets/ipywidgets), and identify its version.
+:::
+
 You may also run code for Jupyter Widgets in your document, and the interactive HTML
 outputs will embed themselves in your side. See [the ipywidgets documentation](https://ipywidgets.readthedocs.io/en/latest/user_install.html)
 for how to get set up in your own environment.

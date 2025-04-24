@@ -5,7 +5,7 @@ import os
 # -- Project information -----------------------------------------------------
 
 project = "MyST-NB"
-copyright = "2022, Executable Book Project"
+copyright = "2023, Executable Book Project"
 author = "Executable Book Project"
 
 master_doc = "index"
@@ -42,6 +42,16 @@ nb_custom_formats = {".Rmd": ["jupytext.reads", {"fmt": "Rmd"}]}
 nb_execution_mode = "cache"
 nb_execution_show_tb = "READTHEDOCS" in os.environ
 nb_execution_timeout = 60  # Note: 30 was timing out on RTD
+nb_ipywidgets_js = {
+    "https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js": {
+        "integrity": "sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=",
+        "crossorigin": "anonymous",
+    },
+    "https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@*/dist/embed-amd.js": {
+        "data-jupyter-widgets-cdn": "https://cdn.jsdelivr.net/npm/",
+        "crossorigin": "anonymous",
+    },
+}
 # nb_render_image_options = {"width": "200px"}
 # application/vnd.plotly.v1+json and application/vnd.bokehjs_load.v0+json
 suppress_warnings = ["mystnb.unknown_mime_type"]
@@ -115,6 +125,7 @@ html_theme_options = {
         "binderhub_url": "https://mybinder.org",
         "notebook_interface": "classic",
     },
+    "navigation_with_keys": False,
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,

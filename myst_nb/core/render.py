@@ -3,6 +3,7 @@
 Note, this module purposely does not import any Sphinx modules at the top-level,
 in order for docutils-only use.
 """
+
 from __future__ import annotations
 
 from binascii import a2b_base64
@@ -28,8 +29,9 @@ from typing_extensions import Protocol
 
 from myst_nb.core.config import NbParserConfig
 from myst_nb.core.execute import NotebookClientBase
-from myst_nb.core.loggers import DEFAULT_LOG_TYPE, LoggerType
+from myst_nb.core.loggers import LoggerType  # DEFAULT_LOG_TYPE,
 from myst_nb.core.utils import coalesce_streams
+from myst_nb.warnings_ import MystNBWarnings, create_warning
 
 if TYPE_CHECKING:
     from markdown_it.tree import SyntaxTreeNode
@@ -57,7 +59,6 @@ class MditRenderMixin:
     # required by mypy
     md_options: dict[str, Any]
     document: nodes.document
-    create_warning: Any
     render_children: Any
     add_line_and_source_path: Any
     add_line_and_source_path_r: Any
@@ -95,8 +96,8 @@ class MditRenderMixin:
         :param cell_metadata: the metadata for the cell
         """
 
-        def _callback(msg: str, subtype: str):
-            self.create_warning(msg, line=line, subtype=subtype)
+        def _callback(msg: str, subtype: MystNBWarnings):
+            create_warning(self.document, msg, line=line, subtype=subtype)
 
         return self.nb_config.get_cell_level_config(field, cell_metadata, _callback)
 
@@ -222,10 +223,11 @@ class MditRenderMixin:
             # TODO this will create a warning for every cell, but perhaps
             # it should only be a single warning for the notebook (as previously)
             # TODO allow user to set default lexer?
-            self.create_warning(
+            create_warning(
+                self.document,
                 f"No source code lexer found for notebook cell {cell_index + 1}",
-                wtype=DEFAULT_LOG_TYPE,
-                subtype="lexer",
+                # wtype=DEFAULT_LOG_TYPE,
+                subtype=MystNBWarnings.LEXER,
                 line=line,
                 append_to=self.current_node,
             )
@@ -275,7 +277,7 @@ class MditRenderMixin:
 
         # TODO how to output MyST Markdown?
         # currently text/markdown is set to be rendered as CommonMark only,
-        # with headings dissallowed,
+        # with headings disallowed,
         # to avoid "side effects" if the mime is discarded but contained
         # targets, etc, and because we can't parse headings within containers.
         # perhaps we could have a config option to allow this?
@@ -310,11 +312,6 @@ class MimeData:
     """Index of the output in the cell"""
     line: int | None = None
     """Source line of the cell"""
-    md_headings: bool = False
-    """Whether to render headings in text/markdown blocks."""
-    # we can only do this if know the content will be rendered into the main body
-    # of the document, e.g. not inside a container node
-    # (otherwise it will break the structure of the AST)
 
     @property
     def string(self) -> str:
@@ -598,9 +595,7 @@ class NbElementRenderer:
         fmt = self.renderer.get_cell_level_config(
             "render_markdown_format", data.cell_metadata, line=data.line
         )
-        return self._render_markdown_base(
-            data, fmt=fmt, inline=False, allow_headings=data.md_headings
-        )
+        return self._render_markdown_base(data, fmt=fmt, inline=False)
 
     def render_text_plain(self, data: MimeData) -> list[nodes.Element]:
         """Render a notebook text/plain mime data output."""
@@ -646,7 +641,7 @@ class NbElementRenderer:
             # data is b64-encoded as text
             data_bytes = a2b_base64(data.content)
         elif isinstance(data.content, str):
-            # ensure corrent line separator
+            # ensure correct line separator
             data_bytes = os.linesep.join(data.content.splitlines()).encode("utf-8")
         # create filename
         extension = (
@@ -666,6 +661,14 @@ class NbElementRenderer:
         # TODO backwards-compatible re-naming to image_options?
         image_options = self.renderer.get_cell_level_config(
             "render_image_options", data.cell_metadata, line=data.line
+        ).copy()
+        # Overwrite with metadata stored in output
+        image_options.update(
+            {
+                key: str(value)
+                for key, value in data.output_metadata.get(data.mime_type, {}).items()
+                if key in {"width", "height"}
+            }
         )
         for key, spec in [
             ("classes", options_spec.class_option),
@@ -753,9 +756,7 @@ class NbElementRenderer:
         fmt = self.renderer.get_cell_level_config(
             "render_markdown_format", data.cell_metadata, line=data.line
         )
-        return self._render_markdown_base(
-            data, fmt=fmt, inline=True, allow_headings=data.md_headings
-        )
+        return self._render_markdown_base(data, fmt=fmt, inline=True)
 
     def render_text_plain_inline(self, data: MimeData) -> list[nodes.Element]:
         """Render a notebook text/plain mime data output."""
@@ -796,10 +797,10 @@ class NbElementRenderer:
         return self.render_widget_view(data)
 
     def _render_markdown_base(
-        self, data: MimeData, *, fmt: str, inline: bool, allow_headings: bool
+        self, data: MimeData, *, fmt: str, inline: bool
     ) -> list[nodes.Element]:
         """Base render for a notebook markdown mime output (block or inline)."""
-        psuedo_element = nodes.Element()  # element to hold the parsed markdown
+        pseudo_element = nodes.Element()  # element to hold the parsed markdown
         current_parser = self.renderer.md
         current_md_config = self.renderer.md_config
         try:
@@ -827,19 +828,18 @@ class NbElementRenderer:
                 )
                 return []
 
-            with self.renderer.current_node_context(psuedo_element):
+            with self.renderer.current_node_context(pseudo_element):
                 self.renderer.nested_render_text(
                     data.string,
                     data.line or 0,
                     inline=inline,
-                    allow_headings=allow_headings,
                 )
         finally:
             # restore the parser
             self.renderer.md = current_parser
             self.renderer.md_config = current_md_config
 
-        return psuedo_element.children
+        return pseudo_element.children
 
 
 class EntryPointError(Exception):
@@ -903,7 +903,7 @@ class ExampleMimeRenderPlugin(MimeRenderPlugin):
         return None
 
 
-@lru_cache()
+@lru_cache
 def load_mime_renders() -> list[MimeRenderPlugin]:
     all_eps = entry_points()
     if hasattr(all_eps, "select"):
@@ -986,11 +986,12 @@ def create_figure_context(
             caption.source = self.document["source"]
             caption.line = line
         elif not (isinstance(first_node, nodes.comment) and len(first_node) == 0):
-            self.create_warning(
+            create_warning(
+                self.document,
                 "Figure caption must be a paragraph or empty comment.",
                 line=line,
-                wtype=DEFAULT_LOG_TYPE,
-                subtype="fig_caption",
+                # wtype=DEFAULT_LOG_TYPE,
+                subtype=MystNBWarnings.FIG_CAPTION,
             )
 
     self.current_node.append(figure_node)

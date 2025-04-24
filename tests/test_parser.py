@@ -1,4 +1,5 @@
 """Test parsing of already executed notebooks."""
+
 import os
 from pathlib import Path
 
@@ -8,7 +9,6 @@ import pytest
 @pytest.mark.sphinx_params("basic_run.ipynb", conf={"nb_execution_mode": "off"})
 def test_basic_run(sphinx_run, file_regression):
     sphinx_run.build()
-    # print(sphinx_run.status())
     assert sphinx_run.warnings() == ""
     assert set(sphinx_run.env.metadata["basic_run"].keys()) == {
         "test_name",
@@ -24,13 +24,48 @@ def test_basic_run(sphinx_run, file_regression):
         "name": "python3",
     }
     file_regression.check(
-        sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf8"
+        sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf-8"
     )
 
     filenames = {
-        p for p in (sphinx_run.app.srcdir / "_build" / "jupyter_execute").listdir()
+        p.name
+        for p in Path(
+            os.fspath(sphinx_run.app.srcdir / "_build" / "jupyter_execute")
+        ).iterdir()
     }
     assert filenames == {"basic_run.ipynb"}
+
+
+@pytest.mark.sphinx_params(
+    "basic_run_intl.ipynb", conf={"language": "es", "locale_dirs": ["locale"]}
+)
+def test_basic_run_intl(sphinx_run, file_regression):
+    sphinx_run.build()
+    assert sphinx_run.warnings() == ""
+    assert set(sphinx_run.env.metadata["basic_run_intl"].keys()) == {
+        "test_name",
+        "wordcount",
+        "kernelspec",
+        "language_info",
+    }
+    assert set(sphinx_run.env.nb_metadata["basic_run_intl"].keys()) == set()
+    assert sphinx_run.env.metadata["basic_run_intl"]["test_name"] == "notebook1"
+    assert sphinx_run.env.metadata["basic_run_intl"]["kernelspec"] == {
+        "display_name": "Python 3",
+        "language": "python",
+        "name": "python3",
+    }
+    file_regression.check(
+        sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf-8"
+    )
+
+    filenames = {
+        p.name
+        for p in Path(
+            os.fspath(sphinx_run.app.srcdir / "_build" / "jupyter_execute")
+        ).iterdir()
+    }
+    assert filenames == {"basic_run_intl.ipynb"}
 
 
 @pytest.mark.sphinx_params("complex_outputs.ipynb", conf={"nb_execution_mode": "off"})
@@ -64,11 +99,13 @@ def test_complex_outputs(sphinx_run, file_regression):
         doctree_string = doctree_string.replace(
             Path(sphinx_run.app.srcdir).as_posix() + "/", ""
         )
-    file_regression.check(doctree_string, extension=".xml", encoding="utf8")
+    file_regression.check(doctree_string, extension=".xml", encoding="utf-8")
 
     filenames = {
-        p.replace(".jpeg", ".jpg")
-        for p in (sphinx_run.app.srcdir / "_build" / "jupyter_execute").listdir()
+        p.name.replace(".jpeg", ".jpg")
+        for p in Path(
+            os.fspath(sphinx_run.app.srcdir / "_build" / "jupyter_execute")
+        ).iterdir()
     }
     # print(filenames)
     assert filenames == {

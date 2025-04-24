@@ -3,12 +3,13 @@
         <container classes="cell_input" nb_element="cell_code_source">
             <literal_block language="ipython3" linenos="False" xml:space="preserve">
                 import sys
-                print('stdout1', file=sys.stdout)
-                print('stdout2', file=sys.stdout)
-                print('stderr1', file=sys.stderr)
-                print('stderr2', file=sys.stderr)
-                print('stdout3', file=sys.stdout)
-                print('stderr3', file=sys.stderr)
+                
+                print("stdout1", file=sys.stdout)
+                print("stdout2", file=sys.stdout)
+                print("stderr1", file=sys.stderr)
+                print("stderr2", file=sys.stderr)
+                print("stdout3", file=sys.stdout)
+                print("stderr3", file=sys.stderr)
                 1
         <container classes="cell_output" nb_element="cell_code_output">
             <literal_block classes="output stream" language="myst-ansi" linenos="False" xml:space="preserve">

@@ -21,7 +21,7 @@ nb_custom_formats = {
 ```
 
 - The string should be a Python function that will be loaded by `import mylibrary.converter_function`
-- The function should take a file's contents (as a `str`) and return an [nbformat.NotebookNode](nbformat:api)
+- The function should take a file's contents (as a `str`) and return an [nbformat.NotebookNode](inv:nbformat#api)
 
 If the function takes additional keyword arguments, then you can specify these as dictionary in a second argument.
 For example this is what the default conversion would look like:

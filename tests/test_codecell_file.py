@@ -1,4 +1,5 @@
 """Test notebooks containing code cells with the `load` option."""
+
 import pytest
 from sphinx.util.fileutil import copy_asset_file
 
@@ -31,11 +32,14 @@ def test_codecell_file(sphinx_run, file_regression, check_nbs, get_test_path):
     }
     try:
         file_regression.check(
-            sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb", encoding="utf8"
+            sphinx_run.get_nb(),
+            check_fn=check_nbs,
+            extension=".ipynb",
+            encoding="utf-8",
         )
     finally:
         file_regression.check(
-            sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf8"
+            sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf-8"
         )
 
 
@@ -73,9 +77,12 @@ def test_codecell_file_warnings(sphinx_run, file_regression, check_nbs, get_test
     }
     try:
         file_regression.check(
-            sphinx_run.get_nb(), check_fn=check_nbs, extension=".ipynb", encoding="utf8"
+            sphinx_run.get_nb(),
+            check_fn=check_nbs,
+            extension=".ipynb",
+            encoding="utf-8",
         )
     finally:
         file_regression.check(
-            sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf8"
+            sphinx_run.get_doctree().pformat(), extension=".xml", encoding="utf-8"
         )

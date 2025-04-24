@@ -5,6 +5,7 @@
                 import matplotlib.pyplot as plt
                 import pandas as pd
                 import sympy as sym
+                
                 sym.init_printing(use_latex=True)
                 import numpy as np
                 from IPython.display import Image, Latex
@@ -105,9 +106,9 @@
         <container cell_index="13" cell_metadata="{'ipub': {'figure': {'caption': 'A nice picture.', 'label': 'fig:example', 'placement': '!bh'}}}" classes="cell" exec_count="3" nb_element="cell_code">
             <container classes="cell_input" nb_element="cell_code_source">
                 <literal_block language="ipython3" linenos="False" xml:space="preserve">
-                    Image('example.jpg',height=400)
+                    Image("example.jpg", height=400)
             <container classes="cell_output" nb_element="cell_code_output">
-                <image candidates="{'*': '_build/jupyter_execute/a4c9580c74dacf6f3316a3bd2e2a347933aa4463834dcf1bb8f20b4fcb476ae1.jpg'}" uri="_build/jupyter_execute/a4c9580c74dacf6f3316a3bd2e2a347933aa4463834dcf1bb8f20b4fcb476ae1.jpg">
+                <image candidates="{'*': '_build/jupyter_execute/a4c9580c74dacf6f3316a3bd2e2a347933aa4463834dcf1bb8f20b4fcb476ae1.jpg'}" height="400" uri="_build/jupyter_execute/a4c9580c74dacf6f3316a3bd2e2a347933aa4463834dcf1bb8f20b4fcb476ae1.jpg">
         <section ids="displaying-a-plot-with-its-code" names="displaying\ a\ plot\ with\ its\ code">
             <title>
                 Displaying a plot with its code
@@ -118,12 +119,11 @@
             <container cell_index="17" cell_metadata="{'ipub': {'code': {'asfloat': True, 'caption': 'a', 'label': 'code:example_mpl', 'widefigure': False}, 'figure': {'caption': '', 'label': 'fig:example_mpl', 'widefigure': False}}}" classes="cell" exec_count="4" nb_element="cell_code">
                 <container classes="cell_input" nb_element="cell_code_source">
                     <literal_block language="ipython3" linenos="False" xml:space="preserve">
-                        plt.scatter(np.random.rand(10), np.random.rand(10), 
-                                    label='data label')
-                        plt.ylabel(r'a y label with latex $\alpha$')
+                        plt.scatter(np.random.rand(10), np.random.rand(10), label="data label")
+                        plt.ylabel(r"a y label with latex $\alpha$")
                         plt.legend();
                 <container classes="cell_output" nb_element="cell_code_output">
-                    <image candidates="{'*': '_build/jupyter_execute/16832f45917c1c9862c50f0948f64a498402d6ccde1f3a291da17f240797b160.png'}" uri="_build/jupyter_execute/16832f45917c1c9862c50f0948f64a498402d6ccde1f3a291da17f240797b160.png">
+                    <image candidates="{'*': '_build/jupyter_execute/16832f45917c1c9862c50f0948f64a498402d6ccde1f3a291da17f240797b160.png'}" height="288" uri="_build/jupyter_execute/16832f45917c1c9862c50f0948f64a498402d6ccde1f3a291da17f240797b160.png" width="432">
     <section ids="tables-with-pandas" names="tables\ (with\ pandas)">
         <title>
             Tables (with pandas)
@@ -132,10 +132,10 @@
         <container cell_index="20" cell_metadata="{'ipub': {'code': {'asfloat': True, 'caption': '', 'label': 'code:example_pd', 'placement': 'H', 'widefigure': False}, 'table': {'alternate': 'gray!20', 'caption': 'An example of a table created with pandas dataframe.', 'label': 'tbl:example', 'placement': 'H'}}}" classes="cell" exec_count="5" nb_element="cell_code">
             <container classes="cell_input" nb_element="cell_code_source">
                 <literal_block language="ipython3" linenos="False" xml:space="preserve">
-                    df = pd.DataFrame(np.random.rand(3,4),columns=['a','b','c','d'])
-                    df.a = ['$\delta$','x','y']
-                    df.b = ['l','m','n']
-                    df.set_index(['a','b'])
+                    df = pd.DataFrame(np.random.rand(3, 4), columns=["a", "b", "c", "d"])
+                    df.a = [r"$\delta$", "x", "y"]
+                    df.b = ["l", "m", "n"]
+                    df.set_index(["a", "b"])
                     df.round(3)
             <container classes="cell_output" nb_element="cell_code_output">
                 <raw classes="output text_html" format="html" xml:space="preserve">
@@ -194,7 +194,7 @@
         <container cell_index="22" cell_metadata="{'ipub': {'equation': {'label': 'eqn:example_ipy'}}}" classes="cell" exec_count="6" nb_element="cell_code">
             <container classes="cell_input" nb_element="cell_code_source">
                 <literal_block language="ipython3" linenos="False" xml:space="preserve">
-                    Latex('$$ a = b+c $$')
+                    Latex("$$ a = b+c $$")
             <container classes="cell_output" nb_element="cell_code_output">
                 <math_block classes="output text_latex" nowrap="False" number="True" xml:space="preserve">
                      a = b+c 
@@ -203,17 +203,18 @@
         <container cell_index="24" cell_metadata="{'ipub': {'code': {'asfloat': True, 'caption': '', 'label': 'code:example_sym', 'placement': 'H', 'widefigure': False}, 'equation': {'environment': 'equation', 'label': 'eqn:example_sympy'}}}" classes="cell" exec_count="7" nb_element="cell_code">
             <container classes="cell_input" nb_element="cell_code_source">
                 <literal_block language="ipython3" linenos="False" xml:space="preserve">
-                    y = sym.Function('y')
-                    n = sym.symbols(r'\alpha')
-                    f = y(n)-2*y(n-1/sym.pi)-5*y(n-2)
-                    sym.rsolve(f,y(n),[1,4])
+                    y = sym.Function("y")
+                    n = sym.symbols(r"\alpha")
+                    f = y(n) - 2 * y(n - 1 / sym.pi) - 5 * y(n - 2)
+                    sym.rsolve(f, y(n), [1, 4])
             <container classes="cell_output" nb_element="cell_code_output">
                 <image candidates="{'*': '_build/jupyter_execute/8c43e5c8cccf697754876b7fec1b0a9b731d7900bb585e775a5fa326b4de8c5a.png'}" uri="_build/jupyter_execute/8c43e5c8cccf697754876b7fec1b0a9b731d7900bb585e775a5fa326b4de8c5a.png">
         <container cell_index="25" cell_metadata="{}" classes="cell" exec_count="7" nb_element="cell_code">
             <container classes="cell_input" nb_element="cell_code_source">
                 <literal_block language="ipython3" linenos="False" xml:space="preserve">
                     from IPython.display import display, Markdown
-                    display(Markdown('**_some_ markdown**'))
+                    
+                    display(Markdown("**_some_ markdown**"))
             <container classes="cell_output" nb_element="cell_code_output">
                 <paragraph>
                     <strong>
