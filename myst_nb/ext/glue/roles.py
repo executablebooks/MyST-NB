@@ -3,6 +3,7 @@
 We intentionally do no import sphinx in this module,
 in order to allow docutils-only use without sphinx installed.
 """
+
 from __future__ import annotations
 
 from docutils import nodes
@@ -29,7 +30,6 @@ class PasteRoleAny(RoleBase):
     """
 
     def run(self) -> tuple[list[nodes.Node], list[nodes.system_message]]:
-
         # check if this is a pending reference
         doc_key = self.text.split("::", 1)
         if len(doc_key) == 2:

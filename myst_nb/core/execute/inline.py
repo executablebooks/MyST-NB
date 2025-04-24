@@ -1,8 +1,10 @@
 """Execute a notebook inline."""
+
 from __future__ import annotations
 
 import asyncio
 from datetime import datetime
+import re
 import shutil
 from tempfile import mkdtemp
 import time
@@ -22,7 +24,7 @@ from nbformat import NotebookNode
 
 from myst_nb.ext.glue import extract_glue_data_cell
 
-from .base import EVAL_NAME_REGEX, EvalNameError, ExecutionError, NotebookClientBase
+from .base import EvalNameError, ExecutionError, NotebookClientBase
 
 
 class NotebookClientInline(NotebookClientBase):
@@ -34,7 +36,6 @@ class NotebookClientInline(NotebookClientBase):
     """
 
     def start_client(self):
-
         self._tmp_path = None
         if self.nb_config.execution_in_temp:
             self._tmp_path = mkdtemp()
@@ -114,12 +115,10 @@ class NotebookClientInline(NotebookClientBase):
     def code_cell_outputs(
         self, cell_index: int
     ) -> tuple[int | None, list[NotebookNode]]:
-
         cells = self.notebook.get("cells", [])
 
         # ensure all cells up to and including the requested cell have been executed
         while (not self._cell_error) and cell_index > self._last_cell_executed:
-
             self._last_cell_executed += 1
             try:
                 next_cell = cells[self._last_cell_executed]
@@ -151,7 +150,7 @@ class NotebookClientInline(NotebookClientBase):
         return cell.get("execution_count", None), cell.get("outputs", [])
 
     def eval_variable(self, name: str) -> list[NotebookNode]:
-        if not EVAL_NAME_REGEX.match(name):
+        if not re.match(self.nb_config.eval_name_regex, name):
             raise EvalNameError(name)
         return self._client.eval_expression(name)
 

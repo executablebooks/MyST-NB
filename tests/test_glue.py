@@ -1,4 +1,5 @@
 """Test the `glue` directives and roles."""
+
 from IPython.core.displaypub import DisplayPublisher
 from IPython.core.interactiveshell import InteractiveShell
 import nbformat
@@ -112,5 +113,5 @@ def test_parser(sphinx_run, clean_doctree, file_regression):
     doctree = clean_doctree(sphinx_run.get_resolved_doctree("with_glue"))
     file_regression.check(
         doctree.pformat(),
-        encoding="utf8",
+        encoding="utf-8",
     )

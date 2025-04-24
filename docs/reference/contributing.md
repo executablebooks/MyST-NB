@@ -38,8 +38,8 @@ that can be executed and read into Sphinx.
 
 ## Code Style
 
-Code style is tested using [flake8](http://flake8.pycqa.org),
-with the configuration set in `.flake8`,
+Code style is tested using [ruff](https://docs.astral.sh/ruff),
+with the configuration set in `pyproject.toml`,
 and code formatted with [black](https://github.com/ambv/black).
 
 Installing with `myst-nb[code_style]` makes the [pre-commit](https://pre-commit.com/)
@@ -52,16 +52,16 @@ It can be setup by:
 >> pre-commit install
 ```
 
-Optionally you can run `black` and `flake8` separately:
+Optionally you can run `black` and `ruff` separately:
 
 ```shell
 >> black .
->> flake8 .
+>> ruff .
 ```
 
 Editors like VS Code also have automatic code reformat utilities, which can adhere to this standard.
 
-All functions and class methods should be annotated with types and include a docstring. The prefered docstring format is outlined in `MyST-NB/docstring.fmt.mustache` and can be used automatically with the
+All functions and class methods should be annotated with types and include a docstring. The preferred docstring format is outlined in `MyST-NB/docstring.fmt.mustache` and can be used automatically with the
 [autodocstring](https://marketplace.visualstudio.com/items?itemName=njpwerner.autodocstring) VS Code extension.
 
 ## Testing

@@ -3,7 +3,8 @@
         <container classes="cell_input" nb_element="cell_code_source">
             <literal_block language="ipython3" linenos="False" xml:space="preserve">
                 import sys
-                print('hallo', file=sys.stderr)
+                
+                print("hallo", file=sys.stderr)
         <container classes="cell_output" nb_element="cell_code_output">
             <literal_block classes="output stderr" language="myst-ansi" linenos="False" xml:space="preserve">
                 hallo
@@ -11,5 +12,6 @@
         <container classes="cell_input" nb_element="cell_code_source">
             <literal_block language="ipython3" linenos="False" xml:space="preserve">
                 import sys
-                print('hallo', file=sys.stderr)
+                
+                print("hallo", file=sys.stderr)
         <container classes="cell_output" nb_element="cell_code_output">

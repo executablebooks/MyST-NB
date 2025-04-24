@@ -25,7 +25,7 @@ To glue keys from other notebooks, see {ref}`glue/crossdoc`.
 ## Save variables in code cells
 
 You can use `myst_nb.glue()` to assign the output of a variable to a key of your choice.
-`glue` will store all of the information that is normally used to display that variable (ie, whatever happens when you display the variable by putting it at the end of a cell).
+`glue` will store all of the information that is normally used to display that variable (that is, whatever happens when you display the variable by putting it at the end of a cell).
 Choose a key that you will remember, as you will use it later.
 
 The following code glues a variable inside the notebook:
@@ -54,6 +54,8 @@ We'll hide most of this process below, to focus on the glueing part.
 
 # Simulate some data and bootstrap the mean of the data
 import numpy as np
+np.set_printoptions(legacy="1.25")
+
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -70,7 +72,7 @@ Below we'll calculate a few statistics of interest, and `glue()` them into the n
 ```{code-cell} ipython3
 # Calculate the mean of a bunch of random samples
 means = data[bootstrap_indices].mean(0)
-# Calcualte the 95% confidence interval for the mean
+# Calculate the 95% confidence interval for the mean
 clo, chi = np.percentile(means, [2.5, 97.5])
 
 # Store the values in our notebook
@@ -91,7 +93,7 @@ glue("boot_chi_notdisplayed", chi, display=False)
 You can also glue visualizations, such as matplotlib figures (here we use `display=False` to ensure that the figure isn't plotted twice):
 
 ```{code-cell} ipython3
-# Visualize the historgram with the intervals
+# Visualize the histogram with the intervals
 fig, ax = plt.subplots()
 ax.hist(means)
 for ln in [clo, chi]:
@@ -135,12 +137,12 @@ These variables can be pasted using one of the roles or directives in the `glue:
 
 ### The `glue` role/directive
 
-The simplest role and directive are `glue` (a.k.a. `glue:any`),
+The simplest role and directive are `glue` (also known as `glue:any`),
 which paste the glued output inline or as a block respectively,
 with no additional formatting.
 Simply add:
 
-````
+````md
 ```{glue} your-key
 ```
 ````
@@ -216,6 +218,27 @@ This is particularly useful if you are displaying numbers and want to round the 
 For example, the following: ``My rounded mean: {glue:text}`boot_mean:.2f` `` will be rendered like this:
 
 My rounded mean: {glue:text}`boot_mean:.2f` (95% CI: {glue:text}`boot_clo:.2f`/{glue:text}`boot_chi:.2f`).
+
+````{warning}
+As of NumPy 2.0, the `text/plain` representation of [NumPy objects has changed](https://numpy.org/devdocs/release/2.0.0-notes.html#representation-of-numpy-scalars-changed).
+Using text formatting with NumPy>=2.0 will give warnings like:
+
+```
+sphinx.errors.SphinxWarning: <filename>:257:Failed to format text/plain data: could not convert string to float: 'np.float64(0.9643970836113095)' [mystnb.glue]
+```
+
+This can be resolved by either formatting the number before glueing or by setting NumPy to use legacy print options, as shown below.
+
+```python
+var = np.float(1.0)
+# Format the variable before glueing
+glue("var_glue", f"{var:.2f}")
+
+# Or set NumPy legacy print options
+np.setprintoptions(legacy="1.25")
+glue("var_glue", var)
+```
+````
 
 +++
 

@@ -1,4 +1,5 @@
 """The sphinx parser implementation for myst-nb."""
+
 from __future__ import annotations
 
 from collections import defaultdict
@@ -13,7 +14,7 @@ from markdown_it.token import Token
 from markdown_it.tree import SyntaxTreeNode
 from myst_parser.config.main import MdParserConfig, merge_file_level
 from myst_parser.mdit_to_docutils.base import token_line
-from myst_parser.mdit_to_docutils.sphinx_ import SphinxRenderer, create_warning
+from myst_parser.mdit_to_docutils.sphinx_ import SphinxRenderer
 from myst_parser.parsers.mdit import create_md_parser
 from myst_parser.parsers.sphinx_ import MystParser
 import nbformat
@@ -38,6 +39,7 @@ from myst_nb.core.render import (
     get_mime_priority,
     load_renderer,
 )
+from myst_nb.warnings_ import MystNBWarnings, create_warning
 
 SPHINX_LOGGER = sphinx_logging.getLogger(__name__)
 
@@ -60,6 +62,8 @@ class Parser(MystParser):
     config_section = "myst-nb parser"
     config_section_dependencies = ("parsers",)
 
+    env: SphinxEnvType
+
     def parse(self, inputstring: str, document: nodes.document) -> None:
         """Parse source text.
 
@@ -67,7 +71,6 @@ class Parser(MystParser):
         :param document: The root docutils node to add AST elements to
         """
         assert self.env is not None, "env not set"
-        self.env: SphinxEnvType
         document_path = self.env.doc2path(self.env.docname)
 
         # get a logger for this document
@@ -82,7 +85,7 @@ class Parser(MystParser):
         # create a reader for the notebook
         nb_reader = create_nb_reader(document_path, md_config, nb_config, inputstring)
         # If the nb_reader is None, then we default to a standard Markdown parser
-        if nb_reader is None:
+        if nb_reader is None or document.current_source.endswith("<translated>"):
             return super().parse(inputstring, document)
         notebook = nb_reader.read(inputstring)
 
@@ -139,7 +142,7 @@ class Parser(MystParser):
         # so that roles/directives can access it
         document.attributes["nb_renderer"] = nb_renderer
         # we currently do this early, so that the nb_renderer has access to things
-        mdit_renderer.setup_render(mdit_parser.options, mdit_env)
+        mdit_renderer.setup_render(mdit_parser.options, mdit_env)  # type: ignore
 
         # parse notebook structure to markdown-it tokens
         # note, this does not assume that the notebook has been executed yet
@@ -262,7 +265,6 @@ class SphinxNbRenderer(SphinxRenderer, MditRenderMixin):
                 self.add_line_and_source_path_r(_nodes, token)
                 self.current_node.extend(_nodes)
             elif output.output_type in ("display_data", "execute_result"):
-
                 # Note, this is different to the docutils implementation,
                 # where we directly select a single output, based on the mime_priority.
                 # Here, we do not know the mime priority until we know the output format
@@ -302,12 +304,13 @@ class SphinxNbRenderer(SphinxRenderer, MditRenderMixin):
                         self.add_line_and_source_path_r([mime_bundle], token)
                         self.current_node.append(mime_bundle)
             else:
-                self.create_warning(
+                create_warning(
+                    self.document,
                     f"Unsupported output type: {output.output_type}",
                     line=line,
                     append_to=self.current_node,
-                    wtype=DEFAULT_LOG_TYPE,
-                    subtype="output_type",
+                    # wtype=DEFAULT_LOG_TYPE,
+                    subtype=MystNBWarnings.OUTPUT_TYPE,
                 )
 
 
@@ -326,10 +329,13 @@ class SelectMimeType(SphinxPostTransform):
         priority_list = get_mime_priority(
             bname, self.config["nb_mime_priority_overrides"]
         )
-        condition = (
-            lambda node: isinstance(node, nodes.container)
-            and node.attributes.get("nb_element", "") == "mime_bundle"
-        )
+
+        def condition(node):
+            return (
+                isinstance(node, nodes.container)
+                and node.attributes.get("nb_element", "") == "mime_bundle"
+            )
+
         # remove/replace_self will not work with an iterator
         for node in list(findall(self.document)(condition)):
             # get available mime types
@@ -363,7 +369,7 @@ class SelectMimeType(SphinxPostTransform):
 
 
 class NbMetadataCollector(EnvironmentCollector):
-    """Collect myst-nb specific metdata, and handle merging of parallel builds."""
+    """Collect myst-nb specific metadata, and handle merging of parallel builds."""
 
     @staticmethod
     def set_doc_data(env: SphinxEnvType, docname: str, key: str, value: Any) -> None:
@@ -504,9 +510,7 @@ class HideInputCells(SphinxPostTransform):
     formats = ("html",)
 
     def run(self, **kwargs):
-
         for node in findall(self.document)(nodes.container):
-
             if (
                 node.get("nb_element") == "cell_code"
                 and node.get("hide_mode")

@@ -84,17 +84,18 @@ This can be set to:
 (render/output/group-stderr-stdout)=
 ### Group into single streams
 
-Cells may print multiple things to `stdout` and `stderr`.
+Cells may print multiple things to `stdout` (and/or to `stderr`).
 For example, if a cell prints status updates throughout its execution, each of these is often printed to `stdout`.
 By default, these outputs may be split across multiple items, and will be rendered as separate "chunks" in your built documentation.
 
-If you'd like each of the outputs in `stderr` and `stdout` to be merged into a single stream for each, use the following configuration:
+If you'd like each of the outputs in `stdout` to be merged into a single stream for each, use the following configuration (see {ref}`config/intro`):
 
 ```python
 nb_merge_streams = True
 ```
 
-This will ensure that all `stderr` and `stdout` outputs are merged into a single group.
+This will ensure that all `stdout` outputs are merged into a single group; likewise, all
+`stderr` outputs will be merged into single (separate) group.
 This also makes cell outputs more deterministic.
 Normally, slight differences in timing may result in different orders of `stderr` and `stdout` in the cell output, while this setting will sort them properly.
 
@@ -134,7 +135,7 @@ nb_mime_priority_overrides = [
 ```
 
 :::{seealso}
-[](render/output/cutomise), for a more advanced means of customisation.
+[](render/output/customise), for a more advanced means of customisation.
 :::
 
 (render/output/images)=
@@ -166,7 +167,7 @@ You can also wrap the output in a [`figure`](https://docutils.sourceforge.io/doc
 ---
 mystnb:
   image:
-    width: 200px
+    width: 300px
     alt: fun-fish
     classes: shadow bg-primary
   figure:
@@ -353,7 +354,7 @@ This is currently not supported, but we hope to introduce it at a later date
 (raise an issue on the repository if you require it!).
 :::
 
-(render/output/cutomise)=
+(render/output/customise)=
 ## Customise the render process
 
 The render process is governed by subclasses of {py:class}`~myst_nb.core.render.NbElementRenderer`, which dictate how to create the `docutils` AST nodes for elements of the notebook.

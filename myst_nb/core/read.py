@@ -1,4 +1,5 @@
 """Module for reading notebook formats from a string input."""
+
 from __future__ import annotations
 
 import dataclasses as dc
@@ -57,8 +58,11 @@ def create_nb_reader(
     :returns: the notebook reader, and the (potentially modified) MdParserConfig,
         or None if the input cannot be read as a notebook.
     """
-    # the import is here so this module can be loaded without sphinx
-    from sphinx.util import import_object
+
+    try:
+        from sphinx.util._importer import import_object
+    except ImportError:
+        from sphinx.util import import_object
 
     # get all possible readers
     readers = nb_config.custom_formats.copy()
@@ -68,7 +72,7 @@ def create_nb_reader(
     # we check suffixes ordered by longest first, to ensure we get the "closest" match
     iterator = sorted(readers.items(), key=lambda x: len(x[0]), reverse=True)
     for suffix, (reader, reader_kwargs, commonmark_only) in iterator:
-        if path.endswith(suffix):
+        if str(Path(path)).endswith(suffix):
             if isinstance(reader, str):
                 # attempt to load the reader as an object path
                 reader = import_object(reader)
@@ -242,7 +246,6 @@ def read_myst_markdown_notebook(
     md_metadata: dict = {}
 
     for token in tokens:
-
         nesting_level += token.nesting
 
         if nesting_level != 0:
@@ -313,25 +316,22 @@ class _MockDirective:
 
 
 def _read_fenced_cell(token, cell_index, cell_type):
-    from myst_parser.parsers.directives import (
-        DirectiveParsingError,
-        parse_directive_text,
-    )
+    from myst_parser.parsers.directives import parse_directive_text
 
-    try:
-        _, options, body_lines, _ = parse_directive_text(
-            directive_class=_MockDirective,
-            first_line="",
-            content=token.content,
-            validate_options=False,
-        )
-    except DirectiveParsingError as err:
+    result = parse_directive_text(
+        directive_class=_MockDirective,
+        first_line="",
+        content=token.content,
+        validate_options=False,
+    )
+    if result.warnings:
         raise MystMetadataParsingError(
             "{} cell {} at line {} could not be read: {}".format(
-                cell_type, cell_index, token.map[0] + 1, err
+                cell_type, cell_index, token.map[0] + 1, result.warnings[0]
             )
         )
-    return options, body_lines
+
+    return result.options, result.body
 
 
 def _read_cell_metadata(token, cell_index):
