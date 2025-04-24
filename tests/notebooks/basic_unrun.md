@@ -12,6 +12,6 @@ author: Chris
 this was created using `jupytext --to myst tests/notebooks/basic_unrun.ipynb`
 
 ```{code-cell} ipython3
-a=1
+a = 1
 print(a)
 ```

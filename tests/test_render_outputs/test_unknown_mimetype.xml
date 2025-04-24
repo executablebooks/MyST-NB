@@ -2,6 +2,6 @@
     <container cell_index="0" cell_metadata="{}" classes="cell" exec_count="1" nb_element="cell_code">
         <container classes="cell_input" nb_element="cell_code_source">
             <literal_block language="ipython3" linenos="False" xml:space="preserve">
-                a=1
+                a = 1
                 print(a)
         <container classes="cell_output" nb_element="cell_code_output">

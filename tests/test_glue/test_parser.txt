@@ -24,6 +24,7 @@
             <container classes="cell_input" nb_element="cell_code_source">
                 <literal_block language="ipython3" linenos="False" xml:space="preserve">
                     import pandas as pd
+                    
                     df = pd.DataFrame({"header": [1, 2, 3]})
                     glue("key_df", df)
             <container classes="cell_output" nb_element="cell_code_output">
@@ -69,6 +70,7 @@
             <container classes="cell_input" nb_element="cell_code_source">
                 <literal_block language="ipython3" linenos="False" xml:space="preserve">
                     import matplotlib.pyplot as plt
+                    
                     plt.plot([1, 2, 3])
                     glue("key_plt", plt.gcf(), display=False)
             <container classes="cell_output" nb_element="cell_code_output">
@@ -149,11 +151,12 @@
                 <container classes="cell_input" nb_element="cell_code_source">
                     <literal_block language="ipython3" linenos="False" xml:space="preserve">
                         import sympy as sym
-                        f = sym.Function('f')
-                        y = sym.Function('y')
-                        n = sym.symbols(r'\alpha')
-                        f = y(n)-2*y(n-1/sym.pi)-5*y(n-2)
-                        glue("sym_eq", sym.rsolve(f,y(n),[1,4]))
+                        
+                        f = sym.Function("f")
+                        y = sym.Function("y")
+                        n = sym.symbols(r"\alpha")
+                        f = y(n) - 2 * y(n - 1 / sym.pi) - 5 * y(n - 2)
+                        glue("sym_eq", sym.rsolve(f, y(n), [1, 4]))
                 <container classes="cell_output" nb_element="cell_code_output">
                     <math_block classes="output text_latex" nowrap="False" number="True" xml:space="preserve">
                         \displaystyle \left(\sqrt{5} i\right)^{\alpha} \left(\frac{1}{2} - \frac{2 \sqrt{5} i}{5}\right) + \left(- \sqrt{5} i\right)^{\alpha} \left(\frac{1}{2} + \frac{2 \sqrt{5} i}{5}\right)
