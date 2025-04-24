@@ -8,6 +8,7 @@
                     # Outputs included with width/height in output metadata,
                     # cell is not executed
                     from IPython.display import Image
+                    
                     Image(filename="./example.jpg", width=500, height=100)
             <container classes="cell_output" nb_element="cell_code_output">
                 <image candidates="{'*': '_build/jupyter_execute/a4c9580c74dacf6f3316a3bd2e2a347933aa4463834dcf1bb8f20b4fcb476ae1.jpg'}" height="100" uri="_build/jupyter_execute/a4c9580c74dacf6f3316a3bd2e2a347933aa4463834dcf1bb8f20b4fcb476ae1.jpg" width="500">
@@ -16,6 +17,7 @@
                 <literal_block language="ipython3" linenos="False" xml:space="preserve">
                     # No outputs, cell is executed, image should have original size (370, 254)
                     from IPython.display import Image
+                    
                     Image(filename="./example.jpg")
             <container classes="cell_output" nb_element="cell_code_output">
                 <image candidates="{'*': '_build/jupyter_execute/a4c9580c74dacf6f3316a3bd2e2a347933aa4463834dcf1bb8f20b4fcb476ae1.jpg'}" uri="_build/jupyter_execute/a4c9580c74dacf6f3316a3bd2e2a347933aa4463834dcf1bb8f20b4fcb476ae1.jpg">

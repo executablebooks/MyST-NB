@@ -3,11 +3,13 @@
         <container classes="cell_input" nb_element="cell_code_source">
             <literal_block language="ipython3" linenos="False" xml:space="preserve">
                 import sys
-                print('hallo', file=sys.stderr)
+                
+                print("hallo", file=sys.stderr)
         <container classes="cell_output" nb_element="cell_code_output">
     <container cell_index="1" cell_metadata="{'tags': ['remove-stderr']}" classes="cell tag_remove-stderr" exec_count="1" nb_element="cell_code">
         <container classes="cell_input" nb_element="cell_code_source">
             <literal_block language="ipython3" linenos="False" xml:space="preserve">
                 import sys
-                print('hallo', file=sys.stderr)
+                
+                print("hallo", file=sys.stderr)
         <container classes="cell_output" nb_element="cell_code_output">
