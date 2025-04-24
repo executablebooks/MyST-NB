@@ -135,7 +135,7 @@ def test_metadata_image(sphinx_run, clean_doctree, file_regression):
 def test_metadata_multiple_image(sphinx_run, clean_doctree, file_regression):
     sphinx_run.build()
     assert sphinx_run.warnings() == ""
-    doctree = clean_doctree(sphinx_run.get_resolved_doctree("metadata_mutiple_image"))
+    doctree = clean_doctree(sphinx_run.get_resolved_doctree("metadata_multiple_image"))
     file_regression.check(doctree.pformat(), extension=".xml", encoding="utf8")
 
 
