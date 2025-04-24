@@ -1,2 +1,3 @@
 # this is only required by coconut kernel
-ipython
+# Version limit is due to coconut and ipython inncompatibility as of 24/4/2025
+ipython<9
