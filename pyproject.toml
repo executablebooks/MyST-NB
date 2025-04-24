@@ -149,10 +149,14 @@ ignore = [
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]
-"tests/*/*ipynb" = ["E402"]   #
+"tests/*/*ipynb" = ["E402"]   # module-import-not-at-top-of-file
 
 [tool.ruff.lint.isort]
 force-sort-within-sections = true
+
+[tool.ruff.format]
+# These are reference outputs and reformatting them makes a mess
+exclude = ["tests/test_codecell_file/*ipynb"]
 
 [tool.pytest.ini_options]
 filterwarnings = [
