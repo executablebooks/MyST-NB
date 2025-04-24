@@ -130,7 +130,7 @@ def test_metadata_image(sphinx_run, clean_doctree, file_regression):
 
 @pytest.mark.sphinx_params(
     "metadata_multiple_image.ipynb",
-    conf={"jupyter_execute_notebooks": "off", "nb_render_key": "myst"},
+    conf={"nb_execution_mode": "off", "nb_cell_metadata_key": "myst"},
 )
 def test_metadata_multiple_image(sphinx_run, clean_doctree, file_regression):
     sphinx_run.build()
