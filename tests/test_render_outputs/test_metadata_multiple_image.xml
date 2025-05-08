@@ -1,0 +1,51 @@
+<document source="metadata_multiple_image">
+    <section ids="formatting-code-outputs" names="formatting\ code\ outputs">
+        <title>
+            Formatting code outputs
+        <paragraph>
+            This is a test case with multiple captioned and labelled images
+        <container cell_index="1" cell_metadata="{'myst': {'figure': {'caption': 'Hey everyone its **party** time!\n', 'name': 'fun-fish'}, 'image': {'alt': 'fun-fish', 'classes': 'shadow bg-primary', 'width': '300px'}}}" classes="cell" exec_count="1" nb_element="cell_code">
+            <container classes="cell_input" nb_element="cell_code_source">
+                <literal_block language="ipython3" linenos="False" xml:space="preserve">
+                    from IPython.display import Image
+                    
+                    Image("fun-fish.png")
+            <container classes="cell_output" nb_element="cell_code_output">
+                <figure ids="fun-fish" names="fun-fish">
+                    <image alt="fun-fish" candidates="{'*': '_build/jupyter_execute/3eacaf6adad1a4305807616181bbee897bb29177e79e2092ddd0264b848ddb4e.png'}" classes="shadow bg-primary" uri="_build/jupyter_execute/3eacaf6adad1a4305807616181bbee897bb29177e79e2092ddd0264b848ddb4e.png" width="300px">
+                    <caption>
+                        Hey everyone its 
+                        <strong>
+                            party
+                         time!
+        <paragraph>
+            Link: 
+            <reference internal="True" refid="fun-fish">
+                <inline classes="std std-ref">
+                    swim to the fish
+        <paragraph>
+            Adding another party fish image to test for multiple images
+        <container cell_index="4" cell_metadata="{'myst': {'figure': {'caption': 'Hey everyone its **party** time again!\n', 'name': 'fun-fish2'}, 'image': {'alt': 'fun-fish2', 'classes': 'shadow bg-primary', 'width': '200px'}}}" classes="cell" exec_count="2" nb_element="cell_code">
+            <container classes="cell_input" nb_element="cell_code_source">
+                <literal_block language="ipython3" linenos="False" xml:space="preserve">
+                    from IPython.display import Image
+                    
+                    Image("fun-fish.png")
+            <container classes="cell_output" nb_element="cell_code_output">
+                <figure ids="fun-fish2" names="fun-fish2">
+                    <image alt="fun-fish2" candidates="{'*': '_build/jupyter_execute/3eacaf6adad1a4305807616181bbee897bb29177e79e2092ddd0264b848ddb4e.png'}" classes="shadow bg-primary" uri="_build/jupyter_execute/3eacaf6adad1a4305807616181bbee897bb29177e79e2092ddd0264b848ddb4e.png" width="200px">
+                    <caption>
+                        Hey everyone its 
+                        <strong>
+                            party
+                         time again!
+        <paragraph>
+            Link: 
+            <reference internal="True" refid="fun-fish">
+                <inline classes="std std-ref">
+                    swim to the fish
+        <paragraph>
+            Link: 
+            <reference internal="True" refid="fun-fish2">
+                <inline classes="std std-ref">
+                    swim to the fish again
