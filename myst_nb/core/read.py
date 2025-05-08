@@ -90,6 +90,7 @@ def create_nb_reader(
                 config=md_config,
                 add_source_map=True,
                 path=path,
+                builder=nb_config.builder_name,
             ),
             md_config,
             {"type": "plugin", "name": "myst_nb_md"},
@@ -180,6 +181,7 @@ def read_myst_markdown_notebook(
     raw_directive="{raw-cell}",
     add_source_map=False,
     path: str | Path | None = None,
+    builder: str = "",
 ) -> nbf.NotebookNode:
     """Convert text written in the myst format to a notebook.
 
@@ -264,9 +266,12 @@ def read_myst_markdown_notebook(
                 )
             meta = nbf.from_dict(options)
             source_map.append(token_map[0] + 1)
-            notebook.cells.append(
-                nbf_version.new_code_cell(source="\n".join(body_lines), metadata=meta)
-            )
+            if "only" not in options or options["only"] == builder:
+                notebook.cells.append(
+                    nbf_version.new_code_cell(
+                        source="\n".join(body_lines), metadata=meta
+                    )
+                )
             md_metadata = {}
             md_start_line = token_map[1]
 
