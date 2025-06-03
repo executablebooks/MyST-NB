@@ -125,9 +125,18 @@ def test_metadata_image(sphinx_run, clean_doctree, file_regression):
     sphinx_run.build()
     assert sphinx_run.warnings() == ""
     doctree = clean_doctree(sphinx_run.get_resolved_doctree("metadata_image"))
-    file_regression.check(
-        doctree.pformat().replace(".jpeg", ".jpg"), extension=".xml", encoding="utf-8"
-    )
+    file_regression.check(doctree.pformat(), extension=".xml", encoding="utf8")
+
+
+@pytest.mark.sphinx_params(
+    "metadata_multiple_image.ipynb",
+    conf={"nb_execution_mode": "off", "nb_cell_metadata_key": "myst"},
+)
+def test_metadata_multiple_image(sphinx_run, clean_doctree, file_regression):
+    sphinx_run.build()
+    assert sphinx_run.warnings() == ""
+    doctree = clean_doctree(sphinx_run.get_resolved_doctree("metadata_multiple_image"))
+    file_regression.check(doctree.pformat(), extension=".xml", encoding="utf8")
 
 
 @pytest.mark.sphinx_params(
