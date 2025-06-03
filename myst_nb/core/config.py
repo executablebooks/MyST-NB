@@ -576,7 +576,7 @@ class NbParserConfig:
     def get_cell_level_config(
         self,
         field_name: str,
-        cell_metadata: Dict[str, Any],
+        cell_metadata: Any,
         warning_callback: Callable[[str, MystNBWarnings], Any],
     ) -> Any:
         """Get a configuration value at the cell level.

@@ -79,7 +79,7 @@ def create_nb_reader(
             if commonmark_only:
                 # Markdown cells should be read as Markdown only
                 md_config = dc.replace(md_config, commonmark_only=True)
-            return NbReader(partial(reader, **(reader_kwargs or {})), md_config)  # type: ignore
+            return NbReader(partial(reader, **(reader_kwargs or {})), md_config)
 
     # a Markdown file is a special case, since we only treat it as a notebook,
     # if it starts with certain "top-matter"
