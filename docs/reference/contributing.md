@@ -6,7 +6,7 @@
 [![Code style: black][black-badge]][black-link]
 
 We welcome all contributions!
-See the [EBP Contributing Guide](https://executablebooks.org/en/latest/contributing.html) for general details, and below for guidance specific to MyST-NB.
+See the [EBP Contributing Guide](https://executablebooks.org/en/latest/contribute/) for general details, and below for guidance specific to MyST-NB.
 
 ## Installation
 
