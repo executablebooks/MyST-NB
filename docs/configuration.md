@@ -140,6 +140,8 @@ Tag             | Description
 `remove-input`  | Remove the code cell input/source from the rendered output.
 `remove-output` | Remove the code cell output from the rendered output.
 `remove-stderr` | Remove the code cell output stderr from the rendered output.
+`scroll-output` or `output_scroll` | Make the cell output scrollable if it is too long.
+`scroll-input` | Make the cell input scrollable if it is too long.
 
 Additionally, for code execution, these tags are provided (via `nbclient`):
 
