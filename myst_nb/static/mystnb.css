@@ -109,8 +109,9 @@ div.cell_output div.output>div.highlight {
   box-shadow: none;
 }
 
-.cell_output .output.text_plain,
-.cell_output .output.stream {
+.cell_output .output.text_plain:not(:has(.highlight)),
+.cell_output .output.stream:not(:has(.highlight)) {
+  /* plain (or stream of) output, not containing a pygments-highlighted block */
   background: var(--mystnb-stdout-bg-color);
   border: 1px solid var(--mystnb-stdout-border-color);
 }
