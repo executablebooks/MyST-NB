@@ -137,6 +137,15 @@ class MditRenderMixin:
         classes = ["cell"]
         for tag in tags:
             classes.append(f"tag_{tag.replace(' ', '_')}")
+        
+        # set class for scrollable output
+        scroll_outputs = self.get_cell_level_config(
+            "scroll_outputs", token.meta["metadata"], line=cell_line
+        )
+        if scroll_outputs and not any( # don't override cell tags
+            tag in ["scroll-output", "output_scroll"] for tag in tags
+        ):
+            classes.append("tag_output_scroll")
 
         # TODO do we need this -/_ duplication of tag names, or can we deprecate one?
         hide_cell = "hide-cell" in tags
