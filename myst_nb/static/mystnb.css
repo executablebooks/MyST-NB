@@ -295,7 +295,9 @@ div.cell.tag_scroll-input div.cell_input {
 }
 
 div.cell.config_scroll_outputs div.cell_output:has(img) {
-  max-height: unset;
+  /* If the output cell has image(s), allow it to take 90% of viewport height
+  but still bounded between 24em and 60em */
+  max-height: clamp(24em, 90vh, 60em);
 }
 
 /* Custom scrollbars */
