@@ -195,8 +195,9 @@ def test_hide_cell_content(sphinx_run, file_regression):
     doctree = sphinx_run.get_resolved_doctree("hide_cell_content")
     file_regression.check(doctree.pformat(), extension=".xml", encoding="utf-8")
 
-@pytest.mark.sphinx_params("scroll_outputs.ipynb", 
-    conf={"nb_execution_mode": "off", "nb_scroll_outputs": True}
+
+@pytest.mark.sphinx_params(
+    "scroll_outputs.ipynb", conf={"nb_execution_mode": "off", "nb_scroll_outputs": True}
 )
 def test_scroll_outputs(sphinx_run, file_regression):
     """Test that scrollable outputs are rendered correctly."""
