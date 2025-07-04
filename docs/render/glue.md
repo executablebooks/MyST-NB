@@ -421,6 +421,12 @@ A cross-pasted `any` directive:
 ```{glue} var_text
 :doc: orphaned_nb.ipynb
 ```
+
+A cross-pasted `any` directive from an image:
+
+```{glue} var_img
+:doc: orphaned_nb.ipynb
+```
 ````
 
 - A cross-pasted `any` role: {glue}`orphaned_nb.ipynb::var_text`
@@ -429,6 +435,12 @@ A cross-pasted `any` directive:
 A cross-pasted `any` directive:
 
 ```{glue} var_text
+:doc: orphaned_nb.ipynb
+```
+
+A cross-pasted `any` directive from an image:
+
+```{glue} var_img
 :doc: orphaned_nb.ipynb
 ```
 
