@@ -75,7 +75,6 @@ class ReplacePendingGlueReferences(SphinxPostTransform):
             if node.gtype == "text":
                 _nodes = generate_text_nodes(node, output)
             else:
-                print("asdasg", self.app.builder.imagedir)
                 _nodes = generate_any_nodes(
                     node,
                     output,
