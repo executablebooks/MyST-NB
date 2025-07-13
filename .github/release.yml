@@ -2,5 +2,6 @@ changelog:
   exclude:
     authors:
       - dependabot
+      - dependabot[bot]
       - pre-commit-ci
       - pre-commit-ci[bot]
