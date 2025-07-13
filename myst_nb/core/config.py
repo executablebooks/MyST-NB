@@ -334,6 +334,20 @@ class NbParserConfig:
         },
     )
 
+    scroll_outputs: bool = dc.field(
+        default=False,
+        metadata={
+            "validator": instance_of(bool),
+            "help": "Make long cell outputs scrollable",
+            "sections": (
+                Section.global_lvl,
+                Section.file_lvl,
+                Section.cell_lvl,
+                Section.render,
+            ),
+        },
+    )
+
     code_prompt_show: str = dc.field(
         default="Show code cell {type}",
         metadata={

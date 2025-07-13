@@ -103,7 +103,7 @@ jobs:
 
     # TEMPORARY FIX: Disable codecov until we can get it working again
     - name: Upload to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
       if: false
       with:
         name: myst-nb-pytests
