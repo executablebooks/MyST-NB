@@ -97,6 +97,7 @@ nitpick_ignore = [
         "off",
         "force",
         "auto",
+        "lazy",
         "cache",
         "commonmark",
         "gfm",
