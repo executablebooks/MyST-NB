@@ -86,6 +86,7 @@ rtd = [
     "sphinx-design",
     "sphinxcontrib-bibtex",
     "sympy",
+    "sphinx-autodoc-typehints",
 ]
 testing = [
     "coverage>=6.4",
