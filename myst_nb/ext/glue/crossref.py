@@ -6,12 +6,18 @@ since adding these nodes in a post-transform will not apply any transforms to th
 
 from __future__ import annotations
 
+from binascii import a2b_base64
 from functools import lru_cache
+import hashlib
 import json
+from mimetypes import guess_extension
 from pathlib import Path
 from typing import Any, Sequence
+import os
 
 from docutils import nodes
+from sphinx.builders import Builder
+from sphinx.environment import BuildEnvironment
 from sphinx.transforms.post_transforms import SphinxPostTransform
 from sphinx.util import logging as sphinx_logging
 
@@ -69,7 +75,13 @@ class ReplacePendingGlueReferences(SphinxPostTransform):
             if node.gtype == "text":
                 _nodes = generate_text_nodes(node, output)
             else:
-                _nodes = generate_any_nodes(node, output, priority_list)
+                _nodes = generate_any_nodes(
+                    node,
+                    output,
+                    priority_list,
+                    self.app.builder,
+                    self.env,
+                )
 
             if _nodes:
                 node.replace_self(_nodes)
@@ -88,7 +100,11 @@ def ref_warning(msg: str, node) -> None:
 
 
 def generate_any_nodes(
-    node: PendingGlueReference, output: dict[str, Any], priority_list: Sequence[str]
+    node: PendingGlueReference,
+    output: dict[str, Any],
+    priority_list: Sequence[str],
+    builder: Builder,
+    env: BuildEnvironment,
 ) -> list[nodes.Element]:
     """Generate nodes for a cell, according to the highest priority mime type."""
     data = output["data"]
@@ -106,6 +122,37 @@ def generate_any_nodes(
                     text=data[mime_type], format="html", classes=["output", "text_html"]
                 )
             ]
+        if mime_type in {
+            "image/png",
+            "image/jpeg",
+            "image/gif",
+            "application/pdf",
+        }:
+            # this is mostly a copy of mystnb/core/render.py::render_image
+
+            # data is b64-encoded as text
+            data_bytes = a2b_base64(data[mime_type])
+
+            # create filename
+            extension = guess_extension(mime_type) or "." + mime_type.rsplit("/")[-1]
+            # latex does not recognize the '.jpe' extension
+            extension = ".jpeg" if extension == ".jpe" else extension
+
+            data_hash = hashlib.sha256(data_bytes).hexdigest()
+            filename = f"{data_hash}{extension}"
+
+            # now we resolve the relative path to the image
+            imgdir = Path(builder.imagedir)
+            outdir = Path(builder.outdir)
+            page_dir = (outdir / env.docname).parent
+            filepath = outdir / imgdir / filename
+
+            uri = os.path.relpath(filepath, page_dir)
+            image_node = nodes.image(uri=uri)
+            image_node["candidates"] = {"*": uri}
+
+            return [image_node]
+
     ref_warning(
         f"No allowed mime type found in {node.key!r}: {list(output['data'])}", node
     )
