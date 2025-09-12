@@ -1,5 +1,5 @@
  [build-system]
-requires = ["flit_core >=3.4,<4"]
+requires = ["flit_core >=3.11,<4"]
 build-backend = "flit_core.buildapi"
 
 [project]
@@ -9,7 +9,7 @@ description = "A Jupyter Notebook Sphinx reader built on top of the MyST markdow
 authors = [{name = "ExecutableBookProject", email = "chrisj_sewell@hotmail.com"}]
 maintainers = [{name = "Angus Hollands", email = "goosey15@gmail.com"}]
 readme = "README.md"
-license = {file = "LICENSE"}
+license = "BSD-3-Clause"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Framework :: Sphinx :: Extension",
@@ -173,6 +173,8 @@ filterwarnings = [
     # From dateutil in sqlalchemy and jupyter_cache
     'ignore:datetime.datetime.utcnow\(\) is deprecated:DeprecationWarning:sqlalchemy',
     'ignore:datetime.datetime.utcnow\(\) is deprecated:DeprecationWarning:jupyter_cache',
+    # From matplotlib’s dependencies
+    'ignore::DeprecationWarning:pyparsing',  # imports deprecated `sre_constants`
     # Windows issues, some may need to be fixed in MyST-NB, others are upstream
     'ignore:Proactor event loop does not implement add_reader:RuntimeWarning:zmq',
 ]
