@@ -3,6 +3,7 @@
 Note, this module purposely does not import any Sphinx modules at the top-level,
 in order for docutils-only use.
 """
+
 from __future__ import annotations
 
 from binascii import a2b_base64
@@ -138,6 +139,16 @@ class MditRenderMixin:
         classes = ["cell"]
         for tag in tags:
             classes.append(f"tag_{tag.replace(' ', '_')}")
+
+        # handle config option for scrollable outputs
+        scroll_outputs = self.get_cell_level_config(
+            "scroll_outputs", token.meta["metadata"], line=cell_line
+        )
+        if scroll_outputs and not any(  # don't override cell tags
+            tag in ["scroll-output", "output_scroll"] for tag in tags
+        ):
+            # add the class defined in mystnb.css for scroll_outputs config option
+            classes.append("config_scroll_outputs")
 
         # TODO do we need this -/_ duplication of tag names, or can we deprecate one?
         hide_cell = "hide-cell" in tags

@@ -6,7 +6,8 @@
             <container classes="cell_input" nb_element="cell_code_source">
                 <literal_block language="ipython3" xml:space="preserve">
                     import pandas as pd
-                    x = pd.Series({'A':1, 'B':3, 'C':2})
+                    
+                    x = pd.Series({"A": 1, "B": 3, "C": 2})
         <container cell_index="3" cell_metadata="{'name': 'bar_plot', 'tags': ['remove_input'], 'fig.height': 5, 'fig.width': 8}" classes="cell tag_remove_input" exec_count="2" nb_element="cell_code">
             <container classes="cell_output" nb_element="cell_code_output">
                 <container nb_element="mime_bundle">

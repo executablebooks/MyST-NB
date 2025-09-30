@@ -13,9 +13,10 @@ jupyter:
 
 ```{python echo=TRUE}
 import pandas as pd
-x = pd.Series({'A':1, 'B':3, 'C':2})
+
+x = pd.Series({"A": 1, "B": 3, "C": 2})
 ```
 
 ```{python bar_plot, echo=FALSE, fig.height=5, fig.width=8}
-x.plot(kind='bar', title='Sample plot')
+x.plot(kind="bar", title="Sample plot")
 ```

@@ -1,5 +1,38 @@
 # Change Log
 
+## v1.3.0 - 2025-07-13
+
+([full changelog](https://github.com/executablebooks/MyST-NB/compare/v1.2.0...v1.3.0))
+
+
+## What's Changed
+
+### Enhancements made
+
+* ENH: Adding scroll bars with proper cell tags by @dprada in https://github.com/executablebooks/MyST-NB/pull/454
+* Use admonitions to style collapsible cells :) by @sneakers-the-rat in https://github.com/executablebooks/MyST-NB/pull/656
+* Improve output cells in dark mode by @jaladh-singhal in https://github.com/executablebooks/MyST-NB/pull/679
+* Add scroll_outputs configuration by @jaladh-singhal in https://github.com/executablebooks/MyST-NB/pull/683
+* ENH: Add handling of image based `PendingGlueReference` in `generate_any_nodes` by @StFroese in https://github.com/executablebooks/MyST-NB/pull/675
+
+### Maintenance and upkeep improvements
+
+* DOCS: clarify meaning of merge_streams option (#664) by @mforbes in https://github.com/executablebooks/MyST-NB/pull/665
+* MAINT: minor cleanups by @bsipocz in https://github.com/executablebooks/MyST-NB/pull/669
+* DOC: Mention conflict with myst_parser extension by @bsipocz in https://github.com/executablebooks/MyST-NB/pull/672
+* TEST: Adding a test case for multiple captioned figures by @mmcky in https://github.com/executablebooks/MyST-NB/pull/373
+* Fix link to EBP Contributing Guide by @StFroese in https://github.com/executablebooks/MyST-NB/pull/674
+* MAINT: limit ipython in tox job, too by @bsipocz in https://github.com/executablebooks/MyST-NB/pull/687
+* docs: nicer types in docs by @henryiii in https://github.com/executablebooks/MyST-NB/pull/688
+
+## New Contributors
+* @mforbes made their first contribution in https://github.com/executablebooks/MyST-NB/pull/665
+* @dprada made their first contribution in https://github.com/executablebooks/MyST-NB/pull/454
+* @StFroese made their first contribution in https://github.com/executablebooks/MyST-NB/pull/674
+* @jaladh-singhal made their first contribution in https://github.com/executablebooks/MyST-NB/pull/679
+* @henryiii made their first contribution in https://github.com/executablebooks/MyST-NB/pull/688
+
+
 ## v1.2.0 - 2025-02-07
 
 ([full changelog](https://github.com/executablebooks/MyST-NB/compare/v1.1.2...v1.2.0))

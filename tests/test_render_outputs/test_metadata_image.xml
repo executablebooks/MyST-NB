@@ -6,6 +6,7 @@
             <container classes="cell_input" nb_element="cell_code_source">
                 <literal_block language="ipython3" linenos="False" xml:space="preserve">
                     from IPython.display import Image
+                    
                     Image("fun-fish.png")
             <container classes="cell_output" nb_element="cell_code_output">
                 <image alt="fun-fish" candidates="{'*': '_build/jupyter_execute/3eacaf6adad1a4305807616181bbee897bb29177e79e2092ddd0264b848ddb4e.png'}" classes="shadow bg-primary" uri="_build/jupyter_execute/3eacaf6adad1a4305807616181bbee897bb29177e79e2092ddd0264b848ddb4e.png" width="300px">
