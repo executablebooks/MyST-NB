@@ -88,21 +88,7 @@ jobs:
         pip freeze
 
     - name: Run pytest
-      run: pytest --durations=10 --cov=myst_nb --cov-report=xml --cov-report=term-missing
-
-    - name: Create cov
-      run: coverage xml
-      # for some reason the tests/conftest.py::check_nbs fixture breaks pytest-cov's cov-report outputting
-      # this is why we run `coverage xml` afterwards (required by codecov)
-
-    # TEMPORARY FIX: Disable codecov until we can get it working again
-    - name: Upload to Codecov
-      uses: codecov/codecov-action@v5
-      if: false
-      with:
-        name: myst-nb-pytests
-        flags: pytests
-        files: ./coverage.xml
+      run: pytest --durations=10
 
   publish:
 
