@@ -25,7 +25,7 @@ from sphinx.transforms.post_transforms import SphinxPostTransform
 from sphinx.util import logging as sphinx_logging
 from sphinx.util.docutils import SphinxTranslator
 
-from myst_nb._compat import findall
+from myst_nb._compat import findall, get_env_app
 from myst_nb.core.config import NbParserConfig
 from myst_nb.core.execute import ExecutionResult, create_client
 from myst_nb.core.loggers import DEFAULT_LOG_TYPE, SphinxDocLogger
@@ -164,8 +164,8 @@ class Parser(MystParser):
             )
             if nb_client.exec_metadata["traceback"]:
                 # store error traceback in outdir and log its path
-                reports_file = Path(self.env.app.outdir).joinpath(
-                    "reports", *(self.env.docname + ".err.log").split("/")
+                reports_file = Path(get_env_app(env).outdir).joinpath(
+                    "reports", *(env.docname + ".err.log").split("/")
                 )
                 reports_file.parent.mkdir(parents=True, exist_ok=True)
                 reports_file.write_text(
@@ -325,7 +325,7 @@ class SelectMimeType(SphinxPostTransform):
         """Run the transform."""
         # get priority list for this builder
         # TODO allow for per-notebook/cell priority dicts?
-        bname = self.app.builder.name
+        bname = get_env_app(self.env).builder.name
         priority_list = get_mime_priority(
             bname, self.config["nb_mime_priority_overrides"]
         )

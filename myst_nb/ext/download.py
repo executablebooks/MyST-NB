@@ -5,6 +5,7 @@ from docutils import nodes
 from sphinx.addnodes import download_reference
 from sphinx.util.docutils import ReferenceRole
 
+from myst_nb._compat import get_env_app
 from myst_nb.sphinx_ import SphinxEnvType
 
 
@@ -21,7 +22,7 @@ class NbDownloadRole(ReferenceRole):
         reftarget = (
             path.as_posix()
             if os.name == "nt"
-            else ("/" + os.path.relpath(path, self.env.app.srcdir))
+            else ("/" + os.path.relpath(path, get_env_app(self.env).srcdir))
         )
         node = download_reference(self.rawtext, reftarget=reftarget)
         self.set_source_info(node)

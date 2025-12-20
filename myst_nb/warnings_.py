@@ -90,7 +90,7 @@ def create_warning(
     # otherwise we will use the configuration set by docutils
     suppress_warnings: Sequence[str] = []
     try:
-        suppress_warnings = document.settings.env.app.config.suppress_warnings
+        suppress_warnings = document.settings.env.config.suppress_warnings
     except AttributeError:
         suppress_warnings = document.settings.myst_suppress_warnings or []
     if _is_suppressed_warning(wtype, subtype.value, suppress_warnings):
