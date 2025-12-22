@@ -15,33 +15,28 @@ jobs:
 
   tests:
 
-    env:
-      # Latest supported versions for reuse
-      LATEST_PYTHON: "3.13"
-      LATEST_SPHINX: "~=8.0"
-
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
         python-version: ["3.10", "3.11", "3.12", "3.13"]
-        sphinx: ["${{ env.LATEST_SPHINX }}"]
+        sphinx: ["~=8.0"]
         myst-parser: [""]  # Newest MyST Parser (any)
         include:
           # Just check the other platforms once
           - os: windows-latest
-            python-version: "${{ env.LATEST_PYTHON }}"
-            sphinx: "${{ env.LATEST_SPHINX }}"
+            python-version: "3.13"
+            sphinx: "~=8.0"
             myst-parser: "~=4.0"
             pillow: "==11.0.0"
           - os: macos-latest
-            python-version: "${{ env.LATEST_PYTHON }}"
-            sphinx: "${{ env.LATEST_SPHINX }}"
+            python-version: "3.13"
+            sphinx: "~=8.0"
             myst-parser: "~=4.0"
             pillow: "==11.0.0"
           - os: ubuntu-latest
-            python-version: "${{ env.LATEST_PYTHON }}"
-            sphinx: "${{ env.LATEST_SPHINX }}"
+            python-version: "3.13"
+            sphinx: "~=8.0"
             myst-parser: "~=4.0"
             pillow: "==11.0.0"
           # Mid-range dependencies
@@ -52,8 +47,8 @@ jobs:
             pillow: "==11.0.0"
           # Newest known-compatible dependencies
           - os: ubuntu-latest
-            python-version: "${{ env.LATEST_PYTHON }}"
-            sphinx: "${{ env.LATEST_SPHINX }}"
+            python-version: "3.13"
+            sphinx: "~=8.0"
             myst-parser: "==4.0.0"
             pillow: "==11.0.0"
 
