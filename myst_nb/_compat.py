@@ -11,6 +11,16 @@ def findall(node: Element):
 
 def get_env_app(env: Any):
     """Return the Sphinx app without triggering deprecated accessors."""
+    # This is the new Sphinx app behavior
+    app = getattr(env, "_app", None)
+    if app is None:
+        # This is how it used to be done
+        app = env.app
+    return app
+
+
+def get_env_app(env: Any):
+    """Return the Sphinx app without triggering deprecated accessors."""
     app = getattr(env, "_app", None)
     if app is None:
         app = env.app
