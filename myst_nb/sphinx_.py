@@ -70,17 +70,20 @@ class Parser(MystParser):
         :param inputstring: The source string to parse
         :param document: The root docutils node to add AST elements to
         """
-        assert self.env is not None, "env not set"
-        document_path = self.env.doc2path(self.env.docname)
+        env = getattr(document.settings, "env", self.env)
+        if env is None:
+            assert self.env is not None, "env not set"
+            env = self.env
+        document_path = env.doc2path(env.docname)
 
         # get a logger for this document
         logger = SphinxDocLogger(document)
 
         # get markdown parsing configuration
-        md_config: MdParserConfig = self.env.myst_config
+        md_config: MdParserConfig = env.myst_config
 
         # get notebook rendering configuration
-        nb_config: NbParserConfig = self.env.mystnb_config
+        nb_config: NbParserConfig = env.mystnb_config
 
         # create a reader for the notebook
         nb_reader = create_nb_reader(document_path, md_config, nb_config, inputstring)
@@ -159,9 +162,7 @@ class Parser(MystParser):
 
         # save final execution data
         if nb_client.exec_metadata:
-            NbMetadataCollector.set_exec_data(
-                self.env, self.env.docname, nb_client.exec_metadata
-            )
+            NbMetadataCollector.set_exec_data(env, env.docname, nb_client.exec_metadata)
             if nb_client.exec_metadata["traceback"]:
                 # store error traceback in outdir and log its path
                 reports_file = Path(get_env_app(env).outdir).joinpath(
@@ -177,7 +178,7 @@ class Parser(MystParser):
                 )
 
         # write final (updated) notebook to output folder (utf8 is standard encoding)
-        path = self.env.docname.split("/")
+        path = env.docname.split("/")
         ipynb_path = path[:-1] + [path[-1] + ".ipynb"]
         content = nbformat.writes(notebook).encode("utf-8")
         nb_renderer.write_file(ipynb_path, content, overwrite=True)
@@ -193,16 +194,14 @@ class Parser(MystParser):
                 overwrite=True,
             )
             NbMetadataCollector.set_doc_data(
-                self.env, self.env.docname, "glue", list(nb_client.glue_data.keys())
+                env, env.docname, "glue", list(nb_client.glue_data.keys())
             )
 
         # move some document metadata to environment metadata,
         # so that we can later read it from the environment,
         # rather than having to load the whole doctree
         for key, (uri, kwargs) in document.attributes.pop("nb_js_files", {}).items():
-            NbMetadataCollector.add_js_file(
-                self.env, self.env.docname, key, uri, kwargs
-            )
+            NbMetadataCollector.add_js_file(env, env.docname, key, uri, kwargs)
 
         # remove temporary state
         document.attributes.pop("nb_renderer")
