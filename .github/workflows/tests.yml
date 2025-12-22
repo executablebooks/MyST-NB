@@ -53,8 +53,8 @@ jobs:
             pillow: "==11.0.0"
           # Newest known-compatible dependencies
           - os: ubuntu-latest
-            python-version: "3.12"
-            sphinx: "==8.0.2"
+            python-version: "3.13"
+            sphinx: "~=9.0.2"
             myst-parser: "==4.0.0"
             pillow: "==11.0.0"
 

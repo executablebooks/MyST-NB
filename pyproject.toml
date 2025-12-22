@@ -177,7 +177,7 @@ filterwarnings = [
     # From myst-parser on Sphinx 9
     'ignore:.*MystReferenceResolver.app.*:sphinx.deprecation.RemovedInSphinx11Warning',
     # Upstream myst-parser still hits env.app deprecations under Sphinx 9
-    'ignore::sphinx.deprecation.RemovedInSphinx90Warning:myst_parser',
+    'ignore:.*env\\.app.*:sphinx.deprecation.RemovedInSphinx10Warning:myst_parser',
     # Windows issues, some may need to be fixed in MyST-NB, others are upstream
     'ignore:Proactor event loop does not implement add_reader:RuntimeWarning:zmq',
 ]

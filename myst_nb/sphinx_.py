@@ -70,10 +70,10 @@ class Parser(MystParser):
         :param inputstring: The source string to parse
         :param document: The root docutils node to add AST elements to
         """
-        env = getattr(document.settings, "env", self.env)
+        env = getattr(document.settings, "env", None)
         if env is None:
-            assert self.env is not None, "env not set"
             env = self.env
+        assert env is not None, "env not set"
         document_path = env.doc2path(env.docname)
 
         # get a logger for this document
