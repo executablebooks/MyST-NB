@@ -21,6 +21,7 @@ from sphinx import version_info as sphinx_version_info
 from sphinx.util.console import nocolor
 
 pytest_plugins = "sphinx.testing.fixtures"
+LATEST_SPHINX_MAJOR = 9
 
 # -Diff Configuration-#
 NB_VERSION = 4
@@ -100,7 +101,9 @@ class SphinxFixture:
     def get_resolved_doctree(self, docname=None):
         """Load and return the built docutils.document, after post-transforms."""
         docname = docname or self.files[0]
-        doctree = self.env.get_and_resolve_doctree(docname, self.app.builder)
+        doctree = self.env.get_and_resolve_doctree(
+            docname, self.app.builder, tags=self.app.builder.tags
+        )
         doctree["source"] = docname
         return doctree
 
@@ -287,6 +290,9 @@ def clean_doctree():
 # alternatively the resolution of https://github.com/ESSS/pytest-regressions/issues/32
 @pytest.fixture()
 def file_regression(file_regression):
+    # Only run regression tests on the latest Sphinx since minor document changes will cause these to break otherwise
+    if sphinx_version_info[0] < LATEST_SPHINX_MAJOR:
+        pytest.skip("file-regression checks run only on the latest Sphinx")
     return FileRegression(file_regression)
 
 

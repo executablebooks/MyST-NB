@@ -21,7 +21,7 @@ from sphinx.environment import BuildEnvironment
 from sphinx.transforms.post_transforms import SphinxPostTransform
 from sphinx.util import logging as sphinx_logging
 
-from myst_nb._compat import findall
+from myst_nb._compat import findall, get_env_app
 from myst_nb.core.loggers import DEFAULT_LOG_TYPE
 from myst_nb.core.render import get_mime_priority
 from myst_nb.core.variables import format_plain_text
@@ -54,7 +54,8 @@ class ReplacePendingGlueReferences(SphinxPostTransform):
     def apply(self, **kwargs):
         """Apply the transform."""
         cache_folder = self.env.mystnb_config.output_folder  # type: ignore
-        bname = self.app.builder.name
+        app = get_env_app(self.env)
+        bname = app.builder.name
         priority_list = get_mime_priority(
             bname, self.config["nb_mime_priority_overrides"]
         )
@@ -79,7 +80,7 @@ class ReplacePendingGlueReferences(SphinxPostTransform):
                     node,
                     output,
                     priority_list,
-                    self.app.builder,
+                    app.builder,
                     self.env,
                 )
 
