@@ -19,8 +19,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
-        sphinx: ["~=8.0"]  # temporary limit, bring it back to newest sphinx once we are sphinx9 compatible
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
+        sphinx: [""]  # Newest Sphinx
         myst-parser: [""]  # Newest MyST Parser (any)
         include:
           # Just check the other platforms once
@@ -53,9 +53,9 @@ jobs:
             pillow: "==11.0.0"
           # Newest known-compatible dependencies
           - os: ubuntu-latest
-            python-version: "3.13"
-            sphinx: "~=8.0"
-            myst-parser: "==4.0.0"
+            python-version: "3.14"
+            sphinx: "~=9.0"
+            myst-parser: "~=5.0"
             pillow: "==11.0.0"
 
     runs-on: ${{ matrix.os }}
@@ -79,7 +79,7 @@ jobs:
 
   publish:
 
-    name: Publish to PyPi
+    name: Publish to PyPI
     needs: [tests]
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
     runs-on: ubuntu-latest
