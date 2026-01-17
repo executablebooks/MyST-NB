@@ -39,6 +39,12 @@ jobs:
             sphinx: "~=8.0"
             myst-parser: "~=4.0"
             pillow: "==11.0.0"
+          # Oldest known-compatible dependencies
+          - os: ubuntu-latest
+            python-version: "3.10"
+            sphinx: "==5.0.0"
+            myst-parser: "==1.0.0"
+            pillow: "==11.0.0"
           # Mid-range dependencies
           - os: ubuntu-latest
             python-version: "3.11"
