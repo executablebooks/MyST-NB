@@ -77,25 +77,6 @@ jobs:
     - name: Run pytest
       run: pytest --durations=10
 
-  coverage:
-    needs: [tests]
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v6
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v6
-      with:
-        python-version: "3.11"
-        cache: pip
-    - name: Install dependencies
-      run: |
-        pip install -e .[testing]
-        pip freeze
-
-    - name: Run pytest
-      run: pytest --durations=10
-
   publish:
 
     name: Publish to PyPi
