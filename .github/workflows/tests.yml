@@ -19,31 +19,25 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
-        sphinx: [""]  # Newest Sphinx (any)
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        sphinx: ["~=8.0"]  # temporary limit, bring it back to newest sphinx once we are sphinx9 compatible
         myst-parser: [""]  # Newest MyST Parser (any)
         include:
           # Just check the other platforms once
           - os: windows-latest
-            python-version: "3.12"
+            python-version: "3.13"
             sphinx: "~=8.0"
             myst-parser: "~=4.0"
             pillow: "==11.0.0"
           - os: macos-latest
-            python-version: "3.12"
+            python-version: "3.13"
             sphinx: "~=8.0"
             myst-parser: "~=4.0"
             pillow: "==11.0.0"
           - os: ubuntu-latest
-            python-version: "3.12"
+            python-version: "3.13"
             sphinx: "~=8.0"
             myst-parser: "~=4.0"
-            pillow: "==11.0.0"
-          # Oldest known-compatible dependencies
-          - os: ubuntu-latest
-            python-version: "3.9"
-            sphinx: "==5.0.0"
-            myst-parser: "==1.0.0"
             pillow: "==11.0.0"
           # Mid-range dependencies
           - os: ubuntu-latest
@@ -53,17 +47,17 @@ jobs:
             pillow: "==11.0.0"
           # Newest known-compatible dependencies
           - os: ubuntu-latest
-            python-version: "3.12"
-            sphinx: "==8.0.2"
+            python-version: "3.13"
+            sphinx: "~=8.0"
             myst-parser: "==4.0.0"
             pillow: "==11.0.0"
 
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
         allow-prereleases: true
@@ -82,9 +76,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: "3.11"
         cache: pip
@@ -118,9 +112,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout source
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: "3.10"
     - name: install flit

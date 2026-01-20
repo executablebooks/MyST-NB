@@ -58,8 +58,8 @@ nb_ipywidgets_js = {
 suppress_warnings = ["mystnb.unknown_mime_type"]
 
 intersphinx_mapping = {
-    "python": ("https://docs.python.org/3.8", None),
-    "jb": ("https://jupyterbook.org/", None),
+    "python": ("https://docs.python.org/3.13", None),
+    "jb": ("https://jupyterbook.org/v1", None),
     "myst": ("https://myst-parser.readthedocs.io/en/latest/", None),
     "markdown_it": ("https://markdown-it-py.readthedocs.io/en/latest", None),
     "nbclient": ("https://nbclient.readthedocs.io/en/latest", None),

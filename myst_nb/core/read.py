@@ -399,7 +399,7 @@ class UnexpectedCellDirective(Directive):
             "Either this file was not converted to a notebook, "
             "because Jupytext header content was missing, "
             "or the `code-cell` was not converted, because it is nested. "
-            "See https://myst-nb.readthedocs.io/en/latest/use/markdown.html "
+            "See https://myst-nb.readthedocs.io/en/latest/authoring/text-notebooks.html "
             "for more information."
         )
         document = self.state.document

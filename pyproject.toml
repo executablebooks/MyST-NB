@@ -1,5 +1,5 @@
  [build-system]
-requires = ["flit_core >=3.4,<4"]
+requires = ["flit_core >=3.11,<4"]
 build-backend = "flit_core.buildapi"
 
 [project]
@@ -9,14 +9,13 @@ description = "A Jupyter Notebook Sphinx reader built on top of the MyST markdow
 authors = [{name = "ExecutableBookProject", email = "chrisj_sewell@hotmail.com"}]
 maintainers = [{name = "Angus Hollands", email = "goosey15@gmail.com"}]
 readme = "README.md"
-license = {file = "LICENSE"}
+license = "BSD-3-Clause"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Framework :: Sphinx :: Extension",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -34,7 +33,7 @@ keywords = [
     "docutils",
     "sphinx",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "importlib_metadata",
     "ipython",
@@ -43,7 +42,7 @@ dependencies = [
     "myst-parser>=1.0.0",
     "nbformat>=5.0",
     "pyyaml",
-    "sphinx>=5",
+    "sphinx>=5,<9",  # If we get bugs for older versions, just pin this higher
     "typing-extensions",
     # ipykernel is not a requirement of the library,
     # but is a common requirement for users (registers the python3 kernel)
@@ -97,7 +96,7 @@ testing = [
     "ipywidgets>=8",
     "jupytext>=1.11.2",
     # Matplotlib outputs are sensitive to the matplotlib version
-    "matplotlib==3.7.*",
+    "matplotlib==3.10.*",
     "nbdime",
     "numpy",
     "pandas",
@@ -173,6 +172,12 @@ filterwarnings = [
     # From dateutil in sqlalchemy and jupyter_cache
     'ignore:datetime.datetime.utcnow\(\) is deprecated:DeprecationWarning:sqlalchemy',
     'ignore:datetime.datetime.utcnow\(\) is deprecated:DeprecationWarning:jupyter_cache',
+    # From matplotlib’s dependencies
+    'ignore::DeprecationWarning:pyparsing',  # imports deprecated `sre_constants`
+    # From myst-parser on Sphinx 9
+    'ignore:.*MystReferenceResolver.app.*:DeprecationWarning',
+    # Upstream myst-parser still hits env.app deprecations under Sphinx 9
+    'ignore:.*env\\.app.*:DeprecationWarning:myst_parser',
     # Windows issues, some may need to be fixed in MyST-NB, others are upstream
     'ignore:Proactor event loop does not implement add_reader:RuntimeWarning:zmq',
 ]

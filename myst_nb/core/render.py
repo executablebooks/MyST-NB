@@ -27,6 +27,7 @@ from myst_parser.parsers.mdit import create_md_parser
 from nbformat import NotebookNode
 from typing_extensions import Protocol
 
+from myst_nb._compat import get_env_app
 from myst_nb.core.config import NbParserConfig
 from myst_nb.core.execute import NotebookClientBase
 from myst_nb.core.loggers import LoggerType  # DEFAULT_LOG_TYPE,
@@ -407,7 +408,8 @@ class NbElementRenderer:
                 # Can't get relative path between drives on Windows
                 return filepath.as_posix()
             # Path().relative_to() doesn't work when not a direct subpath
-            return "/" + os.path.relpath(filepath, self.renderer.sphinx_env.app.srcdir)
+            app = get_env_app(self.renderer.sphinx_env)
+            return "/" + os.path.relpath(filepath, app.srcdir)
         else:
             return str(filepath)
 
