@@ -6,7 +6,7 @@
             This is a test case with multiple captioned and labelled images
         <container cell_index="1" cell_metadata="{'myst': {'figure': {'caption': 'Hey everyone its **party** time!\n', 'name': 'fun-fish'}, 'image': {'alt': 'fun-fish', 'classes': 'shadow bg-primary', 'width': '300px'}}}" classes="cell" exec_count="1" nb_element="cell_code">
             <container classes="cell_input" nb_element="cell_code_source">
-                <literal_block language="ipython3" linenos="False" xml:space="preserve">
+                <literal_block language="ipython3" linenos="0" xml:space="preserve">
                     from IPython.display import Image
                     
                     Image("fun-fish.png")
@@ -20,14 +20,14 @@
                          time!
         <paragraph>
             Link: 
-            <reference internal="True" refid="fun-fish">
+            <reference internal="1" refid="fun-fish">
                 <inline classes="std std-ref">
                     swim to the fish
         <paragraph>
             Adding another party fish image to test for multiple images
         <container cell_index="4" cell_metadata="{'myst': {'figure': {'caption': 'Hey everyone its **party** time again!\n', 'name': 'fun-fish2'}, 'image': {'alt': 'fun-fish2', 'classes': 'shadow bg-primary', 'width': '200px'}}}" classes="cell" exec_count="2" nb_element="cell_code">
             <container classes="cell_input" nb_element="cell_code_source">
-                <literal_block language="ipython3" linenos="False" xml:space="preserve">
+                <literal_block language="ipython3" linenos="0" xml:space="preserve">
                     from IPython.display import Image
                     
                     Image("fun-fish.png")
@@ -41,11 +41,11 @@
                          time again!
         <paragraph>
             Link: 
-            <reference internal="True" refid="fun-fish">
+            <reference internal="1" refid="fun-fish">
                 <inline classes="std std-ref">
                     swim to the fish
         <paragraph>
             Link: 
-            <reference internal="True" refid="fun-fish2">
+            <reference internal="1" refid="fun-fish2">
                 <inline classes="std std-ref">
                     swim to the fish again

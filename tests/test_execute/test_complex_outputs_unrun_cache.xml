@@ -195,7 +195,7 @@
                         <literal_block classes="output text_plain" language="myst-ansi" xml:space="preserve">
                             <IPython.core.display.Latex object>
                     <container mime_type="text/latex">
-                        <math_block classes="output text_latex" nowrap="False" number="True" xml:space="preserve">
+                        <math_block classes="output text_latex" nowrap="0" number="True" xml:space="preserve">
                              a = b+c 
         <paragraph>
             The plotting code for a sympy equation (=@eqn:example_sympy).
@@ -216,7 +216,7 @@
                     <container mime_type="image/png">
                         <image candidates="{'*': '_build/jupyter_execute/e2dfbe330154316cfb6f3186e8f57fc4df8aee03b0303ed1345fc22cd51f66de.png'}" uri="_build/jupyter_execute/e2dfbe330154316cfb6f3186e8f57fc4df8aee03b0303ed1345fc22cd51f66de.png">
                     <container mime_type="text/latex">
-                        <math_block classes="output text_latex" nowrap="False" number="True" xml:space="preserve">
+                        <math_block classes="output text_latex" nowrap="0" number="True" xml:space="preserve">
                             \displaystyle \left(\sqrt{5} i\right)^{\alpha} \left(\frac{1}{2} - \frac{2 \sqrt{5} i}{5}\right) + \left(- \sqrt{5} i\right)^{\alpha} \left(\frac{1}{2} + \frac{2 \sqrt{5} i}{5}\right)
     <section ids="interactive-outputs" names="interactive\ outputs">
         <title>
