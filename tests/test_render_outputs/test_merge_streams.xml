@@ -1,7 +1,7 @@
 <document source="merge_streams">
     <container cell_index="0" cell_metadata="{}" classes="cell" exec_count="1" nb_element="cell_code">
         <container classes="cell_input" nb_element="cell_code_source">
-            <literal_block language="ipython3" linenos="False" xml:space="preserve">
+            <literal_block language="ipython3" linenos="0" xml:space="preserve">
                 import sys
                 
                 print("stdout1", file=sys.stdout)
@@ -12,13 +12,13 @@
                 print("stderr3", file=sys.stderr)
                 1
         <container classes="cell_output" nb_element="cell_code_output">
-            <literal_block classes="output stream" language="myst-ansi" linenos="False" xml:space="preserve">
+            <literal_block classes="output stream" language="myst-ansi" linenos="0" xml:space="preserve">
                 stdout1
                 stdout2
                 stdout3
-            <literal_block classes="output stderr" language="myst-ansi" linenos="False" xml:space="preserve">
+            <literal_block classes="output stderr" language="myst-ansi" linenos="0" xml:space="preserve">
                 stderr1
                 stderr2
                 stderr3
-            <literal_block classes="output text_plain" language="myst-ansi" linenos="False" xml:space="preserve">
+            <literal_block classes="output text_plain" language="myst-ansi" linenos="0" xml:space="preserve">
                 1
