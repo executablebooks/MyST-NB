@@ -7,7 +7,6 @@ import hashlib
 from importlib import resources as import_resources
 import os
 from pathlib import Path
-import sys
 from types import ModuleType
 from typing import Any, Iterator, cast
 
@@ -194,14 +193,10 @@ def _get_file_hash(path: Path):
 
 @contextlib.contextmanager
 def _import_resources_path(package: ModuleType, resource: str) -> Iterator[Path]:
-    if sys.version_info < (3, 9):
-        with import_resources.path(package, resource) as path:
-            yield path
-    else:
-        with import_resources.as_file(
-            import_resources.files(package).joinpath(resource)
-        ) as path:
-            yield path
+    with import_resources.as_file(
+        import_resources.files(package).joinpath(resource)
+    ) as path:
+        yield path
 
 
 def add_css(app: Sphinx):

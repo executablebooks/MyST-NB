@@ -6,9 +6,9 @@
             some text
         <container cell_index="1" cell_metadata="{}" classes="cell" exec_count="1" nb_element="cell_code">
             <container classes="cell_input" nb_element="cell_code_source">
-                <literal_block language="ipython3" linenos="False" xml:space="preserve">
+                <literal_block language="ipython3" linenos="0" xml:space="preserve">
                     a = 1
                     print(a)
             <container classes="cell_output" nb_element="cell_code_output">
-                <literal_block classes="output stream" language="myst-ansi" linenos="False" xml:space="preserve">
+                <literal_block classes="output stream" language="myst-ansi" linenos="0" xml:space="preserve">
                     1
