@@ -16,6 +16,7 @@ from nbdime.diffing.notebooks import (
 from nbdime.prettyprint import pretty_print_diff
 import nbformat as nbf
 import pytest
+import docutils
 import sphinx
 from sphinx import version_info as sphinx_version_info
 from sphinx.util.console import nocolor
@@ -304,6 +305,7 @@ class FileRegression:
         r"original_uri=\"[^\"]*\"\s",
         # TODO: Remove when support for Sphinx<8 is dropped,
         re.escape(' translated="True"'),
+        re.escape(' translated="1"'),
         re.escape(" translation_progress=\"{'total': 4, 'translated': 2}\""),
     )
 
@@ -316,4 +318,10 @@ class FileRegression:
     def _strip_ignores(self, data):
         for ig in self.ignores:
             data = re.sub(ig, "", data)
+
+        if docutils.__version_info__ < (0, 22):
+            data = data.replace('linenos="False"', 'linenos="0"')
+            data = data.replace('nowrap="False"', 'nowrap="0"')
+            data = data.replace('linenos="True"', 'linenos="1"')
+            data = data.replace('internal="True"', 'internal="1"')
         return data

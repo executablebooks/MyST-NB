@@ -1,14 +1,14 @@
 <document source="merge_streams_parallel">
     <container cell_index="0" cell_metadata="{'execution': {'iopub.execute_input': '2024-09-19T21:44:29.809012Z', 'iopub.status.busy': '2024-09-19T21:44:29.808809Z', 'iopub.status.idle': '2024-09-19T21:44:29.978481Z', 'shell.execute_reply': '2024-09-19T21:44:29.977891Z'}}" classes="cell" exec_count="1" nb_element="cell_code">
         <container classes="cell_input" nb_element="cell_code_source">
-            <literal_block language="ipython3" linenos="False" xml:space="preserve">
+            <literal_block language="ipython3" linenos="0" xml:space="preserve">
                 from concurrent.futures import ProcessPoolExecutor
                 
                 with ProcessPoolExecutor() as executor:
                     for i in executor.map(print, [0] * 10):
                         pass
         <container classes="cell_output" nb_element="cell_code_output">
-            <literal_block classes="output stream" language="myst-ansi" linenos="False" xml:space="preserve">
+            <literal_block classes="output stream" language="myst-ansi" linenos="0" xml:space="preserve">
                 0
                 0
                 0
