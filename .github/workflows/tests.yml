@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [macos-latest]
         python-version: ["3.11", "3.12", "3.13", "3.14"]
         sphinx: [""]  # Newest Sphinx
         myst-parser: [""]  # Newest MyST Parser (any)
