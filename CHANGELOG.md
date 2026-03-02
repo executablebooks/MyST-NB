@@ -1,13 +1,30 @@
 # Change Log
 
+## v1.4.0 - 2026-03-02
+
+([full changelog](https://github.com/executablebooks/MyST-NB/compare/v1.3.0...v1.4.0))
+
+### What's Changed
+
+* MAINT: post JB2 release fix by @bsipocz in https://github.com/executablebooks/MyST-NB/pull/700
+* Fix dead link in error directive message by @crespum in https://github.com/executablebooks/MyST-NB/pull/703
+* Improve theme integration by @flying-sheep in https://github.com/executablebooks/MyST-NB/pull/693
+* Update infrastructure for new pythons and prep for latest sphinx by @choldgraf in https://github.com/executablebooks/MyST-NB/pull/706
+* Remove upper pin for Sphinx (and adding newer sphinx and python version to CI testing) by @bsipocz in https://github.com/executablebooks/MyST-NB/pull/704
+* MAINT: default branch got renamed by @bsipocz in https://github.com/executablebooks/MyST-NB/pull/711
+
+### New Contributors
+* @crespum made their first contribution in https://github.com/executablebooks/MyST-NB/pull/703
+
+
 ## v1.3.0 - 2025-07-13
 
 ([full changelog](https://github.com/executablebooks/MyST-NB/compare/v1.2.0...v1.3.0))
 
 
-## What's Changed
+### What's Changed
 
-### Enhancements made
+#### Enhancements made
 
 * ENH: Adding scroll bars with proper cell tags by @dprada in https://github.com/executablebooks/MyST-NB/pull/454
 * Use admonitions to style collapsible cells :) by @sneakers-the-rat in https://github.com/executablebooks/MyST-NB/pull/656
@@ -15,7 +32,7 @@
 * Add scroll_outputs configuration by @jaladh-singhal in https://github.com/executablebooks/MyST-NB/pull/683
 * ENH: Add handling of image based `PendingGlueReference` in `generate_any_nodes` by @StFroese in https://github.com/executablebooks/MyST-NB/pull/675
 
-### Maintenance and upkeep improvements
+#### Maintenance and upkeep improvements
 
 * DOCS: clarify meaning of merge_streams option (#664) by @mforbes in https://github.com/executablebooks/MyST-NB/pull/665
 * MAINT: minor cleanups by @bsipocz in https://github.com/executablebooks/MyST-NB/pull/669
@@ -25,7 +42,7 @@
 * MAINT: limit ipython in tox job, too by @bsipocz in https://github.com/executablebooks/MyST-NB/pull/687
 * docs: nicer types in docs by @henryiii in https://github.com/executablebooks/MyST-NB/pull/688
 
-## New Contributors
+### New Contributors
 * @mforbes made their first contribution in https://github.com/executablebooks/MyST-NB/pull/665
 * @dprada made their first contribution in https://github.com/executablebooks/MyST-NB/pull/454
 * @StFroese made their first contribution in https://github.com/executablebooks/MyST-NB/pull/674
