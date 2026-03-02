@@ -74,6 +74,10 @@ jobs:
         pip install --upgrade "Sphinx${{ matrix.sphinx }}" "myst-parser${{ matrix.myst-parser }}" "pillow${{ matrix.pillow }}" -e .[testing]
         pip freeze
 
+    # SSH to the GHA runner, in case we need to regenerate test outputs
+    #- name: Setup ssh session
+    #  uses: Warpbuilds/action-debugger@v1.3
+
     - name: Run pytest
       run: pytest --durations=10
 
