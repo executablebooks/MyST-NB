@@ -6,7 +6,8 @@ exclude: >
       \.vscode/settings\.json|
       tests/commonmark/commonmark\.json|
       .*\.xml|
-      tests/.*\.txt
+      tests/.*\.txt|
+      tests/.*\.ipynb
     )$
 
 ci:
