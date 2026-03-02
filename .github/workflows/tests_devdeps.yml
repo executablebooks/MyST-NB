@@ -2,7 +2,7 @@ name: continuous-integration-devdeps
 
 on:
   push:
-    branches: [master]
+    branches: [main]
   schedule:
     # run every Monday at 5am UTC
     - cron: '0 5 * * 1'
