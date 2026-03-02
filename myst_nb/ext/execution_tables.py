@@ -94,9 +94,9 @@ _key2header: dict[str, str] = {
 }
 
 _key2transform: dict[str, Callable[[Any], str]] = {
-    "mtime": lambda x: datetime.fromtimestamp(x).strftime("%Y-%m-%d %H:%M")
-    if x
-    else "",
+    "mtime": lambda x: (
+        datetime.fromtimestamp(x).strftime("%Y-%m-%d %H:%M") if x else ""
+    ),
     "method": str,
     "runtime": lambda x: "-" if x is None else str(round(x, 2)),
     "succeeded": lambda x: "✅" if x is True else "❌",
