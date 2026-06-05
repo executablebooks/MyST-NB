@@ -45,6 +45,12 @@ def sphinx_setup(app: Sphinx):
     # note, for core events overview, see:
     # https://www.sphinx-doc.org/en/master/extdev/appapi.html#sphinx-core-events
 
+    if "myst_parser" in app.extensions:
+        raise ValueError(
+            "Cannot load both myst_nb and myst_parser Sphinx extensions "
+            "-- load only myst_nb since it includes myst_parser"
+        )
+
     # Add myst-parser configuration and transforms (but does not add the parser)
     setup_myst_parser(app)
 
