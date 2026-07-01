@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from nbformat import NotebookNode
 from typing_extensions import TypedDict, final
@@ -12,6 +12,9 @@ from myst_nb.core.config import NbParserConfig
 from myst_nb.core.loggers import LoggerType
 from myst_nb.core.nb_to_tokens import nb_node_to_dict
 from myst_nb.ext.glue import extract_glue_data
+
+if TYPE_CHECKING:
+    from jupyter_client import KernelManager
 
 
 class ExecutionResult(TypedDict):
@@ -54,6 +57,8 @@ class NotebookClientBase:
         path: Path | None,
         nb_config: NbParserConfig,
         logger: LoggerType,
+        *,
+        km: KernelManager | None = None,
         **kwargs: Any,
     ):
         """Initialize the client."""
@@ -61,6 +66,7 @@ class NotebookClientBase:
         self._path = path
         self._nb_config = nb_config
         self._logger = logger
+        self._km = km
         self._kwargs = kwargs
 
         self._glue_data: dict[str, NotebookNode] = {}

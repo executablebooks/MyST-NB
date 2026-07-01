@@ -76,6 +76,7 @@ class NotebookClientCache(NotebookClientBase):
                 allow_errors=self.nb_config.execution_allow_errors,
                 timeout=self.nb_config.execution_timeout,
                 meta_override=True,  # TODO still support this?
+                km=self._km,
             )
 
         # handle success / failure cases

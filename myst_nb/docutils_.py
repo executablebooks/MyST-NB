@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from functools import lru_cache, partial
 from importlib import resources as import_resources
 import os
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from docutils import nodes
 from docutils.core import default_description, publish_cmdline
@@ -46,6 +46,10 @@ from myst_nb.ext.eval import load_eval_docutils
 from myst_nb.ext.glue import load_glue_docutils
 from myst_nb.warnings_ import MystNBWarnings, create_warning
 
+if TYPE_CHECKING:
+    from jupyter_client import KernelManager
+
+
 DOCUTILS_EXCLUDED_ARGS = list(
     {f.name for f in NbParserConfig.get_fields() if f.metadata.get("docutils_exclude")}
 )
@@ -82,6 +86,10 @@ class Parser(MystParser):
     """Runtime settings specification."""
 
     config_section = "myst-nb parser"
+
+    def __init__(self, *args, km: KernelManager | None = None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.km = km
 
     def parse(self, inputstring: str, document: nodes.document) -> None:
         # register/unregister special directives and roles
@@ -187,7 +195,9 @@ class Parser(MystParser):
 
         # open the notebook execution client,
         # this may execute the notebook immediately or during the page render
-        with create_client(notebook, document_source, nb_config, logger) as nb_client:
+        with create_client(
+            notebook, document_source, nb_config, logger, km=self.km
+        ) as nb_client:
             mdit_parser.options["nb_client"] = nb_client
             # convert to docutils AST, which is added to the document
             mdit_renderer.render(mdit_tokens, mdit_parser.options, mdit_env)
