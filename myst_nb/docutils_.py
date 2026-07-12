@@ -87,9 +87,9 @@ class Parser(MystParser):
 
     config_section = "myst-nb parser"
 
-    def __init__(self, *args, km: KernelManager | None = None, **kwargs):
+    def __init__(self, *args, kernel_manager: KernelManager | None = None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.km = km
+        self.kernel_manager = kernel_manager
 
     def parse(self, inputstring: str, document: nodes.document) -> None:
         # register/unregister special directives and roles
@@ -196,7 +196,8 @@ class Parser(MystParser):
         # open the notebook execution client,
         # this may execute the notebook immediately or during the page render
         with create_client(
-            notebook, document_source, nb_config, logger, km=self.km
+            *(notebook, document_source, nb_config, logger),
+            kernel_manager=self.kernel_manager,
         ) as nb_client:
             mdit_parser.options["nb_client"] = nb_client
             # convert to docutils AST, which is added to the document

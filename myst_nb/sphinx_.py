@@ -68,9 +68,9 @@ class Parser(MystParser):
 
     env: SphinxEnvType
 
-    def __init__(self, *args, km: KernelManager | None = None, **kwargs):
+    def __init__(self, *args, kernel_manager: KernelManager | None = None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.km = km
+        self.kernel_manager = kernel_manager
 
     def parse(self, inputstring: str, document: nodes.document) -> None:
         """Parse source text.
@@ -162,7 +162,8 @@ class Parser(MystParser):
         # open the notebook execution client,
         # this may execute the notebook immediately or during the page render
         with create_client(
-            notebook, document_path, nb_config, logger, nb_reader.read_fmt, km=self.km
+            *(notebook, document_path, nb_config, logger, nb_reader.read_fmt),
+            kernel_manager=self.kernel_manager,
         ) as nb_client:
             mdit_parser.options["nb_client"] = nb_client
             # convert to docutils AST, which is added to the document

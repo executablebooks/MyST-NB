@@ -23,7 +23,7 @@ def create_client(
     logger: LoggerType,
     read_fmt: None | dict = None,
     *,
-    km: KernelManager | None = None,
+    kernel_manager: KernelManager | None = None,
 ) -> NotebookClientBase:
     """Create a notebook execution client, to update its outputs.
 
@@ -62,14 +62,20 @@ def create_client(
         return NotebookClientBase(notebook, path, nb_config, logger)
 
     if nb_config.execution_mode in ("auto", "force"):
-        return NotebookClientDirect(notebook, path, nb_config, logger, km=km)
+        return NotebookClientDirect(
+            notebook, path, nb_config, logger, kernel_manager=kernel_manager
+        )
 
     if nb_config.execution_mode == "cache":
         return NotebookClientCache(
-            notebook, path, nb_config, logger, read_fmt=read_fmt, km=km
+            *(notebook, path, nb_config, logger),
+            read_fmt=read_fmt,
+            kernel_manager=kernel_manager,
         )
 
     if nb_config.execution_mode == "inline":
-        return NotebookClientInline(notebook, path, nb_config, logger, km=km)
+        return NotebookClientInline(
+            notebook, path, nb_config, logger, kernel_manager=kernel_manager
+        )
 
     return NotebookClientBase(notebook, path, nb_config, logger)
