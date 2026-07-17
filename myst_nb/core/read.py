@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 from typing import Callable, Iterator
 
+from docutils import nodes
 from docutils.parsers.rst import Directive
 from markdown_it.renderer import RendererHTML
 from myst_parser.config.main import MdParserConfig
@@ -408,4 +409,8 @@ class UnexpectedCellDirective(Directive):
         else:
             logger = DocutilsDocLogger(document)  # type: ignore
         logger.warning(message, line=self.lineno, subtype="nbcell")
-        return []
+        source = "\n".join(self.content)
+        node = nodes.literal_block(source, source)
+        if self.arguments:
+            node["language"] = self.arguments[0]
+        return [node]
