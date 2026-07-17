@@ -107,6 +107,7 @@ testing = [
     "pytest-regressions",
     "pytest-param-files",
     "sympy>=1.10.1",
+    "sphinx_design",
 ]
 
 [project.scripts]

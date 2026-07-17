@@ -68,3 +68,25 @@ def test_basic_nometadata(sphinx_run):
     sphinx_run.build()
     # print(sphinx_run.status())
     assert "Found an unexpected `code-cell`" in sphinx_run.warnings()
+
+
+@pytest.mark.sphinx_params(
+    "nested_code_cell_in_tab.md",
+    conf={
+        "nb_execution_mode": "off",
+        "source_suffix": {".md": "myst-nb"},
+        "extensions": ["myst_nb"],
+    },
+)
+def test_nested_code_cell_in_tab(sphinx_run):
+    """Code cells nested inside a tab-set should render their source as code blocks."""
+    sphinx_run.build()
+    # Warnings are expected since the cells are nested (not converted to notebook cells)
+    assert "Found an unexpected `code-cell`" in sphinx_run.warnings()
+    # But the code content must still appear in the HTML output
+    html = sphinx_run.get_html()
+    code_blocks = html.find_all("div", class_="highlight")
+    sources = [block.get_text() for block in code_blocks]
+    assert any("hello from standalone cell" in s for s in sources)
+    assert any("hello from tab 1" in s for s in sources)
+    assert any("hello from tab 2" in s for s in sources)
