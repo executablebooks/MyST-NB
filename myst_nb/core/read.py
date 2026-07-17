@@ -68,7 +68,7 @@ def create_nb_reader(
     # get all possible readers
     readers = nb_config.custom_formats.copy()
     # add the default reader
-    readers.setdefault(".ipynb", (standard_nb_read, {}, False))  # type: ignore
+    readers.setdefault(".ipynb", (standard_nb_read, {}, False))
 
     # we check suffixes ordered by longest first, to ensure we get the "closest" match
     iterator = sorted(readers.items(), key=lambda x: len(x[0]), reverse=True)
@@ -407,7 +407,7 @@ class UnexpectedCellDirective(Directive):
         if hasattr(document.settings, "env"):
             logger = SphinxDocLogger(document)
         else:
-            logger = DocutilsDocLogger(document)  # type: ignore
+            logger = DocutilsDocLogger(document)
         logger.warning(message, line=self.lineno, subtype="nbcell")
         source = "\n".join(self.content)
         node = nodes.literal_block(source, source)
