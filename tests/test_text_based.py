@@ -75,7 +75,7 @@ def test_basic_nometadata(sphinx_run):
     conf={
         "nb_execution_mode": "off",
         "source_suffix": {".md": "myst-nb"},
-        "extensions": ["myst_nb"],
+        "extensions": ["myst_nb", "sphinx_design"],
     },
 )
 def test_nested_code_cell_in_tab(sphinx_run):
