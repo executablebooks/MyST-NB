@@ -7,7 +7,7 @@ from html import escape
 import json
 from pathlib import Path
 import re
-from typing import Any, DefaultDict, cast
+from typing import Any, DefaultDict, cast, TYPE_CHECKING
 
 from docutils import nodes
 from markdown_it.token import Token
@@ -41,6 +41,10 @@ from myst_nb.core.render import (
 )
 from myst_nb.warnings_ import MystNBWarnings, create_warning
 
+if TYPE_CHECKING:
+    from jupyter_client import KernelManager
+
+
 SPHINX_LOGGER = sphinx_logging.getLogger(__name__)
 
 
@@ -63,6 +67,10 @@ class Parser(MystParser):
     config_section_dependencies = ("parsers",)
 
     env: SphinxEnvType
+
+    def __init__(self, *args, kernel_manager: KernelManager | None = None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.kernel_manager = kernel_manager
 
     def parse(self, inputstring: str, document: nodes.document) -> None:
         """Parse source text.
@@ -154,7 +162,8 @@ class Parser(MystParser):
         # open the notebook execution client,
         # this may execute the notebook immediately or during the page render
         with create_client(
-            notebook, document_path, nb_config, logger, nb_reader.read_fmt
+            *(notebook, document_path, nb_config, logger, nb_reader.read_fmt),
+            kernel_manager=self.kernel_manager,
         ) as nb_client:
             mdit_parser.options["nb_client"] = nb_client
             # convert to docutils AST, which is added to the document

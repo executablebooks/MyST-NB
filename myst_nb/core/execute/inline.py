@@ -56,6 +56,7 @@ class NotebookClientInline(NotebookClientBase):
             resources=resources,
             allow_errors=self.nb_config.execution_allow_errors,
             timeout=self.nb_config.execution_timeout,
+            km=self._kernel_manager,
         )
         self._client.reset_execution_trackers()
         if self._client.km is None:
