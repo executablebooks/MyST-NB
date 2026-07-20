@@ -58,7 +58,7 @@ class NotebookClientBase:
         nb_config: NbParserConfig,
         logger: LoggerType,
         *,
-        kernel_manager: KernelManager | None = None,
+        kernel_manager_class: type[KernelManager] | None = None,
         **kwargs: Any,
     ):
         """Initialize the client."""
@@ -66,7 +66,7 @@ class NotebookClientBase:
         self._path = path
         self._nb_config = nb_config
         self._logger = logger
-        self._kernel_manager = kernel_manager
+        self._kernel_manager_class = kernel_manager_class
         self._kwargs = kwargs
 
         self._glue_data: dict[str, NotebookNode] = {}
