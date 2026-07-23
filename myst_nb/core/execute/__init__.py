@@ -10,7 +10,7 @@ from .inline import NotebookClientInline
 
 if TYPE_CHECKING:
     from nbformat import NotebookNode
-    from jupyter_client.manager import KernelManager
+    from jupyter_client import KernelManager
 
     from myst_nb.core.config import NbParserConfig
     from myst_nb.core.loggers import LoggerType
@@ -23,7 +23,7 @@ def create_client(
     logger: LoggerType,
     read_fmt: None | dict = None,
     *,
-    kernel_manager: KernelManager | None = None,
+    kernel_manager_class: type[KernelManager] | None = None,
 ) -> NotebookClientBase:
     """Create a notebook execution client, to update its outputs.
 
@@ -63,19 +63,19 @@ def create_client(
 
     if nb_config.execution_mode in ("auto", "force"):
         return NotebookClientDirect(
-            notebook, path, nb_config, logger, kernel_manager=kernel_manager
+            notebook, path, nb_config, logger, kernel_manager_class=kernel_manager_class
         )
 
     if nb_config.execution_mode == "cache":
         return NotebookClientCache(
             *(notebook, path, nb_config, logger),
             read_fmt=read_fmt,
-            kernel_manager=kernel_manager,
+            kernel_manager_class=kernel_manager_class,
         )
 
     if nb_config.execution_mode == "inline":
         return NotebookClientInline(
-            notebook, path, nb_config, logger, kernel_manager=kernel_manager
+            notebook, path, nb_config, logger, kernel_manager_class=kernel_manager_class
         )
 
     return NotebookClientBase(notebook, path, nb_config, logger)
