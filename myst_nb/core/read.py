@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 from typing import Callable, Iterator
 
+from docutils import nodes
 from docutils.parsers.rst import Directive
 from markdown_it.renderer import RendererHTML
 from myst_parser.config.main import MdParserConfig
@@ -382,10 +383,9 @@ class UnexpectedCellDirective(Directive):
     which are picked up by the MyST Markdown reader to convert them into notebooks.
 
     If any are left in the parsed Markdown, it probably means that they were nested
-    inside another directive, which is not allowed.
+    inside another directive, so they cannot be converted into notebook cells.
 
-    Therefore, we log a warning if it is triggered, and discard it.
-
+    Therefore, we log a warning and fall back to rendering the source as a code block.
     """
 
     optional_arguments = 1
@@ -408,4 +408,8 @@ class UnexpectedCellDirective(Directive):
         else:
             logger = DocutilsDocLogger(document)  # type: ignore
         logger.warning(message, line=self.lineno, subtype="nbcell")
-        return []
+        source = "\n".join(self.content)
+        node = nodes.literal_block(source, source)
+        if self.arguments:
+            node["language"] = self.arguments[0]
+        return [node]
