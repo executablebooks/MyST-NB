@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import gc
-import warnings
 from typing import TYPE_CHECKING
+import warnings
 
+from jupyter_client import AsyncKernelManager
 import nbformat
 import pytest
-from jupyter_client import AsyncKernelManager
 
 from myst_nb.core.config import NbParserConfig
 from myst_nb.core.execute import create_client
