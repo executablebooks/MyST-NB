@@ -1,9 +1,9 @@
 """Tests for rendering code cell outputs."""
 
 import pytest
+from sphinx.util.fileutil import copy_asset_file
 
 from myst_nb.core.render import EntryPointError, load_renderer
-from sphinx.util.fileutil import copy_asset_file
 
 
 def test_load_renderer_not_found():
