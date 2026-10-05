@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 import contextlib
 import hashlib
 from importlib import resources as import_resources
 import os
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Iterator, cast
+from typing import Any, cast
 
 from myst_parser.sphinx_ext.main import setup_sphinx as setup_myst_parser
 from sphinx.application import Sphinx
