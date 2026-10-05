@@ -17,10 +17,7 @@ mystnb-quickstart my_project/docs/
 or simply add `myst_nb` to your existing Sphinx configuration:
 
 ```python
-extensions = [
-    ...,
-    "myst_nb"
-]
+extensions = [..., "myst_nb"]
 ```
 
 By default, MyST-NB will now parse both markdown (`.md`) and notebooks (`.ipynb`).

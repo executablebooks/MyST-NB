@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Iterator
 import dataclasses as dc
 from functools import partial
 import json
 from pathlib import Path
-from typing import Callable, Iterator
 
 from docutils.parsers.rst import Directive
 from markdown_it.renderer import RendererHTML
@@ -326,9 +326,7 @@ def _read_fenced_cell(token, cell_index, cell_type):
     )
     if result.warnings:
         raise MystMetadataParsingError(
-            "{} cell {} at line {} could not be read: {}".format(
-                cell_type, cell_index, token.map[0] + 1, result.warnings[0]
-            )
+            f"{cell_type} cell {cell_index} at line {token.map[0] + 1} could not be read: {result.warnings[0]}"
         )
 
     return result.options, result.body
@@ -341,15 +339,11 @@ def _read_cell_metadata(token, cell_index):
             metadata = json.loads(token.content.strip())
         except Exception as err:
             raise MystMetadataParsingError(
-                "Markdown cell {} at line {} could not be read: {}".format(
-                    cell_index, token.map[0] + 1, err
-                )
+                f"Markdown cell {cell_index} at line {token.map[0] + 1} could not be read: {err}"
             )
         if not isinstance(metadata, dict):
             raise MystMetadataParsingError(
-                "Markdown cell {} at line {} is not a dict".format(
-                    cell_index, token.map[0] + 1
-                )
+                f"Markdown cell {cell_index} at line {token.map[0] + 1} is not a dict"
             )
 
     return metadata

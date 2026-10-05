@@ -9,8 +9,8 @@ from .direct import NotebookClientDirect
 from .inline import NotebookClientInline
 
 if TYPE_CHECKING:
-    from nbformat import NotebookNode
     from jupyter_client import KernelManager
+    from nbformat import NotebookNode
 
     from myst_nb.core.config import NbParserConfig
     from myst_nb.core.loggers import LoggerType

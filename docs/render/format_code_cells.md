@@ -124,9 +124,9 @@ For example, the following configuration applies in order:
 
 ```python
 nb_mime_priority_overrides = [
-  ('html', 'text/plain', 0),
-  ('latex', 'image/jpeg', None),
-  ('*', 'customtype', 20)
+    ("html", "text/plain", 0),
+    ("latex", "image/jpeg", None),
+    ("*", "customtype", 20),
 ]
 ```
 

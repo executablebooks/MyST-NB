@@ -7,6 +7,7 @@ in order for docutils-only use.
 from __future__ import annotations
 
 from binascii import a2b_base64
+from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
 import dataclasses as dc
 from functools import lru_cache
@@ -16,7 +17,7 @@ from mimetypes import guess_extension
 import os
 from pathlib import Path
 import re
-from typing import TYPE_CHECKING, Any, ClassVar, Iterator, Sequence, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Union
 
 from docutils import nodes
 from docutils.parsers.rst import directives as options_spec
@@ -935,7 +936,7 @@ def strip_latex_delimiters(source):
     https://github.com/jupyter/jupyter-sphinx/issues/90 for discussion.
     """
     source = source.strip()
-    delimiter_pairs = (pair.split() for pair in r"\( \),\[ \],$$ $$,$ $".split(","))
+    delimiter_pairs = (pair.split() for pair in [r"\( \)", r"\[ \]", r"$$ $$", r"$ $"])
     for start, end in delimiter_pairs:
         if source.startswith(start) and source.endswith(end):
             return source[len(start) : -len(end)]
