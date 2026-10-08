@@ -276,4 +276,6 @@ def add_per_page_html_resources(
         return
     js_files = NbMetadataCollector.get_js_files(cast(SphinxEnvType, app.env), pagename)
     for path, kwargs in js_files.values():
-        app.add_js_file(path, **kwargs)
+        # Stored options are dict[str, str]. Sphinx types priority as int, so
+        # unpacking that dict fails when this module is checked with the collector.
+        app.add_js_file(path, **cast(dict[str, Any], kwargs))
