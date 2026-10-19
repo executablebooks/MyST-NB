@@ -154,6 +154,16 @@ Then for the image we can apply all the variables of the standard [image directi
 
 Units of length are: 'em', 'ex', 'px', 'in', 'cm', 'mm', 'pt', 'pc'
 
+The **width** and **height** can also be set by the code itself, in the metadata of the image output, which overrides those of the cell.
+**classes** in the output metadata are added to those of the cell, which allows to style each image output of a cell separately, for example to show a different image in dark mode with the `only-light` and `only-dark` classes of your theme:
+
+```python
+from IPython.display import Image, display
+
+display(Image("light.png"), metadata={"image/png": {"classes": "only-light"}})
+display(Image("dark.png"), metadata={"image/png": {"classes": "only-dark"}})
+```
+
 You can also wrap the output in a [`figure`](https://docutils.sourceforge.io/docs/ref/rst/directives.html#figure), that can include:
 
 - **align**: "left", "center", or "right"

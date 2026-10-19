@@ -672,13 +672,21 @@ class NbElementRenderer:
             "render_image_options", data.cell_metadata, line=data.line
         ).copy()
         # Overwrite with metadata stored in output
+        output_options = data.output_metadata.get(data.mime_type, {})
         image_options.update(
             {
                 key: str(value)
-                for key, value in data.output_metadata.get(data.mime_type, {}).items()
+                for key, value in output_options.items()
                 if key in {"width", "height"}
             }
         )
+        # classes stored in output are added to those of the cell
+        if "classes" in output_options:
+            image_options["classes"] = " ".join(
+                str(classes)
+                for classes in (image_options.get("classes"), output_options["classes"])
+                if classes
+            )
         for key, spec in [
             ("classes", options_spec.class_option),
             ("alt", options_spec.unchanged),
