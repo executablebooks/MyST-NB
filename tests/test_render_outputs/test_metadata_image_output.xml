@@ -12,7 +12,20 @@
                     Image(filename="./example.jpg", width=500, height=100)
             <container classes="cell_output" nb_element="cell_code_output">
                 <image candidates="{'*': '_build/jupyter_execute/a4c9580c74dacf6f3316a3bd2e2a347933aa4463834dcf1bb8f20b4fcb476ae1.jpg'}" height="100" uri="_build/jupyter_execute/a4c9580c74dacf6f3316a3bd2e2a347933aa4463834dcf1bb8f20b4fcb476ae1.jpg" width="500">
-        <container cell_index="2" cell_metadata="{}" classes="cell" exec_count="1" nb_element="cell_code">
+        <container cell_index="2" cell_metadata="{'mystnb': {'image': {'classes': 'shadow'}}, 'tags': ['skip-execution']}" classes="cell tag_skip-execution" exec_count="2" nb_element="cell_code">
+            <container classes="cell_input" nb_element="cell_code_source">
+                <literal_block language="ipython3" linenos="0" xml:space="preserve">
+                    # Outputs included with classes in output metadata, added to the classes
+                    # in the cell metadata, cell is not executed
+                    from IPython.display import Image, display
+                    
+                    image = Image(filename="./example.jpg")
+                    display(image, metadata={"image/jpeg": {"classes": "only-light"}})
+                    display(image, metadata={"image/jpeg": {"classes": "only-dark"}})
+            <container classes="cell_output" nb_element="cell_code_output">
+                <image candidates="{'*': '_build/jupyter_execute/a4c9580c74dacf6f3316a3bd2e2a347933aa4463834dcf1bb8f20b4fcb476ae1.jpg'}" classes="shadow only-light" uri="_build/jupyter_execute/a4c9580c74dacf6f3316a3bd2e2a347933aa4463834dcf1bb8f20b4fcb476ae1.jpg">
+                <image candidates="{'*': '_build/jupyter_execute/a4c9580c74dacf6f3316a3bd2e2a347933aa4463834dcf1bb8f20b4fcb476ae1.jpg'}" classes="shadow only-dark" uri="_build/jupyter_execute/a4c9580c74dacf6f3316a3bd2e2a347933aa4463834dcf1bb8f20b4fcb476ae1.jpg">
+        <container cell_index="3" cell_metadata="{}" classes="cell" exec_count="1" nb_element="cell_code">
             <container classes="cell_input" nb_element="cell_code_source">
                 <literal_block language="ipython3" linenos="0" xml:space="preserve">
                     # No outputs, cell is executed, image should have original size (370, 254)
