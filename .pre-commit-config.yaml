@@ -39,7 +39,8 @@ repos:
     rev: v2.1.0
     hooks:
     - id: mypy
-      args: [--config-file=pyproject.toml]
+      args: [--config-file=pyproject.toml, myst_nb]
+      pass_filenames: false
       additional_dependencies:
       - importlib_metadata
       - myst-parser~=2.0.0
