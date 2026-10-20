@@ -14,6 +14,7 @@ from myst_nb.core.nb_to_tokens import nb_node_to_dict
 from myst_nb.ext.glue import extract_glue_data
 
 if TYPE_CHECKING:
+    from jupyter_client import KernelManager
     from markdown_it.tree import SyntaxTreeNode
 
 
@@ -57,6 +58,8 @@ class NotebookClientBase:
         path: Path | None,
         nb_config: NbParserConfig,
         logger: LoggerType,
+        *,
+        kernel_manager_class: type[KernelManager] | None = None,
         **kwargs: Any,
     ):
         """Initialize the client."""
@@ -64,6 +67,7 @@ class NotebookClientBase:
         self._path = path
         self._nb_config = nb_config
         self._logger = logger
+        self._kernel_manager_class = kernel_manager_class
         self._kwargs = kwargs
 
         self._glue_data: dict[str, NotebookNode] = {}

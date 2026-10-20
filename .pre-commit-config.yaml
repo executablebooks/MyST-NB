@@ -6,7 +6,8 @@ exclude: >
       \.vscode/settings\.json|
       tests/commonmark/commonmark\.json|
       .*\.xml|
-      tests/.*\.txt
+      tests/.*\.txt|
+      tests/.*\.ipynb
     )$
 
 ci:
@@ -28,14 +29,14 @@ repos:
     - id: trailing-whitespace
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.10
+    rev: v0.15.20
     hooks:
     - id: ruff
       args: ["--fix", "--show-fixes"]
     - id: ruff-format
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.19.1
+    rev: v2.1.0
     hooks:
     - id: mypy
       args: [--config-file=pyproject.toml]
@@ -51,7 +52,7 @@ repos:
         )$
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.1
+    rev: v2.4.2
     hooks:
     - id: codespell
       args: ["-S", "*.ipynb"]

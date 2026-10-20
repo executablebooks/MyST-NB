@@ -9,7 +9,7 @@ import shutil
 from tempfile import mkdtemp
 import time
 import traceback
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 from nbclient.client import (
     CellControlSignal,
@@ -60,6 +60,12 @@ class NotebookClientInline(NotebookClientBase):
             resources=resources,
             allow_errors=self.nb_config.execution_allow_errors,
             timeout=self.nb_config.execution_timeout,
+            **cast(
+                "dict[str, Any]",
+                dict(kernel_manager_class=self._kernel_manager_class)
+                if self._kernel_manager_class
+                else {},
+            ),
         )
         self._client.reset_execution_trackers()
         if self._client.km is None:

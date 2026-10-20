@@ -4,7 +4,7 @@
             Formatting code outputs
         <container cell_index="1" cell_metadata="{'myst': {'figure': {'caption': 'Hey everyone its **party** time!\n', 'name': 'fun-fish'}}}" classes="cell" exec_count="1" nb_element="cell_code">
             <container classes="cell_input" nb_element="cell_code_source">
-                <literal_block language="ipython3" linenos="False" xml:space="preserve">
+                <literal_block language="ipython3" linenos="0" xml:space="preserve">
                     from IPython.display import Image
                     
                     Image("fun-fish.png")
@@ -18,6 +18,6 @@
                          time!
         <paragraph>
             Link: 
-            <reference internal="True" refid="fun-fish">
+            <reference internal="1" refid="fun-fish">
                 <inline classes="std std-ref">
                     swim to the fish

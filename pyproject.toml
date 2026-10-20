@@ -1,4 +1,4 @@
- [build-system]
+[build-system]
 requires = ["flit_core >=3.11,<4"]
 build-backend = "flit_core.buildapi"
 
@@ -20,6 +20,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
     "Topic :: Software Development :: Libraries :: Python Modules",
@@ -42,7 +43,7 @@ dependencies = [
     "myst-parser>=1.0.0",
     "nbformat>=5.0",
     "pyyaml",
-    "sphinx>=5,<9",  # If we get bugs for older versions, just pin this higher
+    "sphinx>=5",  # If we get bugs for older versions, just pin this higher
     "typing-extensions",
     # ipykernel is not a requirement of the library,
     # but is a common requirement for users (registers the python3 kernel)
@@ -96,7 +97,7 @@ testing = [
     "ipywidgets>=8",
     "jupytext>=1.11.2",
     # Matplotlib outputs are sensitive to the matplotlib version
-    "matplotlib==3.10.*",
+    "matplotlib==3.10.7",
     "nbdime",
     "numpy",
     "pandas",
@@ -174,12 +175,14 @@ filterwarnings = [
     'ignore:datetime.datetime.utcnow\(\) is deprecated:DeprecationWarning:jupyter_cache',
     # From matplotlib’s dependencies
     'ignore::DeprecationWarning:pyparsing',  # imports deprecated `sre_constants`
-    # From myst-parser on Sphinx 9
-    'ignore:.*MystReferenceResolver.app.*:DeprecationWarning',
+    # From myst-parser on Sphinx 9 we hit RemovedInSphinx11Warning
+    'ignore:.*MystReferenceResolver.app.*',
     # Upstream myst-parser still hits env.app deprecations under Sphinx 9
     'ignore:.*env\\.app.*:DeprecationWarning:myst_parser',
     # Windows issues, some may need to be fixed in MyST-NB, others are upstream
     'ignore:Proactor event loop does not implement add_reader:RuntimeWarning:zmq',
+    # We deal with this pending deprecation later
+    'ignore:Argument "writer_name" will be removed in Docutils 2.0:PendingDeprecationWarning'
 ]
 
 markers = [

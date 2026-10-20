@@ -7,6 +7,7 @@ in order for docutils-only use.
 from __future__ import annotations
 
 from binascii import a2b_base64
+from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
 import dataclasses as dc
 from functools import lru_cache
@@ -16,7 +17,7 @@ from mimetypes import guess_extension
 import os
 from pathlib import Path
 import re
-from typing import TYPE_CHECKING, Any, ClassVar, Iterator, Sequence, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Union
 
 from docutils import nodes
 from docutils.parsers.rst import directives as options_spec
@@ -49,6 +50,14 @@ RENDER_ENTRY_GROUP = "myst_nb.renderers"
 MIME_RENDER_ENTRY_GROUP = "myst_nb.mime_renderers"
 _ANSI_RE = re.compile("\x1b\\[(.*?)([@-~])")
 _QUOTED_RE = re.compile(r"^([\"']).*\1$")
+_BINARY_IMAGE_MIMES = {
+    "image/png",
+    "image/jpeg",
+    "image/gif",
+    "image/webp",
+    "application/pdf",
+}
+_IMAGE_MIMES = {*_BINARY_IMAGE_MIMES, "image/svg+xml"}
 
 
 class MditRenderMixin:
@@ -117,7 +126,7 @@ class MditRenderMixin:
         # it would be nice to "wrap" this in a container that included the metadata,
         # but unfortunately this would break the heading structure of docutils/sphinx.
         # perhaps we add an "invisible" (non-rendered) marker node to the document tree,
-        self.current_cell = token  # type: ignore[union-attr]
+        self.current_cell = token
         self.render_children(token)
 
     def render_nb_cell_raw(self: SelfType, token: SyntaxTreeNode) -> None:
@@ -574,13 +583,7 @@ class NbElementRenderer:
         # try default renderers
         if data.mime_type == "text/plain":
             return self.render_text_plain(data)
-        if data.mime_type in {
-            "image/png",
-            "image/jpeg",
-            "application/pdf",
-            "image/svg+xml",
-            "image/gif",
-        }:
+        if data.mime_type in _IMAGE_MIMES:
             return self.render_image(data)
         if data.mime_type == "text/html":
             return self.render_text_html(data)
@@ -646,12 +649,7 @@ class NbElementRenderer:
         # https://github.com/jupyter/nbconvert/blob/45df4b6089b3bbab4b9c504f9e6a892f5b8692e3/nbconvert/preprocessors/extractoutput.py#L43
 
         # ensure that the data is a bytestring
-        if data.mime_type in {
-            "image/png",
-            "image/jpeg",
-            "image/gif",
-            "application/pdf",
-        }:
+        if data.mime_type in _BINARY_IMAGE_MIMES:
             # data is b64-encoded as text
             data_bytes = a2b_base64(data.content)
         elif isinstance(data.content, str):
@@ -677,13 +675,21 @@ class NbElementRenderer:
             "render_image_options", data.cell_metadata, line=data.line
         ).copy()
         # Overwrite with metadata stored in output
+        output_options = data.output_metadata.get(data.mime_type, {})
         image_options.update(
             {
                 key: str(value)
-                for key, value in data.output_metadata.get(data.mime_type, {}).items()
+                for key, value in output_options.items()
                 if key in {"width", "height"}
             }
         )
+        # classes stored in output are added to those of the cell
+        if "classes" in output_options:
+            image_options["classes"] = " ".join(
+                str(classes)
+                for classes in (image_options.get("classes"), output_options["classes"])
+                if classes
+            )
         for key, spec in [
             ("classes", options_spec.class_option),
             ("alt", options_spec.unchanged),
@@ -735,13 +741,7 @@ class NbElementRenderer:
         # try built-in renderers
         if data.mime_type == "text/plain":
             return self.render_text_plain_inline(data)
-        if data.mime_type in {
-            "image/png",
-            "image/jpeg",
-            "application/pdf",
-            "image/svg+xml",
-            "image/gif",
-        }:
+        if data.mime_type in _IMAGE_MIMES:
             return self.render_image_inline(data)
         if data.mime_type == "text/html":
             return self.render_text_html_inline(data)
@@ -946,7 +946,7 @@ def strip_latex_delimiters(source):
     https://github.com/jupyter/jupyter-sphinx/issues/90 for discussion.
     """
     source = source.strip()
-    delimiter_pairs = (pair.split() for pair in r"\( \),\[ \],$$ $$,$ $".split(","))
+    delimiter_pairs = (pair.split() for pair in [r"\( \)", r"\[ \]", r"$$ $$", r"$ $"])
     for start, end in delimiter_pairs:
         if source.startswith(start) and source.endswith(end):
             return source[len(start) : -len(end)]
@@ -1032,59 +1032,29 @@ def base_render_priority() -> dict[str, dict[str, int | None]]:
     # See formats at https://www.sphinx-doc.org/en/master/usage/builders/index.html
     # generated with:
     # [(b.name, b.format, b.supported_image_types) for b in app.registry.builders.values()]
+    html_like: dict[str, int | None] = {
+        "application/vnd.jupyter.widget-view+json": 10,
+        "application/javascript": 20,
+        "text/html": 30,
+        "image/svg+xml": 40,
+        "image/webp": 50,
+        "image/png": 60,
+        "image/gif": 70,
+        "image/jpeg": 80,
+        "text/markdown": 90,
+        "text/latex": 100,
+        "text/plain": 110,
+    }
     return {
-        "epub": {
-            "application/vnd.jupyter.widget-view+json": 10,
-            "application/javascript": 20,
-            "text/html": 30,
-            "image/svg+xml": 40,
-            "image/png": 50,
-            "image/gif": 60,
-            "image/jpeg": 70,
-            "text/markdown": 80,
-            "text/latex": 90,
-            "text/plain": 100,
-        },
-        "html": {
-            "application/vnd.jupyter.widget-view+json": 10,
-            "application/javascript": 20,
-            "text/html": 30,
-            "image/svg+xml": 40,
-            "image/png": 50,
-            "image/gif": 60,
-            "image/jpeg": 70,
-            "text/markdown": 80,
-            "text/latex": 90,
-            "text/plain": 100,
-        },
-        "dirhtml": {
-            "application/vnd.jupyter.widget-view+json": 10,
-            "application/javascript": 20,
-            "text/html": 30,
-            "image/svg+xml": 40,
-            "image/png": 50,
-            "image/gif": 60,
-            "image/jpeg": 70,
-            "text/markdown": 80,
-            "text/latex": 90,
-            "text/plain": 100,
-        },
-        "singlehtml": {
-            "application/vnd.jupyter.widget-view+json": 10,
-            "application/javascript": 20,
-            "text/html": 30,
-            "image/svg+xml": 40,
-            "image/png": 50,
-            "image/gif": 60,
-            "image/jpeg": 70,
-            "text/markdown": 80,
-            "text/latex": 90,
-            "text/plain": 100,
-        },
+        "epub": html_like.copy(),
+        "html": html_like.copy(),
+        "dirhtml": html_like.copy(),
+        "singlehtml": html_like.copy(),
         "applehelp": {
             "application/vnd.jupyter.widget-view+json": 10,
             "application/javascript": 20,
             "text/html": 30,
+            "image/webp": 35,
             "image/png": 40,
             "image/gif": 50,
             "image/jpeg": 60,
@@ -1099,6 +1069,7 @@ def base_render_priority() -> dict[str, dict[str, int | None]]:
             "application/vnd.jupyter.widget-view+json": 10,
             "application/javascript": 20,
             "text/html": 30,
+            "image/webp": 35,
             "image/png": 40,
             "image/gif": 50,
             "image/jpeg": 60,
@@ -1110,6 +1081,7 @@ def base_render_priority() -> dict[str, dict[str, int | None]]:
             "application/vnd.jupyter.widget-view+json": 10,
             "application/javascript": 20,
             "text/html": 30,
+            "image/webp": 35,
             "image/png": 40,
             "image/gif": 50,
             "image/jpeg": 60,
@@ -1117,92 +1089,15 @@ def base_render_priority() -> dict[str, dict[str, int | None]]:
             "text/latex": 80,
             "text/plain": 90,
         },
-        "json": {
-            "application/vnd.jupyter.widget-view+json": 10,
-            "application/javascript": 20,
-            "text/html": 30,
-            "image/svg+xml": 40,
-            "image/png": 50,
-            "image/gif": 60,
-            "image/jpeg": 70,
-            "text/markdown": 80,
-            "text/latex": 90,
-            "text/plain": 100,
-        },
-        "pickle": {
-            "application/vnd.jupyter.widget-view+json": 10,
-            "application/javascript": 20,
-            "text/html": 30,
-            "image/svg+xml": 40,
-            "image/png": 50,
-            "image/gif": 60,
-            "image/jpeg": 70,
-            "text/markdown": 80,
-            "text/latex": 90,
-            "text/plain": 100,
-        },
-        "qthelp": {
-            "application/vnd.jupyter.widget-view+json": 10,
-            "application/javascript": 20,
-            "text/html": 30,
-            "image/svg+xml": 40,
-            "image/png": 50,
-            "image/gif": 60,
-            "image/jpeg": 70,
-            "text/markdown": 80,
-            "text/latex": 90,
-            "text/plain": 100,
-        },
+        "json": html_like.copy(),
+        "pickle": html_like.copy(),
+        "qthelp": html_like.copy(),
         # deprecated RTD builders
         # https://github.com/readthedocs/readthedocs-sphinx-ext/blob/master/readthedocs_ext/readthedocs.py
-        "readthedocs": {
-            "application/vnd.jupyter.widget-view+json": 10,
-            "application/javascript": 20,
-            "text/html": 30,
-            "image/svg+xml": 40,
-            "image/png": 50,
-            "image/gif": 60,
-            "image/jpeg": 70,
-            "text/markdown": 80,
-            "text/latex": 90,
-            "text/plain": 100,
-        },
-        "readthedocsdirhtml": {
-            "application/vnd.jupyter.widget-view+json": 10,
-            "application/javascript": 20,
-            "text/html": 30,
-            "image/svg+xml": 40,
-            "image/png": 50,
-            "image/gif": 60,
-            "image/jpeg": 70,
-            "text/markdown": 80,
-            "text/latex": 90,
-            "text/plain": 100,
-        },
-        "readthedocssinglehtml": {
-            "application/vnd.jupyter.widget-view+json": 10,
-            "application/javascript": 20,
-            "text/html": 30,
-            "image/svg+xml": 40,
-            "image/png": 50,
-            "image/gif": 60,
-            "image/jpeg": 70,
-            "text/markdown": 80,
-            "text/latex": 90,
-            "text/plain": 100,
-        },
-        "readthedocssinglehtmllocalmedia": {
-            "application/vnd.jupyter.widget-view+json": 10,
-            "application/javascript": 20,
-            "text/html": 30,
-            "image/svg+xml": 40,
-            "image/png": 50,
-            "image/gif": 60,
-            "image/jpeg": 70,
-            "text/markdown": 80,
-            "text/latex": 90,
-            "text/plain": 100,
-        },
+        "readthedocs": html_like.copy(),
+        "readthedocsdirhtml": html_like.copy(),
+        "readthedocssinglehtml": html_like.copy(),
+        "readthedocssinglehtmllocalmedia": html_like.copy(),
         "changes": {"text/latex": 10, "text/markdown": 20, "text/plain": 30},
         "dummy": {"text/latex": 10, "text/markdown": 20, "text/plain": 30},
         "gettext": {"text/latex": 10, "text/markdown": 20, "text/plain": 30},

@@ -116,7 +116,7 @@ html_favicon = "_static/logo-square.svg"
 html_theme_options = {
     "github_url": "https://github.com/executablebooks/myst-nb",
     "repository_url": "https://github.com/executablebooks/myst-nb",
-    "repository_branch": "master",
+    "repository_branch": "main",
     "home_page_in_toc": True,
     "path_to_docs": "docs",
     "show_navbar_depth": 1,

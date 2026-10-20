@@ -15,7 +15,7 @@ To install `MyST-NB` for package development (you will need a recent version of 
 ```bash
 git clone https://github.com/executablebooks/MyST-NB
 cd MyST-NB
-git checkout master
+git checkout main
 pip install -e .[code_style,testing,rtd]
 ```
 
@@ -116,11 +116,11 @@ pytest -v --cov=myst_nb --cov-report=html
 
 ### Test File and Directory Naming Conventions
 
-Tests are found in the [tests](https://github.com/executablebooks/MyST-NB/tree/master/tests) directory. In order for `pytest` to find the test scripts correctly, the name of each test script should start with `test_` prefix.
+Tests are found in the [tests](https://github.com/executablebooks/MyST-NB/tree/main/tests) directory. In order for `pytest` to find the test scripts correctly, the name of each test script should start with `test_` prefix.
 
 ### How to Write Tests
 
-There are many examples of unit tests under the [tests](https://github.com/executablebooks/MyST-NB/tree/master/tests) directory, so reading some of them is a good and recommended way. Prefer using the `fixtures` and the classes defined in [conftest.py](https://github.com/executablebooks/MyST-NB/blob/master/tests/conftest.py) as much as possible.
+There are many examples of unit tests under the [tests](https://github.com/executablebooks/MyST-NB/tree/main/tests) directory, so reading some of them is a good and recommended way. Prefer using the `fixtures` and the classes defined in [conftest.py](https://github.com/executablebooks/MyST-NB/blob/main/tests/conftest.py) as much as possible.
 
 If using [pytest-regression](https://pytest-regressions.readthedocs.io/en/latest/), a new directory with `test_` prefix is expected to be created in the first test run. This will store your expected output against which subsequent test outputs will be compared.
 
@@ -128,9 +128,9 @@ If using [pytest-regression](https://pytest-regressions.readthedocs.io/en/latest
 
 [pytest-cov](https://pytest-cov.readthedocs.io/en/latest/) is used to generate code coverage report. Make sure that your test cases cover most of the code written by you.
 
-[github-ci]: https://github.com/executablebooks/MyST-NB/workflows/continuous-integration/badge.svg?branch=master
+[github-ci]: https://github.com/executablebooks/MyST-NB/workflows/continuous-integration/badge.svg?branch=main
 [github-link]: https://github.com/executablebooks/MyST-NB
-[codecov-badge]: https://codecov.io/gh/executablebooks/MyST-NB/branch/master/graph/badge.svg
+[codecov-badge]: https://codecov.io/gh/executablebooks/MyST-NB/branch/main/graph/badge.svg
 [codecov-link]: https://codecov.io/gh/executablebooks/MyST-NB
 [rtd-badge]: https://readthedocs.org/projects/myst-nb/badge/?version=latest
 [rtd-link]: https://myst-nb.readthedocs.io/en/latest/?badge=latest
