@@ -9,7 +9,7 @@ import shutil
 from tempfile import mkdtemp
 import time
 import traceback
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from nbclient.client import (
     CellControlSignal,
@@ -26,6 +26,9 @@ from nbformat import NotebookNode
 from myst_nb.ext.glue import extract_glue_data_cell
 
 from .base import EvalNameError, ExecutionError, NotebookClientBase
+
+if TYPE_CHECKING:
+    from markdown_it.tree import SyntaxTreeNode
 
 
 class NotebookClientInline(NotebookClientBase):
@@ -156,7 +159,9 @@ class NotebookClientInline(NotebookClientBase):
         cell = cells[cell_index]
         return cell.get("execution_count", None), cell.get("outputs", [])
 
-    def eval_variable(self, name: str) -> list[NotebookNode]:
+    def eval_variable(
+        self, name: str, current_cell: SyntaxTreeNode
+    ) -> list[NotebookNode]:
         if not re.match(self.nb_config.eval_name_regex, name):
             raise EvalNameError(name)
         return self._client.eval_expression(name)

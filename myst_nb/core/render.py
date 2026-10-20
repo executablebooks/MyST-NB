@@ -7,6 +7,7 @@ in order for docutils-only use.
 from __future__ import annotations
 
 from binascii import a2b_base64
+from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
 import dataclasses as dc
 from functools import lru_cache
@@ -16,7 +17,7 @@ from mimetypes import guess_extension
 import os
 from pathlib import Path
 import re
-from typing import TYPE_CHECKING, Any, ClassVar, Iterator, Sequence, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Union
 
 from docutils import nodes
 from docutils.parsers.rst import directives as options_spec
@@ -74,6 +75,7 @@ class MditRenderMixin:
     current_node: Any
     current_node_context: Any
     create_highlighted_code_block: Any
+    current_cell: SyntaxTreeNode
 
     @property
     def nb_config(self: SelfType) -> NbParserConfig:
@@ -124,6 +126,7 @@ class MditRenderMixin:
         # it would be nice to "wrap" this in a container that included the metadata,
         # but unfortunately this would break the heading structure of docutils/sphinx.
         # perhaps we add an "invisible" (non-rendered) marker node to the document tree,
+        self.current_cell = token  # type: ignore[union-attr]
         self.render_children(token)
 
     def render_nb_cell_raw(self: SelfType, token: SyntaxTreeNode) -> None:
@@ -943,7 +946,7 @@ def strip_latex_delimiters(source):
     https://github.com/jupyter/jupyter-sphinx/issues/90 for discussion.
     """
     source = source.strip()
-    delimiter_pairs = (pair.split() for pair in r"\( \),\[ \],$$ $$,$ $".split(","))
+    delimiter_pairs = (pair.split() for pair in [r"\( \)", r"\[ \]", r"$$ $$", r"$ $"])
     for start, end in delimiter_pairs:
         if source.startswith(start) and source.endswith(end):
             return source[len(start) : -len(end)]
