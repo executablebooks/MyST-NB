@@ -7,7 +7,7 @@ from html import escape
 import json
 from pathlib import Path
 import re
-from typing import Any, DefaultDict, cast, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 from docutils import nodes
 from markdown_it.token import Token
@@ -53,7 +53,7 @@ class SphinxEnvType(BuildEnvironment):
 
     myst_config: MdParserConfig
     mystnb_config: NbParserConfig
-    nb_metadata: DefaultDict[str, dict]
+    nb_metadata: defaultdict[str, dict]
     nb_new_exec_data: bool
 
 
@@ -106,7 +106,7 @@ class Parser(MystParser):
         notebook = nb_reader.read(inputstring)
 
         # update the global markdown config with the file-level config
-        warning = lambda wtype, msg: create_warning(  # noqa: E731
+        warning = lambda wtype, msg: create_warning(
             document, msg, line=1, append_to=document, subtype=wtype
         )
         nb_reader.md_config = merge_file_level(
@@ -392,7 +392,7 @@ class NbMetadataCollector(EnvironmentCollector):
         env.nb_metadata.setdefault(docname, {})[key] = value
 
     @staticmethod
-    def get_doc_data(env: SphinxEnvType) -> DefaultDict[str, dict]:
+    def get_doc_data(env: SphinxEnvType) -> defaultdict[str, dict]:
         """Get myst-nb docname -> metadata dict."""
         if not hasattr(env, "nb_metadata"):
             env.nb_metadata = defaultdict(dict)

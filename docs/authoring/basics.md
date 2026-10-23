@@ -18,9 +18,9 @@ the [source_suffix](https://www.sphinx-doc.org/en/master/usage/configuration.htm
 ```python
 extensions = ["myst_nb"]
 source_suffix = {
-    '.rst': 'restructuredtext',
-    '.ipynb': 'myst-nb',
-    '.myst': 'myst-nb',
+    ".rst": "restructuredtext",
+    ".ipynb": "myst-nb",
+    ".myst": "myst-nb",
 }
 ```
 

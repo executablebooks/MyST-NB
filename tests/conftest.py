@@ -2,10 +2,11 @@ import json
 import os
 from pathlib import Path
 import re
-import uuid
 import shutil
+import uuid
 
 import bs4
+import docutils
 from docutils.nodes import image as image_node
 from nbconvert.filters import strip_ansi
 from nbdime.diffing.notebooks import (
@@ -16,7 +17,6 @@ from nbdime.diffing.notebooks import (
 from nbdime.prettyprint import pretty_print_diff
 import nbformat as nbf
 import pytest
-import docutils
 import sphinx
 from sphinx import version_info as sphinx_version_info
 from sphinx.util.console import nocolor

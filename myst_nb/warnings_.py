@@ -2,16 +2,16 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from enum import Enum
-from typing import Sequence
 
 from docutils import nodes
 from myst_parser.warnings_ import MystWarnings
 from myst_parser.warnings_ import create_warning as myst_parser_create_warnings
 
 __all__ = [
-    "MystWarnings",
     "MystNBWarnings",
+    "MystWarnings",
     "create_warning",
 ]
 

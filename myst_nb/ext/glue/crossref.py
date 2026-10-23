@@ -7,13 +7,14 @@ since adding these nodes in a post-transform will not apply any transforms to th
 from __future__ import annotations
 
 from binascii import a2b_base64
+from collections.abc import Sequence
 from functools import lru_cache
 import hashlib
 import json
 from mimetypes import guess_extension
-from pathlib import Path
-from typing import Any, Sequence
 import os
+from pathlib import Path
+from typing import Any
 
 from docutils import nodes
 from sphinx.builders import Builder

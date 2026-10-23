@@ -4,7 +4,7 @@ We intentionally do no import sphinx in this module,
 in order to allow docutils-only use without sphinx installed.
 """
 
-from typing import TYPE_CHECKING, Any, Dict, List
+from typing import TYPE_CHECKING, Any
 
 from docutils import nodes
 from docutils.parsers.rst import directives as spec
@@ -36,7 +36,7 @@ class PasteAnyDirective(DirectiveBase):
 
     option_spec = {"doc": spec.unchanged}
 
-    def run(self) -> List[nodes.Node]:
+    def run(self) -> list[nodes.Node]:
         """Run the directive."""
         key = self.arguments[0]
         if "doc" in self.options:
@@ -81,7 +81,7 @@ class PasteMarkdownDirective(DirectiveBase):
         "format": md_fmt,
     }
 
-    def run(self) -> List[nodes.Node]:
+    def run(self) -> list[nodes.Node]:
         """Run the directive."""
         key = self.arguments[0]
         try:
@@ -149,7 +149,7 @@ class PasteFigureDirective(DirectiveBase):
             data = retrieve_glue_data(self.document, self.arguments[0])
         except RetrievalError as exc:
             return [glue_warning(str(exc), self.document, self.line)]
-        render: Dict[str, Any] = {}
+        render: dict[str, Any] = {}
         for key in ("alt", "height", "width", "scale", "class"):
             if key in self.options:
                 render.setdefault("image", {})[key.replace("classes", "class")] = (
@@ -217,7 +217,7 @@ class PasteMathDirective(DirectiveBase):
         "name": spec.unchanged,
     }
 
-    def run(self) -> List[nodes.Node]:
+    def run(self) -> list[nodes.Node]:
         """Run the directive."""
         key = self.arguments[0]
         try:
@@ -249,10 +249,10 @@ class PasteMathDirective(DirectiveBase):
             return self.add_target(node)
         return [node]
 
-    def add_target(self, node: nodes.math_block) -> List[nodes.Node]:
+    def add_target(self, node: nodes.math_block) -> list[nodes.Node]:
         """Add target to the node."""
         # adapted from sphinx.directives.patches.MathDirective
-        env: "BuildEnvironment" = self.document.settings.env
+        env: BuildEnvironment = self.document.settings.env
 
         node["docname"] = env.docname
 
@@ -266,7 +266,7 @@ class PasteMathDirective(DirectiveBase):
             return [node]
 
         # register label to domain
-        domain: "MathDomain" = env.get_domain("math")  # type: ignore
+        domain: MathDomain = env.get_domain("math")  # type: ignore
         domain.note_equation(env.docname, node["label"], location=node)
         node["number"] = domain.get_equation_number_for(node["label"])
 

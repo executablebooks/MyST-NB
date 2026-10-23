@@ -1,8 +1,9 @@
 """Configuration for myst-nb."""
 
+from collections.abc import Callable, Iterable, Sequence
 import dataclasses as dc
 from enum import Enum
-from typing import Any, Callable, Dict, Iterable, Literal, Optional, Sequence, Tuple
+from typing import Any, Literal
 
 from myst_parser.config.dc_validators import (
     ValidatorType,
@@ -17,11 +18,11 @@ from myst_parser.config.dc_validators import (
 from myst_nb.warnings_ import MystNBWarnings
 
 
-def custom_formats_converter(value: dict) -> Dict[str, Tuple[str, dict, bool]]:
+def custom_formats_converter(value: dict) -> dict[str, tuple[str, dict, bool]]:
     """Convert the custom format dict."""
     if not isinstance(value, dict):
         raise TypeError(f"`nb_custom_formats` must be a dict: {value}")
-    output: Dict[str, Tuple[str, dict, bool]] = {}
+    output: dict[str, tuple[str, dict, bool]] = {}
     for suffix, reader in value.items():
         if not isinstance(suffix, str):
             raise TypeError(f"`nb_custom_formats` keys must be a string: {suffix}")
@@ -56,7 +57,7 @@ def custom_formats_converter(value: dict) -> Dict[str, Tuple[str, dict, bool]]:
     return output
 
 
-def ipywidgets_js_factory() -> Dict[str, Dict[str, str]]:
+def ipywidgets_js_factory() -> dict[str, dict[str, str]]:
     """Create a default ipywidgets js dict."""
     # see: https://ipywidgets.readthedocs.io/en/7.6.5/embedding.html
     return {
@@ -128,7 +129,7 @@ class NbParserConfig:
 
     # file read options
 
-    custom_formats: Dict[str, Tuple[str, dict, bool]] = dc.field(
+    custom_formats: dict[str, tuple[str, dict, bool]] = dc.field(
         default_factory=dict,
         metadata={
             "help": "Custom formats for reading notebook; suffix -> reader",
@@ -180,7 +181,7 @@ class NbParserConfig:
 
     # notebook execution options
 
-    kernel_rgx_aliases: Dict[str, str] = dc.field(
+    kernel_rgx_aliases: dict[str, str] = dc.field(
         default_factory=dict,
         metadata={
             "validator": deep_mapping(instance_of(str), instance_of(str)),
@@ -400,7 +401,7 @@ class NbParserConfig:
         },
         repr=False,
     )
-    mime_priority_overrides: Sequence[Tuple[str, str, Optional[int]]] = dc.field(
+    mime_priority_overrides: Sequence[tuple[str, str, int | None]] = dc.field(
         default=(),
         metadata={
             "validator": deep_iterable(
@@ -472,7 +473,7 @@ class NbParserConfig:
             ),
         },
     )
-    render_image_options: Dict[str, str] = dc.field(
+    render_image_options: dict[str, str] = dc.field(
         default_factory=dict,
         # see https://docutils.sourceforge.io/docs/ref/rst/directives.html#image
         metadata={
@@ -489,7 +490,7 @@ class NbParserConfig:
             ),
         },
     )
-    render_figure_options: Dict[str, str] = dc.field(
+    render_figure_options: dict[str, str] = dc.field(
         default_factory=dict,
         # see https://docutils.sourceforge.io/docs/ref/rst/directives.html#figure
         metadata={
@@ -522,7 +523,7 @@ class NbParserConfig:
     # TODO jupyter_sphinx_require_url and jupyter_sphinx_embed_url (undocumented),
     # are no longer used by this package, replaced by ipywidgets_js
     # do we add any deprecation warnings?
-    ipywidgets_js: Dict[str, Dict[str, str]] = dc.field(
+    ipywidgets_js: dict[str, dict[str, str]] = dc.field(
         default_factory=ipywidgets_js_factory,
         metadata={
             "validator": deep_mapping(
@@ -562,13 +563,13 @@ class NbParserConfig:
     )
 
     @classmethod
-    def get_fields(cls) -> Tuple[dc.Field, ...]:
+    def get_fields(cls) -> tuple[dc.Field, ...]:
         return dc.fields(cls)
 
     def as_dict(self, dict_factory=dict) -> dict:
         return dc.asdict(self, dict_factory=dict_factory)
 
-    def as_triple(self) -> Iterable[Tuple[str, Any, dc.Field]]:
+    def as_triple(self) -> Iterable[tuple[str, Any, dc.Field]]:
         """Yield triples of (name, value, field)."""
         fields = {f.name: f for f in dc.fields(self.__class__)}
         for name, value in dc.asdict(self).items():
