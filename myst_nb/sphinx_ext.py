@@ -12,6 +12,7 @@ from typing import Any, Iterator, cast
 
 from myst_parser.sphinx_ext.main import setup_sphinx as setup_myst_parser
 from sphinx.application import Sphinx
+from sphinx.config import Config
 from sphinx.util import logging as sphinx_logging
 from sphinx.util.fileutil import copy_asset_file
 
@@ -38,6 +39,11 @@ OUTPUT_FOLDER = "jupyter_execute"
 # used for deprecated config values,
 # so we can tell if they have been set by a user, and warn them
 _UNSET = "--unset--"
+
+# sphinx-build -D passes these strings. Sphinx itself only converts "0" and "1"
+# when the option's default is a bool.
+_CLI_BOOL_TRUE = frozenset({"1", "true", "yes", "on"})
+_CLI_BOOL_FALSE = frozenset({"0", "false", "no", "off"})
 
 
 def sphinx_setup(app: Sphinx):
@@ -71,6 +77,8 @@ def sphinx_setup(app: Sphinx):
     app.add_source_parser(Parser)
     app.add_source_suffix(".md", "myst-nb", override=True)
     app.add_source_suffix(".ipynb", "myst-nb")
+    # -D boolean strings must be real bools before Sphinx's 0/1 check (priority 800)
+    app.connect("config-inited", coerce_cli_bool_overrides, priority=100)
     # add additional file suffixes for parsing
     app.connect("config-inited", add_nb_custom_formats)
     # ensure notebook checkpoints are excluded from parsing
@@ -121,6 +129,48 @@ def sphinx_setup(app: Sphinx):
         "parallel_read_safe": True,
         "parallel_write_safe": True,
     }
+
+
+def _coerce_cli_bool(value: Any) -> Any:
+    """Return a real bool for the usual ``sphinx-build -D`` spellings."""
+    if not isinstance(value, str):
+        return value
+    token = value.strip().lower()
+    if token in _CLI_BOOL_TRUE:
+        return True
+    if token in _CLI_BOOL_FALSE:
+        return False
+    return value
+
+
+def coerce_cli_bool_overrides(_app: Sphinx, config: Config) -> None:
+    """Accept ``-D nb_execution_allow_errors=True`` as a boolean.
+
+    ``sphinx-build -D`` supplies strings. These options are registered as
+    ``Any``, and a bool default is only converted from ``0`` and ``1``.
+    The string ``True`` would otherwise be rejected before notebook config
+    is built. ``False`` stays false.
+    """
+    names: list[str] = []
+    for name, _default, field in NbParserConfig().as_triple():
+        if field.type is not bool or field.metadata.get("sphinx_exclude"):
+            continue
+        names.append(f"nb_{name}")
+        legacy_name = field.metadata.get("legacy_name")
+        if isinstance(legacy_name, str):
+            names.append(legacy_name)
+    overrides = config.overrides
+    for name in names:
+        if name not in overrides:
+            continue
+        original = overrides[name]
+        coerced = _coerce_cli_bool(original)
+        if coerced is original:
+            continue
+        overrides[name] = coerced
+        # Sphinx logs the config object before this handler, and that repr
+        # caches the original string. Writing the attribute replaces it.
+        config[name] = coerced
 
 
 def add_nb_custom_formats(app: Sphinx, config):
@@ -226,4 +276,6 @@ def add_per_page_html_resources(
         return
     js_files = NbMetadataCollector.get_js_files(cast(SphinxEnvType, app.env), pagename)
     for path, kwargs in js_files.values():
-        app.add_js_file(path, **kwargs)  # type: ignore[arg-type]
+        # Stored options are dict[str, str]. Sphinx types priority as int, so
+        # unpacking that dict fails when this module is checked with the collector.
+        app.add_js_file(path, **cast(dict[str, Any], kwargs))
