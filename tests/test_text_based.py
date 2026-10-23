@@ -68,3 +68,17 @@ def test_basic_nometadata(sphinx_run):
     sphinx_run.build()
     # print(sphinx_run.status())
     assert "Found an unexpected `code-cell`" in sphinx_run.warnings()
+
+
+@pytest.mark.sphinx_params(
+    "nested_code_cell.md",
+    conf={"nb_execution_mode": "off", "source_suffix": {".md": "myst-nb"}},
+)
+def test_nested_code_cell_renders_source(sphinx_run):
+    """Nested code-cell directives cannot become notebook cells, but source must show."""
+    sphinx_run.build()
+    assert "Found an unexpected `code-cell`" in sphinx_run.warnings()
+    html = sphinx_run.get_html()
+    sources = [block.get_text() for block in html.find_all("div", class_="highlight")]
+    assert any("hello from standalone cell" in s for s in sources)
+    assert any("hello from nested cell" in s for s in sources)
