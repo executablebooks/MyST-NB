@@ -71,7 +71,7 @@ nb_execution_mode = "off"
 To exclude certain file patterns from execution, use the following configuration:
 
 ```python
-nb_execution_excludepatterns = ['list', 'of', '*patterns']
+nb_execution_excludepatterns = ["list", "of", "*patterns"]
 ```
 
 Any file that matches one of the items in `nb_execution_excludepatterns` will not be executed.

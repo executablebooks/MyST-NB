@@ -7,9 +7,11 @@ which is then replaced by a table of statistics in a post-transformation
 
 from __future__ import annotations
 
+from collections import defaultdict
+from collections.abc import Callable
 from datetime import datetime
 import posixpath
-from typing import Any, Callable, DefaultDict
+from typing import Any
 
 from docutils import nodes
 from sphinx.addnodes import pending_xref
@@ -104,7 +106,7 @@ _key2transform: dict[str, Callable[[Any], str]] = {
 
 
 def make_stat_table(
-    parent_docname: str, metadata: DefaultDict[str, dict]
+    parent_docname: str, metadata: defaultdict[str, dict]
 ) -> nodes.table:
     """Create a table of statistics on executed notebooks."""
 
@@ -158,7 +160,7 @@ def make_stat_table(
         row.append(nodes.entry("", paragraph))
 
         # other rows
-        for name in _key2header.keys():
+        for name in _key2header:
             paragraph = nodes.paragraph()
             if name == "succeeded" and data[name] is False:
                 paragraph += nodes.abbreviation(
