@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from functools import lru_cache, partial
 from importlib import resources as import_resources
 import os
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from docutils import nodes
 from docutils.core import default_description, publish_cmdline
@@ -153,7 +153,7 @@ class Parser(MystParser):
         notebook = nb_reader.read(inputstring)
 
         # update the global markdown config with the file-level config
-        warning = lambda wtype, msg: create_warning(  # noqa: E731
+        warning = lambda wtype, msg: create_warning(
             document, msg, line=1, append_to=document, subtype=wtype
         )
         nb_reader.md_config = merge_file_level(
