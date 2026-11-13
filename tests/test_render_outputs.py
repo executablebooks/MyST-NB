@@ -3,6 +3,8 @@
 import pytest
 
 from myst_nb.core.render import EntryPointError, load_renderer
+from myst_nb.core.utils import coalesce_streams
+from nbformat import from_dict
 from sphinx.util.fileutil import copy_asset_file
 
 
@@ -114,6 +116,17 @@ def test_merge_streams_parallel(sphinx_run, file_regression):
     assert sphinx_run.warnings() == ""
     doctree = sphinx_run.get_resolved_doctree("merge_streams_parallel")
     file_regression.check(doctree.pformat(), extension=".xml", encoding="utf-8")
+
+
+def test_merge_streams_backspace():
+    """Test that merging streams cancels out characters erased by backspaces."""
+    outputs = [
+        from_dict(
+            {"output_type": "stream", "name": "stdout", "text": "50%\b\b\b100%\n"}
+        ),
+        from_dict({"output_type": "stream", "name": "stderr", "text": "a\bb word\n"}),
+    ]
+    assert [o["text"] for o in coalesce_streams(outputs)] == ["100%\n", "b word\n"]
 
 
 @pytest.mark.sphinx_params(
