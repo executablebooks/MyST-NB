@@ -7,7 +7,7 @@ import re
 from nbformat import NotebookNode
 
 _RGX_CARRIAGERETURN = re.compile(r".*\r(?=[^\n])")
-_RGX_BACKSPACE = re.compile(r"[^\n]\b")
+_RGX_BACKSPACE = re.compile(r"[^\n\x08]\x08")
 
 
 def coalesce_streams(outputs: list[NotebookNode]) -> list[NotebookNode]:
@@ -38,9 +38,7 @@ def coalesce_streams(outputs: list[NotebookNode]) -> list[NotebookNode]:
 
     # process \r and \b characters
     for output in streams.values():
-        old = output["text"]
-        while len(output["text"]) < len(old):
-            old = output["text"]
+        while _RGX_BACKSPACE.search(output["text"]):
             # Cancel out anything-but-newline followed by backspace
             output["text"] = _RGX_BACKSPACE.sub("", output["text"])
         # Replace all carriage returns not followed by newline
